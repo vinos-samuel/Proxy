@@ -1,38 +1,159 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { db } from "./db";
+import { eq, desc, sql, count } from "drizzle-orm";
+import {
+  customers, twinProfiles, factBanks, knowledgeEntries, chatUsage, payments,
+  type Customer, type InsertCustomer, type TwinProfile, type InsertTwinProfile,
+  type FactBank, type InsertFactBank, type KnowledgeEntry, type InsertKnowledgeEntry,
+  type Payment
+} from "@shared/schema";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  // Customers
+  getCustomer(id: string): Promise<Customer | undefined>;
+  getCustomerByEmail(email: string): Promise<Customer | undefined>;
+  getCustomerByUsername(username: string): Promise<Customer | undefined>;
+  createCustomer(data: InsertCustomer): Promise<Customer>;
+  getAllCustomers(): Promise<Customer[]>;
+  updateCustomerStatus(id: string, status: string): Promise<void>;
+
+  // Twin Profiles
+  getProfileByCustomerId(customerId: string): Promise<TwinProfile | undefined>;
+  getProfileByUsername(username: string): Promise<TwinProfile | undefined>;
+  upsertProfile(data: Partial<InsertTwinProfile> & { customerId: string }): Promise<TwinProfile>;
+  updateProfileStatus(id: string, status: string): Promise<void>;
+
+  updateProfileById(id: string, data: Partial<InsertTwinProfile>): Promise<void>;
+
+  // Fact Banks
+  getFactBanksByProfileId(profileId: string): Promise<FactBank[]>;
+  createFactBank(data: InsertFactBank): Promise<FactBank>;
+  deleteFactBanksByProfileId(profileId: string): Promise<void>;
+
+  // Knowledge Entries
+  getKnowledgeEntriesByProfileId(profileId: string): Promise<KnowledgeEntry[]>;
+  createKnowledgeEntry(data: InsertKnowledgeEntry): Promise<KnowledgeEntry>;
+  deleteKnowledgeEntriesByProfileId(profileId: string): Promise<void>;
+
+  // Admin
+  getAdminStats(): Promise<{ totalCustomers: number; publishedProfiles: number; totalRevenue: number }>;
+  getCustomersWithProfiles(): Promise<(Customer & { profile?: TwinProfile | null })[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  async getCustomer(id: string): Promise<Customer | undefined> {
+    const [customer] = await db.select().from(customers).where(eq(customers.id, id));
+    return customer;
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getCustomerByEmail(email: string): Promise<Customer | undefined> {
+    const [customer] = await db.select().from(customers).where(eq(customers.email, email));
+    return customer;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getCustomerByUsername(username: string): Promise<Customer | undefined> {
+    const [customer] = await db.select().from(customers).where(eq(customers.username, username));
+    return customer;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async createCustomer(data: InsertCustomer): Promise<Customer> {
+    const [customer] = await db.insert(customers).values(data).returning();
+    return customer;
+  }
+
+  async getAllCustomers(): Promise<Customer[]> {
+    return db.select().from(customers).orderBy(desc(customers.createdAt));
+  }
+
+  async updateCustomerStatus(id: string, status: string): Promise<void> {
+    await db.update(customers).set({ subscriptionStatus: status }).where(eq(customers.id, id));
+  }
+
+  async getProfileByCustomerId(customerId: string): Promise<TwinProfile | undefined> {
+    const [profile] = await db.select().from(twinProfiles).where(eq(twinProfiles.customerId, customerId));
+    return profile;
+  }
+
+  async getProfileByUsername(username: string): Promise<TwinProfile | undefined> {
+    const customer = await this.getCustomerByUsername(username);
+    if (!customer) return undefined;
+    return this.getProfileByCustomerId(customer.id);
+  }
+
+  async upsertProfile(data: Partial<InsertTwinProfile> & { customerId: string }): Promise<TwinProfile> {
+    const existing = await this.getProfileByCustomerId(data.customerId);
+    if (existing) {
+      const [updated] = await db
+        .update(twinProfiles)
+        .set(data)
+        .where(eq(twinProfiles.id, existing.id))
+        .returning();
+      return updated;
+    }
+    const [profile] = await db.insert(twinProfiles).values(data as InsertTwinProfile).returning();
+    return profile;
+  }
+
+  async updateProfileStatus(id: string, status: string): Promise<void> {
+    await db.update(twinProfiles).set({ status }).where(eq(twinProfiles.id, id));
+  }
+
+  async updateProfileById(id: string, data: Partial<InsertTwinProfile>): Promise<void> {
+    await db.update(twinProfiles).set(data).where(eq(twinProfiles.id, id));
+  }
+
+  async getFactBanksByProfileId(profileId: string): Promise<FactBank[]> {
+    return db.select().from(factBanks).where(eq(factBanks.twinProfileId, profileId));
+  }
+
+  async createFactBank(data: InsertFactBank): Promise<FactBank> {
+    const [fb] = await db.insert(factBanks).values(data).returning();
+    return fb;
+  }
+
+  async deleteFactBanksByProfileId(profileId: string): Promise<void> {
+    await db.delete(factBanks).where(eq(factBanks.twinProfileId, profileId));
+  }
+
+  async getKnowledgeEntriesByProfileId(profileId: string): Promise<KnowledgeEntry[]> {
+    return db.select().from(knowledgeEntries).where(eq(knowledgeEntries.twinProfileId, profileId));
+  }
+
+  async createKnowledgeEntry(data: InsertKnowledgeEntry): Promise<KnowledgeEntry> {
+    const [entry] = await db.insert(knowledgeEntries).values(data).returning();
+    return entry;
+  }
+
+  async deleteKnowledgeEntriesByProfileId(profileId: string): Promise<void> {
+    await db.delete(knowledgeEntries).where(eq(knowledgeEntries.twinProfileId, profileId));
+  }
+
+  async getAdminStats() {
+    const [customerCount] = await db.select({ count: count() }).from(customers);
+    const [publishedCount] = await db
+      .select({ count: count() })
+      .from(twinProfiles)
+      .where(eq(twinProfiles.status, "published"));
+    const [revenueResult] = await db
+      .select({ total: sql<number>`COALESCE(SUM(amount), 0)` })
+      .from(payments)
+      .where(eq(payments.status, "completed"));
+
+    return {
+      totalCustomers: customerCount?.count || 0,
+      publishedProfiles: publishedCount?.count || 0,
+      totalRevenue: Number(revenueResult?.total || 0) / 100,
+    };
+  }
+
+  async getCustomersWithProfiles(): Promise<(Customer & { profile?: TwinProfile | null })[]> {
+    const allCustomers = await this.getAllCustomers();
+    const result = [];
+    for (const customer of allCustomers) {
+      const profile = await this.getProfileByCustomerId(customer.id);
+      result.push({ ...customer, profile: profile || null });
+    }
+    return result;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

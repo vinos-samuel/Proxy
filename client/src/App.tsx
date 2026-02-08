@@ -3,14 +3,66 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { ThemeProvider } from "@/lib/theme";
 import NotFound from "@/pages/not-found";
+import LandingPage from "@/pages/landing";
+import { LoginPage, RegisterPage } from "@/pages/auth";
+import DashboardPage from "@/pages/dashboard";
+import QuestionnairePage from "@/pages/questionnaire";
+import PreviewPage from "@/pages/preview";
+import PortfolioPage from "@/pages/portfolio";
+import AdminPage from "@/pages/admin";
+import { Loader2 } from "lucide-react";
+import { Redirect } from "wouter";
+
+function ProtectedRoute({ component: Component }: { component: () => JSX.Element }) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Redirect to="/login" />;
+  }
+
+  return <Component />;
+}
+
+function GuestRoute({ component: Component }: { component: () => JSX.Element }) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Redirect to="/dashboard" />;
+  }
+
+  return <Component />;
+}
 
 function Router() {
   return (
     <Switch>
-      {/* Add pages below */}
-      {/* <Route path="/" component={Home}/> */}
-      {/* Fallback to 404 */}
+      <Route path="/" component={LandingPage} />
+      <Route path="/login">{() => <GuestRoute component={LoginPage} />}</Route>
+      <Route path="/register">{() => <GuestRoute component={RegisterPage} />}</Route>
+      <Route path="/dashboard">{() => <ProtectedRoute component={DashboardPage} />}</Route>
+      <Route path="/questionnaire">{() => <ProtectedRoute component={QuestionnairePage} />}</Route>
+      <Route path="/preview">{() => <ProtectedRoute component={PreviewPage} />}</Route>
+      <Route path="/admin">{() => <ProtectedRoute component={AdminPage} />}</Route>
+      <Route path="/portfolio/:username" component={PortfolioPage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -19,10 +71,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <AuthProvider>
+            <Toaster />
+            <Router />
+          </AuthProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

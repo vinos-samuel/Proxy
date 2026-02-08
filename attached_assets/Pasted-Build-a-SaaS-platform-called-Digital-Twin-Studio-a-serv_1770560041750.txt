@@ -1,0 +1,155 @@
+Build a SaaS platform called "Digital Twin Studio" — a service that lets professionals create AI-powered interactive portfolio websites (AI CVs) with a chatbot "Digital Twin" that answers questions about their career.
+
+What This Platform Does
+Customer signs up and fills out a multi-step questionnaire about their career
+The platform uses Gemini AI to transform raw answers into structured content
+Customer previews their live AI CV with working chatbot
+Customer pays via Stripe to publish their AI CV at a unique URL
+Admin dashboard for the platform owner to manage customers and track revenue
+Tech Stack
+React 18 + TypeScript + Vite (frontend)
+Express.js + TypeScript (backend)
+PostgreSQL + Drizzle ORM (database)
+Shadcn/Radix UI + Tailwind CSS (UI — dark theme, glassmorphic aesthetic)
+Wouter (routing)
+Framer Motion (animations)
+Google Gemini AI (content processing + chatbot)
+Stripe (payments)
+Resend (transactional emails)
+Database Schema
+customers — id (uuid), email, password_hash, name, username (unique slug for URL), subscription_status (free/preview/paid), stripe_customer_id, custom_domain (nullable), created_at
+
+twin_profiles — id (uuid), customer_id (FK), display_name, role_title, positioning, persona, tone, answer_style, fallback_response, photo_url, video_url, resume_url, status (draft/processing/ready/published)
+
+fact_banks — id (uuid), twin_profile_id (FK), company_name, role_name, facts (text array)
+
+knowledge_entries — id (uuid), twin_profile_id (FK), entry_id (string), type (canonical/experience/playbook/commercial/projects/consulting/philosophy/integrity/contact), title, content (nullable), challenge (nullable), approach (nullable), result (nullable), scale (nullable), intent (text array), keywords (text array)
+
+chat_usage — id (uuid), customer_id (FK), message_count (integer), token_count (integer), month (date), updated_at
+
+payments — id (uuid), customer_id (FK), stripe_payment_id, amount, currency, status, created_at
+
+Page Structure
+Public Pages
+/ — Landing page: value proposition, how it works (3 steps), pricing, demo link, CTA
+/login — Email/password login
+/register — Sign up
+/portfolio/:username — Published AI CV (this is what the customer's audience sees)
+Customer Pages (authenticated)
+/dashboard — Customer's home: status of their AI CV, edit link, usage stats
+/questionnaire — Multi-step form (details below)
+/preview — Live preview of their AI CV with working chatbot
+/checkout — Stripe payment to publish
+Admin Pages (admin role)
+/admin — All customers list, payment status, published/unpublished
+/admin/usage — Gemini API usage per customer, monthly costs
+/admin/revenue — Revenue overview
+Questionnaire (Multi-Step Form)
+Step 1 — Identity & Positioning
+
+Full name
+Current/target role title
+One-line positioning statement ("I am a...")
+Professional persona description
+Preferred tone (dropdown: Direct & Senior / Warm & Approachable / Technical & Precise / Casual & Conversational)
+Step 2 — Career History
+For each company (add up to 5):
+
+Company name
+Role title
+Duration
+5-10 bullet point achievements/facts (these become the Fact Bank)
+Step 3 — Signature Stories (CAR Format)
+Collect 6-8 stories, each with prompts:
+
+Story type (dropdown: Failure/Lesson, Stakeholder Conflict, Commercial Growth, Influence/Change Management, Data-Driven Decision, Building from Zero, Consultative Approach, Gaining Buy-In)
+Story title
+Challenge: "What was the situation or problem?"
+Approach: "What did you do specifically?"
+Result: "What was the outcome? Include metrics if possible."
+Scale: "Context — company, team size, scope"
+Step 4 — Philosophy & Extras
+
+Key books/influences that shape their thinking
+What they explicitly don't claim expertise in (integrity/limits)
+Contact details (email, phone, LinkedIn)
+Step 5 — Assets
+
+Photo upload
+Video upload (optional intro video)
+Resume/CV PDF upload
+Step 6 — Review & Submit
+
+Show summary of all answers
+Submit triggers AI processing
+AI Content Processor (Critical Backend Service)
+When questionnaire is submitted, call Gemini to:
+
+Generate TWIN_IDENTITY from Step 1 answers — structure it as: name, role, positioning, persona, tone, answerStyle, fallback
+
+Generate knowledge_entries from Step 3 stories — for each CAR story:
+
+Create an entry_id from the story type (e.g., "failure-japan-pricing")
+Assign intent tags based on story type (failure → ["behavioral"], commercial growth → ["behavioral", "commercial"])
+Generate 8-12 relevant keywords from the story content
+Keep challenge/approach/result exactly as provided
+Set type to "experience"
+Generate canonical entry — "Tell Me About Yourself" narrative synthesized from all career history
+
+Generate playbook entries if consultative/buy-in stories are provided
+
+Auto-generate detectIntent() regex patterns from the keywords across all entries
+
+Auto-generate routeByPattern() mappings — map common interview question patterns to specific story IDs
+
+Store all generated content in the database tables.
+
+Published Portfolio Renderer
+When someone visits /portfolio/:username:
+
+Load that customer's twin_profile, fact_banks, and knowledge_entries from DB
+
+Render the same UI components as a standalone AI CV:
+
+Introduction section — photo/video, name, positioning, Bento Grid with career highlights
+Digital Twin Console — chatbot powered by Gemini with the customer's system prompt and knowledge base
+Contact section — email dialog
+The chat endpoint /api/chat/:username should:
+
+Load that customer's profile and knowledge base
+Build a system prompt from their TWIN_IDENTITY and career data
+Stream Gemini responses using SSE
+Track usage in chat_usage table
+Stripe Integration
+After preview approval, create a Stripe Checkout session
+Price: configurable (e.g., $99 one-time or $19/month)
+On successful payment webhook, update customer subscription_status to "paid" and twin_profile status to "published"
+Only "published" profiles are accessible at /portfolio/:username
+Intent Detection & Pattern Router
+For each published portfolio, dynamically build:
+
+detectIntent() — map question patterns to intent categories based on the customer's stories:
+
+intro, framing, commercial, behavioral, scenario, consulting, philosophy, contact
+routeByPattern() — hard route common interview questions to specific story IDs:
+
+"tell me about a failure" → their failure story
+"how do you handle conflict" → their conflict story
+etc.
+Fuzzy search with Fuse.js — search across all knowledge entries with these weights:
+
+keywords: 0.35, title: 0.2, content: 0.15, challenge: 0.1, approach: 0.1, result: 0.08, scale: 0.02
+Response ranking — prioritize experience (5) > playbook (4) > commercial (3) > canonical (2) > philosophy (1) > contact (0), with behavioral boost when intent is behavioral.
+
+Key Design Decisions
+Multi-tenant: One app serves all customers. NOT one Repl per customer.
+No database for individual portfolios: All portfolio data lives in the central DB, rendered dynamically.
+Gemini Flash model for chatbot (fast, cheap). Track token usage per customer per month.
+Object storage for photos, videos, and PDFs.
+Glass-morphism dark theme with indigo/violet accents as default portfolio style.
+Important Notes
+Use Replit's Stripe integration for payment handling
+Use Replit's PostgreSQL for the database
+Use Gemini API key stored as a secret (GEMINI_API_KEY)
+Bind frontend to 0.0.0.0:5000
+Add data-testid attributes to all interactive elements

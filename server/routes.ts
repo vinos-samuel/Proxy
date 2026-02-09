@@ -185,11 +185,15 @@ export async function registerRoutes(
 
   app.post("/api/questionnaire/save", requireAuth, async (req: Request, res: Response) => {
     try {
-      await storage.upsertProfile({
+      const existing = await storage.getProfileByCustomerId(req.session.customerId!);
+      const updateData: any = {
         customerId: req.session.customerId!,
         questionnaireData: req.body,
-        status: "draft",
-      });
+      };
+      if (!existing || existing.status === "draft") {
+        updateData.status = "draft";
+      }
+      await storage.upsertProfile(updateData);
       res.json({ message: "Saved" });
     } catch (error) {
       console.error("Save error:", error);
@@ -244,6 +248,24 @@ export async function registerRoutes(
       const entries = await storage.getKnowledgeEntriesByProfileId(profile.id);
       const questionnaireData = profile.questionnaireData as any;
 
+      const contact = questionnaireData?.step1
+        ? {
+            email: questionnaireData.step1.email || null,
+            phone: questionnaireData.step1.phone || null,
+            linkedin: questionnaireData.step1.linkedinUrl || null,
+            location: questionnaireData.step1.location || null,
+          }
+        : {
+            email: questionnaireData?.step4?.contactEmail || null,
+            phone: questionnaireData?.step4?.contactPhone || null,
+            linkedin: questionnaireData?.step4?.contactLinkedin || null,
+            location: null,
+          };
+
+      const suggestedQuestions = questionnaireData?.step11?.suggestedQuestions
+        ? questionnaireData.step11.suggestedQuestions.split("\n").filter(Boolean).slice(0, 4)
+        : [];
+
       res.json({
         profile: {
           displayName: profile.displayName,
@@ -251,16 +273,17 @@ export async function registerRoutes(
           positioning: profile.positioning,
           persona: profile.persona,
           tone: profile.tone,
-          photoUrl: profile.photoUrl,
-          resumeUrl: profile.resumeUrl,
+          photoUrl: profile.photoUrl || questionnaireData?.step10?.photoUrl || null,
+          resumeUrl: profile.resumeUrl || questionnaireData?.step3?.resumeUrl || null,
+          colorStyle: questionnaireData?.step10?.colorStyle || "indigo-violet",
+          logoUrl: questionnaireData?.step10?.logoUrl || null,
+          technicalSkills: questionnaireData?.step6?.technicalSkills || null,
+          achievements: questionnaireData?.step5?.achievements || null,
         },
         factBanks: factBanksList,
         knowledgeEntries: entries,
-        contact: {
-          email: questionnaireData?.step4?.contactEmail || null,
-          phone: questionnaireData?.step4?.contactPhone || null,
-          linkedin: questionnaireData?.step4?.contactLinkedin || null,
-        },
+        contact,
+        suggestedQuestions,
       });
     } catch (error) {
       console.error("Portfolio error:", error);
@@ -334,8 +357,14 @@ export async function registerRoutes(
         direct: "Be direct, confident, and concise. Speak with authority and seniority.",
         warm: "Be warm, approachable, and friendly. Explain clearly with empathy.",
         technical: "Be technical, precise, and detail-oriented. Use specific terminology where appropriate.",
+        strategic: "Be strategic, consultative, and big-picture. Think in frameworks and trade-offs.",
         casual: "Be casual, conversational, and relatable. Speak naturally as if chatting with a friend.",
       };
+
+      const questionnaireData = profile.questionnaireData as any;
+      const wordsUsed = questionnaireData?.step7?.wordsUsedOften || "";
+      const wordsAvoided = questionnaireData?.step7?.wordsAvoided || "";
+      const specialInstructions = questionnaireData?.step11?.specialInstructions || "";
 
       const systemPrompt = `You are the Digital Twin of ${profile.displayName}, a ${profile.roleTitle}.
 
@@ -343,11 +372,12 @@ IDENTITY:
 - Name: ${profile.displayName}
 - Role: ${profile.roleTitle}
 - Positioning: ${profile.positioning}
-- Persona: ${profile.persona}
 
 COMMUNICATION STYLE:
 ${toneInstructions[profile.tone || "direct"] || toneInstructions.direct}
 ${profile.answerStyle || ""}
+${wordsUsed ? `\nWords/phrases to USE naturally: ${wordsUsed}` : ""}
+${wordsAvoided ? `\nWords/phrases to NEVER use: ${wordsAvoided}` : ""}
 
 KNOWLEDGE BASE:
 ${knowledgeContext}
@@ -355,13 +385,16 @@ ${knowledgeContext}
 CAREER FACTS:
 ${factContext}
 
+${specialInstructions ? `SPECIAL INSTRUCTIONS:\n${specialInstructions}\n` : ""}
+
 RULES:
 1. Always respond in first person as ${profile.displayName}.
 2. Draw from the knowledge base above to answer questions accurately.
 3. If asked about something not in your knowledge base, say: "${profile.fallbackResponse || "That's outside my expertise."}"
 4. Keep responses focused and relevant. Use specific examples from the knowledge base.
 5. Never make up facts or experiences not in the knowledge base.
-6. Be engaging and professional.`;
+6. Be engaging and professional.
+7. Use the words/phrases listed above naturally, and avoid the ones marked to avoid.`;
 
       // Set up SSE
       res.setHeader("Content-Type", "text/event-stream");

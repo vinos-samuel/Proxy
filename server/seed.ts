@@ -50,12 +50,38 @@ export async function seedDatabase() {
       resumeUrl: null,
       status: "published",
       questionnaireData: {
-        step4: {
-          contactEmail: "sarah@example.com",
-          contactLinkedin: "linkedin.com/in/sarahchen",
-          contactPhone: "",
-          influences: "Inspired by 'An Elegant Puzzle' by Will Larson, 'Radical Candor' by Kim Scott, and 'The Manager's Path' by Camille Fournier.",
-          limitations: "I don't claim deep expertise in AI/ML algorithms, hardware engineering, or cybersecurity. I defer to specialists in these areas.",
+        step1: {
+          fullName: "Sarah Chen",
+          currentTitle: "VP of Engineering",
+          email: "sarah@example.com",
+          phone: "",
+          linkedinUrl: "linkedin.com/in/sarahchen",
+          location: "San Francisco, CA",
+        },
+        step2: {
+          professionalSummary: "I build world-class engineering teams that deliver products users love. The rare engineering leader who combines deep technical expertise with business acumen - I don't just build systems, I build organizations that scale.",
+        },
+        step5: {
+          achievements: "Scaled engineering team from 30 to 180 engineers in 2 years\nLaunched 3 major product lines generating $45M ARR\nReduced deployment failures by 85% through CI/CD improvements\nBuilt real-time data pipeline processing 2B events/day\nAchieved 99.99% uptime SLA for mission-critical services\nMentored 8 engineers into senior+ roles",
+        },
+        step6: {
+          technicalSkills: "Kubernetes, AWS, GCP, Python, Go, TypeScript, React, PostgreSQL, Redis, Kafka, CI/CD, Terraform, System Design, Microservices Architecture",
+        },
+        step7: {
+          communicationStyle: "direct",
+          wordsUsedOften: "at scale, trade-offs, outcomes, leverage, first principles",
+          wordsAvoided: "synergy, circle back, low-hanging fruit",
+          writingSample: "",
+        },
+        step10: {
+          colorStyle: "indigo-violet",
+          photoUrl: "",
+          logoUrl: "",
+        },
+        step11: {
+          suggestedQuestions: "Tell me about yourself\nWhat's your leadership philosophy?\nHow do you handle scaling challenges?\nWhat's your biggest career achievement?",
+          specialInstructions: "",
+          easterEgg: "I compete in amateur triathlons and once finished an Ironman. It taught me more about perseverance than any work challenge ever did.",
         },
       },
     });

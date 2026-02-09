@@ -14,82 +14,130 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Bot, ArrowRight, ArrowLeft, Plus, Trash2, Loader2, CheckCircle,
-  User, Briefcase, BookOpen, Heart, Upload, Send, Sparkles
+  User, Briefcase, BookOpen, MessageSquare, Shield, Palette,
+  Upload, Send, Sparkles, Target, Wrench, Mic, HelpCircle
 } from "lucide-react";
 import { Link } from "wouter";
 
 const STEPS = [
-  { id: 1, title: "Identity", icon: User, description: "Who you are professionally" },
-  { id: 2, title: "Career History", icon: Briefcase, description: "Your work experience" },
-  { id: 3, title: "Signature Stories", icon: BookOpen, description: "Key career moments (CAR format)" },
-  { id: 4, title: "Philosophy", icon: Heart, description: "Your thinking and values" },
-  { id: 5, title: "Assets", icon: Upload, description: "Photo and resume" },
-  { id: 6, title: "Review", icon: Send, description: "Review and submit" },
+  { id: 1, title: "Basic Information", icon: User, description: "Your name, contact details and location" },
+  { id: 2, title: "Professional Summary", icon: Target, description: "Your positioning statement and superpower" },
+  { id: 3, title: "Career History", icon: Briefcase, description: "Your resume and work experience" },
+  { id: 4, title: "War Stories", icon: BookOpen, description: "Your high-stakes professional stories (min 3)" },
+  { id: 5, title: "Metrics & Achievements", icon: Sparkles, description: "Your quantifiable achievements" },
+  { id: 6, title: "Technical Skills", icon: Wrench, description: "Platforms, tools and methodologies" },
+  { id: 7, title: "Voice & Personality", icon: Mic, description: "How your AI Twin should communicate" },
+  { id: 8, title: "Common Questions", icon: HelpCircle, description: "Questions visitors might ask" },
+  { id: 9, title: "Objection Handling", icon: Shield, description: "How to handle tough questions" },
+  { id: 10, title: "Branding & Assets", icon: Palette, description: "Visual branding and media" },
+  { id: 11, title: "Chatbot Setup", icon: MessageSquare, description: "Configure your chatbot experience" },
+  { id: 12, title: "Review & Submit", icon: Send, description: "Review everything and submit" },
 ];
 
-const TONES = [
-  { value: "direct", label: "Direct & Senior" },
-  { value: "warm", label: "Warm & Approachable" },
-  { value: "technical", label: "Technical & Precise" },
-  { value: "casual", label: "Casual & Conversational" },
+const COMMUNICATION_STYLES = [
+  { value: "direct", label: "Direct and no-nonsense" },
+  { value: "warm", label: "Warm and conversational" },
+  { value: "technical", label: "Technical and precise" },
+  { value: "strategic", label: "Strategic and consultative" },
 ];
 
-const STORY_TYPES = [
-  { value: "failure", label: "Failure / Lesson" },
-  { value: "conflict", label: "Stakeholder Conflict" },
-  { value: "commercial", label: "Commercial Growth" },
-  { value: "influence", label: "Influence / Change Management" },
-  { value: "data-driven", label: "Data-Driven Decision" },
-  { value: "building", label: "Building from Zero" },
-  { value: "consultative", label: "Consultative Approach" },
-  { value: "buy-in", label: "Gaining Buy-In" },
+const COLOR_STYLES = [
+  { value: "indigo-violet", label: "Indigo & Violet (Default)" },
+  { value: "blue-cyan", label: "Blue & Cyan" },
+  { value: "emerald-teal", label: "Emerald & Teal" },
+  { value: "rose-pink", label: "Rose & Pink" },
+  { value: "amber-orange", label: "Amber & Orange" },
+  { value: "slate-gray", label: "Slate & Gray (Minimal)" },
 ];
 
-interface QuestionnaireData {
+export interface QuestionnaireData {
   step1: {
     fullName: string;
-    roleTitle: string;
-    positioning: string;
-    persona: string;
-    tone: string;
+    currentTitle: string;
+    email: string;
+    phone: string;
+    linkedinUrl: string;
+    location: string;
   };
   step2: {
-    careers: Array<{
-      companyName: string;
-      roleTitle: string;
-      duration: string;
-      facts: string[];
-    }>;
+    professionalSummary: string;
   };
   step3: {
+    resumeUrl: string;
+  };
+  step4: {
     stories: Array<{
-      type: string;
       title: string;
       challenge: string;
       approach: string;
       result: string;
-      scale: string;
     }>;
   };
-  step4: {
-    influences: string;
-    limitations: string;
-    contactEmail: string;
-    contactPhone: string;
-    contactLinkedin: string;
-  };
   step5: {
+    achievements: string;
+  };
+  step6: {
+    technicalSkills: string;
+  };
+  step7: {
+    communicationStyle: string;
+    wordsUsedOften: string;
+    wordsAvoided: string;
+    writingSample: string;
+  };
+  step8: {
+    questions: Array<{
+      question: string;
+      answer: string;
+    }>;
+  };
+  step9: {
+    objections: Array<{
+      objection: string;
+      response: string;
+    }>;
+  };
+  step10: {
+    colorStyle: string;
     photoUrl: string;
-    resumeUrl: string;
+    logoUrl: string;
+  };
+  step11: {
+    suggestedQuestions: string;
+    specialInstructions: string;
+    easterEgg: string;
   };
 }
 
 const defaultData: QuestionnaireData = {
-  step1: { fullName: "", roleTitle: "", positioning: "", persona: "", tone: "direct" },
-  step2: { careers: [{ companyName: "", roleTitle: "", duration: "", facts: [""] }] },
-  step3: { stories: [{ type: "failure", title: "", challenge: "", approach: "", result: "", scale: "" }] },
-  step4: { influences: "", limitations: "", contactEmail: "", contactPhone: "", contactLinkedin: "" },
-  step5: { photoUrl: "", resumeUrl: "" },
+  step1: { fullName: "", currentTitle: "", email: "", phone: "", linkedinUrl: "", location: "" },
+  step2: { professionalSummary: "" },
+  step3: { resumeUrl: "" },
+  step4: {
+    stories: [
+      { title: "", challenge: "", approach: "", result: "" },
+      { title: "", challenge: "", approach: "", result: "" },
+      { title: "", challenge: "", approach: "", result: "" },
+    ],
+  },
+  step5: { achievements: "" },
+  step6: { technicalSkills: "" },
+  step7: { communicationStyle: "direct", wordsUsedOften: "", wordsAvoided: "", writingSample: "" },
+  step8: {
+    questions: [
+      { question: "", answer: "" },
+      { question: "", answer: "" },
+      { question: "", answer: "" },
+    ],
+  },
+  step9: {
+    objections: [
+      { objection: "", response: "" },
+      { objection: "", response: "" },
+    ],
+  },
+  step10: { colorStyle: "indigo-violet", photoUrl: "", logoUrl: "" },
+  step11: { suggestedQuestions: "", specialInstructions: "", easterEgg: "" },
 };
 
 export default function QuestionnairePage() {
@@ -110,7 +158,25 @@ export default function QuestionnairePage() {
 
   useEffect(() => {
     if (existingProfile?.questionnaireData) {
-      setData({ ...defaultData, ...(existingProfile.questionnaireData as any) });
+      const saved = existingProfile.questionnaireData as any;
+      setData(prev => {
+        const merged = { ...defaultData };
+        for (const key of Object.keys(defaultData) as (keyof QuestionnaireData)[]) {
+          if (saved[key]) {
+            merged[key] = { ...defaultData[key], ...saved[key] } as any;
+          }
+        }
+        if (saved.step4?.stories?.length >= 3) {
+          merged.step4.stories = saved.step4.stories;
+        }
+        if (saved.step8?.questions?.length >= 3) {
+          merged.step8.questions = saved.step8.questions;
+        }
+        if (saved.step9?.objections?.length >= 2) {
+          merged.step9.objections = saved.step9.objections;
+        }
+        return merged;
+      });
     }
   }, [existingProfile]);
 
@@ -129,7 +195,7 @@ export default function QuestionnairePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-      toast({ title: "Submitted!", description: "AI is processing your content. This may take a moment." });
+      toast({ title: "Submitted!", description: "AI is processing your content. This may take a few minutes." });
       navigate("/dashboard");
     },
     onError: (err: any) => {
@@ -143,91 +209,104 @@ export default function QuestionnairePage() {
     if (currentStep < STEPS.length) {
       saveMutation.mutate(data);
       setCurrentStep(currentStep + 1);
+      window.scrollTo(0, 0);
     }
   };
 
   const goBack = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
-  };
-
-  const updateStep1 = (field: string, value: string) => {
-    setData(d => ({ ...d, step1: { ...d.step1, [field]: value } }));
-  };
-
-  const addCareer = () => {
-    if (data.step2.careers.length < 5) {
-      setData(d => ({
-        ...d,
-        step2: {
-          careers: [...d.step2.careers, { companyName: "", roleTitle: "", duration: "", facts: [""] }],
-        },
-      }));
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      window.scrollTo(0, 0);
     }
   };
 
-  const removeCareer = (idx: number) => {
-    setData(d => ({
-      ...d,
-      step2: { careers: d.step2.careers.filter((_, i) => i !== idx) },
-    }));
-  };
-
-  const updateCareer = (idx: number, field: string, value: any) => {
-    setData(d => ({
-      ...d,
-      step2: {
-        careers: d.step2.careers.map((c, i) => (i === idx ? { ...c, [field]: value } : c)),
-      },
-    }));
-  };
-
-  const addFact = (careerIdx: number) => {
-    setData(d => ({
-      ...d,
-      step2: {
-        careers: d.step2.careers.map((c, i) =>
-          i === careerIdx ? { ...c, facts: [...c.facts, ""] } : c
-        ),
-      },
-    }));
-  };
-
-  const updateFact = (careerIdx: number, factIdx: number, value: string) => {
-    setData(d => ({
-      ...d,
-      step2: {
-        careers: d.step2.careers.map((c, i) =>
-          i === careerIdx
-            ? { ...c, facts: c.facts.map((f, fi) => (fi === factIdx ? value : f)) }
-            : c
-        ),
-      },
-    }));
+  const updateField = (step: keyof QuestionnaireData, field: string, value: any) => {
+    setData(d => ({ ...d, [step]: { ...(d[step] as any), [field]: value } }));
   };
 
   const addStory = () => {
-    if (data.step3.stories.length < 8) {
+    if (data.step4.stories.length < 10) {
       setData(d => ({
         ...d,
-        step3: {
-          stories: [...d.step3.stories, { type: "failure", title: "", challenge: "", approach: "", result: "", scale: "" }],
+        step4: {
+          stories: [...d.step4.stories, { title: "", challenge: "", approach: "", result: "" }],
         },
       }));
     }
   };
 
   const removeStory = (idx: number) => {
-    setData(d => ({
-      ...d,
-      step3: { stories: d.step3.stories.filter((_, i) => i !== idx) },
-    }));
+    if (data.step4.stories.length > 3) {
+      setData(d => ({
+        ...d,
+        step4: { stories: d.step4.stories.filter((_, i) => i !== idx) },
+      }));
+    }
   };
 
   const updateStory = (idx: number, field: string, value: string) => {
     setData(d => ({
       ...d,
-      step3: {
-        stories: d.step3.stories.map((s, i) => (i === idx ? { ...s, [field]: value } : s)),
+      step4: {
+        stories: d.step4.stories.map((s, i) => (i === idx ? { ...s, [field]: value } : s)),
+      },
+    }));
+  };
+
+  const addQuestion = () => {
+    if (data.step8.questions.length < 10) {
+      setData(d => ({
+        ...d,
+        step8: {
+          questions: [...d.step8.questions, { question: "", answer: "" }],
+        },
+      }));
+    }
+  };
+
+  const removeQuestion = (idx: number) => {
+    if (data.step8.questions.length > 3) {
+      setData(d => ({
+        ...d,
+        step8: { questions: d.step8.questions.filter((_, i) => i !== idx) },
+      }));
+    }
+  };
+
+  const updateQuestion = (idx: number, field: string, value: string) => {
+    setData(d => ({
+      ...d,
+      step8: {
+        questions: d.step8.questions.map((q, i) => (i === idx ? { ...q, [field]: value } : q)),
+      },
+    }));
+  };
+
+  const addObjection = () => {
+    if (data.step9.objections.length < 10) {
+      setData(d => ({
+        ...d,
+        step9: {
+          objections: [...d.step9.objections, { objection: "", response: "" }],
+        },
+      }));
+    }
+  };
+
+  const removeObjection = (idx: number) => {
+    if (data.step9.objections.length > 2) {
+      setData(d => ({
+        ...d,
+        step9: { objections: d.step9.objections.filter((_, i) => i !== idx) },
+      }));
+    }
+  };
+
+  const updateObjection = (idx: number, field: string, value: string) => {
+    setData(d => ({
+      ...d,
+      step9: {
+        objections: d.step9.objections.map((o, i) => (i === idx ? { ...o, [field]: value } : o)),
       },
     }));
   };
@@ -242,7 +321,6 @@ export default function QuestionnairePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto max-w-4xl px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/dashboard">
@@ -250,17 +328,25 @@ export default function QuestionnairePage() {
               <div className="h-8 w-8 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
                 <Bot className="h-4 w-4 text-white" />
               </div>
-              <span className="font-semibold">Questionnaire</span>
+              <span className="font-semibold">Context Ingestion</span>
             </div>
           </Link>
-          <Badge variant="secondary" className="text-xs">
-            {saveMutation.isPending ? "Saving..." : "Auto-saved"}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              {saveMutation.isPending ? "Saving..." : "Auto-saved"}
+            </Badge>
+          </div>
         </div>
       </nav>
 
       <div className="mx-auto max-w-4xl px-6 py-8">
-        {/* Progress */}
+        <div className="mb-4 p-4 rounded-md border border-white/10 bg-white/5 backdrop-blur-xl">
+          <p className="text-sm text-muted-foreground">
+            Please complete this form so we can build a personalised experience that represents you authentically. 
+            Your own Digital Twin (AI CV). Do not rush, take your time.
+          </p>
+        </div>
+
         <div className="mb-8">
           <div className="flex items-center justify-between gap-4 mb-3 flex-wrap">
             <h2 className="text-xl font-semibold">Step {currentStep}: {STEPS[currentStep - 1].title}</h2>
@@ -270,7 +356,6 @@ export default function QuestionnairePage() {
           <p className="text-sm text-muted-foreground mt-2">{STEPS[currentStep - 1].description}</p>
         </div>
 
-        {/* Step Content */}
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -279,426 +364,615 @@ export default function QuestionnairePage() {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
           >
+            {/* STEP 1: Basic Information */}
             {currentStep === 1 && (
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <Label>Full Name</Label>
+                  <Label>Full Name *</Label>
                   <Input
                     value={data.step1.fullName}
-                    onChange={e => updateStep1("fullName", e.target.value)}
+                    onChange={e => updateField("step1", "fullName", e.target.value)}
                     placeholder="Jane Smith"
                     data-testid="input-fullname"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Current / Target Role Title</Label>
+                  <Label>Current Title *</Label>
                   <Input
-                    value={data.step1.roleTitle}
-                    onChange={e => updateStep1("roleTitle", e.target.value)}
+                    value={data.step1.currentTitle}
+                    onChange={e => updateField("step1", "currentTitle", e.target.value)}
                     placeholder="Senior Product Manager"
-                    data-testid="input-role-title"
+                    data-testid="input-current-title"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>One-Line Positioning Statement</Label>
+                  <Label>Email Address</Label>
                   <Input
-                    value={data.step1.positioning}
-                    onChange={e => updateStep1("positioning", e.target.value)}
-                    placeholder='I am a product leader who turns complex problems into elegant solutions'
-                    data-testid="input-positioning"
+                    type="email"
+                    value={data.step1.email}
+                    onChange={e => updateField("step1", "email", e.target.value)}
+                    placeholder="you@example.com"
+                    data-testid="input-email"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Professional Persona Description</Label>
-                  <Textarea
-                    value={data.step1.persona}
-                    onChange={e => updateStep1("persona", e.target.value)}
-                    placeholder="Describe your professional personality, how you approach work..."
-                    className="min-h-[100px]"
-                    data-testid="input-persona"
+                  <Label>Phone Number (Include Country Code) *</Label>
+                  <Input
+                    value={data.step1.phone}
+                    onChange={e => updateField("step1", "phone", e.target.value)}
+                    placeholder="+44 7700 900000"
+                    data-testid="input-phone"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Preferred Tone</Label>
-                  <Select value={data.step1.tone} onValueChange={v => updateStep1("tone", v)}>
-                    <SelectTrigger data-testid="select-tone">
-                      <SelectValue placeholder="Choose a tone" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TONES.map(t => (
-                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>LinkedIn URL</Label>
+                  <Input
+                    value={data.step1.linkedinUrl}
+                    onChange={e => updateField("step1", "linkedinUrl", e.target.value)}
+                    placeholder="linkedin.com/in/yourname"
+                    data-testid="input-linkedin"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Location (City, Country) *</Label>
+                  <Input
+                    value={data.step1.location}
+                    onChange={e => updateField("step1", "location", e.target.value)}
+                    placeholder="London, United Kingdom"
+                    data-testid="input-location"
+                  />
                 </div>
               </div>
             )}
 
+            {/* STEP 2: Professional Summary */}
             {currentStep === 2 && (
-              <div className="space-y-6">
-                {data.step2.careers.map((career, ci) => (
-                  <Card key={ci} className="border-white/10 bg-white/5 backdrop-blur-xl">
-                    <CardContent className="p-5 space-y-4">
-                      <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-medium">Company {ci + 1}</h3>
-                        {data.step2.careers.length > 1 && (
-                          <Button variant="ghost" size="icon" onClick={() => removeCareer(ci)} data-testid={`button-remove-career-${ci}`}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        )}
-                      </div>
-                      <div className="grid md:grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label>Company Name</Label>
-                          <Input
-                            value={career.companyName}
-                            onChange={e => updateCareer(ci, "companyName", e.target.value)}
-                            placeholder="Acme Corp"
-                            data-testid={`input-company-${ci}`}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Role Title</Label>
-                          <Input
-                            value={career.roleTitle}
-                            onChange={e => updateCareer(ci, "roleTitle", e.target.value)}
-                            placeholder="Product Manager"
-                            data-testid={`input-career-role-${ci}`}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Duration</Label>
-                          <Input
-                            value={career.duration}
-                            onChange={e => updateCareer(ci, "duration", e.target.value)}
-                            placeholder="2020 - 2023"
-                            data-testid={`input-duration-${ci}`}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Key Achievements / Facts</Label>
-                        {career.facts.map((fact, fi) => (
-                          <Input
-                            key={fi}
-                            value={fact}
-                            onChange={e => updateFact(ci, fi, e.target.value)}
-                            placeholder={`Achievement ${fi + 1}`}
-                            data-testid={`input-fact-${ci}-${fi}`}
-                          />
-                        ))}
-                        {career.facts.length < 10 && (
-                          <Button variant="outline" size="sm" onClick={() => addFact(ci)} data-testid={`button-add-fact-${ci}`}>
-                            <Plus className="mr-1 h-3 w-3" /> Add Fact
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                {data.step2.careers.length < 5 && (
-                  <Button variant="outline" onClick={addCareer} data-testid="button-add-career">
-                    <Plus className="mr-2 h-4 w-4" /> Add Company
-                  </Button>
-                )}
+              <div className="space-y-5">
+                <div className="p-4 rounded-md border border-white/10 bg-white/5">
+                  <p className="text-sm text-muted-foreground">
+                    In a few paragraphs, describe your positioning statement (what you do and who you help) 
+                    and your Superpower / Differentiator (your unique angle - what makes you different from others with similar titles).
+                  </p>
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs text-muted-foreground italic">
+                      Example: "I'm a commercial HR operator who builds talent systems that scale - from strategy to VMS configuration."
+                    </p>
+                    <p className="text-xs text-muted-foreground italic">
+                      Example: "The 'Barbell' profile - combines C-suite strategy with hands-on tech implementation. Doesn't just make the slide deck, configures the system."
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Professional Summary & Superpower *</Label>
+                  <Textarea
+                    value={data.step2.professionalSummary}
+                    onChange={e => updateField("step2", "professionalSummary", e.target.value)}
+                    placeholder="Describe your positioning statement and what makes you uniquely different..."
+                    className="min-h-[200px]"
+                    data-testid="input-professional-summary"
+                  />
+                </div>
               </div>
             )}
 
+            {/* STEP 3: Career History */}
             {currentStep === 3 && (
+              <div className="space-y-5">
+                <div className="p-4 rounded-md border border-white/10 bg-white/5">
+                  <p className="text-sm text-muted-foreground">
+                    Provide a link to your most recent resume/CV. This helps the AI understand your full career history.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Resume / CV URL *</Label>
+                  <Input
+                    value={data.step3.resumeUrl}
+                    onChange={e => updateField("step3", "resumeUrl", e.target.value)}
+                    placeholder="https://drive.google.com/file/d/... or link to your CV"
+                    data-testid="input-resume-url"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    You can use Google Drive, Dropbox, or any file hosting service. Make sure the link is publicly accessible.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 4: War Stories */}
+            {currentStep === 4 && (
               <div className="space-y-6">
-                <p className="text-sm text-muted-foreground">
-                  Share 1-8 signature stories in Challenge-Approach-Result format.
-                </p>
-                {data.step3.stories.map((story, si) => (
+                <div className="p-4 rounded-md border border-white/10 bg-white/5">
+                  <p className="text-sm text-muted-foreground">
+                    A professional war story is a firsthand account of a high-stakes, challenging work experience.
+                    Don't worry about grammar. Brain dump the details. The more context you give (the 'why', the political pressure, 
+                    the specific trade-offs), the smarter your AI will be. Minimum 3 required.
+                  </p>
+                </div>
+                {data.step4.stories.map((story, si) => (
                   <Card key={si} className="border-white/10 bg-white/5 backdrop-blur-xl">
                     <CardContent className="p-5 space-y-4">
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-medium">Story {si + 1}</h3>
-                        {data.step3.stories.length > 1 && (
+                        <h3 className="font-medium">War Story {si + 1} {si < 3 && "*"}</h3>
+                        {data.step4.stories.length > 3 && (
                           <Button variant="ghost" size="icon" onClick={() => removeStory(si)} data-testid={`button-remove-story-${si}`}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         )}
                       </div>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Story Type</Label>
-                          <Select value={story.type} onValueChange={v => updateStory(si, "type", v)}>
-                            <SelectTrigger data-testid={`select-story-type-${si}`}>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {STORY_TYPES.map(t => (
-                                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Story Title</Label>
-                          <Input
-                            value={story.title}
-                            onChange={e => updateStory(si, "title", e.target.value)}
-                            placeholder="How I turned a failing project around"
-                            data-testid={`input-story-title-${si}`}
-                          />
-                        </div>
+                      <div className="space-y-2">
+                        <Label>Story Title {si < 3 && "*"}</Label>
+                        <Input
+                          value={story.title}
+                          onChange={e => updateStory(si, "title", e.target.value)}
+                          placeholder={si === 0 ? "e.g., 'The $100M Contingent Workforce Transformation'" : "Enter a descriptive title"}
+                          data-testid={`input-story-title-${si}`}
+                        />
                       </div>
                       <div className="space-y-2">
-                        <Label>Challenge</Label>
+                        <Label>Challenge (What was the problem or situation? 3-4 sentences) {si < 3 && "*"}</Label>
                         <Textarea
                           value={story.challenge}
                           onChange={e => updateStory(si, "challenge", e.target.value)}
-                          placeholder="What was the situation or problem?"
-                          className="min-h-[80px]"
+                          placeholder="What was the problem or situation?"
+                          className="min-h-[100px]"
                           data-testid={`input-challenge-${si}`}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Approach</Label>
+                        <Label>Approach (What did YOU specifically do? 3-4 sentences with actions) {si < 3 && "*"}</Label>
                         <Textarea
                           value={story.approach}
                           onChange={e => updateStory(si, "approach", e.target.value)}
                           placeholder="What did you do specifically?"
-                          className="min-h-[80px]"
+                          className="min-h-[100px]"
                           data-testid={`input-approach-${si}`}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Result</Label>
+                        <Label>Result (What was the measurable outcome? Include metrics: %, $, etc.) {si < 3 && "*"}</Label>
                         <Textarea
                           value={story.result}
                           onChange={e => updateStory(si, "result", e.target.value)}
-                          placeholder="What was the outcome? Include metrics if possible."
+                          placeholder="What was the measurable outcome?"
                           className="min-h-[80px]"
                           data-testid={`input-result-${si}`}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Scale / Context</Label>
-                        <Input
-                          value={story.scale}
-                          onChange={e => updateStory(si, "scale", e.target.value)}
-                          placeholder="Company size, team scope, budget..."
-                          data-testid={`input-scale-${si}`}
                         />
                       </div>
                     </CardContent>
                   </Card>
                 ))}
-                {data.step3.stories.length < 8 && (
+                {data.step4.stories.length < 10 && (
                   <Button variant="outline" onClick={addStory} data-testid="button-add-story">
-                    <Plus className="mr-2 h-4 w-4" /> Add Story
+                    <Plus className="mr-2 h-4 w-4" /> Add Another War Story
                   </Button>
                 )}
               </div>
             )}
 
-            {currentStep === 4 && (
+            {/* STEP 5: Key Metrics & Achievements */}
+            {currentStep === 5 && (
+              <div className="space-y-5">
+                <div className="p-4 rounded-md border border-white/10 bg-white/5">
+                  <p className="text-sm text-muted-foreground">
+                    List your 5-10 most quantifiable achievements, one per line.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1 italic">
+                    Example: "Managed $100M+ contingent workforce spend"
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Key Metrics & Achievements *</Label>
+                  <Textarea
+                    value={data.step5.achievements}
+                    onChange={e => updateField("step5", "achievements", e.target.value)}
+                    placeholder={"Managed $100M+ contingent workforce spend\nReduced time-to-hire by 40%\nLed a team of 25+ engineers\n..."}
+                    className="min-h-[200px]"
+                    data-testid="input-achievements"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* STEP 6: Technical Skills & Tools */}
+            {currentStep === 6 && (
+              <div className="space-y-5">
+                <div className="p-4 rounded-md border border-white/10 bg-white/5">
+                  <p className="text-sm text-muted-foreground">
+                    List platforms, tools, and methodologies you're proficient in.
+                    If it's already in your CV, you can skip this.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Technical Skills & Tools</Label>
+                  <Textarea
+                    value={data.step6.technicalSkills}
+                    onChange={e => updateField("step6", "technicalSkills", e.target.value)}
+                    placeholder="e.g., Python, Salesforce, Agile, Google Analytics, SAP, Workday..."
+                    className="min-h-[150px]"
+                    data-testid="input-technical-skills"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* STEP 7: Voice & Personality */}
+            {currentStep === 7 && (
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <Label>Key Books / Influences</Label>
+                  <Label>How would you describe your general communication style? *</Label>
+                  <Select
+                    value={data.step7.communicationStyle}
+                    onValueChange={v => updateField("step7", "communicationStyle", v)}
+                  >
+                    <SelectTrigger data-testid="select-communication-style">
+                      <SelectValue placeholder="Choose your style" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COMMUNICATION_STYLES.map(s => (
+                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Words/phrases you USE often *</Label>
                   <Textarea
-                    value={data.step4.influences}
-                    onChange={e => setData(d => ({ ...d, step4: { ...d.step4, influences: e.target.value } }))}
-                    placeholder="Books, mentors, or experiences that shaped your thinking..."
+                    value={data.step7.wordsUsedOften}
+                    onChange={e => updateField("step7", "wordsUsedOften", e.target.value)}
+                    placeholder="e.g., 'levers', 'trade-offs', 'at scale', 'north star'..."
+                    className="min-h-[80px]"
+                    data-testid="input-words-used"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Hint: Copy some of your emails and ChatGPT will find these for you
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Words/phrases you AVOID *</Label>
+                  <Textarea
+                    value={data.step7.wordsAvoided}
+                    onChange={e => updateField("step7", "wordsAvoided", e.target.value)}
+                    placeholder="e.g., 'synergy', 'circle back', 'low-hanging fruit'..."
+                    className="min-h-[80px]"
+                    data-testid="input-words-avoided"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Hint: Think of what annoys you when others use it in a work setting
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Sample of your actual writing</Label>
+                  <Textarea
+                    value={data.step7.writingSample}
+                    onChange={e => updateField("step7", "writingSample", e.target.value)}
+                    placeholder="Paste an email, LinkedIn post, or professional document excerpt you've written..."
+                    className="min-h-[120px]"
+                    data-testid="input-writing-sample"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* STEP 8: Common Questions */}
+            {currentStep === 8 && (
+              <div className="space-y-6">
+                <div className="p-4 rounded-md border border-white/10 bg-white/5">
+                  <p className="text-sm text-muted-foreground">
+                    What questions do you expect visitors to ask? How should your AI Twin respond?
+                    Think about what you've been asked in interviews.
+                  </p>
+                </div>
+                {data.step8.questions.map((q, qi) => (
+                  <Card key={qi} className="border-white/10 bg-white/5 backdrop-blur-xl">
+                    <CardContent className="p-5 space-y-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-medium">Question {qi + 1} {qi < 3 && "*"}</h3>
+                        {data.step8.questions.length > 3 && (
+                          <Button variant="ghost" size="icon" onClick={() => removeQuestion(qi)} data-testid={`button-remove-question-${qi}`}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Question {qi < 3 && "*"}</Label>
+                        <Input
+                          value={q.question}
+                          onChange={e => updateQuestion(qi, "question", e.target.value)}
+                          placeholder={
+                            qi === 0
+                              ? "e.g., How do you handle underperforming teams?"
+                              : qi === 1
+                              ? "e.g., If hired tomorrow, what would you audit first?"
+                              : qi === 2
+                              ? "e.g., What industry trend do you think is overhyped?"
+                              : "Enter a question"
+                          }
+                          data-testid={`input-question-${qi}`}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Key Points for AI Twin's Response {qi < 3 && "*"}</Label>
+                        <Textarea
+                          value={q.answer}
+                          onChange={e => updateQuestion(qi, "answer", e.target.value)}
+                          placeholder="What is the core message the AI should convey?"
+                          className="min-h-[80px]"
+                          data-testid={`input-answer-${qi}`}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {data.step8.questions.length < 10 && (
+                  <Button variant="outline" onClick={addQuestion} data-testid="button-add-question">
+                    <Plus className="mr-2 h-4 w-4" /> Add Another Question
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* STEP 9: Objection Handling */}
+            {currentStep === 9 && (
+              <div className="space-y-6">
+                <div className="p-4 rounded-md border border-white/10 bg-white/5">
+                  <p className="text-sm text-muted-foreground">
+                    Think of potential objection scenarios that interviewers ask.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1 italic">
+                    e.g., "You don't have experience in X industry"
+                  </p>
+                </div>
+                {data.step9.objections.map((obj, oi) => (
+                  <Card key={oi} className="border-white/10 bg-white/5 backdrop-blur-xl">
+                    <CardContent className="p-5 space-y-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-medium">Objection {oi + 1} {oi < 1 && "*"}</h3>
+                        {data.step9.objections.length > 2 && (
+                          <Button variant="ghost" size="icon" onClick={() => removeObjection(oi)} data-testid={`button-remove-objection-${oi}`}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Potential Objection {oi < 1 && "*"}</Label>
+                        <Input
+                          value={obj.objection}
+                          onChange={e => updateObjection(oi, "objection", e.target.value)}
+                          placeholder={oi === 0 ? "e.g., You don't have experience in X industry" : oi === 1 ? "e.g., You've never done Y specifically" : "Enter an objection"}
+                          data-testid={`input-objection-${oi}`}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Your Response (How would you address this concern?)</Label>
+                        <Textarea
+                          value={obj.response}
+                          onChange={e => updateObjection(oi, "response", e.target.value)}
+                          placeholder="How would you address this concern?"
+                          className="min-h-[80px]"
+                          data-testid={`input-objection-response-${oi}`}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {data.step9.objections.length < 10 && (
+                  <Button variant="outline" onClick={addObjection} data-testid="button-add-objection">
+                    <Plus className="mr-2 h-4 w-4" /> Add Another Objection
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* STEP 10: Branding & Assets */}
+            {currentStep === 10 && (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label>Color & Font Style Preference *</Label>
+                  <Select
+                    value={data.step10.colorStyle}
+                    onValueChange={v => updateField("step10", "colorStyle", v)}
+                  >
+                    <SelectTrigger data-testid="select-color-style">
+                      <SelectValue placeholder="Choose a style" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COLOR_STYLES.map(s => (
+                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Professional Headshot URL</Label>
+                  <Input
+                    value={data.step10.photoUrl}
+                    onChange={e => updateField("step10", "photoUrl", e.target.value)}
+                    placeholder="https://example.com/your-headshot.jpg"
+                    data-testid="input-photo-url"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Use a high-resolution image. LinkedIn profile photos work well.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Company / Personal Logo URL (optional)</Label>
+                  <Input
+                    value={data.step10.logoUrl}
+                    onChange={e => updateField("step10", "logoUrl", e.target.value)}
+                    placeholder="https://example.com/your-logo.png"
+                    data-testid="input-logo-url"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* STEP 11: Chatbot Setup */}
+            {currentStep === 11 && (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label>Suggested Questions for Chatbot Home Screen *</Label>
+                  <Textarea
+                    value={data.step11.suggestedQuestions}
+                    onChange={e => updateField("step11", "suggestedQuestions", e.target.value)}
+                    placeholder={"Provide 3-4 questions visitors can click to start the conversation.\ne.g.:\nWhat's your leadership style?\nTell me about your biggest career win\nWhat makes you different from other candidates?\nHow do you approach building teams?"}
+                    className="min-h-[120px]"
+                    data-testid="input-suggested-questions"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Think of these like the starter prompts in ChatGPT's new chat window
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Special Instructions for Implementation</Label>
+                  <Textarea
+                    value={data.step11.specialInstructions}
+                    onChange={e => updateField("step11", "specialInstructions", e.target.value)}
+                    placeholder={"e.g., You want emphasis on sales capability, not just ops\ne.g., Avoid mentioning Company X - left on bad terms"}
                     className="min-h-[100px]"
-                    data-testid="input-influences"
+                    data-testid="input-special-instructions"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>What You Don't Claim Expertise In</Label>
+                  <Label>The 'Easter Egg'</Label>
                   <Textarea
-                    value={data.step4.limitations}
-                    onChange={e => setData(d => ({ ...d, step4: { ...d.step4, limitations: e.target.value } }))}
-                    placeholder="Areas where you prefer to defer to others..."
-                    className="min-h-[80px]"
-                    data-testid="input-limitations"
+                    value={data.step11.easterEgg}
+                    onChange={e => updateField("step11", "easterEgg", e.target.value)}
+                    placeholder={"Is there a hidden hobby, favorite book, or personal detail you want the AI to mention ONLY if someone asks about it?\n\ne.g., 'Do you have any hobbies?' -> 'I actually compete in triathlons.'"}
+                    className="min-h-[100px]"
+                    data-testid="input-easter-egg"
                   />
                 </div>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>Contact Email</Label>
-                    <Input
-                      value={data.step4.contactEmail}
-                      onChange={e => setData(d => ({ ...d, step4: { ...d.step4, contactEmail: e.target.value } }))}
-                      placeholder="you@example.com"
-                      data-testid="input-contact-email"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Phone (optional)</Label>
-                    <Input
-                      value={data.step4.contactPhone}
-                      onChange={e => setData(d => ({ ...d, step4: { ...d.step4, contactPhone: e.target.value } }))}
-                      placeholder="+1 555-000-0000"
-                      data-testid="input-contact-phone"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>LinkedIn URL</Label>
-                    <Input
-                      value={data.step4.contactLinkedin}
-                      onChange={e => setData(d => ({ ...d, step4: { ...d.step4, contactLinkedin: e.target.value } }))}
-                      placeholder="linkedin.com/in/yourname"
-                      data-testid="input-contact-linkedin"
-                    />
-                  </div>
-                </div>
               </div>
             )}
 
-            {currentStep === 5 && (
-              <div className="space-y-6">
-                <Card className="border-white/10 bg-white/5 backdrop-blur-xl">
-                  <CardContent className="p-6 space-y-4">
-                    <h3 className="font-medium">Photo URL</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Provide a URL to your professional photo. You can use LinkedIn, Gravatar, or any image hosting service.
-                    </p>
-                    <Input
-                      value={data.step5.photoUrl}
-                      onChange={e => setData(d => ({ ...d, step5: { ...d.step5, photoUrl: e.target.value } }))}
-                      placeholder="https://example.com/your-photo.jpg"
-                      data-testid="input-photo-url"
-                    />
-                    {data.step5.photoUrl && (
-                      <div className="w-24 h-24 rounded-md overflow-hidden bg-muted">
-                        <img src={data.step5.photoUrl} alt="Preview" className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-                <Card className="border-white/10 bg-white/5 backdrop-blur-xl">
-                  <CardContent className="p-6 space-y-4">
-                    <h3 className="font-medium">Resume / CV PDF URL</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Optional: Provide a link to your resume or CV PDF.
-                    </p>
-                    <Input
-                      value={data.step5.resumeUrl}
-                      onChange={e => setData(d => ({ ...d, step5: { ...d.step5, resumeUrl: e.target.value } }))}
-                      placeholder="https://example.com/resume.pdf"
-                      data-testid="input-resume-url"
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {currentStep === 6 && (
+            {/* STEP 12: Review & Submit */}
+            {currentStep === 12 && (
               <div className="space-y-6">
                 <Card className="border-white/10 bg-white/5 backdrop-blur-xl">
                   <CardContent className="p-6">
-                    <h3 className="font-semibold text-lg mb-4">Review Your Answers</h3>
+                    <h3 className="text-lg font-semibold mb-4">Review Your Submission</h3>
+                    <div className="space-y-4">
+                      <ReviewSection title="Basic Information" complete={!!data.step1.fullName && !!data.step1.currentTitle}>
+                        <p>{data.step1.fullName} - {data.step1.currentTitle}</p>
+                        {data.step1.location && <p className="text-sm text-muted-foreground">{data.step1.location}</p>}
+                      </ReviewSection>
 
-                    <div className="space-y-6">
-                      <div>
-                        <h4 className="text-sm font-medium text-muted-foreground mb-2">IDENTITY</h4>
-                        <div className="space-y-1">
-                          <p><strong>{data.step1.fullName || "—"}</strong></p>
-                          <p className="text-sm text-muted-foreground">{data.step1.roleTitle || "No role set"}</p>
-                          <p className="text-sm">{data.step1.positioning || "No positioning statement"}</p>
-                          <Badge variant="secondary" className="mt-1 text-xs">
-                            {TONES.find(t => t.value === data.step1.tone)?.label || data.step1.tone}
-                          </Badge>
-                        </div>
-                      </div>
+                      <ReviewSection title="Professional Summary" complete={!!data.step2.professionalSummary}>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{data.step2.professionalSummary || "Not provided"}</p>
+                      </ReviewSection>
 
-                      <div>
-                        <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                          CAREER HISTORY ({data.step2.careers.length} {data.step2.careers.length === 1 ? "company" : "companies"})
-                        </h4>
-                        {data.step2.careers.map((c, i) => (
-                          <div key={i} className="mb-2">
-                            <p className="font-medium">{c.companyName || "—"} — {c.roleTitle || "—"}</p>
-                            <p className="text-xs text-muted-foreground">{c.duration}</p>
-                            <p className="text-xs text-muted-foreground">{c.facts.filter(Boolean).length} facts</p>
-                          </div>
-                        ))}
-                      </div>
+                      <ReviewSection title="Career History" complete={!!data.step3.resumeUrl}>
+                        <p className="text-sm text-muted-foreground">{data.step3.resumeUrl ? "Resume linked" : "No resume provided"}</p>
+                      </ReviewSection>
 
-                      <div>
-                        <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                          SIGNATURE STORIES ({data.step3.stories.length})
-                        </h4>
-                        {data.step3.stories.map((s, i) => (
-                          <div key={i} className="mb-2 flex items-center gap-2">
-                            <Badge variant="secondary" className="text-xs shrink-0">
-                              {STORY_TYPES.find(t => t.value === s.type)?.label || s.type}
-                            </Badge>
-                            <span className="text-sm">{s.title || "Untitled"}</span>
-                          </div>
-                        ))}
-                      </div>
+                      <ReviewSection title="War Stories" complete={data.step4.stories.filter(s => s.title).length >= 3}>
+                        <p className="text-sm text-muted-foreground">{data.step4.stories.filter(s => s.title).length} stories provided</p>
+                      </ReviewSection>
 
-                      <div>
-                        <h4 className="text-sm font-medium text-muted-foreground mb-2">CONTACT</h4>
-                        <p className="text-sm">{data.step4.contactEmail || "No email"}</p>
-                        {data.step4.contactLinkedin && (
-                          <p className="text-sm text-muted-foreground">{data.step4.contactLinkedin}</p>
-                        )}
-                      </div>
+                      <ReviewSection title="Key Metrics & Achievements" complete={!!data.step5.achievements}>
+                        <p className="text-sm text-muted-foreground">{data.step5.achievements ? `${data.step5.achievements.split("\n").filter(Boolean).length} achievements listed` : "Not provided"}</p>
+                      </ReviewSection>
+
+                      <ReviewSection title="Technical Skills" complete={!!data.step6.technicalSkills}>
+                        <p className="text-sm text-muted-foreground">{data.step6.technicalSkills ? "Skills listed" : "Not provided (optional)"}</p>
+                      </ReviewSection>
+
+                      <ReviewSection title="Voice & Personality" complete={!!data.step7.communicationStyle}>
+                        <p className="text-sm text-muted-foreground">Style: {COMMUNICATION_STYLES.find(s => s.value === data.step7.communicationStyle)?.label || "Not set"}</p>
+                      </ReviewSection>
+
+                      <ReviewSection title="Common Questions" complete={data.step8.questions.filter(q => q.question).length >= 3}>
+                        <p className="text-sm text-muted-foreground">{data.step8.questions.filter(q => q.question).length} Q&A pairs provided</p>
+                      </ReviewSection>
+
+                      <ReviewSection title="Objection Handling" complete={data.step9.objections.filter(o => o.objection).length >= 1}>
+                        <p className="text-sm text-muted-foreground">{data.step9.objections.filter(o => o.objection).length} objections addressed</p>
+                      </ReviewSection>
+
+                      <ReviewSection title="Branding & Assets" complete={!!data.step10.colorStyle}>
+                        <p className="text-sm text-muted-foreground">
+                          Theme: {COLOR_STYLES.find(s => s.value === data.step10.colorStyle)?.label || "Default"}
+                          {data.step10.photoUrl ? " | Photo linked" : ""}
+                        </p>
+                      </ReviewSection>
+
+                      <ReviewSection title="Chatbot Setup" complete={!!data.step11.suggestedQuestions}>
+                        <p className="text-sm text-muted-foreground">
+                          {data.step11.suggestedQuestions ? "Starter questions configured" : "Not configured"}
+                          {data.step11.easterEgg ? " | Easter egg set" : ""}
+                        </p>
+                      </ReviewSection>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="border-indigo-500/20 bg-indigo-500/5 backdrop-blur-xl">
-                  <CardContent className="p-6 text-center">
-                    <Sparkles className="h-8 w-8 text-indigo-400 mx-auto mb-3" />
-                    <h3 className="font-semibold mb-2">Ready to Submit?</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      AI will process your answers and build your Digital Twin's knowledge base.
-                    </p>
-                    <Button
-                      onClick={() => submitMutation.mutate(data)}
-                      disabled={submitMutation.isPending}
-                      className="px-8"
-                      data-testid="button-submit-questionnaire"
-                    >
-                      {submitMutation.isPending ? (
-                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
-                      ) : (
-                        <><Sparkles className="mr-2 h-4 w-4" /> Submit & Process with AI</>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
+                <div className="p-4 rounded-md border border-white/10 bg-white/5">
+                  <h4 className="font-medium mb-2">What happens next?</h4>
+                  <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+                    <li>AI processes your content to build your Digital Twin</li>
+                    <li>Your AI CV is generated (typically a few minutes)</li>
+                    <li>Preview your Digital Twin and make adjustments</li>
+                    <li>Publish and share your link</li>
+                  </ol>
+                </div>
+
+                <Button
+                  onClick={() => submitMutation.mutate(data)}
+                  disabled={submitMutation.isPending || !data.step1.fullName || !data.step1.currentTitle}
+                  className="w-full bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700"
+                  data-testid="button-submit-questionnaire"
+                >
+                  {submitMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" /> Submit & Generate My Digital Twin
+                    </>
+                  )}
+                </Button>
               </div>
             )}
           </motion.div>
         </AnimatePresence>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between gap-4 mt-8 pt-6 border-t border-white/5">
-          <Button
-            variant="outline"
-            onClick={goBack}
-            disabled={currentStep === 1}
-            data-testid="button-prev-step"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-          </Button>
-          {currentStep < STEPS.length ? (
+        {currentStep < 12 && (
+          <div className="flex justify-between gap-4 mt-8 flex-wrap">
+            <Button variant="outline" onClick={goBack} disabled={currentStep === 1} data-testid="button-prev-step">
+              <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+            </Button>
             <Button onClick={goNext} data-testid="button-next-step">
               Next <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-          ) : null}
-        </div>
+          </div>
+        )}
+        {currentStep === 12 && (
+          <div className="mt-4">
+            <Button variant="outline" onClick={goBack} data-testid="button-prev-step">
+              <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
-        {/* Step indicators */}
-        <div className="flex items-center justify-center gap-2 mt-6">
-          {STEPS.map((step) => (
-            <button
-              key={step.id}
-              onClick={() => setCurrentStep(step.id)}
-              className={`h-2 rounded-full transition-all ${
-                step.id === currentStep ? "w-8 bg-indigo-500" : step.id < currentStep ? "w-2 bg-indigo-500/50" : "w-2 bg-white/10"
-              }`}
-              data-testid={`step-indicator-${step.id}`}
-            />
-          ))}
-        </div>
+function ReviewSection({ title, complete, children }: { title: string; complete: boolean; children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-3 py-2 border-b border-white/5 last:border-0">
+      <div className="mt-0.5">
+        {complete ? (
+          <CheckCircle className="h-4 w-4 text-emerald-500" />
+        ) : (
+          <div className="h-4 w-4 rounded-full border border-muted-foreground/30" />
+        )}
+      </div>
+      <div className="flex-1">
+        <h4 className="text-sm font-medium">{title}</h4>
+        {children}
       </div>
     </div>
   );

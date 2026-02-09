@@ -23,6 +23,10 @@ interface PortfolioData {
     tone: string;
     photoUrl: string | null;
     resumeUrl: string | null;
+    colorStyle: string;
+    logoUrl: string | null;
+    technicalSkills: string | null;
+    achievements: string | null;
   };
   factBanks: Array<{
     companyName: string;
@@ -42,7 +46,9 @@ interface PortfolioData {
     email: string | null;
     phone: string | null;
     linkedin: string | null;
+    location: string | null;
   };
+  suggestedQuestions: string[];
 }
 
 interface ChatMessage {
@@ -267,6 +273,28 @@ export default function PortfolioPage() {
         </div>
       </section>
 
+      {/* Key Achievements */}
+      {portfolio.profile.achievements && (
+        <section className="mx-auto max-w-5xl px-6 py-12">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-emerald-400" />
+            Key Achievements
+          </h2>
+          <Card className="border-white/10 bg-white/5 backdrop-blur-xl">
+            <CardContent className="p-6">
+              <ul className="space-y-2">
+                {portfolio.profile.achievements.split("\n").filter(Boolean).map((achievement, i) => (
+                  <li key={i} className="text-sm text-muted-foreground flex items-start gap-2" data-testid={`achievement-${i}`}>
+                    <span className="text-emerald-400 mt-0.5 shrink-0">&#10003;</span>
+                    <span>{achievement.replace(/^[-•]\s*/, "")}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
       {/* Signature Stories */}
       {portfolio.knowledgeEntries.filter(e => e.type === "experience").length > 0 && (
         <section className="mx-auto max-w-5xl px-6 py-12">
@@ -355,7 +383,10 @@ export default function PortfolioPage() {
                       Ask me anything about {portfolio.profile.displayName}'s career
                     </p>
                     <div className="mt-4 space-y-2">
-                      {["Tell me about yourself", "What's your biggest achievement?", "How do you handle failure?"].map((q, i) => (
+                      {(portfolio?.suggestedQuestions?.length
+                        ? portfolio.suggestedQuestions
+                        : ["Tell me about yourself", "What's your biggest achievement?", "How do you handle challenges?"]
+                      ).map((q, i) => (
                         <button
                           key={i}
                           onClick={() => { setInputValue(q); }}

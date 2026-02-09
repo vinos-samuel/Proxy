@@ -1,0 +1,25 @@
+Ok so what is working?
+
+The flow works until the individual profile is created.
+Publishing works as well - the publishing link provided opens up as well
+
+Things I Observed which are not per the plan - 
+I need some changes to the questionnaire - 
+We need to add a video under media assets along with personal headshot and Cv
+Please upload your Introduction Video (60-90 seconds recommended, MP4 format, under 50MB)*
+Upload 1 supported file: video. Max 100 MB.
+Under common questions you want handled - put the below example questions - 
+Example - The Leadership Philosophy: "How do you handle underperforming teams? (e.g., 'I coach up or coach out', 'I focus on systems not people')."
+Example - The First 90 Days: "If you were hired tomorrow, what is the first thing you would audit in the first week?"
+Example - The Industry Hot Take: "What is one trend in your industry that everyone is excited about, but you think is overhyped?"
+Visual branding options should be as below and setup in the Ai agent - 
+Option A - The Executive (Navy Blue & Gold - Serif Fonts)
+Option B - Futurist (Dark Mode, Purple Accents - Sans Serif)
+Option C - The MInimalist (Black & White - Helvetica)
+In the test, I selected the visual branding as minimal - it yet gave the glassmorphic blue/indigo - output should correspond to the selection
+The final Ai Cv output is not per what I had intended - The final output should be the same or similar format (there should be instruction for the agent to adapt a little basis client profile and inputs) - It should include the video, the chatbot should be the main highlight of the page in between the page - see example (https://vinosaicv.replit.app/) - If you cant read this - see th repl created in this name Ai Cv. Or let me know and I can give you screenshots
+The write up provided by the client will be rough and may not be well formatted - the ai agent should rewrite it for maximum impact depending on the experience, work history, industry and geography of the client creating the Cv. Currently the output in the cv is a reproduction of what the client has entered as is.
+Considering the AI will now recreate and write and format the content - the client may want to make changes - could we provide some functionality connected the agent in the preview where content or layout can be changed based on client input? Or we provide an option to pay and make edits and download and educate what edits are possible and how?
+The payment flow is not put up.
+The signature stories should be used to train the agent/bot to answer - here its reproduced as is - not good.
+There should be a barbell or infographic type career history, skills and experience shown in the page - see https://vinosaicv.replit.app/ - it can vary for clients based on their inputs and agent should support that and be proactive.

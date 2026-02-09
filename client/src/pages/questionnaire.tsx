@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -15,8 +15,10 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Bot, ArrowRight, ArrowLeft, Plus, Trash2, Loader2, CheckCircle,
   User, Briefcase, BookOpen, MessageSquare, Shield, Palette,
-  Upload, Send, Sparkles, Target, Wrench, Mic, HelpCircle, Terminal
+  Upload, Send, Sparkles, Target, Wrench, Mic, HelpCircle, Terminal,
+  FileText, Camera, Video, X
 } from "lucide-react";
+import { useUpload } from "@/hooks/use-upload";
 import { Link } from "wouter";
 
 const STEPS = [
@@ -41,13 +43,10 @@ const COMMUNICATION_STYLES = [
   { value: "strategic", label: "Strategic and consultative" },
 ];
 
-const COLOR_STYLES = [
-  { value: "indigo-violet", label: "Indigo & Violet (Default)" },
-  { value: "blue-cyan", label: "Blue & Cyan" },
-  { value: "emerald-teal", label: "Emerald & Teal" },
-  { value: "rose-pink", label: "Rose & Pink" },
-  { value: "amber-orange", label: "Amber & Orange" },
-  { value: "slate-gray", label: "Slate & Gray (Minimal)" },
+const BRANDING_THEMES = [
+  { value: "executive", label: "Executive", description: "Navy, gold accents, serif typography — boardroom-ready" },
+  { value: "futurist", label: "Futurist", description: "Dark mode, purple/cyan accents, clean sans-serif — tech-forward" },
+  { value: "minimalist", label: "Minimalist", description: "Black & white, Helvetica, maximum whitespace — let results speak" },
 ];
 
 export interface QuestionnaireData {
@@ -98,9 +97,10 @@ export interface QuestionnaireData {
     }>;
   };
   step10: {
-    colorStyle: string;
-    photoUrl: string;
-    logoUrl: string;
+    brandingTheme: string;
+    headshot: string;
+    introVideo: string;
+    cvResume: string;
   };
   step11: {
     suggestedQuestions: string;
@@ -136,7 +136,7 @@ const defaultData: QuestionnaireData = {
       { objection: "", response: "" },
     ],
   },
-  step10: { colorStyle: "indigo-violet", photoUrl: "", logoUrl: "" },
+  step10: { brandingTheme: "executive", headshot: "", introVideo: "", cvResume: "" },
   step11: { suggestedQuestions: "", specialInstructions: "", easterEgg: "" },
 };
 
@@ -145,6 +145,23 @@ export default function QuestionnairePage() {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [data, setData] = useState<QuestionnaireData>(defaultData);
+
+  const headshotInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const cvInputRef = useRef<HTMLInputElement>(null);
+
+  const { uploadFile: uploadHeadshot, isUploading: isUploadingHeadshot } = useUpload({
+    onSuccess: (response) => updateField("step10", "headshot", response.objectPath),
+    onError: (err) => toast({ title: "Upload failed", description: err.message, variant: "destructive" }),
+  });
+  const { uploadFile: uploadVideo, isUploading: isUploadingVideo } = useUpload({
+    onSuccess: (response) => updateField("step10", "introVideo", response.objectPath),
+    onError: (err) => toast({ title: "Upload failed", description: err.message, variant: "destructive" }),
+  });
+  const { uploadFile: uploadCv, isUploading: isUploadingCv } = useUpload({
+    onSuccess: (response) => updateField("step10", "cvResume", response.objectPath),
+    onError: (err) => toast({ title: "Upload failed", description: err.message, variant: "destructive" }),
+  });
 
   const { data: existingProfile, isLoading } = useQuery({
     queryKey: ["/api/profile"],
@@ -489,7 +506,7 @@ export default function QuestionnairePage() {
                   </p>
                 </div>
                 {data.step4.stories.map((story, si) => (
-                  <Card key={si} className="border-white/10 bg-white/5 backdrop-blur-xl">
+                  <Card key={si} className="backdrop-blur-xl">
                     <CardContent className="p-5 space-y-4">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="font-medium">War Story {si + 1} {si < 3 && "*"}</h3>
@@ -663,7 +680,7 @@ export default function QuestionnairePage() {
                   </p>
                 </div>
                 {data.step8.questions.map((q, qi) => (
-                  <Card key={qi} className="border-white/10 bg-white/5 backdrop-blur-xl">
+                  <Card key={qi} className="backdrop-blur-xl">
                     <CardContent className="p-5 space-y-4">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="font-medium">Question {qi + 1} {qi < 3 && "*"}</h3>
@@ -680,11 +697,11 @@ export default function QuestionnairePage() {
                           onChange={e => updateQuestion(qi, "question", e.target.value)}
                           placeholder={
                             qi === 0
-                              ? "e.g., How do you handle underperforming teams?"
+                              ? "What's your leadership philosophy?"
                               : qi === 1
-                              ? "e.g., If hired tomorrow, what would you audit first?"
+                              ? "How do you handle conflict in teams?"
                               : qi === 2
-                              ? "e.g., What industry trend do you think is overhyped?"
+                              ? "What's your biggest professional achievement?"
                               : "Enter a question"
                           }
                           data-testid={`input-question-${qi}`}
@@ -695,7 +712,7 @@ export default function QuestionnairePage() {
                         <Textarea
                           value={q.answer}
                           onChange={e => updateQuestion(qi, "answer", e.target.value)}
-                          placeholder="What is the core message the AI should convey?"
+                          placeholder="Describe how you'd answer this in your own authentic voice"
                           className="min-h-[80px]"
                           data-testid={`input-answer-${qi}`}
                         />
@@ -723,7 +740,7 @@ export default function QuestionnairePage() {
                   </p>
                 </div>
                 {data.step9.objections.map((obj, oi) => (
-                  <Card key={oi} className="border-white/10 bg-white/5 backdrop-blur-xl">
+                  <Card key={oi} className="backdrop-blur-xl">
                     <CardContent className="p-5 space-y-4">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="font-medium">Objection {oi + 1} {oi < 1 && "*"}</h3>
@@ -765,43 +782,140 @@ export default function QuestionnairePage() {
 
             {/* STEP 10: Branding & Assets */}
             {currentStep === 10 && (
-              <div className="space-y-5">
-                <div className="space-y-2">
-                  <Label>Color & Font Style Preference *</Label>
-                  <Select
-                    value={data.step10.colorStyle}
-                    onValueChange={v => updateField("step10", "colorStyle", v)}
-                  >
-                    <SelectTrigger data-testid="select-color-style">
-                      <SelectValue placeholder="Choose a style" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {COLOR_STYLES.map(s => (
-                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <Label>Branding Theme *</Label>
+                  <div className="grid gap-3">
+                    {BRANDING_THEMES.map(theme => (
+                      <Card
+                        key={theme.value}
+                        className={`cursor-pointer transition-colors ${data.step10.brandingTheme === theme.value ? "border-primary" : ""}`}
+                        onClick={() => updateField("step10", "brandingTheme", theme.value)}
+                        data-testid={`card-theme-${theme.value}`}
+                      >
+                        <CardContent className="p-4 flex items-start gap-3">
+                          <div className={`mt-1 h-4 w-4 rounded-full border-2 flex items-center justify-center ${data.step10.brandingTheme === theme.value ? "border-primary" : "border-muted-foreground/30"}`}>
+                            {data.step10.brandingTheme === theme.value && <div className="h-2 w-2 rounded-full bg-primary" />}
+                          </div>
+                          <div>
+                            <p className="font-medium">{theme.label}</p>
+                            <p className="text-sm text-muted-foreground">{theme.description}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
+
                 <div className="space-y-2">
-                  <Label>Professional Headshot URL</Label>
-                  <Input
-                    value={data.step10.photoUrl}
-                    onChange={e => updateField("step10", "photoUrl", e.target.value)}
-                    placeholder="https://example.com/your-headshot.jpg"
-                    data-testid="input-photo-url"
+                  <Label>Professional Headshot</Label>
+                  <input
+                    type="file"
+                    ref={headshotInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        if (f.size > 5 * 1024 * 1024) {
+                          toast({ title: "File too large", description: "Max 5MB" });
+                          return;
+                        }
+                        await uploadHeadshot(f);
+                      }
+                      e.target.value = "";
+                    }}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Use a high-resolution image. LinkedIn profile photos work well.
-                  </p>
+                  {data.step10.headshot ? (
+                    <div className="flex items-center gap-3">
+                      <img src={`/api/uploads/${data.step10.headshot}`} alt="Headshot preview" className="h-16 w-16 rounded-md object-cover" />
+                      <Button variant="ghost" size="icon" onClick={() => updateField("step10", "headshot", "")} data-testid="button-remove-headshot">
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button variant="outline" onClick={() => headshotInputRef.current?.click()} disabled={isUploadingHeadshot} data-testid="button-upload-headshot">
+                      {isUploadingHeadshot ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Camera className="mr-2 h-4 w-4" />}
+                      Upload Headshot
+                    </Button>
+                  )}
+                  <p className="text-xs text-muted-foreground">High-resolution professional photo. Square crop works best.</p>
                 </div>
+
                 <div className="space-y-2">
-                  <Label>Company / Personal Logo URL (optional)</Label>
-                  <Input
-                    value={data.step10.logoUrl}
-                    onChange={e => updateField("step10", "logoUrl", e.target.value)}
-                    placeholder="https://example.com/your-logo.png"
-                    data-testid="input-logo-url"
+                  <Label>Intro Video (60-90s)</Label>
+                  <input
+                    type="file"
+                    ref={videoInputRef}
+                    className="hidden"
+                    accept="video/mp4,video/webm"
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        if (f.size > 50 * 1024 * 1024) {
+                          toast({ title: "File too large", description: "Max 50MB" });
+                          return;
+                        }
+                        await uploadVideo(f);
+                      }
+                      e.target.value = "";
+                    }}
                   />
+                  {data.step10.introVideo ? (
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Video className="h-4 w-4" />
+                        <span>Video uploaded</span>
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={() => updateField("step10", "introVideo", "")} data-testid="button-remove-video">
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button variant="outline" onClick={() => videoInputRef.current?.click()} disabled={isUploadingVideo} data-testid="button-upload-video">
+                      {isUploadingVideo ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Video className="mr-2 h-4 w-4" />}
+                      Upload Intro Video (60-90s)
+                    </Button>
+                  )}
+                  <p className="text-xs text-muted-foreground">60-90 second introduction. MP4 format recommended, max 50MB.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>CV / Resume</Label>
+                  <input
+                    type="file"
+                    ref={cvInputRef}
+                    className="hidden"
+                    accept="application/pdf,.doc,.docx"
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        if (f.size > 10 * 1024 * 1024) {
+                          toast({ title: "File too large", description: "Max 10MB" });
+                          return;
+                        }
+                        await uploadCv(f);
+                      }
+                      e.target.value = "";
+                    }}
+                  />
+                  {data.step10.cvResume ? (
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <FileText className="h-4 w-4" />
+                        <span>CV uploaded</span>
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={() => updateField("step10", "cvResume", "")} data-testid="button-remove-cv">
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button variant="outline" onClick={() => cvInputRef.current?.click()} disabled={isUploadingCv} data-testid="button-upload-cv">
+                      {isUploadingCv ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+                      Upload CV / Resume
+                    </Button>
+                  )}
+                  <p className="text-xs text-muted-foreground">PDF format recommended.</p>
                 </div>
               </div>
             )}
@@ -848,7 +962,7 @@ export default function QuestionnairePage() {
             {/* STEP 12: Review & Submit */}
             {currentStep === 12 && (
               <div className="space-y-6">
-                <Card className="border-white/10 bg-white/5 backdrop-blur-xl">
+                <Card className="backdrop-blur-xl">
                   <CardContent className="p-6">
                     <h3 className="text-lg font-semibold mb-4">Review Your Submission</h3>
                     <div className="space-y-4">
@@ -889,10 +1003,12 @@ export default function QuestionnairePage() {
                         <p className="text-sm text-muted-foreground">{data.step9.objections.filter(o => o.objection).length} objections addressed</p>
                       </ReviewSection>
 
-                      <ReviewSection title="Branding & Assets" complete={!!data.step10.colorStyle}>
+                      <ReviewSection title="Branding & Assets" complete={!!data.step10.brandingTheme}>
                         <p className="text-sm text-muted-foreground">
-                          Theme: {COLOR_STYLES.find(s => s.value === data.step10.colorStyle)?.label || "Default"}
-                          {data.step10.photoUrl ? " | Photo linked" : ""}
+                          Theme: {BRANDING_THEMES.find(t => t.value === data.step10.brandingTheme)?.label || "Not selected"}
+                          {data.step10.headshot && " • Headshot uploaded"}
+                          {data.step10.introVideo && " • Video uploaded"}
+                          {data.step10.cvResume && " • CV uploaded"}
                         </p>
                       </ReviewSection>
 

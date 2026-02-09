@@ -57,9 +57,10 @@ interface QuestionnaireData {
     }>;
   };
   step10: {
-    colorStyle: string;
-    photoUrl: string;
-    logoUrl: string;
+    brandingTheme: string;
+    headshot: string;
+    introVideo: string;
+    cvResume: string;
   };
   step11: {
     suggestedQuestions: string;
@@ -89,8 +90,11 @@ export async function processQuestionnaire(profileId: string, data: Questionnair
     tone: tone,
     answerStyle: toneMap[tone] || toneMap.direct,
     fallbackResponse: `I appreciate the question, but that's outside my area of expertise. I'm ${data.step1.fullName}, and I'm happy to discuss my experience as a ${data.step1.currentTitle}. Feel free to ask about my career history, key projects, or professional philosophy.`,
-    photoUrl: data.step10?.photoUrl || null,
+    photoUrl: data.step10?.headshot || null,
     resumeUrl: data.step3?.resumeUrl || null,
+    brandingTheme: data.step10?.brandingTheme || "executive",
+    videoUrl: data.step10?.introVideo || null,
+    cvResumeUrl: data.step10?.cvResume || null,
   });
 
   // 1. Generate "About Me" using AI with all the rich context
@@ -155,31 +159,56 @@ Return ONLY the narrative text, no headers or labels.`;
     });
   }
 
-  // 2. Create knowledge entries from war stories
+  // 2. Create knowledge entries from war stories (AI-enhanced)
   for (let i = 0; i < data.step4.stories.length; i++) {
     const story = data.step4.stories[i];
     if (!story.title) continue;
 
     const entryId = `war-story-${i}-${story.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}`;
     let keywords: string[] = [];
+    let enhancedChallenge = story.challenge;
+    let enhancedApproach = story.approach;
+    let enhancedResult = story.result;
 
     try {
-      const keywordPrompt = `Generate 8-12 relevant keywords/phrases for this career war story. Return ONLY a JSON array of strings, nothing else.
+      const rewritePrompt = `You are a professional career storytelling expert. Rewrite this war story in the voice of ${data.step1.fullName}, a ${data.step1.currentTitle}.
 
+Communication style: ${toneMap[tone] || "Professional"}
+Words they use often: ${data.step7?.wordsUsedOften || "N/A"}
+Words they avoid: ${data.step7?.wordsAvoided || "N/A"}
+
+ORIGINAL STORY:
 Title: ${story.title}
-Challenge: ${story.challenge}
-Approach: ${story.approach}
-Result: ${story.result}`;
+Challenge (raw input): ${story.challenge}
+Approach (raw input): ${story.approach}
+Result (raw input): ${story.result}
 
-      const keywordResponse = await ai.models.generateContent({
+INSTRUCTIONS:
+- Rewrite each section to be polished, impactful, and interview-ready
+- Add specificity and quantify results wherever possible
+- Mirror the person's communication style
+- Make the challenge feel high-stakes
+- Make the approach show strategic thinking
+- Make the result feel like a clear win with measurable impact
+- Keep first-person voice
+- Also generate 8-12 search keywords/phrases
+
+Return ONLY valid JSON (no markdown, no code fences):
+{"challenge": "...", "approach": "...", "result": "...", "keywords": ["...", "..."]}`;
+
+      const rewriteResponse = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: keywordPrompt,
+        contents: rewritePrompt,
       });
 
-      const keywordText = keywordResponse.text?.trim() || "[]";
-      const match = keywordText.match(/\[[\s\S]*\]/);
-      if (match) {
-        keywords = JSON.parse(match[0]);
+      const rewriteText = rewriteResponse.text?.trim() || "";
+      const jsonMatch = rewriteText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        enhancedChallenge = parsed.challenge || story.challenge;
+        enhancedApproach = parsed.approach || story.approach;
+        enhancedResult = parsed.result || story.result;
+        keywords = parsed.keywords || [story.title.toLowerCase()];
       }
     } catch {
       keywords = [story.title.toLowerCase()];
@@ -191,24 +220,54 @@ Result: ${story.result}`;
       type: "experience",
       title: story.title,
       content: null,
-      challenge: story.challenge,
-      approach: story.approach,
-      result: story.result,
+      challenge: enhancedChallenge,
+      approach: enhancedApproach,
+      result: enhancedResult,
       scale: null,
       intent: ["behavioral", "scenario"],
       keywords,
     });
   }
 
-  // 3. Create achievements knowledge entry
+  // 3. Create achievements knowledge entry (AI-enhanced)
   if (data.step5?.achievements) {
     const achievementLines = data.step5.achievements.split("\n").filter(Boolean);
+    let enhancedAchievements = achievementLines.map(a => `- ${a.trim()}`).join("\n");
+
+    try {
+      const achPrompt = `You are a career impact specialist. Rewrite these achievements for ${data.step1.fullName}, a ${data.step1.currentTitle}, to be maximally impressive and interview-ready.
+
+Communication style: ${toneMap[tone] || "Professional"}
+
+RAW ACHIEVEMENTS:
+${achievementLines.join("\n")}
+
+INSTRUCTIONS:
+- Quantify everything possible (percentages, dollar amounts, team sizes, timeframes)
+- Use strong action verbs (spearheaded, orchestrated, drove, transformed)
+- Make each achievement a standalone impressive bullet point
+- If raw input is vague, infer reasonable specifics that make it concrete
+- Keep first-person voice
+- Return as bullet points, one per line, starting with "- "
+
+Return ONLY the rewritten bullet points, nothing else.`;
+
+      const achResponse = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: achPrompt,
+      });
+
+      enhancedAchievements = achResponse.text?.trim() || enhancedAchievements;
+    } catch {
+      // Keep original
+    }
+
     await storage.createKnowledgeEntry({
       twinProfileId: profileId,
       entryId: "key-achievements",
       type: "canonical",
       title: "Key Metrics & Achievements",
-      content: achievementLines.map(a => `- ${a.trim()}`).join("\n"),
+      content: enhancedAchievements,
       challenge: null,
       approach: null,
       result: null,

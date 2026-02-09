@@ -29,6 +29,8 @@ export const twinProfiles = pgTable("twin_profiles", {
   photoUrl: text("photo_url"),
   videoUrl: text("video_url"),
   resumeUrl: text("resume_url"),
+  brandingTheme: text("branding_theme").default("executive"),
+  cvResumeUrl: text("cv_resume_url"),
   status: text("status").notNull().default("draft"),
   questionnaireData: jsonb("questionnaire_data"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),

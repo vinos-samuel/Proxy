@@ -10,6 +10,7 @@ import pgSession from "connect-pg-simple";
 import { pool } from "./db";
 import Fuse from "fuse.js";
 import type { KnowledgeEntry } from "@shared/schema";
+import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 
 const PgStore = pgSession(session);
 
@@ -67,6 +68,9 @@ export async function registerRoutes(
       },
     })
   );
+
+  // ==================== OBJECT STORAGE ====================
+  registerObjectStorageRoutes(app);
 
   // ==================== AUTH ====================
 
@@ -273,12 +277,14 @@ export async function registerRoutes(
           positioning: profile.positioning,
           persona: profile.persona,
           tone: profile.tone,
-          photoUrl: profile.photoUrl || questionnaireData?.step10?.photoUrl || null,
+          photoUrl: profile.photoUrl || questionnaireData?.step10?.headshot || questionnaireData?.step10?.photoUrl || null,
+          videoUrl: profile.videoUrl || questionnaireData?.step10?.introVideo || null,
           resumeUrl: profile.resumeUrl || questionnaireData?.step3?.resumeUrl || null,
-          colorStyle: questionnaireData?.step10?.colorStyle || "indigo-violet",
-          logoUrl: questionnaireData?.step10?.logoUrl || null,
+          cvResumeUrl: profile.cvResumeUrl || questionnaireData?.step10?.cvResume || null,
+          brandingTheme: profile.brandingTheme || questionnaireData?.step10?.brandingTheme || "executive",
           technicalSkills: questionnaireData?.step6?.technicalSkills || null,
           achievements: questionnaireData?.step5?.achievements || null,
+          communicationStyle: questionnaireData?.step7?.communicationStyle || null,
         },
         factBanks: factBanksList,
         knowledgeEntries: entries,

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/lib/auth";
-import { Bot, LogOut, Users, Globe, DollarSign, Activity, ArrowLeft } from "lucide-react";
+import { Terminal, LogOut, Users, Globe, DollarSign, Activity, ArrowLeft } from "lucide-react";
 import type { Customer, TwinProfile } from "@shared/schema";
 
 interface AdminData {
@@ -29,7 +29,7 @@ export default function AdminPage() {
   if (!user?.isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <Card className="border-white/10 bg-white/5 max-w-md w-full">
+        <Card className="max-w-md w-full">
           <CardContent className="p-8 text-center">
             <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
             <p className="text-muted-foreground text-sm mb-4">You need admin privileges to view this page.</p>
@@ -45,13 +45,13 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <nav className="sticky top-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <Link href="/dashboard">
               <div className="flex items-center gap-2 cursor-pointer">
-                <div className="h-8 w-8 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-white" />
+                <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
+                  <Terminal className="h-4 w-4 text-primary-foreground" />
                 </div>
                 <span className="font-semibold">Admin Panel</span>
               </div>

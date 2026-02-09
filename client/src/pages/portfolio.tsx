@@ -135,7 +135,7 @@ export default function PortfolioPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <Loader2 className="h-10 w-10 animate-spin text-indigo-400 mx-auto" />
+          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">Loading portfolio...</p>
         </div>
       </div>
@@ -169,9 +169,9 @@ export default function PortfolioPage() {
     <div className="min-h-screen bg-background text-foreground relative">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/15 via-violet-600/10 to-purple-600/5" />
-        <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-indigo-600/8 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-violet-600/8 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" />
+        <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-primary/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-primary/5 rounded-full blur-3xl" />
 
         <div className="relative mx-auto max-w-5xl px-6 py-20">
           <motion.div
@@ -179,11 +179,11 @@ export default function PortfolioPage() {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col md:flex-row items-center gap-8"
           >
-            <Avatar className="h-32 w-32 border-2 border-indigo-500/30">
+            <Avatar className="h-32 w-32 border-2 border-primary/30">
               {portfolio.profile.photoUrl ? (
                 <AvatarImage src={portfolio.profile.photoUrl} alt={portfolio.profile.displayName} />
               ) : null}
-              <AvatarFallback className="text-3xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white">
+              <AvatarFallback className="text-3xl bg-primary text-primary-foreground">
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -192,7 +192,7 @@ export default function PortfolioPage() {
               <h1 className="text-4xl md:text-5xl font-bold mb-2" data-testid="text-display-name">
                 {portfolio.profile.displayName}
               </h1>
-              <p className="text-xl text-indigo-300 mb-3" data-testid="text-role-title">
+              <p className="text-xl text-primary mb-3" data-testid="text-role-title">
                 {portfolio.profile.roleTitle}
               </p>
               <p className="text-muted-foreground max-w-lg" data-testid="text-positioning">
@@ -238,7 +238,7 @@ export default function PortfolioPage() {
       {/* Career Highlights */}
       <section className="mx-auto max-w-5xl px-6 py-12">
         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          <Briefcase className="h-5 w-5 text-indigo-400" />
+          <Briefcase className="h-5 w-5 text-primary" />
           Career Highlights
         </h2>
         <div className="grid md:grid-cols-2 gap-4">
@@ -261,7 +261,7 @@ export default function PortfolioPage() {
                   <ul className="space-y-1.5">
                     {fb.facts.slice(0, 5).map((fact, fi) => (
                       <li key={fi} className="text-sm text-muted-foreground flex items-start gap-2">
-                        <span className="text-indigo-400 mt-1 shrink-0">&#8226;</span>
+                        <span className="text-primary mt-1 shrink-0">&#8226;</span>
                         <span>{fact}</span>
                       </li>
                     ))}
@@ -299,7 +299,7 @@ export default function PortfolioPage() {
       {portfolio.knowledgeEntries.filter(e => e.type === "experience").length > 0 && (
         <section className="mx-auto max-w-5xl px-6 py-12">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-violet-400" />
+            <Sparkles className="h-5 w-5 text-primary" />
             Signature Stories
           </h2>
           <div className="space-y-4">
@@ -318,13 +318,13 @@ export default function PortfolioPage() {
                       <div className="grid md:grid-cols-3 gap-6">
                         {entry.challenge && (
                           <div>
-                            <h4 className="text-xs font-medium text-indigo-400 uppercase tracking-wider mb-2">Challenge</h4>
+                            <h4 className="text-xs font-medium text-primary uppercase tracking-wider mb-2">Challenge</h4>
                             <p className="text-sm text-muted-foreground">{entry.challenge}</p>
                           </div>
                         )}
                         {entry.approach && (
                           <div>
-                            <h4 className="text-xs font-medium text-violet-400 uppercase tracking-wider mb-2">Approach</h4>
+                            <h4 className="text-xs font-medium text-primary uppercase tracking-wider mb-2">Approach</h4>
                             <p className="text-sm text-muted-foreground">{entry.approach}</p>
                           </div>
                         )}
@@ -354,9 +354,9 @@ export default function PortfolioPage() {
           >
             <Card className="border-white/10 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden">
               {/* Chat Header */}
-              <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between gap-2 bg-indigo-500/5">
+              <div className="px-4 py-3 border-b flex items-center justify-between gap-2 bg-primary/5">
                 <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
                     <Bot className="h-4 w-4 text-white" />
                   </div>
                   <div>
@@ -378,7 +378,7 @@ export default function PortfolioPage() {
               <div ref={scrollRef} className="h-[350px] overflow-y-auto p-4 space-y-4" data-testid="chat-messages">
                 {messages.length === 0 && (
                   <div className="text-center py-8">
-                    <Bot className="h-10 w-10 text-indigo-400/40 mx-auto mb-3" />
+                    <Bot className="h-10 w-10 text-primary/40 mx-auto mb-3" />
                     <p className="text-sm text-muted-foreground">
                       Ask me anything about {portfolio.profile.displayName}'s career
                     </p>
@@ -390,7 +390,7 @@ export default function PortfolioPage() {
                         <button
                           key={i}
                           onClick={() => { setInputValue(q); }}
-                          className="block mx-auto text-xs text-indigo-400 hover:underline"
+                          className="block mx-auto text-xs text-primary hover:underline"
                           data-testid={`button-suggestion-${i}`}
                         >
                           {q}
@@ -406,14 +406,14 @@ export default function PortfolioPage() {
                     className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     {msg.role === "assistant" && (
-                      <div className="h-7 w-7 shrink-0 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center mt-0.5">
+                      <div className="h-7 w-7 shrink-0 rounded-md bg-primary flex items-center justify-center mt-0.5">
                         <Bot className="h-3.5 w-3.5 text-white" />
                       </div>
                     )}
                     <div
                       className={`max-w-[80%] rounded-md px-3 py-2 text-sm ${
                         msg.role === "user"
-                          ? "bg-indigo-500 text-white"
+                          ? "bg-primary text-primary-foreground"
                           : "bg-white/5 border border-white/10"
                       }`}
                       data-testid={`chat-message-${i}`}
@@ -430,20 +430,20 @@ export default function PortfolioPage() {
 
                 {isStreaming && messages[messages.length - 1]?.content === "" && (
                   <div className="flex items-center gap-2">
-                    <div className="h-7 w-7 shrink-0 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                    <div className="h-7 w-7 shrink-0 rounded-md bg-primary flex items-center justify-center">
                       <Bot className="h-3.5 w-3.5 text-white" />
                     </div>
                     <div className="flex gap-1">
-                      <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                     </div>
                   </div>
                 )}
               </div>
 
               {/* Input */}
-              <div className="p-3 border-t border-white/5">
+              <div className="p-3 border-t">
                 <form
                   onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
                   className="flex items-center gap-2"
@@ -481,7 +481,7 @@ export default function PortfolioPage() {
           <Button
             size="lg"
             onClick={() => setChatOpen(true)}
-            className="h-14 w-14 rounded-full shadow-lg bg-gradient-to-br from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 no-default-hover-elevate"
+            className="h-14 w-14 rounded-full shadow-lg bg-primary no-default-hover-elevate"
             data-testid="button-chat-fab"
           >
             <MessageSquare className="h-6 w-6" />
@@ -490,13 +490,13 @@ export default function PortfolioPage() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-8 mt-12">
+      <footer className="border-t py-8 mt-12">
         <div className="mx-auto max-w-5xl px-6 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <Bot className="h-4 w-4 text-indigo-400" />
-            <span className="text-sm text-muted-foreground">Powered by Digital Twin Studio</span>
+            <Bot className="h-4 w-4 text-primary" />
+            <span className="text-sm text-muted-foreground">Powered by BIOS.ai</span>
           </div>
-          <a href="/" className="text-sm text-indigo-400 hover:underline">
+          <a href="/" className="text-sm text-primary hover:underline">
             Create your own
           </a>
         </div>

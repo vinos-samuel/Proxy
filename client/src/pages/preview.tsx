@@ -4,12 +4,11 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
-import { Bot, ArrowLeft, Globe, Eye, Loader2, CheckCircle, CreditCard } from "lucide-react";
+import { ArrowLeft, Globe, Eye, Loader2, CheckCircle } from "lucide-react";
 import type { TwinProfile } from "@shared/schema";
 
 export default function PreviewPage() {
@@ -51,7 +50,7 @@ export default function PreviewPage() {
   if (!profile || (profile.status !== "ready" && profile.status !== "published")) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <Card className="border-white/10 bg-white/5 backdrop-blur-xl max-w-md w-full">
+        <Card className="max-w-md w-full">
           <CardContent className="p-8 text-center">
             <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Not Ready Yet</h2>
@@ -69,8 +68,7 @@ export default function PreviewPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <nav className="sticky top-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl">
         <div className="mx-auto max-w-6xl px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/dashboard">
             <Button variant="ghost" size="sm" data-testid="button-back-dashboard">
@@ -105,7 +103,6 @@ export default function PreviewPage() {
         </div>
       </nav>
 
-      {/* Preview Frame */}
       <div className="mx-auto max-w-6xl px-6 py-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="mb-6 text-center">
@@ -116,9 +113,9 @@ export default function PreviewPage() {
           </div>
 
           {profile.status === "ready" && (
-            <Card className="border-indigo-500/20 bg-indigo-500/5 backdrop-blur-xl mb-8">
+            <Card className="border-primary/20 bg-primary/5 mb-8">
               <CardContent className="p-6 text-center">
-                <CheckCircle className="h-8 w-8 text-green-400 mx-auto mb-3" />
+                <CheckCircle className="h-8 w-8 text-primary mx-auto mb-3" />
                 <h3 className="font-semibold mb-2">Your Digital Twin is Ready</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Click "Publish Now" to make your portfolio live at a unique URL.
@@ -139,16 +136,15 @@ export default function PreviewPage() {
             </Card>
           )}
 
-          {/* Embedded Preview */}
-          <Card className="border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden">
-            <div className="border-b border-white/5 px-4 py-2 flex items-center gap-2">
+          <Card className="overflow-hidden">
+            <div className="border-b px-4 py-2 flex items-center gap-2">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-red-500/50" />
                 <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
                 <div className="w-3 h-3 rounded-full bg-green-500/50" />
               </div>
               <div className="flex-1 mx-4">
-                <div className="bg-white/5 rounded-md px-3 py-1 text-xs text-muted-foreground font-mono text-center">
+                <div className="bg-muted rounded-md px-3 py-1 text-xs text-muted-foreground font-mono text-center">
                   {typeof window !== "undefined" ? window.location.origin : ""}/portfolio/{user?.username}
                 </div>
               </div>

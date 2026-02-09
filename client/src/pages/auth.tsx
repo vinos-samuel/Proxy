@@ -7,10 +7,10 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
-import { Bot, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
+import { Terminal, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { registerSchema, loginSchema } from "@shared/schema";
 
 export function LoginPage() {
@@ -35,8 +35,8 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-violet-500/5" />
-      <div className="absolute top-20 left-1/4 w-[600px] h-[600px] bg-indigo-600/5 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/3" />
+      <div className="absolute top-20 left-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
 
       <motion.div
         className="relative w-full max-w-md"
@@ -46,16 +46,17 @@ export function LoginPage() {
         <div className="text-center mb-8">
           <Link href="/">
             <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <div className="h-10 w-10 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-                <Bot className="h-5 w-5 text-white" />
+              <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center">
+                <Terminal className="h-5 w-5 text-primary-foreground" />
               </div>
+              <span className="text-lg font-semibold">BIOS.ai</span>
             </div>
           </Link>
           <h1 className="text-2xl font-bold mb-1">Welcome back</h1>
           <p className="text-muted-foreground text-sm">Sign in to manage your Digital Twin</p>
         </div>
 
-        <Card className="border-white/10 bg-white/5 backdrop-blur-xl">
+        <Card>
           <CardContent className="p-6">
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
@@ -110,7 +111,7 @@ export function LoginPage() {
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               Don't have an account?{" "}
-              <Link href="/register" className="text-indigo-400 hover:underline" data-testid="link-register">
+              <Link href="/register" className="text-primary hover:underline" data-testid="link-register">
                 Create one
               </Link>
             </p>
@@ -143,8 +144,8 @@ export function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-violet-500/5" />
-      <div className="absolute top-20 right-1/4 w-[600px] h-[600px] bg-violet-600/5 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/3" />
+      <div className="absolute top-20 right-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
 
       <motion.div
         className="relative w-full max-w-md"
@@ -154,16 +155,17 @@ export function RegisterPage() {
         <div className="text-center mb-8">
           <Link href="/">
             <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <div className="h-10 w-10 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-                <Bot className="h-5 w-5 text-white" />
+              <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center">
+                <Terminal className="h-5 w-5 text-primary-foreground" />
               </div>
+              <span className="text-lg font-semibold">BIOS.ai</span>
             </div>
           </Link>
-          <h1 className="text-2xl font-bold mb-1">Create Your Digital Twin</h1>
-          <p className="text-muted-foreground text-sm">Start building your AI-powered portfolio</p>
+          <h1 className="text-2xl font-bold mb-1">Initialize Your Twin</h1>
+          <p className="text-muted-foreground text-sm">Start building your AI-powered career agent</p>
         </div>
 
-        <Card className="border-white/10 bg-white/5 backdrop-blur-xl">
+        <Card>
           <CardContent className="p-6">
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
@@ -188,7 +190,7 @@ export function RegisterPage() {
                     {...form.register("username")}
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                    .digitaltwin.studio
+                    .bios.ai
                   </span>
                 </div>
                 {form.formState.errors.username && (
@@ -246,7 +248,7 @@ export function RegisterPage() {
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               Already have an account?{" "}
-              <Link href="/login" className="text-indigo-400 hover:underline" data-testid="link-login">
+              <Link href="/login" className="text-primary hover:underline" data-testid="link-login">
                 Sign in
               </Link>
             </p>

@@ -7,8 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
 import {
-  Bot, Edit, Eye, Globe, LogOut, LayoutDashboard,
-  FileText, Sparkles, ExternalLink, Settings
+  Terminal, Edit, Eye, Globe, LogOut,
+  FileText, Sparkles, ExternalLink, ArrowRight
 } from "lucide-react";
 import type { TwinProfile } from "@shared/schema";
 
@@ -36,15 +36,14 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <nav className="sticky top-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl">
         <div className="mx-auto max-w-6xl px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/dashboard">
             <div className="flex items-center gap-2 cursor-pointer">
-              <div className="h-8 w-8 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-                <Bot className="h-4 w-4 text-white" />
+              <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
+                <Terminal className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="font-semibold">Digital Twin Studio</span>
+              <span className="font-semibold">BIOS.ai</span>
             </div>
           </Link>
           <div className="flex items-center gap-3">
@@ -61,7 +60,6 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          {/* Welcome */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
             <p className="text-muted-foreground">
@@ -72,7 +70,7 @@ export default function DashboardPage() {
           {isLoading ? (
             <div className="grid md:grid-cols-2 gap-6">
               {[1, 2, 3, 4].map(i => (
-                <Card key={i} className="border-white/10 bg-white/5">
+                <Card key={i}>
                   <CardContent className="p-6">
                     <Skeleton className="h-6 w-32 mb-4" />
                     <Skeleton className="h-4 w-full mb-2" />
@@ -83,14 +81,13 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Profile Status */}
-              <Card className="border-white/10 bg-white/5 backdrop-blur-xl md:col-span-2">
+              <Card className="md:col-span-2">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div>
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="h-12 w-12 rounded-md bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center">
-                          <Bot className="h-6 w-6 text-indigo-400" />
+                        <div className="h-12 w-12 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center">
+                          <Terminal className="h-6 w-6 text-primary" />
                         </div>
                         <div>
                           <h2 className="text-xl font-semibold">
@@ -150,12 +147,11 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              {/* Quick Actions */}
-              <Card className="border-white/10 bg-white/5 backdrop-blur-xl hover-elevate">
+              <Card className="hover-elevate">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="h-10 w-10 rounded-md bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                      <FileText className="h-5 w-5 text-indigo-400" />
+                    <div className="h-10 w-10 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center">
+                      <FileText className="h-5 w-5 text-primary" />
                     </div>
                     <h3 className="font-semibold">Questionnaire</h3>
                   </div>
@@ -171,11 +167,11 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-white/10 bg-white/5 backdrop-blur-xl hover-elevate">
+              <Card className="hover-elevate">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="h-10 w-10 rounded-md bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-                      <Sparkles className="h-5 w-5 text-violet-400" />
+                    <div className="h-10 w-10 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center">
+                      <Sparkles className="h-5 w-5 text-primary" />
                     </div>
                     <h3 className="font-semibold">AI Processing</h3>
                   </div>
@@ -190,16 +186,15 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              {/* Portfolio URL */}
               {profile?.status === "published" && (
-                <Card className="border-white/10 bg-white/5 backdrop-blur-xl md:col-span-2">
+                <Card className="md:col-span-2">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-3">
-                      <Globe className="h-5 w-5 text-green-400" />
+                      <Globe className="h-5 w-5 text-primary" />
                       <h3 className="font-semibold">Your Portfolio URL</h3>
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
-                      <code className="px-3 py-2 rounded-md bg-background/50 border border-white/10 text-sm text-indigo-300 font-mono" data-testid="text-portfolio-url">
+                      <code className="px-3 py-2 rounded-md bg-muted border text-sm text-primary font-mono" data-testid="text-portfolio-url">
                         {window.location.origin}/portfolio/{user?.username}
                       </code>
                       <Button
@@ -221,11 +216,5 @@ export default function DashboardPage() {
         </motion.div>
       </div>
     </div>
-  );
-}
-
-function ArrowRight(props: any) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
   );
 }

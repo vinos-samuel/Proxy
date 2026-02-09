@@ -15,7 +15,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Bot, ArrowRight, ArrowLeft, Plus, Trash2, Loader2, CheckCircle,
   User, Briefcase, BookOpen, MessageSquare, Shield, Palette,
-  Upload, Send, Sparkles, Target, Wrench, Mic, HelpCircle
+  Upload, Send, Sparkles, Target, Wrench, Mic, HelpCircle, Terminal
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -325,8 +325,8 @@ export default function QuestionnairePage() {
         <div className="mx-auto max-w-4xl px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/dashboard">
             <div className="flex items-center gap-2 cursor-pointer">
-              <div className="h-8 w-8 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-                <Bot className="h-4 w-4 text-white" />
+              <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
+                <Terminal className="h-4 w-4 text-primary-foreground" />
               </div>
               <span className="font-semibold">Context Ingestion</span>
             </div>
@@ -919,7 +919,7 @@ export default function QuestionnairePage() {
                 <Button
                   onClick={() => submitMutation.mutate(data)}
                   disabled={submitMutation.isPending || !data.step1.fullName || !data.step1.currentTitle}
-                  className="w-full bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700"
+                  className="w-full"
                   data-testid="button-submit-questionnaire"
                 >
                   {submitMutation.isPending ? (

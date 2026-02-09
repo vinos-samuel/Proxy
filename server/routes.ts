@@ -185,6 +185,40 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/profile", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const profile = await storage.getProfileByCustomerId(req.session.customerId!);
+      if (!profile) {
+        return res.status(404).json({ message: "No profile found" });
+      }
+
+      const allowedFields = ["displayName", "roleTitle", "positioning", "persona", "tone"];
+      const updates: Record<string, any> = {};
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          updates[field] = req.body[field];
+        }
+      }
+
+      if (req.body.achievements !== undefined) {
+        const qData = (profile.questionnaireData as any) || {};
+        qData.step5 = { ...qData.step5, achievements: req.body.achievements };
+        updates.questionnaireData = qData;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ message: "No valid fields to update" });
+      }
+
+      await storage.updateProfileById(profile.id, updates);
+      const updated = await storage.getProfileByCustomerId(req.session.customerId!);
+      res.json(updated);
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // ==================== QUESTIONNAIRE ====================
 
   app.post("/api/questionnaire/save", requireAuth, async (req: Request, res: Response) => {

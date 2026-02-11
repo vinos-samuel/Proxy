@@ -197,7 +197,7 @@ Generate a JSON object with the following structure. Follow these rules exactly:
 }`;
 
     const portfolioResponse = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-2.5-flash",
       contents: portfolioPrompt,
     });
 
@@ -279,7 +279,7 @@ Write a compelling, first-person narrative (2-3 paragraphs) that introduces this
 Return ONLY the narrative text, no headers or labels.`;
 
     const aboutResponse = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-2.5-flash",
       contents: aboutPrompt,
     });
 
@@ -376,7 +376,7 @@ Return ONLY valid JSON (no markdown, no code fences):
 {"challenge": "...", "approach": "...", "result": "...", "keywords": ["...", "..."]}`;
 
       const rewriteResponse = await ai.models.generateContent({
-        model: "gemini-2.0-flash-exp",
+        model: "gemini-2.5-flash",
         contents: rewritePrompt,
       });
 
@@ -439,7 +439,7 @@ INSTRUCTIONS:
 Return ONLY the rewritten bullet points, nothing else.`;
 
       const achResponse = await ai.models.generateContent({
-        model: "gemini-2.0-flash-exp",
+        model: "gemini-2.5-flash",
         contents: achPrompt,
       });
 
@@ -535,7 +535,7 @@ Write a natural first-person response (2-3 paragraphs) that covers these key poi
 Return ONLY the response text.`;
 
       const qaResponse = await ai.models.generateContent({
-        model: "gemini-2.0-flash-exp",
+        model: "gemini-2.5-flash",
         contents: qaPrompt,
       });
 
@@ -595,7 +595,7 @@ Write a natural first-person response (1-2 paragraphs) that addresses this conce
 Return ONLY the response text.`;
 
       const objResponse = await ai.models.generateContent({
-        model: "gemini-2.0-flash-exp",
+        model: "gemini-2.5-flash",
         contents: objPrompt,
       });
 

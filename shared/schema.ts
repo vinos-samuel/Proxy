@@ -31,6 +31,12 @@ export const twinProfiles = pgTable("twin_profiles", {
   resumeUrl: text("resume_url"),
   brandingTheme: text("branding_theme").default("executive"),
   cvResumeUrl: text("cv_resume_url"),
+  heroSubtitle: text("hero_subtitle"),
+  stats: jsonb("stats"), // Array of {label: string, value: string}
+  problemFit: jsonb("problem_fit"), // Array of strings
+  howIWork: jsonb("how_i_work"), // {name: string, steps: Array<{label: string, description: string}>}
+  whyAiCv: jsonb("why_ai_cv"), // Array of strings (paragraphs)
+  portfolioSuggestedQuestions: jsonb("portfolio_suggested_questions"), // Array of strings
   status: text("status").notNull().default("draft"),
   questionnaireData: jsonb("questionnaire_data"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),

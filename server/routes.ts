@@ -9,6 +9,7 @@ import { GoogleGenAI } from "@google/genai";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
 import Fuse from "fuse.js";
+import { buildSystemPrompt } from "./system-prompt-builder";
 import type { KnowledgeEntry } from "@shared/schema";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 
@@ -48,7 +49,7 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
 
 export async function registerRoutes(
   httpServer: Server,
-  app: Express
+  app: Express,
 ): Promise<Server> {
   // Session middleware
   app.use(
@@ -66,7 +67,7 @@ export async function registerRoutes(
         secure: false,
         sameSite: "lax",
       },
-    })
+    }),
   );
 
   // ==================== OBJECT STORAGE ====================
@@ -78,7 +79,9 @@ export async function registerRoutes(
     try {
       const parsed = registerSchema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ message: parsed.error.errors[0]?.message || "Validation error" });
+        return res.status(400).json({
+          message: parsed.error.errors[0]?.message || "Validation error",
+        });
       }
 
       const { email, password, name, username } = parsed.data;
@@ -114,7 +117,9 @@ export async function registerRoutes(
     try {
       const parsed = loginSchema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ message: parsed.error.errors[0]?.message || "Validation error" });
+        return res.status(400).json({
+          message: parsed.error.errors[0]?.message || "Validation error",
+        });
       }
 
       const customer = await storage.getCustomerByEmail(parsed.data.email);
@@ -122,7 +127,10 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
-      const valid = await bcrypt.compare(parsed.data.password, customer.passwordHash);
+      const valid = await bcrypt.compare(
+        parsed.data.password,
+        customer.passwordHash,
+      );
       if (!valid) {
         return res.status(401).json({ message: "Invalid email or password" });
       }
@@ -159,106 +167,140 @@ export async function registerRoutes(
   // ==================== PROFILE ====================
 
   app.get("/api/profile", requireAuth, async (req: Request, res: Response) => {
-    const profile = await storage.getProfileByCustomerId(req.session.customerId!);
+    const profile = await storage.getProfileByCustomerId(
+      req.session.customerId!,
+    );
     if (!profile) {
       return res.status(404).json({ message: "No profile found" });
     }
     res.json(profile);
   });
 
-  app.post("/api/profile/publish", requireAuth, async (req: Request, res: Response) => {
-    try {
-      const profile = await storage.getProfileByCustomerId(req.session.customerId!);
-      if (!profile) {
-        return res.status(404).json({ message: "No profile found" });
-      }
-      if (profile.status !== "ready") {
-        return res.status(400).json({ message: "Profile is not ready to publish" });
-      }
-
-      await storage.updateProfileStatus(profile.id, "published");
-      await storage.updateCustomerStatus(req.session.customerId!, "paid");
-      res.json({ message: "Published successfully" });
-    } catch (error) {
-      console.error("Publish error:", error);
-      res.status(500).json({ message: "Failed to publish" });
-    }
-  });
-
-  app.patch("/api/profile", requireAuth, async (req: Request, res: Response) => {
-    try {
-      const profile = await storage.getProfileByCustomerId(req.session.customerId!);
-      if (!profile) {
-        return res.status(404).json({ message: "No profile found" });
-      }
-
-      const allowedFields = ["displayName", "roleTitle", "positioning", "persona", "tone"];
-      const updates: Record<string, any> = {};
-      for (const field of allowedFields) {
-        if (req.body[field] !== undefined) {
-          updates[field] = req.body[field];
+  app.post(
+    "/api/profile/publish",
+    requireAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const profile = await storage.getProfileByCustomerId(
+          req.session.customerId!,
+        );
+        if (!profile) {
+          return res.status(404).json({ message: "No profile found" });
         }
-      }
+        if (profile.status !== "ready") {
+          return res
+            .status(400)
+            .json({ message: "Profile is not ready to publish" });
+        }
 
-      if (req.body.achievements !== undefined) {
-        const qData = (profile.questionnaireData as any) || {};
-        qData.step5 = { ...qData.step5, achievements: req.body.achievements };
-        updates.questionnaireData = qData;
+        await storage.updateProfileStatus(profile.id, "published");
+        await storage.updateCustomerStatus(req.session.customerId!, "paid");
+        res.json({ message: "Published successfully" });
+      } catch (error) {
+        console.error("Publish error:", error);
+        res.status(500).json({ message: "Failed to publish" });
       }
+    },
+  );
 
-      if (Object.keys(updates).length === 0) {
-        return res.status(400).json({ message: "No valid fields to update" });
+  app.patch(
+    "/api/profile",
+    requireAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const profile = await storage.getProfileByCustomerId(
+          req.session.customerId!,
+        );
+        if (!profile) {
+          return res.status(404).json({ message: "No profile found" });
+        }
+
+        const allowedFields = [
+          "displayName",
+          "roleTitle",
+          "positioning",
+          "persona",
+          "tone",
+        ];
+        const updates: Record<string, any> = {};
+        for (const field of allowedFields) {
+          if (req.body[field] !== undefined) {
+            updates[field] = req.body[field];
+          }
+        }
+
+        if (req.body.achievements !== undefined) {
+          const qData = (profile.questionnaireData as any) || {};
+          qData.step5 = { ...qData.step5, achievements: req.body.achievements };
+          updates.questionnaireData = qData;
+        }
+
+        if (Object.keys(updates).length === 0) {
+          return res.status(400).json({ message: "No valid fields to update" });
+        }
+
+        await storage.updateProfileById(profile.id, updates);
+        const updated = await storage.getProfileByCustomerId(
+          req.session.customerId!,
+        );
+        res.json(updated);
+      } catch (error) {
+        console.error("Profile update error:", error);
+        res.status(500).json({ message: "Failed to update profile" });
       }
-
-      await storage.updateProfileById(profile.id, updates);
-      const updated = await storage.getProfileByCustomerId(req.session.customerId!);
-      res.json(updated);
-    } catch (error) {
-      console.error("Profile update error:", error);
-      res.status(500).json({ message: "Failed to update profile" });
-    }
-  });
+    },
+  );
 
   // ==================== QUESTIONNAIRE ====================
 
-  app.post("/api/questionnaire/save", requireAuth, async (req: Request, res: Response) => {
-    try {
-      const existing = await storage.getProfileByCustomerId(req.session.customerId!);
-      const updateData: any = {
-        customerId: req.session.customerId!,
-        questionnaireData: req.body,
-      };
-      if (!existing || existing.status === "draft") {
-        updateData.status = "draft";
+  app.post(
+    "/api/questionnaire/save",
+    requireAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const existing = await storage.getProfileByCustomerId(
+          req.session.customerId!,
+        );
+        const updateData: any = {
+          customerId: req.session.customerId!,
+          questionnaireData: req.body,
+        };
+        if (!existing || existing.status === "draft") {
+          updateData.status = "draft";
+        }
+        await storage.upsertProfile(updateData);
+        res.json({ message: "Saved" });
+      } catch (error) {
+        console.error("Save error:", error);
+        res.status(500).json({ message: "Failed to save" });
       }
-      await storage.upsertProfile(updateData);
-      res.json({ message: "Saved" });
-    } catch (error) {
-      console.error("Save error:", error);
-      res.status(500).json({ message: "Failed to save" });
-    }
-  });
+    },
+  );
 
-  app.post("/api/questionnaire/submit", requireAuth, async (req: Request, res: Response) => {
-    try {
-      const profile = await storage.upsertProfile({
-        customerId: req.session.customerId!,
-        questionnaireData: req.body,
-        status: "processing",
-      });
+  app.post(
+    "/api/questionnaire/submit",
+    requireAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const profile = await storage.upsertProfile({
+          customerId: req.session.customerId!,
+          questionnaireData: req.body,
+          status: "processing",
+        });
 
-      // Process in background
-      res.json({ message: "Processing started" });
+        // Process in background
+        res.json({ message: "Processing started" });
 
-      processQuestionnaire(profile.id, req.body).catch((err) => {
-        console.error("AI Processing error:", err);
-        storage.updateProfileStatus(profile.id, "draft");
-      });
-    } catch (error) {
-      console.error("Submit error:", error);
-      res.status(500).json({ message: "Failed to submit" });
-    }
-  });
+        processQuestionnaire(profile.id, req.body).catch((err) => {
+          console.error("AI Processing error:", err);
+          storage.updateProfileStatus(profile.id, "draft");
+        });
+      } catch (error) {
+        console.error("Submit error:", error);
+        res.status(500).json({ message: "Failed to submit" });
+      }
+    },
+  );
 
   // ==================== PORTFOLIO (PUBLIC) ====================
 
@@ -270,7 +312,10 @@ export async function registerRoutes(
       }
 
       const profile = await storage.getProfileByCustomerId(customer.id);
-      if (!profile || (profile.status !== "published" && profile.status !== "ready")) {
+      if (
+        !profile ||
+        (profile.status !== "published" && profile.status !== "ready")
+      ) {
         // Allow "ready" for preview, "published" for public
         if (profile?.status === "ready") {
           // Check if requester is the owner
@@ -301,7 +346,10 @@ export async function registerRoutes(
           };
 
       const suggestedQuestions = questionnaireData?.step11?.suggestedQuestions
-        ? questionnaireData.step11.suggestedQuestions.split("\n").filter(Boolean).slice(0, 4)
+        ? questionnaireData.step11.suggestedQuestions
+            .split("\n")
+            .filter(Boolean)
+            .slice(0, 4)
         : [];
 
       res.json({
@@ -311,19 +359,39 @@ export async function registerRoutes(
           positioning: profile.positioning,
           persona: profile.persona,
           tone: profile.tone,
-          photoUrl: profile.photoUrl || questionnaireData?.step10?.headshot || questionnaireData?.step10?.photoUrl || null,
-          videoUrl: profile.videoUrl || questionnaireData?.step10?.introVideo || null,
-          resumeUrl: profile.resumeUrl || questionnaireData?.step3?.resumeUrl || null,
-          cvResumeUrl: profile.cvResumeUrl || questionnaireData?.step10?.cvResume || null,
-          brandingTheme: profile.brandingTheme || questionnaireData?.step10?.brandingTheme || "executive",
+          photoUrl:
+            profile.photoUrl ||
+            questionnaireData?.step10?.headshot ||
+            questionnaireData?.step10?.photoUrl ||
+            null,
+          videoUrl:
+            profile.videoUrl || questionnaireData?.step10?.introVideo || null,
+          resumeUrl:
+            profile.resumeUrl || questionnaireData?.step3?.resumeUrl || null,
+          cvResumeUrl:
+            profile.cvResumeUrl || questionnaireData?.step10?.cvResume || null,
+          brandingTheme:
+            profile.brandingTheme ||
+            questionnaireData?.step10?.brandingTheme ||
+            "executive",
           technicalSkills: questionnaireData?.step6?.technicalSkills || null,
           achievements: questionnaireData?.step5?.achievements || null,
-          communicationStyle: questionnaireData?.step7?.communicationStyle || null,
+          communicationStyle:
+            questionnaireData?.step7?.communicationStyle || null,
+          // NEW PORTFOLIO DISPLAY DATA
+          heroSubtitle: profile.heroSubtitle || null,
+          stats: profile.stats || [],
+          problemFit: profile.problemFit || [],
+          howIWork: profile.howIWork || null,
+          whyAiCv: profile.whyAiCv || [],
+          portfolioSuggestedQuestions:
+            profile.portfolioSuggestedQuestions || suggestedQuestions,
         },
         factBanks: factBanksList,
         knowledgeEntries: entries,
         contact,
-        suggestedQuestions,
+        suggestedQuestions:
+          profile.portfolioSuggestedQuestions || suggestedQuestions,
       });
     } catch (error) {
       console.error("Portfolio error:", error);
@@ -341,7 +409,10 @@ export async function registerRoutes(
       }
 
       const profile = await storage.getProfileByCustomerId(customer.id);
-      if (!profile || (profile.status !== "published" && profile.status !== "ready")) {
+      if (
+        !profile ||
+        (profile.status !== "published" && profile.status !== "ready")
+      ) {
         return res.status(404).json({ message: "Not found" });
       }
 
@@ -369,9 +440,7 @@ export async function registerRoutes(
       });
 
       const searchResults = fuse.search(message);
-      const relevantEntries = searchResults
-        .slice(0, 5)
-        .map(r => r.item);
+      const relevantEntries = searchResults.slice(0, 5).map((r) => r.item);
 
       // Build knowledge context
       let knowledgeContext = "";
@@ -379,7 +448,8 @@ export async function registerRoutes(
       for (const entry of relevantEntries) {
         knowledgeContext += `\n--- ${entry.title} (${entry.type}) ---\n`;
         if (entry.content) knowledgeContext += `${entry.content}\n`;
-        if (entry.challenge) knowledgeContext += `Challenge: ${entry.challenge}\n`;
+        if (entry.challenge)
+          knowledgeContext += `Challenge: ${entry.challenge}\n`;
         if (entry.approach) knowledgeContext += `Approach: ${entry.approach}\n`;
         if (entry.result) knowledgeContext += `Result: ${entry.result}\n`;
         if (entry.scale) knowledgeContext += `Scale: ${entry.scale}\n`;
@@ -394,47 +464,39 @@ export async function registerRoutes(
       }
 
       const toneInstructions: Record<string, string> = {
-        direct: "Be direct, confident, and concise. Speak with authority and seniority.",
+        direct:
+          "Be direct, confident, and concise. Speak with authority and seniority.",
         warm: "Be warm, approachable, and friendly. Explain clearly with empathy.",
-        technical: "Be technical, precise, and detail-oriented. Use specific terminology where appropriate.",
-        strategic: "Be strategic, consultative, and big-picture. Think in frameworks and trade-offs.",
-        casual: "Be casual, conversational, and relatable. Speak naturally as if chatting with a friend.",
+        technical:
+          "Be technical, precise, and detail-oriented. Use specific terminology where appropriate.",
+        strategic:
+          "Be strategic, consultative, and big-picture. Think in frameworks and trade-offs.",
+        casual:
+          "Be casual, conversational, and relatable. Speak naturally as if chatting with a friend.",
       };
 
       const questionnaireData = profile.questionnaireData as any;
       const wordsUsed = questionnaireData?.step7?.wordsUsedOften || "";
       const wordsAvoided = questionnaireData?.step7?.wordsAvoided || "";
-      const specialInstructions = questionnaireData?.step11?.specialInstructions || "";
+      const specialInstructions =
+        questionnaireData?.step11?.specialInstructions || "";
 
-      const systemPrompt = `You are the Digital Twin of ${profile.displayName}, a ${profile.roleTitle}.
-
-IDENTITY:
-- Name: ${profile.displayName}
-- Role: ${profile.roleTitle}
-- Positioning: ${profile.positioning}
-
-COMMUNICATION STYLE:
-${toneInstructions[profile.tone || "direct"] || toneInstructions.direct}
-${profile.answerStyle || ""}
-${wordsUsed ? `\nWords/phrases to USE naturally: ${wordsUsed}` : ""}
-${wordsAvoided ? `\nWords/phrases to NEVER use: ${wordsAvoided}` : ""}
-
-KNOWLEDGE BASE:
-${knowledgeContext}
-
-CAREER FACTS:
-${factContext}
-
-${specialInstructions ? `SPECIAL INSTRUCTIONS:\n${specialInstructions}\n` : ""}
-
-RULES:
-1. Always respond in first person as ${profile.displayName}.
-2. Draw from the knowledge base above to answer questions accurately.
-3. If asked about something not in your knowledge base, say: "${profile.fallbackResponse || "That's outside my expertise."}"
-4. Keep responses focused and relevant. Use specific examples from the knowledge base.
-5. Never make up facts or experiences not in the knowledge base.
-6. Be engaging and professional.
-7. Use the words/phrases listed above naturally, and avoid the ones marked to avoid.`;
+      const systemPrompt = await buildSystemPrompt(profile.id, {
+        displayName: profile.displayName || "Unknown Professional",
+        roleTitle: profile.roleTitle || "Professional",
+        positioning: profile.positioning || "",
+        tone: profile.tone || "direct",
+        answerStyle:
+          profile.answerStyle ||
+          toneInstructions[profile.tone || "direct"] ||
+          "Professional and clear",
+        fallbackResponse:
+          profile.fallbackResponse ||
+          "That's outside my expertise, but I'm happy to discuss my background in detail.",
+        wordsUsedOften: questionnaireData?.step7?.wordsUsedOften || "",
+        wordsAvoided: questionnaireData?.step7?.wordsAvoided || "",
+        portfolioData: questionnaireData?.portfolioData || null,
+      });
 
       // Set up SSE
       res.setHeader("Content-Type", "text/event-stream");
@@ -443,9 +505,7 @@ RULES:
 
       const stream = await ai.models.generateContentStream({
         model: "gemini-2.5-flash",
-        contents: [
-          { role: "user", parts: [{ text: message }] },
-        ],
+        contents: [{ role: "user", parts: [{ text: message }] }],
         config: {
           systemInstruction: systemPrompt,
         },
@@ -463,7 +523,9 @@ RULES:
     } catch (error) {
       console.error("Chat error:", error);
       if (res.headersSent) {
-        res.write(`data: ${JSON.stringify({ error: "Failed to respond" })}\n\n`);
+        res.write(
+          `data: ${JSON.stringify({ error: "Failed to respond" })}\n\n`,
+        );
         res.end();
       } else {
         res.status(500).json({ message: "Chat failed" });
@@ -473,20 +535,26 @@ RULES:
 
   // ==================== ADMIN ====================
 
-  app.get("/api/admin/overview", requireAdmin, async (req: Request, res: Response) => {
-    try {
-      const stats = await storage.getAdminStats();
-      const customersData = await storage.getCustomersWithProfiles();
+  app.get(
+    "/api/admin/overview",
+    requireAdmin,
+    async (req: Request, res: Response) => {
+      try {
+        const stats = await storage.getAdminStats();
+        const customersData = await storage.getCustomersWithProfiles();
 
-      // Remove password hashes
-      const safeCustomers = customersData.map(({ passwordHash, ...rest }) => rest);
+        // Remove password hashes
+        const safeCustomers = customersData.map(
+          ({ passwordHash, ...rest }) => rest,
+        );
 
-      res.json({ customers: safeCustomers, stats });
-    } catch (error) {
-      console.error("Admin error:", error);
-      res.status(500).json({ message: "Failed to load admin data" });
-    }
-  });
+        res.json({ customers: safeCustomers, stats });
+      } catch (error) {
+        console.error("Admin error:", error);
+        res.status(500).json({ message: "Failed to load admin data" });
+      }
+    },
+  );
 
   return httpServer;
 }

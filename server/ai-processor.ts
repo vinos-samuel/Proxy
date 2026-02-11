@@ -69,24 +69,165 @@ interface QuestionnaireData {
   };
 }
 
-export async function processQuestionnaire(profileId: string, data: QuestionnaireData) {
+export async function processQuestionnaire(
+  profileId: string,
+  data: QuestionnaireData,
+) {
   await storage.deleteFactBanksByProfileId(profileId);
   await storage.deleteKnowledgeEntriesByProfileId(profileId);
 
   const toneMap: Record<string, string> = {
-    direct: "Direct, confident, and no-nonsense. Answers concisely with authority.",
+    direct:
+      "Direct, confident, and no-nonsense. Answers concisely with authority.",
     warm: "Warm, conversational, and friendly. Explains things clearly with empathy.",
-    technical: "Technical, precise, and detail-oriented. Uses specific terminology.",
-    strategic: "Strategic, consultative, and big-picture. Thinks in frameworks and trade-offs.",
+    technical:
+      "Technical, precise, and detail-oriented. Uses specific terminology.",
+    strategic:
+      "Strategic, consultative, and big-picture. Thinks in frameworks and trade-offs.",
   };
 
   const tone = data.step7?.communicationStyle || "direct";
 
+  // ====================
+  // STEP 1: Generate Portfolio Display Data (RESUME_DATA structure)
+  // ====================
+
+  let portfolioData: any = {};
+
+  try {
+    const portfolioPrompt = `You are an expert career storyteller and portfolio designer. Transform this executive's raw questionnaire data into a polished, high-impact portfolio structure.
+
+**EXECUTIVE PROFILE:**
+Name: ${data.step1.fullName}
+Title: ${data.step1.currentTitle}
+Location: ${data.step1.location || "N/A"}
+
+**PROFESSIONAL SUMMARY:**
+${data.step2.professionalSummary}
+
+**KEY ACHIEVEMENTS:**
+${data.step5?.achievements || "Not provided"}
+
+**TECHNICAL SKILLS:**
+${data.step6?.technicalSkills || "Not provided"}
+
+**WAR STORIES:**
+${data.step4.stories
+  .map(
+    (s, i) => `
+Story ${i + 1}: ${s.title}
+Challenge: ${s.challenge}
+Approach: ${s.approach}
+Result: ${s.result}
+`,
+  )
+  .join("\n")}
+
+**COMMUNICATION STYLE:**
+Tone: ${toneMap[tone]}
+Words they use: ${data.step7?.wordsUsedOften || "N/A"}
+Words they avoid: ${data.step7?.wordsAvoided || "N/A"}
+
+---
+
+**INSTRUCTIONS:**
+
+Generate a JSON object with the following structure. Follow these rules exactly:
+
+1. **heroDescription**: Write EXACTLY 2 paragraphs:
+   - Paragraph 1: One-line positioning statement ("I [verb] [what] for [who]")
+   - Paragraph 2: A specific proof story from their most impressive achievement with concrete outcomes
+
+2. **heroSubtitle**: Take their role title and split into 3 facets separated by " • ". Don't just copy the title - reframe it into positioning language.
+
+3. **stats**: Extract ALL numbers from achievements and stories. Each stat must have:
+   - label: What was measured (string)
+   - value: The number with units (e.g., "$100M+", "25%", "15 People")
+   - Minimum 6 stats, maximum 9 stats
+
+4. **problemFit**: Rewrite their skills as 5-6 BUYER PROBLEMS. Each starts with "You're..." or "Your..." and frames the buyer's pain, not the candidate's skills.
+   Example: NOT "I can scale operations" but "You're scaling fast and your ops can't keep up"
+
+5. **howIWork**: Create a 4-step methodology that describes their approach. Give it a name (e.g., "Strategy → Build → Scale → Optimize")
+
+6. **whyAiCv**: Write 4-5 short paragraphs explaining:
+   - Why static CVs fail for senior roles
+   - How this cuts through noise
+   - What the AI is trained on
+   - What to ask it
+   - Future vision
+
+7. **suggestedQuestions**: Write 8 questions a HIRING MANAGER would ask. Should map to their war stories. Mix types:
+   - Specific project questions
+   - Scenario questions
+   - Leadership philosophy
+   - Technical depth
+
+**CRITICAL:** Return ONLY valid JSON. No markdown, no code fences, no preamble.
+
+{
+  "heroDescription": "Paragraph 1\\n\\nParagraph 2",
+  "heroSubtitle": "Facet 1 • Facet 2 • Facet 3",
+  "stats": [
+    {"label": "Description", "value": "$100M+"},
+    {"label": "Description", "value": "25%"}
+  ],
+  "problemFit": [
+    "You're scaling fast and your ops infrastructure can't keep up",
+    "Your systems are manual and error-prone"
+  ],
+  "howIWork": {
+    "name": "Step 1 → Step 2 → Step 3 → Step 4",
+    "steps": [
+      {"label": "Step Name", "description": "What happens"},
+      {"label": "Step Name", "description": "What happens"}
+    ]
+  },
+  "whyAiCv": [
+    "Paragraph 1 about why static CVs fail",
+    "Paragraph 2 about cutting through noise",
+    "Paragraph 3 about what AI knows",
+    "Paragraph 4 about what to ask",
+    "Paragraph 5 about future vision"
+  ],
+  "suggestedQuestions": [
+    "Tell me about the project where you scaled X",
+    "How do you handle conflict with stakeholders?"
+  ]
+}`;
+
+    const portfolioResponse = await ai.models.generateContent({
+      model: "gemini-2.0-flash-exp",
+      contents: portfolioPrompt,
+    });
+
+    const portfolioText = portfolioResponse.text?.trim() || "";
+    const jsonMatch = portfolioText.match(/\{[\s\S]*\}/);
+
+    if (jsonMatch) {
+      portfolioData = JSON.parse(jsonMatch[0]);
+    }
+  } catch (error) {
+    console.error("Error generating portfolio data:", error);
+    // Fallback to basic structure
+    portfolioData = {
+      heroDescription: `I'm ${data.step1.fullName}. ${data.step2.professionalSummary}`,
+      heroSubtitle: data.step1.currentTitle,
+      stats: [],
+      problemFit: [],
+      howIWork: { name: "", steps: [] },
+      whyAiCv: [],
+      suggestedQuestions: [],
+    };
+  }
+
+  // Update profile with portfolio data
   await storage.updateProfileById(profileId, {
     displayName: data.step1.fullName,
     roleTitle: data.step1.currentTitle,
-    positioning: data.step2.professionalSummary,
-    persona: data.step2.professionalSummary,
+    positioning:
+      portfolioData.heroDescription || data.step2.professionalSummary,
+    persona: portfolioData.heroDescription || data.step2.professionalSummary,
     tone: tone,
     answerStyle: toneMap[tone] || toneMap.direct,
     fallbackResponse: `I appreciate the question, but that's outside my area of expertise. I'm ${data.step1.fullName}, and I'm happy to discuss my experience as a ${data.step1.currentTitle}. Feel free to ask about my career history, key projects, or professional philosophy.`,
@@ -95,9 +236,24 @@ export async function processQuestionnaire(profileId: string, data: Questionnair
     brandingTheme: data.step10?.brandingTheme || "executive",
     videoUrl: data.step10?.introVideo || null,
     cvResumeUrl: data.step10?.cvResume || null,
+    // NEW PORTFOLIO FIELDS
+    heroSubtitle: portfolioData.heroSubtitle || null,
+    stats: portfolioData.stats || null,
+    problemFit: portfolioData.problemFit || null,
+    howIWork: portfolioData.howIWork || null,
+    whyAiCv: portfolioData.whyAiCv || null,
+    portfolioSuggestedQuestions: portfolioData.suggestedQuestions || null,
+    // Store full questionnaire data
+    questionnaireData: {
+      ...data,
+      portfolioData: portfolioData,
+    },
   });
 
-  // 1. Generate "About Me" using AI with all the rich context
+  // ====================
+  // STEP 2: Generate "About Me" knowledge entry
+  // ====================
+
   try {
     const aboutPrompt = `You are writing a professional "Tell Me About Yourself" response for ${data.step1.fullName}, a ${data.step1.currentTitle} based in ${data.step1.location || "N/A"}.
 
@@ -123,11 +279,13 @@ Write a compelling, first-person narrative (2-3 paragraphs) that introduces this
 Return ONLY the narrative text, no headers or labels.`;
 
     const aboutResponse = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-flash-exp",
       contents: aboutPrompt,
     });
 
-    const aboutText = aboutResponse.text || `I'm ${data.step1.fullName}, ${data.step2.professionalSummary}`;
+    const aboutText =
+      aboutResponse.text ||
+      `I'm ${data.step1.fullName}, ${data.step2.professionalSummary}`;
 
     await storage.createKnowledgeEntry({
       twinProfileId: profileId,
@@ -140,7 +298,15 @@ Return ONLY the narrative text, no headers or labels.`;
       result: null,
       scale: null,
       intent: ["intro", "framing"],
-      keywords: ["about", "yourself", "introduction", "who", "background", "tell me", "what do you do"],
+      keywords: [
+        "about",
+        "yourself",
+        "introduction",
+        "who",
+        "background",
+        "tell me",
+        "what do you do",
+      ],
     });
   } catch (error) {
     console.error("Error generating about me:", error);
@@ -155,16 +321,29 @@ Return ONLY the narrative text, no headers or labels.`;
       result: null,
       scale: null,
       intent: ["intro", "framing"],
-      keywords: ["about", "yourself", "introduction", "who", "background", "tell me"],
+      keywords: [
+        "about",
+        "yourself",
+        "introduction",
+        "who",
+        "background",
+        "tell me",
+      ],
     });
   }
 
-  // 2. Create knowledge entries from war stories (AI-enhanced)
+  // ====================
+  // STEP 3: Create enhanced war stories
+  // ====================
+
   for (let i = 0; i < data.step4.stories.length; i++) {
     const story = data.step4.stories[i];
     if (!story.title) continue;
 
-    const entryId = `war-story-${i}-${story.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}`;
+    const entryId = `war-story-${i}-${story.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .slice(0, 40)}`;
     let keywords: string[] = [];
     let enhancedChallenge = story.challenge;
     let enhancedApproach = story.approach;
@@ -197,7 +376,7 @@ Return ONLY valid JSON (no markdown, no code fences):
 {"challenge": "...", "approach": "...", "result": "...", "keywords": ["...", "..."]}`;
 
       const rewriteResponse = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.0-flash-exp",
         contents: rewritePrompt,
       });
 
@@ -229,10 +408,17 @@ Return ONLY valid JSON (no markdown, no code fences):
     });
   }
 
-  // 3. Create achievements knowledge entry (AI-enhanced)
+  // ====================
+  // STEP 4: Create achievements knowledge entry
+  // ====================
+
   if (data.step5?.achievements) {
-    const achievementLines = data.step5.achievements.split("\n").filter(Boolean);
-    let enhancedAchievements = achievementLines.map(a => `- ${a.trim()}`).join("\n");
+    const achievementLines = data.step5.achievements
+      .split("\n")
+      .filter(Boolean);
+    let enhancedAchievements = achievementLines
+      .map((a) => `- ${a.trim()}`)
+      .join("\n");
 
     try {
       const achPrompt = `You are a career impact specialist. Rewrite these achievements for ${data.step1.fullName}, a ${data.step1.currentTitle}, to be maximally impressive and interview-ready.
@@ -253,7 +439,7 @@ INSTRUCTIONS:
 Return ONLY the rewritten bullet points, nothing else.`;
 
       const achResponse = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.0-flash-exp",
         contents: achPrompt,
       });
 
@@ -273,20 +459,32 @@ Return ONLY the rewritten bullet points, nothing else.`;
       result: null,
       scale: null,
       intent: ["achievements", "metrics"],
-      keywords: ["achievements", "metrics", "results", "impact", "numbers", "quantifiable", "accomplished", "delivered"],
+      keywords: [
+        "achievements",
+        "metrics",
+        "results",
+        "impact",
+        "numbers",
+        "quantifiable",
+        "accomplished",
+        "delivered",
+      ],
     });
 
-    // Also create a fact bank entry from achievements
+    // Create fact bank from achievements
     await storage.createFactBank({
       twinProfileId: profileId,
       companyName: "Key Achievements",
       roleName: data.step1.currentTitle,
       duration: "Career Highlights",
-      facts: achievementLines.map(a => a.trim()).filter(Boolean),
+      facts: achievementLines.map((a) => a.trim()).filter(Boolean),
     });
   }
 
-  // 4. Create technical skills knowledge entry
+  // ====================
+  // STEP 5: Create technical skills knowledge entry
+  // ====================
+
   if (data.step6?.technicalSkills) {
     await storage.createKnowledgeEntry({
       twinProfileId: profileId,
@@ -299,11 +497,23 @@ Return ONLY the rewritten bullet points, nothing else.`;
       result: null,
       scale: null,
       intent: ["skills", "technical"],
-      keywords: ["skills", "tools", "technologies", "platforms", "proficient", "experience with", "expertise", "technical"],
+      keywords: [
+        "skills",
+        "tools",
+        "technologies",
+        "platforms",
+        "proficient",
+        "experience with",
+        "expertise",
+        "technical",
+      ],
     });
   }
 
-  // 5. Create Q&A knowledge entries from common questions
+  // ====================
+  // STEP 6: Create Q&A knowledge entries
+  // ====================
+
   for (let i = 0; i < data.step8.questions.length; i++) {
     const qa = data.step8.questions[i];
     if (!qa.question) continue;
@@ -325,7 +535,7 @@ Write a natural first-person response (2-3 paragraphs) that covers these key poi
 Return ONLY the response text.`;
 
       const qaResponse = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.0-flash-exp",
         contents: qaPrompt,
       });
 
@@ -336,7 +546,10 @@ Return ONLY the response text.`;
 
     let qKeywords: string[] = [];
     try {
-      const kw = qa.question.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+      const kw = qa.question
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((w) => w.length > 3);
       qKeywords = kw;
     } catch {
       qKeywords = [];
@@ -357,7 +570,10 @@ Return ONLY the response text.`;
     });
   }
 
-  // 6. Create objection handling knowledge entries
+  // ====================
+  // STEP 7: Create objection handling knowledge entries
+  // ====================
+
   for (let i = 0; i < data.step9.objections.length; i++) {
     const obj = data.step9.objections[i];
     if (!obj.objection) continue;
@@ -379,7 +595,7 @@ Write a natural first-person response (1-2 paragraphs) that addresses this conce
 Return ONLY the response text.`;
 
       const objResponse = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.0-flash-exp",
         contents: objPrompt,
       });
 
@@ -400,18 +616,30 @@ Return ONLY the response text.`;
       scale: null,
       intent: ["objection", "concern"],
       keywords: [
-        "objection", "concern", "worry", "issue", "problem",
-        ...obj.objection.toLowerCase().split(/\s+/).filter(w => w.length > 3),
+        "objection",
+        "concern",
+        "worry",
+        "issue",
+        "problem",
+        ...obj.objection
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((w) => w.length > 3),
       ],
     });
   }
 
-  // 7. Create contact entry
+  // ====================
+  // STEP 8: Create contact entry
+  // ====================
+
   const contactParts = [];
   if (data.step1.email) contactParts.push(`Email: ${data.step1.email}`);
   if (data.step1.phone) contactParts.push(`Phone: ${data.step1.phone}`);
-  if (data.step1.linkedinUrl) contactParts.push(`LinkedIn: ${data.step1.linkedinUrl}`);
-  if (data.step1.location) contactParts.push(`Location: ${data.step1.location}`);
+  if (data.step1.linkedinUrl)
+    contactParts.push(`LinkedIn: ${data.step1.linkedinUrl}`);
+  if (data.step1.location)
+    contactParts.push(`Location: ${data.step1.location}`);
 
   if (contactParts.length > 0) {
     await storage.createKnowledgeEntry({
@@ -425,11 +653,23 @@ Return ONLY the response text.`;
       result: null,
       scale: null,
       intent: ["contact"],
-      keywords: ["contact", "reach", "email", "phone", "linkedin", "connect", "hire", "location"],
+      keywords: [
+        "contact",
+        "reach",
+        "email",
+        "phone",
+        "linkedin",
+        "connect",
+        "hire",
+        "location",
+      ],
     });
   }
 
-  // 8. Create Easter Egg entry if provided
+  // ====================
+  // STEP 9: Create Easter Egg entry
+  // ====================
+
   if (data.step11?.easterEgg) {
     await storage.createKnowledgeEntry({
       twinProfileId: profileId,
@@ -442,11 +682,23 @@ Return ONLY the response text.`;
       result: null,
       scale: null,
       intent: ["personal", "hobby"],
-      keywords: ["hobby", "hobbies", "personal", "fun", "outside work", "interests", "free time", "passion"],
+      keywords: [
+        "hobby",
+        "hobbies",
+        "personal",
+        "fun",
+        "outside work",
+        "interests",
+        "free time",
+        "passion",
+      ],
     });
   }
 
-  // 9. Create professional summary as a dedicated knowledge entry
+  // ====================
+  // STEP 10: Create professional summary entry
+  // ====================
+
   if (data.step2?.professionalSummary) {
     await storage.createKnowledgeEntry({
       twinProfileId: profileId,
@@ -459,7 +711,16 @@ Return ONLY the response text.`;
       result: null,
       scale: null,
       intent: ["positioning", "differentiator"],
-      keywords: ["positioning", "superpower", "unique", "different", "differentiator", "value", "strength", "why you"],
+      keywords: [
+        "positioning",
+        "superpower",
+        "unique",
+        "different",
+        "differentiator",
+        "value",
+        "strength",
+        "why you",
+      ],
     });
   }
 

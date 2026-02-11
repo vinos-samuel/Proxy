@@ -1,0 +1,91 @@
+CRITICAL UI/UX FIXES for portfolio.tsx
+
+PROBLEM: Current layout is too busy, chatbot doesn't stand out, CTAs don't work, sections are redundant. Video/image placement needs to match vinosaicv reference.
+
+REFERENCE: https://vinosaicv.replit.app/ (this is the gold standard)
+
+SPECIFIC CHANGES:
+
+1. HERO SECTION - VIDEO/IMAGE PLACEMENT:
+   
+   SCENARIO A - VIDEO + PHOTO:
+   - Left (60%): Name, subtitle, description, CTAs
+   - Right (40%): Video player (autoplay muted, rounded-xl, glow)
+   - Photo: Show as small circular avatar (80px) next to name with #OPENTOWORK badge
+   - Caption under video: "A 60 second self introduction and why I built this AI CV"
+   
+   SCENARIO B - PHOTO ONLY (no video):
+   - Left (60%): Name, subtitle, description, CTAs
+   - Right (40%): Large photo (rounded-xl, glow, #OPENTOWORK badge)
+   
+   SCENARIO C - NEITHER (no video, no photo):
+   - Full-width centered: Name, subtitle, description, CTAs stacked vertically
+   
+   Mobile (<768px): Stack vertically, video/photo on top, content below
+
+2. VIDEO PLAYER SPECS:
+   - Native <video> tag with controls
+   - Autoplay muted, loop disabled
+   - Rounded-xl, subtle glow matching theme
+   - Use profile photo as poster image if available
+   - 16:9 aspect ratio
+
+3. THEME SYSTEM VERIFICATION:
+   Test all 3 themes (Executive, Futurist, Minimalist):
+   - Background colors change correctly
+   - Gradient overlays apply
+   - Accent colors (stats, CTAs) match theme
+   - Glass cards remain consistent
+   Report any broken theme behavior
+
+4. DIGITAL TWIN CONSOLE (MAKE THIS THE STAR):
+   - Move suggested questions INSIDE chat box as pills
+   - Make chat taller (600px min-height)
+   - Add prominent glow effect
+   - Chat should visually dominate the page
+
+5. IMPACT METRICS:
+   - Show TOP 6 only in 3-column grid
+   - Add "View All Metrics" expand button
+   - Use gradient text for numbers
+
+6. PROBLEM FIT:
+   - Max 4 pain points
+   - Taller cards, more readable
+
+7. HOW I WORK:
+   - Horizontal timeline with arrows (→)
+   - Not 2x2 grid
+
+8. CAREER TRAJECTORY:
+   - Vertical timeline: company → title → years
+   - Achievements collapsed by default
+   - Reference vinosaicv layout exactly
+
+9. REMOVE ENTIRELY:
+   - "Signature Stories" accordion
+   - "Why an AI CV?" section
+
+10. SKILL MATRIX:
+    - Pills + progress bars (like vinosaicv)
+    - Group by category
+
+11. FOOTER CTA:
+    - Email button → Modal with mailto form
+    - "Build Your Twin" → /questionnaire or /signup
+    - Add "Powered by BIOS.ai" footer text
+
+12. REDUCE SCROLLING:
+    Target 3-4 screen heights max by collapsing/removing sections
+
+SECTION ORDER:
+1. Hero (with video/photo logic above)
+2. Digital Twin Console (PROMINENT)
+3. Impact Metrics (top 6)
+4. Where I'm Most Useful (4 items)
+5. How I Work (horizontal timeline)
+6. Career Trajectory (collapsed achievements)
+7. Skill Matrix (pills + bars)
+8. Footer CTA
+
+Implement these changes and test all 3 scenarios for video/photo placement.

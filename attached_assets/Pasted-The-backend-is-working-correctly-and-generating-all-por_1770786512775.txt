@@ -1,0 +1,50 @@
+The backend is working correctly and generating all portfolio data. Now I need the frontend portfolio page updated to match the reference design at https://vinosaicv.replit.app/
+
+CURRENT PROBLEM: The portfolio page (client/src/pages/Portfolio.tsx or similar) is using a basic layout. It needs to be completely redesigned.
+
+REQUIREMENTS:
+
+1. VISUAL DESIGN (match vinosaicv exactly):
+   - Deep zinc background (#18181b)
+   - Glassmorphism cards (translucent dark grey, subtle white border, backdrop blur)
+   - Indigo/violet gradient accents in corners
+   - Typography: Inter or DM Sans, large airy headings
+   - Spacious, engineered aesthetic
+
+2. HERO SECTION:
+   - Display heroSubtitle as 3 facets with " • " separators below the title
+   - Example: "Strategic HR Leader • M&A Integration Specialist • Talent Systems Architect"
+
+3. STATS SECTION (Bento Grid):
+   - Large number cards displaying stats array
+   - Each card shows: value (big, colored) + label (smaller)
+   - 2-3 column responsive grid
+   - Example: "$1.4M" (large yellow text) "Saved in hiring costs" (smaller white text)
+
+4. PROBLEM FIT SECTION:
+   - Title: "What I Solve"
+   - Display problemFit array as a list of buyer pain points
+   - Each point on its own glassmorphism card
+
+5. HOW I WORK SECTION:
+   - Title: howIWork.name
+   - Display howIWork.steps as numbered cards (1-4)
+   - Each step shows: step number, label (heading), description (body text)
+
+6. WHY AI CV SECTION:
+   - Title: "Why an AI CV?"
+   - Display whyAiCv array as paragraphs in a single glassmorphism card
+
+7. WAR STORIES:
+   - Keep the expandable accordion format (it's working)
+   - Just style it to match the glassmorphism theme
+
+8. SUGGESTED QUESTIONS:
+   - Display portfolioSuggestedQuestions as clickable pills/buttons
+   - On click, open chat with that question pre-filled
+
+Please:
+1. Identify which file contains the portfolio page component
+2. Show me the current structure
+3. Propose a complete rewrite matching the vinosaicv design
+4. Include all Tailwind classes for the glassmorphism effect

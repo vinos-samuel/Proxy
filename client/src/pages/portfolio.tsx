@@ -29,6 +29,12 @@ interface PortfolioData {
     technicalSkills: string | null;
     achievements: string | null;
     communicationStyle: string | null;
+    heroSubtitle?: string;
+    stats?: Array<{ label: string; value: string }>;
+    problemFit?: string[];
+    howIWork?: { name: string; steps: Array<{ label: string; description: string }> };
+    whyAiCv?: string[];
+    portfolioSuggestedQuestions?: string[];
   };
   factBanks: Array<{
     companyName: string;
@@ -58,74 +64,60 @@ interface ChatMessage {
   content: string;
 }
 
-function getThemeStyles(theme: string) {
-  switch(theme) {
-    case "futurist":
-      return {
-        bg: "bg-[#0a0a0f]",
-        text: "text-white",
-        muted: "text-gray-400",
-        accent: "text-purple-400",
-        accentBg: "bg-purple-500",
-        accentBorder: "border-purple-500/30",
-        secondaryAccent: "text-cyan-400",
-        cardBg: "bg-white/5 border-white/10",
-        headingFont: "font-['Space_Grotesk',sans-serif]",
-        bodyFont: "font-sans",
-        chatUserBg: "bg-purple-500 text-white",
-        chatBotBg: "bg-white/5 border border-white/10",
-        sectionBorder: "border-white/5",
-        heroGradient: "from-purple-500/15 via-cyan-500/5 to-transparent",
-      };
-    case "minimalist":
-      return {
-        bg: "bg-white",
-        text: "text-black",
-        muted: "text-gray-500",
-        accent: "text-black",
-        accentBg: "bg-black",
-        accentBorder: "border-black/20",
-        secondaryAccent: "text-gray-600",
-        cardBg: "bg-gray-50 border-gray-200",
-        headingFont: "font-['Helvetica_Neue',Arial,sans-serif]",
-        bodyFont: "font-['Helvetica_Neue',Arial,sans-serif]",
-        chatUserBg: "bg-black text-white",
-        chatBotBg: "bg-gray-50 border border-gray-200",
-        sectionBorder: "border-gray-200",
-        heroGradient: "from-gray-100 to-white",
-      };
-    default:
-      return {
-        bg: "bg-[#faf9f7]",
-        text: "text-[#1a1a2e]",
-        muted: "text-[#6b7280]",
-        accent: "text-[#1e3a5f]",
-        accentBg: "bg-[#1e3a5f]",
-        accentBorder: "border-[#1e3a5f]/20",
-        secondaryAccent: "text-[#c8a951]",
-        cardBg: "bg-white border-[#e5e5e0]",
-        headingFont: "font-['Playfair_Display',serif]",
-        bodyFont: "font-serif",
-        chatUserBg: "bg-[#1e3a5f] text-white",
-        chatBotBg: "bg-[#f5f4f0] border border-[#e5e5e0]",
-        sectionBorder: "border-[#e5e5e0]",
-        heroGradient: "from-[#1e3a5f]/5 via-[#c8a951]/5 to-transparent",
-      };
-  }
-}
+const themes = {
+  executive: {
+    bg: "bg-[#18181b]", // deep zinc
+    gradient: "bg-gradient-to-br from-indigo-900/20 via-transparent to-violet-900/20",
+    glass: "bg-white/5 backdrop-blur-xl border border-white/10",
+    glassHover: "hover:bg-white/8 transition-all duration-300",
+    accent: "from-indigo-400 to-violet-400",
+    glow: "shadow-[0_0_30px_rgba(79,70,229,0.3)]",
+    text: "text-white",
+    muted: "text-zinc-400",
+    headingFont: "font-['Inter',sans-serif]",
+    bodyFont: "font-['Inter',sans-serif]",
+    chatUserBg: "bg-indigo-600 text-white",
+    chatBotBg: "bg-white/10 border border-white/10 text-white",
+  },
+  futurist: {
+    bg: "bg-[#0a0a0f]",
+    gradient: "bg-gradient-to-br from-purple-900/30 via-transparent to-cyan-900/30",
+    glass: "bg-white/5 backdrop-blur-2xl border border-white/10",
+    glassHover: "hover:bg-white/10 transition-all duration-300",
+    accent: "from-purple-400 to-cyan-400",
+    glow: "shadow-[0_0_40px_rgba(168,85,247,0.2)]",
+    text: "text-white",
+    muted: "text-zinc-500",
+    headingFont: "font-['Space_Grotesk',sans-serif]",
+    bodyFont: "font-sans",
+    chatUserBg: "bg-purple-600 text-white",
+    chatBotBg: "bg-white/5 border border-white/10 text-white",
+  },
+  minimalist: {
+    bg: "bg-[#fafafa]",
+    gradient: "bg-gradient-to-br from-zinc-200/50 via-transparent to-zinc-200/50",
+    glass: "bg-white/80 backdrop-blur-md border border-zinc-200 shadow-sm",
+    glassHover: "hover:bg-white/95 transition-all duration-300",
+    accent: "from-zinc-800 to-zinc-600",
+    glow: "shadow-lg shadow-zinc-200/50",
+    text: "text-zinc-900",
+    muted: "text-zinc-500",
+    headingFont: "font-sans",
+    bodyFont: "font-sans",
+    chatUserBg: "bg-zinc-900 text-white",
+    chatBotBg: "bg-zinc-100 border border-zinc-200 text-zinc-900",
+  },
+};
 
 export default function PortfolioPage() {
   const params = useParams<{ username: string }>();
   const username = params.username;
-  const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [expandedStories, setExpandedStories] = useState<Set<number>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
-  const embeddedScrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const embeddedInputRef = useRef<HTMLInputElement>(null);
 
   const { data: portfolio, isLoading, error } = useQuery<PortfolioData>({
     queryKey: ["/api/portfolio", username],
@@ -135,12 +127,9 @@ export default function PortfolioPage() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-    if (embeddedScrollRef.current) {
-      embeddedScrollRef.current.scrollTop = embeddedScrollRef.current.scrollHeight;
-    }
   }, [messages]);
 
-  const sendMessage = async (overrideValue?: string) => {
+  const handleSendMessage = async (overrideValue?: string) => {
     const msgText = overrideValue || inputValue.trim();
     if (!msgText || isStreaming) return;
     setInputValue("");
@@ -209,529 +198,400 @@ export default function PortfolioPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#faf9f7] flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-10 w-10 animate-spin text-[#1e3a5f] mx-auto" />
-          <p className="text-[#6b7280]">Loading portfolio...</p>
-        </div>
+      <div className="min-h-screen bg-[#18181b] flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
       </div>
     );
   }
 
   if (error || !portfolio) {
     return (
-      <div className="min-h-screen bg-[#faf9f7] flex items-center justify-center p-6">
-        <Card className="max-w-md w-full border-[#e5e5e0]">
-          <CardContent className="p-8 text-center">
-            <Globe className="h-12 w-12 text-[#6b7280] mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2 text-[#1a1a2e]">Portfolio Not Found</h2>
-            <p className="text-[#6b7280] text-sm">
-              This portfolio doesn't exist or hasn't been published yet.
-            </p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-[#18181b] flex items-center justify-center p-6 text-white">
+        <div className="text-center">
+          <Globe className="h-12 w-12 text-zinc-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Portfolio Not Found</h2>
+        </div>
       </div>
     );
   }
 
-  const theme = getThemeStyles(portfolio.profile.brandingTheme);
-  const initials = portfolio.profile.displayName
-    ?.split(" ")
-    .map(n => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || "DT";
+  const profile = portfolio.profile;
+  const brandingTheme = (profile.brandingTheme?.toLowerCase() as keyof typeof themes) || "executive";
+  const theme = themes[brandingTheme];
 
   const experienceStories = portfolio.knowledgeEntries.filter(e => e.type === "experience");
-  const achievementLines = portfolio.profile.achievements
-    ? portfolio.profile.achievements.split("\n").filter(Boolean).map(a => a.replace(/^[-•]\s*/, ""))
-    : [];
-  const skills = portfolio.profile.technicalSkills
-    ? portfolio.profile.technicalSkills.split(/[,\n]/).map(s => s.trim()).filter(Boolean)
-    : [];
-
-  const suggestedQs = portfolio?.suggestedQuestions?.length
-    ? portfolio.suggestedQuestions
-    : ["Tell me about yourself", "What's your biggest achievement?", "How do you handle challenges?"];
-
-  const renderChatMessages = (refObj: typeof scrollRef, isEmbedded: boolean) => (
-    <div
-      ref={refObj}
-      className={`overflow-y-auto p-4 space-y-4 ${isEmbedded ? "h-[400px]" : "h-[350px]"}`}
-      data-testid={isEmbedded ? "embedded-chat-messages" : "chat-messages"}
-    >
-      {messages.length === 0 && (
-        <div className="text-center py-8">
-          <Terminal className={`h-10 w-10 mx-auto mb-3 opacity-40 ${theme.accent}`} />
-          <p className={`text-sm ${theme.muted}`}>
-            Ask me anything about {portfolio.profile.displayName}'s career
-          </p>
-        </div>
-      )}
-
-      {messages.map((msg, i) => (
-        <div
-          key={i}
-          className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-        >
-          {msg.role === "assistant" && (
-            <div className={`h-7 w-7 shrink-0 rounded-md ${theme.accentBg} flex items-center justify-center mt-0.5`}>
-              <Terminal className="h-3.5 w-3.5 text-white" />
-            </div>
-          )}
-          <div
-            className={`max-w-[80%] rounded-md px-3 py-2 text-sm ${
-              msg.role === "user" ? theme.chatUserBg : theme.chatBotBg
-            }`}
-            data-testid={`chat-message-${i}`}
-          >
-            <p className="whitespace-pre-wrap">{msg.content}</p>
-          </div>
-          {msg.role === "user" && (
-            <div className="h-7 w-7 shrink-0 rounded-md bg-black/10 flex items-center justify-center mt-0.5">
-              <User className="h-3.5 w-3.5" />
-            </div>
-          )}
-        </div>
-      ))}
-
-      {isStreaming && messages[messages.length - 1]?.content === "" && (
-        <div className="flex items-center gap-2">
-          <div className={`h-7 w-7 shrink-0 rounded-md ${theme.accentBg} flex items-center justify-center`}>
-            <Terminal className="h-3.5 w-3.5 text-white" />
-          </div>
-          <div className="flex gap-1">
-            <span className={`w-1.5 h-1.5 ${theme.accentBg} rounded-full animate-bounce`} style={{ animationDelay: "0ms" }} />
-            <span className={`w-1.5 h-1.5 ${theme.accentBg} rounded-full animate-bounce`} style={{ animationDelay: "150ms" }} />
-            <span className={`w-1.5 h-1.5 ${theme.accentBg} rounded-full animate-bounce`} style={{ animationDelay: "300ms" }} />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderChatInput = (refObj: typeof inputRef, testIdPrefix: string) => (
-    <div className={`p-3 border-t ${theme.sectionBorder}`}>
-      <form
-        onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
-        className="flex items-center gap-2"
-      >
-        <Input
-          ref={refObj}
-          value={inputValue}
-          onChange={e => setInputValue(e.target.value)}
-          placeholder="Ask a question..."
-          disabled={isStreaming}
-          className={theme.bodyFont}
-          data-testid={`${testIdPrefix}input-chat-message`}
-        />
-        <Button
-          type="submit"
-          size="icon"
-          disabled={!inputValue.trim() || isStreaming}
-          className={`${theme.accentBg} text-white`}
-          data-testid={`${testIdPrefix}button-send-message`}
-        >
-          <Send className="h-4 w-4" />
-        </Button>
-      </form>
-    </div>
-  );
+  const skills = profile.technicalSkills?.split(/[,\n]/).map(s => s.trim()).filter(Boolean) || [];
 
   return (
-    <div className={`min-h-screen ${theme.bg} ${theme.text} ${theme.bodyFont} relative`}>
-      {/* Hero Section */}
-      <section data-testid="section-hero" className="relative overflow-hidden">
-        <div className={`absolute inset-0 bg-gradient-to-br ${theme.heroGradient}`} />
-        <div className="relative mx-auto max-w-5xl px-6 py-20">
+    <div className={`${theme.bg} ${theme.text} ${theme.bodyFont} min-h-screen selection:bg-indigo-500/30 overflow-x-hidden`}>
+      <div className={`${theme.gradient} fixed inset-0 -z-10`} />
+      
+      {/* SECTION A: HERO */}
+      <section className="py-24 px-6 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-16 items-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row items-center gap-8"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
           >
-            {portfolio.profile.videoUrl ? (
-              <div className="w-full md:w-1/2 shrink-0">
-                <video
-                  src={portfolio.profile.videoUrl}
-                  controls
-                  poster={portfolio.profile.photoUrl || undefined}
-                  className="w-full rounded-md max-h-[400px] object-cover"
-                />
-              </div>
-            ) : (
-              <Avatar className={`h-36 w-36 border-2 ${theme.accentBorder} shrink-0`}>
-                {portfolio.profile.photoUrl ? (
-                  <AvatarImage src={portfolio.profile.photoUrl} alt={portfolio.profile.displayName} />
-                ) : null}
-                <AvatarFallback className={`text-3xl ${theme.accentBg} text-white`}>
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-            )}
+            <h1 className={`text-6xl font-black mb-6 tracking-tight ${theme.headingFont}`}>
+              {profile.displayName}
+            </h1>
+            
+            <p className="text-2xl font-medium text-white/70 mb-8">
+              {profile.heroSubtitle?.split(' • ').map((facet, i, arr) => (
+                <span key={i}>
+                  {facet}
+                  {i < arr.length - 1 && (
+                    <span className="text-indigo-400 mx-3 opacity-50">•</span>
+                  )}
+                </span>
+              )) || profile.roleTitle}
+            </p>
 
-            <div className={`text-center ${portfolio.profile.videoUrl ? "md:text-left md:w-1/2" : "md:text-left"}`}>
-              <h1 className={`text-4xl md:text-5xl font-bold mb-2 ${theme.headingFont}`} data-testid="text-display-name">
-                {portfolio.profile.displayName}
-              </h1>
-              <p className={`text-xl ${theme.accent} mb-3`} data-testid="text-role-title">
-                {portfolio.profile.roleTitle}
-              </p>
-              <p className={`${theme.muted} max-w-lg`} data-testid="text-positioning">
-                {portfolio.profile.positioning}
-              </p>
-
-              <div className="flex items-center gap-3 mt-6 justify-center md:justify-start flex-wrap">
-                {portfolio.contact.email && (
-                  <a href={`mailto:${portfolio.contact.email}`}>
-                    <Button variant="outline" size="sm" data-testid="button-contact-email">
-                      <Mail className="mr-1.5 h-3.5 w-3.5" /> Email
-                    </Button>
-                  </a>
-                )}
-                {portfolio.contact.linkedin && (
-                  <a href={portfolio.contact.linkedin.startsWith("http") ? portfolio.contact.linkedin : `https://${portfolio.contact.linkedin}`} target="_blank" rel="noreferrer">
-                    <Button variant="outline" size="sm" data-testid="button-contact-linkedin">
-                      <Linkedin className="mr-1.5 h-3.5 w-3.5" /> LinkedIn
-                    </Button>
-                  </a>
-                )}
-                {portfolio.profile.cvResumeUrl && (
-                  <a href={portfolio.profile.cvResumeUrl} download>
-                    <Button variant="outline" size="sm" data-testid="button-cv-download">
-                      <Download className="mr-1.5 h-3.5 w-3.5" /> Download CV
-                    </Button>
-                  </a>
-                )}
-                {portfolio.profile.resumeUrl && !portfolio.profile.cvResumeUrl && (
-                  <a href={portfolio.profile.resumeUrl} target="_blank" rel="noreferrer">
-                    <Button variant="outline" size="sm" data-testid="button-resume">
-                      <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Resume
-                    </Button>
-                  </a>
-                )}
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    const chatSection = document.getElementById("section-chatbot");
-                    if (chatSection) chatSection.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className={`${theme.accentBg} text-white`}
-                  data-testid="button-open-chat"
-                >
-                  <MessageSquare className="mr-1.5 h-3.5 w-3.5" /> Talk to My Twin
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Impact Metrics */}
-      {achievementLines.length > 0 && (
-        <section data-testid="section-metrics" className={`border-t ${theme.sectionBorder}`}>
-          <div className="mx-auto max-w-5xl px-6 py-12">
-            <h2 className={`text-2xl font-bold mb-6 flex items-center gap-2 ${theme.headingFont}`}>
-              <Award className={`h-5 w-5 ${theme.secondaryAccent}`} />
-              Impact Metrics
-            </h2>
-            <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
-              {achievementLines.map((achievement, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                  className="shrink-0"
-                >
-                  <Card className={`border ${theme.cardBg} min-w-[220px] max-w-[280px]`} data-testid={`achievement-${i}`}>
-                    <CardContent className="p-4">
-                      <p className={`text-sm ${theme.text}`}>
-                        {achievement.split(/(\d[\d,.%+]*\w*)/g).map((part, pi) =>
-                          /\d/.test(part) ? (
-                            <span key={pi} className={`font-bold ${theme.secondaryAccent}`}>{part}</span>
-                          ) : (
-                            <span key={pi}>{part}</span>
-                          )
-                        )}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+            <div className="space-y-6 text-white/80 text-xl leading-relaxed">
+              {profile.positioning?.split('\n\n').map((para, i) => (
+                <p key={i}>{para}</p>
               ))}
             </div>
-          </div>
-        </section>
-      )}
 
-      {/* Skill Matrix */}
-      {skills.length > 0 && (
-        <section data-testid="section-skills" className={`border-t ${theme.sectionBorder}`}>
-          <div className="mx-auto max-w-5xl px-6 py-12">
-            <h2 className={`text-2xl font-bold mb-6 flex items-center gap-2 ${theme.headingFont}`}>
-              <Code2 className={`h-5 w-5 ${theme.accent}`} />
-              Skill Matrix
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {skills.map((skill, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.03 }}
-                >
-                  <Badge
-                    variant="outline"
-                    className={`${theme.accentBorder} ${theme.accent}`}
-                    data-testid={`skill-badge-${i}`}
-                  >
-                    {skill}
-                  </Badge>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Career Timeline */}
-      {portfolio.factBanks.length > 0 && (
-        <section data-testid="section-timeline" className={`border-t ${theme.sectionBorder}`}>
-          <div className="mx-auto max-w-5xl px-6 py-12">
-            <h2 className={`text-2xl font-bold mb-8 flex items-center gap-2 ${theme.headingFont}`}>
-              <Briefcase className={`h-5 w-5 ${theme.accent}`} />
-              Career Timeline
-            </h2>
-            <div className="relative">
-              <div className={`absolute left-[11px] top-2 bottom-2 w-0.5 ${theme.accentBg} opacity-30`} />
-              <div className="space-y-8">
-                {portfolio.factBanks.map((fb, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="relative pl-10"
-                    data-testid={`card-company-${i}`}
-                  >
-                    <div className={`absolute left-0 top-1 h-6 w-6 rounded-full ${theme.accentBg} flex items-center justify-center`}>
-                      <div className="h-2 w-2 rounded-full bg-white" />
-                    </div>
-                    <Card className={`border ${theme.cardBg}`}>
-                      <CardContent className="p-5">
-                        <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
-                          <h3 className={`font-semibold text-lg ${theme.headingFont}`}>{fb.companyName}</h3>
-                          <Badge variant="secondary" className="text-xs">{fb.roleName}</Badge>
-                        </div>
-                        {fb.duration && (
-                          <p className={`text-xs ${theme.muted} mb-3`}>{fb.duration}</p>
-                        )}
-                        <ul className="space-y-1.5 mt-2">
-                          {fb.facts.slice(0, 5).map((fact, fi) => (
-                            <li key={fi} className={`text-sm ${theme.muted} flex items-start gap-2`}>
-                              <span className={`${theme.accent} mt-1 shrink-0`}>&#8226;</span>
-                              <span>{fact}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Signature Stories */}
-      {experienceStories.length > 0 && (
-        <section data-testid="section-stories" className={`border-t ${theme.sectionBorder}`}>
-          <div className="mx-auto max-w-5xl px-6 py-12">
-            <h2 className={`text-2xl font-bold mb-6 flex items-center gap-2 ${theme.headingFont}`}>
-              <Sparkles className={`h-5 w-5 ${theme.secondaryAccent}`} />
-              Signature Stories
-            </h2>
-            <div className="space-y-4">
-              {experienceStories.map((entry, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                >
-                  <Card className={`border ${theme.cardBg} overflow-visible`} data-testid={`card-story-${i}`}>
-                    <CardContent className="p-0">
-                      <button
-                        onClick={() => toggleStory(i)}
-                        className={`w-full flex items-center justify-between gap-4 p-5 text-left ${theme.text}`}
-                        data-testid={`button-toggle-story-${i}`}
-                      >
-                        <h3 className={`font-semibold text-lg ${theme.headingFont}`}>{entry.title}</h3>
-                        {expandedStories.has(i) ? (
-                          <ChevronUp className={`h-5 w-5 shrink-0 ${theme.muted}`} />
-                        ) : (
-                          <ChevronDown className={`h-5 w-5 shrink-0 ${theme.muted}`} />
-                        )}
-                      </button>
-                      <AnimatePresence>
-                        {expandedStories.has(i) && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.25 }}
-                            className="overflow-hidden"
-                          >
-                            <div className={`px-5 pb-5 grid md:grid-cols-3 gap-6 border-t ${theme.sectionBorder} pt-5`}>
-                              {entry.challenge && (
-                                <div>
-                                  <h4 className={`text-xs font-medium ${theme.accent} uppercase tracking-wider mb-2`}>Challenge</h4>
-                                  <p className={`text-sm ${theme.muted}`}>{entry.challenge}</p>
-                                </div>
-                              )}
-                              {entry.approach && (
-                                <div>
-                                  <h4 className={`text-xs font-medium ${theme.accent} uppercase tracking-wider mb-2`}>Approach</h4>
-                                  <p className={`text-sm ${theme.muted}`}>{entry.approach}</p>
-                                </div>
-                              )}
-                              {entry.result && (
-                                <div>
-                                  <h4 className={`text-xs font-medium ${theme.secondaryAccent} uppercase tracking-wider mb-2`}>Result</h4>
-                                  <p className={`text-sm ${theme.muted}`}>{entry.result}</p>
-                                </div>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Embedded Chatbot Section */}
-      <section id="section-chatbot" data-testid="section-chatbot" className={`border-t ${theme.sectionBorder}`}>
-        <div className="mx-auto max-w-5xl px-6 py-12">
-          <h2 className={`text-2xl font-bold mb-2 ${theme.headingFont} text-center`}>
-            Ask My Digital Twin
-          </h2>
-          <p className={`${theme.muted} text-center text-sm mb-6`}>
-            Chat with an AI trained on {portfolio.profile.displayName}'s experience
-          </p>
-
-          {messages.length === 0 && (
-            <div className="flex flex-wrap justify-center gap-2 mb-4">
-              {suggestedQs.map((q, i) => (
-                <button
-                  key={i}
-                  onClick={() => sendMessage(q)}
-                  className={`px-3 py-1.5 rounded-full text-sm border ${theme.accentBorder} ${theme.accent} hover:opacity-80 transition-opacity`}
-                  data-testid={`button-suggestion-${i}`}
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <Card className={`border ${theme.cardBg} overflow-hidden`}>
-            <CardContent className="p-0">
-              {renderChatMessages(embeddedScrollRef, true)}
-              {renderChatInput(embeddedInputRef, "")}
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Floating Chat Panel */}
-      <AnimatePresence>
-        {chatOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 w-[400px] max-w-[calc(100vw-3rem)] z-50"
-          >
-            <Card className={`border ${theme.cardBg} ${theme.bg} shadow-2xl overflow-hidden`}>
-              <div className={`px-4 py-3 border-b ${theme.sectionBorder} flex items-center justify-between gap-2`}>
-                <div className="flex items-center gap-2">
-                  <div className={`h-8 w-8 rounded-md ${theme.accentBg} flex items-center justify-center`}>
-                    <Terminal className="h-4 w-4 text-white" />
-                  </div>
-                  <div>
-                    <p className={`text-sm font-medium ${theme.text}`}>{portfolio.profile.displayName}'s Twin</p>
-                    <p className={`text-xs ${theme.muted}`}>AI-Powered Assistant</p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setChatOpen(false)}
-                  data-testid="button-close-chat"
-                >
-                  <span className="text-lg leading-none">&times;</span>
-                </Button>
-              </div>
-
-              {renderChatMessages(scrollRef, false)}
-
-              {messages.length === 0 && (
-                <div className="px-4 pb-2">
-                  <div className="flex flex-wrap gap-1.5">
-                    {suggestedQs.slice(0, 3).map((q, i) => (
-                      <button
-                        key={i}
-                        onClick={() => sendMessage(q)}
-                        className={`text-xs px-2 py-1 rounded-full border ${theme.accentBorder} ${theme.accent} hover:opacity-80 transition-opacity`}
-                        data-testid={`button-floating-suggestion-${i}`}
-                      >
-                        {q}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            <div className="flex flex-wrap gap-4 mt-10">
+              {portfolio.contact.email && (
+                <a href={`mailto:${portfolio.contact.email}`}>
+                  <button className={`${theme.glass} px-8 py-4 rounded-xl ${theme.glassHover} font-semibold flex items-center gap-2`}>
+                    <Mail className="w-5 h-5" /> Email
+                  </button>
+                </a>
               )}
-
-              {renderChatInput(inputRef, "floating-")}
-            </Card>
+              {portfolio.contact.linkedin && (
+                <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer">
+                  <button className={`${theme.glass} px-8 py-4 rounded-xl ${theme.glassHover} font-semibold flex items-center gap-2`}>
+                    <Linkedin className="w-5 h-5" /> LinkedIn
+                  </button>
+                </a>
+              )}
+              <button 
+                onClick={() => document.getElementById('section-chatbot')?.scrollIntoView({ behavior: 'smooth' })}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2"
+              >
+                <MessageSquare className="w-5 h-5" /> Talk to My AI
+              </button>
+            </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Floating Chat Button */}
-      {!chatOpen && (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="fixed bottom-6 right-6 z-50"
-        >
-          <Button
-            size="lg"
-            onClick={() => setChatOpen(true)}
-            className={`h-14 w-14 rounded-full shadow-lg ${theme.accentBg} text-white no-default-hover-elevate`}
-            data-testid="button-chat-fab"
+          
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative"
           >
-            <MessageSquare className="h-6 w-6" />
-          </Button>
-        </motion.div>
+            <div className="absolute -inset-4 bg-indigo-500/20 blur-3xl rounded-full" />
+            {profile.videoUrl ? (
+              <div className={`${theme.glass} rounded-3xl overflow-hidden ${theme.glow} aspect-video`}>
+                <video src={profile.videoUrl} controls className="w-full h-full object-cover" />
+              </div>
+            ) : profile.photoUrl ? (
+              <div className={`${theme.glass} rounded-3xl overflow-hidden ${theme.glow} aspect-square`}>
+                <img src={profile.photoUrl} className="w-full h-full object-cover" alt={profile.displayName} />
+              </div>
+            ) : null}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* SECTION B: DIGITAL TWIN CONSOLE */}
+      <section id="section-chatbot" className="py-20 px-6 max-w-4xl mx-auto">
+        <div className="text-center mb-10">
+          <h2 className="text-4xl font-bold mb-4">Digital Twin Interface</h2>
+          <p className={theme.muted}>Trained on {profile.displayName}'s career history and decision models.</p>
+        </div>
+        
+        {profile.portfolioSuggestedQuestions && profile.portfolioSuggestedQuestions.length > 0 && (
+          <div className="flex flex-wrap gap-3 mb-8 justify-center">
+            {profile.portfolioSuggestedQuestions.map((q, i) => (
+              <button
+                key={i}
+                onClick={() => handleSendMessage(q)}
+                className={`${theme.glass} px-5 py-2.5 rounded-full text-sm font-medium ${theme.glassHover} transition-all border-white/5`}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        )}
+        
+        <div className={`${theme.glass} rounded-3xl overflow-hidden flex flex-col h-[650px] ${theme.glow}`}>
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-6 scroll-smooth">
+            {messages.length === 0 && (
+              <div className="h-full flex flex-col items-center justify-center opacity-40">
+                <Terminal className="w-12 h-12 mb-4" />
+                <p>Initialize interaction...</p>
+              </div>
+            )}
+            {messages.map((msg, i) => (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                key={i} 
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`max-w-[85%] px-6 py-4 rounded-2xl ${
+                  msg.role === 'user' ? theme.chatUserBg : theme.chatBotBg
+                } leading-relaxed shadow-sm`}>
+                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                </div>
+              </motion.div>
+            ))}
+            {isStreaming && (
+              <div className="flex gap-2 p-2">
+                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" />
+                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+              </div>
+            )}
+          </div>
+          
+          <div className="p-6 bg-white/5 border-t border-white/10">
+            <div className="flex gap-3">
+              <input
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                placeholder="Ask about strategy, experience, or specific roles..."
+                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-white"
+              />
+              <button
+                onClick={() => handleSendMessage()}
+                disabled={isStreaming || !inputValue.trim()}
+                className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-8 py-4 rounded-xl font-bold transition-all"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION C: STATS BENTO GRID */}
+      {profile.stats && profile.stats.length > 0 && (
+        <section className="py-20 px-6 max-w-6xl mx-auto">
+          <div className="flex items-center gap-4 mb-12">
+            <div className="h-px flex-1 bg-white/10" />
+            <h2 className="text-3xl font-bold uppercase tracking-widest text-indigo-400">Impact Metrics</h2>
+            <div className="h-px flex-1 bg-white/10" />
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {profile.stats.map((stat, i) => (
+              <motion.div 
+                whileHover={{ y: -5 }}
+                key={i} 
+                className={`${theme.glass} p-10 rounded-2xl text-center ${theme.glassHover} border-white/5`}
+              >
+                <div className={`text-5xl font-black mb-4 bg-gradient-to-r ${theme.accent} bg-clip-text text-transparent`}>
+                  {stat.value}
+                </div>
+                <div className="text-white/60 text-lg font-medium">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
       )}
 
-      {/* Footer */}
-      <footer data-testid="section-footer" className={`border-t ${theme.sectionBorder} py-8 mt-12`}>
-        <div className="mx-auto max-w-5xl px-6 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Terminal className={`h-4 w-4 ${theme.accent}`} />
-            <span className={`text-sm ${theme.muted}`}>Powered by BIOS.ai</span>
+      {/* SECTION D: PROBLEM FIT */}
+      {profile.problemFit && profile.problemFit.length > 0 && (
+        <section className="py-20 px-6 max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold mb-12 text-center">Where I'm Most Useful</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            {profile.problemFit.map((problem, i) => (
+              <div key={i} className={`${theme.glass} p-8 rounded-2xl ${theme.glassHover} border-white/5 group`}>
+                <div className="flex items-start gap-4">
+                  <div className="w-2 h-2 rounded-full bg-indigo-500 mt-3 group-hover:scale-150 transition-all" />
+                  <p className="text-xl text-white/90 leading-relaxed font-medium">{problem}</p>
+                </div>
+              </div>
+            ))}
           </div>
-          <a href="/" className={`text-sm ${theme.accent} hover:underline`}>
-            Create your own
+        </section>
+      )}
+
+      {/* SECTION E: HOW I WORK */}
+      {profile.howIWork && profile.howIWork.steps?.length > 0 && (
+        <section className="py-20 px-6 max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">{profile.howIWork.name}</h2>
+            <div className="w-24 h-1 bg-indigo-500 mx-auto rounded-full" />
+          </div>
+          <div className="grid md:grid-cols-4 gap-4">
+            {profile.howIWork.steps.map((step, i) => (
+              <div key={i} className={`${theme.glass} p-8 rounded-2xl ${theme.glassHover} relative overflow-hidden group border-white/5`}>
+                <div className="absolute -right-4 -top-4 text-8xl font-black text-white/5 group-hover:text-indigo-500/10 transition-all">
+                  {i + 1}
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-indigo-400">{step.label}</h3>
+                <p className="text-white/70 leading-relaxed">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* CAREER TIMELINE */}
+      {portfolio.factBanks.length > 0 && (
+        <section className="py-20 px-6 max-w-5xl mx-auto">
+          <h2 className="text-4xl font-bold mb-12 flex items-center gap-4">
+            <Briefcase className="w-8 h-8 text-indigo-400" />
+            Career Trajectory
+          </h2>
+          <div className="space-y-8 relative">
+            <div className="absolute left-[27px] top-4 bottom-4 w-px bg-white/10" />
+            {portfolio.factBanks.map((fb, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="relative pl-16"
+              >
+                <div className="absolute left-4 top-2 w-7 h-7 rounded-full bg-indigo-600 border-4 border-zinc-900 z-10" />
+                <div className={`${theme.glass} p-8 rounded-2xl ${theme.glassHover}`}>
+                  <div className="flex flex-wrap justify-between gap-4 mb-4">
+                    <div>
+                      <h3 className="text-2xl font-bold text-white">{fb.companyName}</h3>
+                      <p className="text-indigo-400 font-medium">{fb.roleName}</p>
+                    </div>
+                    {fb.duration && <Badge variant="outline" className="h-8 border-white/10 text-white/50">{fb.duration}</Badge>}
+                  </div>
+                  <ul className="space-y-3">
+                    {fb.facts.map((fact, fi) => (
+                      <li key={fi} className="text-white/60 flex items-start gap-3">
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500/50 mt-2 shrink-0" />
+                        {fact}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* SIGNATURE STORIES */}
+      {experienceStories.length > 0 && (
+        <section className="py-20 px-6 max-w-5xl mx-auto">
+          <h2 className="text-4xl font-bold mb-12 flex items-center gap-4">
+            <Sparkles className="w-8 h-8 text-indigo-400" />
+            Signature Stories
+          </h2>
+          <div className="space-y-6">
+            {experienceStories.map((entry, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+              >
+                <div className={`${theme.glass} rounded-2xl overflow-hidden`}>
+                  <button 
+                    onClick={() => toggleStory(i)}
+                    className="w-full p-8 flex items-center justify-between hover:bg-white/5 transition-all text-left"
+                  >
+                    <h3 className="text-2xl font-bold text-white">{entry.title}</h3>
+                    {expandedStories.has(i) ? <ChevronUp /> : <ChevronDown />}
+                  </button>
+                  <AnimatePresence>
+                    {expandedStories.has(i) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-8 pt-0 space-y-8 border-t border-white/5 mt-4">
+                          {entry.challenge && (
+                            <div>
+                              <h4 className="text-sm font-black uppercase tracking-widest text-indigo-400 mb-3">The Challenge</h4>
+                              <p className="text-xl text-white/80 leading-relaxed">{entry.challenge}</p>
+                            </div>
+                          )}
+                          {entry.approach && (
+                            <div>
+                              <h4 className="text-sm font-black uppercase tracking-widest text-indigo-400 mb-3">The Approach</h4>
+                              <p className="text-xl text-white/80 leading-relaxed">{entry.approach}</p>
+                            </div>
+                          )}
+                          {entry.result && (
+                            <div>
+                              <h4 className="text-sm font-black uppercase tracking-widest text-indigo-400 mb-3">The Result</h4>
+                              <p className="text-xl text-white/80 leading-relaxed">{entry.result}</p>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* SKILL MATRIX */}
+      {skills.length > 0 && (
+        <section className="py-20 px-6 max-w-5xl mx-auto">
+          <h2 className="text-4xl font-bold mb-12 flex items-center gap-4">
+            <Code2 className="w-8 h-8 text-indigo-400" />
+            Skill Matrix
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            {skills.map((skill, i) => (
+              <Badge 
+                key={i} 
+                variant="outline" 
+                className={`${theme.glass} px-6 py-3 rounded-full text-lg border-white/5 text-white/80 ${theme.glassHover}`}
+              >
+                {skill}
+              </Badge>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* SECTION I: WHY AI CV */}
+      {profile.whyAiCv && profile.whyAiCv.length > 0 && (
+        <section className="py-20 px-6 max-w-4xl mx-auto">
+          <div className={`${theme.glass} p-12 rounded-3xl space-y-8 border-white/10 relative overflow-hidden`}>
+            <div className="absolute top-0 right-0 p-8 opacity-5">
+              <Terminal className="w-32 h-32" />
+            </div>
+            <h2 className="text-4xl font-bold text-white mb-8">Why an AI CV?</h2>
+            <div className="space-y-6">
+              {profile.whyAiCv.map((para, i) => (
+                <p key={i} className="text-xl text-white/70 leading-relaxed italic">
+                  "{para}"
+                </p>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* SECTION J: FOOTER CTA */}
+      <footer className="py-32 px-6 max-w-4xl mx-auto text-center border-t border-white/5">
+        <h2 className="text-5xl font-black mb-8 tracking-tighter">Don't Just Send a Resume. <br/><span className="text-indigo-500">Deploy an Agent.</span></h2>
+        <div className="flex flex-wrap gap-6 justify-center">
+          <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-5 rounded-2xl text-xl font-bold shadow-2xl shadow-indigo-500/40 transition-all">
+            Book a Conversation
+          </button>
+          <a href="/">
+            <button className={`${theme.glass} px-10 py-5 rounded-2xl text-xl font-bold ${theme.glassHover}`}>
+              Build Your Own Twin
+            </button>
           </a>
         </div>
+        <p className="mt-16 text-white/30 text-sm tracking-widest uppercase">
+          Powered by BIOS.ai • Deployment ID: {username}
+        </p>
       </footer>
     </div>
   );

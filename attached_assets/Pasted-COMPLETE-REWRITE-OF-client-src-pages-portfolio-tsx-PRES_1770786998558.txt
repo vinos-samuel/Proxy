@@ -1,0 +1,244 @@
+COMPLETE REWRITE OF client/src/pages/portfolio.tsx
+
+PRESERVE ONLY:
+- Chat logic (lines 120-250): SSE streaming, message handling
+- Interface signature for PortfolioData (but ADD new fields)
+- useEffect data fetching logic
+
+REPLACE EVERYTHING ELSE with vinosaicv.replit.app visual structure.
+
+STEP 1: UPDATE INTERFACE (lines 1-55)
+Add these fields to PortfolioData interface:
+```typescript
+interface PortfolioData {
+  // ... existing fields
+  heroSubtitle?: string;
+  stats?: Array<{ label: string; value: string }>;
+  problemFit?: string[];
+  howIWork?: { name: string; steps: Array<{ label: string; description: string }> };
+  whyAiCv?: string[];
+  portfolioSuggestedQuestions?: string[];
+}
+```
+
+STEP 2: REPLACE THEME CONFIG (lines 60-115)
+```typescript
+const themes = {
+  executive: {
+    bg: "bg-[#18181b]", // deep zinc
+    gradient: "bg-gradient-to-br from-indigo-900/20 via-transparent to-violet-900/20",
+    glass: "bg-white/5 backdrop-blur-xl border border-white/10",
+    glassHover: "hover:bg-white/8 transition-all duration-300",
+    accent: "from-indigo-400 to-violet-400",
+    glow: "shadow-[0_0_30px_rgba(79,70,229,0.3)]",
+  },
+  // ... similar for futurist, minimalist
+};
+```
+
+STEP 3: SECTION ORDER (replace entire render return)
+```tsx
+return (
+  <div className={theme.bg + " min-h-screen"}>
+    <div className={theme.gradient + " fixed inset-0 -z-10"} />
+    
+    {/* SECTION A: HERO */}
+    <section className="py-16 px-6 max-w-6xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-12">
+        {/* Left: Text */}
+        <div>
+          <h1 className="text-6xl font-bold mb-4">{profile.displayName}</h1>
+          <p className="text-2xl text-white/60 mb-6">
+            {profile.heroSubtitle?.split(' • ').map((facet, i) => (
+              <span key={i}>
+                {facet}
+                {i < profile.heroSubtitle.split(' • ').length - 1 && (
+                  <span className="text-indigo-400 mx-2">•</span>
+                )}
+              </span>
+            ))}
+          </p>
+          {/* Positioning: Split into 2 paragraphs */}
+          <div className="space-y-4 text-white/80 text-lg leading-relaxed">
+            {profile.positioning?.split('\n\n').map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+          {/* CTAs */}
+          <div className="flex gap-4 mt-8">
+            <button className={theme.glass + " px-6 py-3 rounded-lg " + theme.glassHover}>
+              Email
+            </button>
+            <button className={theme.glass + " px-6 py-3 rounded-lg " + theme.glassHover}>
+              LinkedIn
+            </button>
+          </div>
+        </div>
+        
+        {/* Right: Video/Photo + Chat Preview */}
+        <div className="space-y-6">
+          {profile.videoUrl && (
+            <div className={theme.glass + " rounded-xl overflow-hidden " + theme.glow}>
+              <video src={profile.videoUrl} controls className="w-full" />
+            </div>
+          )}
+          {profile.photoUrl && !profile.videoUrl && (
+            <div className={theme.glass + " rounded-xl overflow-hidden " + theme.glow}>
+              <img src={profile.photoUrl} className="w-full" />
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+
+    {/* SECTION B: DIGITAL TWIN CONSOLE */}
+    <section className="py-12 px-6 max-w-6xl mx-auto">
+      <h2 className="text-3xl font-bold mb-6 text-center">Ask My Digital Twin</h2>
+      
+      {/* Suggested Question Pills */}
+      {profile.portfolioSuggestedQuestions && (
+        <div className="flex flex-wrap gap-3 mb-6 justify-center">
+          {profile.portfolioSuggestedQuestions.map((q, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                setInput(q);
+                setIsChatOpen(true);
+              }}
+              className={theme.glass + " px-4 py-2 rounded-full text-sm " + theme.glassHover}
+            >
+              {q}
+            </button>
+          ))}
+        </div>
+      )}
+      
+      {/* Embedded Chat Interface */}
+      <div className={theme.glass + " rounded-2xl p-6 max-h-[600px] flex flex-col"}>
+        {/* Chat messages */}
+        <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+          {messages.map((msg, i) => (
+            <div key={i} className={msg.role === 'user' ? 'text-right' : 'text-left'}>
+              <div className={
+                msg.role === 'user' 
+                  ? 'inline-block bg-indigo-600 px-4 py-2 rounded-lg'
+                  : 'inline-block bg-white/10 px-4 py-2 rounded-lg'
+              }>
+                {msg.content}
+              </div>
+            </div>
+          ))}
+          {isLoading && <div className="text-white/60">Thinking...</div>}
+        </div>
+        
+        {/* Input */}
+        <div className="flex gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            placeholder="Ask me anything..."
+            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3"
+          />
+          <button
+            onClick={handleSendMessage}
+            className="bg-indigo-600 px-6 py-3 rounded-lg hover:bg-indigo-700"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </section>
+
+    {/* SECTION C: STATS BENTO GRID */}
+    {profile.stats && profile.stats.length > 0 && (
+      <section className="py-12 px-6 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-bold mb-8">Impact Metrics</h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          {profile.stats.map((stat, i) => (
+            <div key={i} className={theme.glass + " p-8 rounded-xl text-center " + theme.glassHover}>
+              <div className={"text-4xl font-bold mb-2 bg-gradient-to-r " + theme.accent + " bg-clip-text text-transparent"}>
+                {stat.value}
+              </div>
+              <div className="text-white/60">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {/* SECTION D: PROBLEM FIT */}
+    {profile.problemFit && profile.problemFit.length > 0 && (
+      <section className="py-12 px-6 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-bold mb-8">What I Solve</h2>
+        <div className="space-y-4">
+          {profile.problemFit.map((problem, i) => (
+            <div key={i} className={theme.glass + " p-6 rounded-xl " + theme.glassHover}>
+              <p className="text-lg text-white/80">{problem}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {/* SECTION E: HOW I WORK */}
+    {profile.howIWork && profile.howIWork.steps?.length > 0 && (
+      <section className="py-12 px-6 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-bold mb-8">{profile.howIWork.name}</h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          {profile.howIWork.steps.map((step, i) => (
+            <div key={i} className={theme.glass + " p-6 rounded-xl " + theme.glassHover}>
+              <div className="flex items-start gap-4">
+                <div className="text-4xl font-bold text-indigo-400">{i + 1}</div>
+                <div>
+                  <h3 className="text-xl font-bold mb-2">{step.label}</h3>
+                  <p className="text-white/70">{step.description}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {/* SECTION F: CAREER TIMELINE */}
+    {/* Keep existing timeline logic, just restyle with theme.glass */}
+
+    {/* SECTION G: WAR STORIES */}
+    {/* Keep existing accordion logic, just restyle with theme.glass */}
+
+    {/* SECTION H: SKILL MATRIX */}
+    {/* Keep existing skills display, just restyle with theme.glass */}
+
+    {/* SECTION I: WHY AI CV */}
+    {profile.whyAiCv && profile.whyAiCv.length > 0 && (
+      <section className="py-12 px-6 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-bold mb-8">Why an AI CV?</h2>
+        <div className={theme.glass + " p-8 rounded-xl space-y-4"}>
+          {profile.whyAiCv.map((para, i) => (
+            <p key={i} className="text-lg text-white/80 leading-relaxed">{para}</p>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {/* SECTION J: FOOTER CTA */}
+    <section className="py-16 px-6 max-w-6xl mx-auto text-center">
+      <h2 className="text-3xl font-bold mb-6">Ready to talk?</h2>
+      <button className="bg-indigo-600 px-8 py-4 rounded-lg text-lg hover:bg-indigo-700">
+        Book a Call
+      </button>
+    </section>
+
+  </div>
+);
+```
+
+CRITICAL:
+- Preserve ALL chat logic (handleSendMessage, SSE streaming, message state)
+- Use theme variables for all colors/effects
+- Make sure heroSubtitle splits on ' • ' separator
+- Suggested questions should pre-fill chat input when clicked
+- All sections should use glassmorphism cards
+
+Please implement this complete rewrite now.

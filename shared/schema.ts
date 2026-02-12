@@ -38,6 +38,7 @@ export const twinProfiles = pgTable("twin_profiles", {
   whyAiCv: jsonb("why_ai_cv"), // Array of strings (paragraphs)
   portfolioSuggestedQuestions: jsonb("portfolio_suggested_questions"), // Array of strings
   status: text("status").notNull().default("draft"),
+  careerTimeline: jsonb("career_timeline"),
   questionnaireData: jsonb("questionnaire_data"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });

@@ -31,6 +31,7 @@ interface PortfolioData {
     howIWork?: { name: string; steps: Array<{ label: string; description: string }> };
     whyAiCv?: string[];
     portfolioSuggestedQuestions?: string[];
+    careerTimeline?: Array<{ company: string; title: string; years: string; achievements: string[] }>;
   };
   factBanks: Array<{
     companyName: string;
@@ -378,13 +379,28 @@ export default function PortfolioPage() {
       </section>
 
       {/* 2. DIGITAL TWIN CONSOLE — THE STAR */}
-      <section id="section-chatbot" className="py-12 px-6 max-w-4xl mx-auto">
+      <section id="section-chatbot" className="py-12 px-6 max-w-4xl mx-auto opacity-0 animate-[fadeIn_0.6s_ease-out_forwards]">
         <div className="text-center mb-6">
           <h2 className={`text-3xl font-bold mb-2 ${theme.headingFont}`}>Twin Interface</h2>
           <p className={`${theme.muted} text-sm`}>Trained on {profile.displayName}'s career data, decision models, and communication style.</p>
         </div>
         
         <div className={`${theme.glass} rounded-3xl overflow-hidden flex flex-col ${theme.glow} relative`} style={{ minHeight: "600px" }}>
+          {/* PERSONALITY HEADER */}
+          <div className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border-b border-white/10">
+            <div className="relative">
+              <Avatar className="w-14 h-14 border-2 border-indigo-400/50">
+                <AvatarImage src={profile.photoUrl || ""} alt={profile.displayName} />
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+              <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-zinc-900"></div>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">I'm {profile.displayName?.split(' ')[0]}'s Digital Twin</h3>
+              <p className="text-sm text-white/70">Ask me about my experience, approach, or war stories</p>
+            </div>
+          </div>
+
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4 scroll-smooth">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12">
@@ -405,24 +421,36 @@ export default function PortfolioPage() {
               </div>
             )}
             {messages.map((msg, i) => (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                key={i} 
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`max-w-[85%] px-5 py-3 rounded-2xl ${
-                  msg.role === 'user' ? theme.chatUserBg : theme.chatBotBg
-                } leading-relaxed text-sm`}>
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
+              <div key={i} className={msg.role === 'user' ? 'flex justify-end' : 'flex justify-start items-start gap-3'}>
+                {msg.role === 'assistant' && (
+                  <Avatar className="w-8 h-8 flex-shrink-0 mt-1">
+                    <AvatarImage src={profile.photoUrl || ""} alt={profile.displayName} />
+                    <AvatarFallback>{initials}</AvatarFallback>
+                  </Avatar>
+                )}
+                <div className={
+                  msg.role === 'user' 
+                    ? 'inline-block bg-indigo-600 px-4 py-2 rounded-lg max-w-[80%] text-sm'
+                    : 'inline-block bg-white/10 px-4 py-2 rounded-lg max-w-[80%] text-sm'
+                }>
+                  {msg.content}
                 </div>
-              </motion.div>
+              </div>
             ))}
-            {isStreaming && messages[messages.length - 1]?.content === "" && (
-              <div className="flex gap-1.5 p-2">
-                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" />
-                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.15s]" />
-                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.3s]" />
+            {isStreaming && (
+              <div className="flex items-center gap-3 mb-4">
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={profile.photoUrl || ""} alt={profile.displayName} />
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
+                <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
+                  <span className="text-white/70 text-xs">{profile.displayName?.split(' ')[0]} is typing</span>
+                  <div className="flex gap-1">
+                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -524,57 +552,44 @@ export default function PortfolioPage() {
         </section>
       )}
 
-      {/* 6. CAREER TRAJECTORY — Collapsed achievements */}
-      {portfolio.factBanks.length > 0 && (
-        <section className="py-12 px-6 max-w-5xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-8 flex items-center gap-3 ${theme.headingFont}`}>
-            <Briefcase className={`w-6 h-6 ${theme.accentSolid}`} />
-            Career Trajectory
+      {/* 6. CAREER TRAJECTORY */}
+      {profile.careerTimeline && profile.careerTimeline.length > 0 && (
+        <section className="py-12 px-6 max-w-6xl mx-auto opacity-0 animate-[fadeIn_0.6s_ease-out_forwards]">
+          <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
+            <span className="text-2xl">💼</span> Career Trajectory
           </h2>
-          <div className="space-y-4 relative">
-            <div className="absolute left-[15px] top-4 bottom-4 w-px bg-white/10" />
-            {portfolio.factBanks.map((fb, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -10 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="relative pl-10"
-              >
-                <div className={`absolute left-2 top-3 w-[11px] h-[11px] rounded-full bg-indigo-500 border-2 ${
-                  brandingTheme === 'minimalist' ? 'border-[#fafafa]' : brandingTheme === 'futurist' ? 'border-[#0a0a0f]' : 'border-[#18181b]'
-                } z-10`} />
-                <div className={`${theme.glass} rounded-xl overflow-hidden`}>
-                  <button
-                    onClick={() => setExpandedTimeline(prev => {
-                      const next = new Set(prev);
-                      next.has(i) ? next.delete(i) : next.add(i);
-                      return next;
-                    })}
-                    className={`w-full p-4 flex items-center justify-between text-left ${theme.glassHover}`}
-                    data-testid={`button-timeline-${i}`}
-                  >
-                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                      <h3 className="text-lg font-bold">{fb.companyName}</h3>
-                      <span className={`text-sm ${theme.accentSolid}`}>{fb.roleName}</span>
-                      {fb.duration && <span className={`text-xs ${theme.muted}`}>{fb.duration}</span>}
+          
+          <div className="relative">
+            {/* Vertical timeline line */}
+            <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-indigo-400/30"></div>
+            
+            {profile.careerTimeline.map((role, i) => (
+              <div key={i} className="relative pl-10 pb-8 last:pb-0">
+                {/* Timeline dot */}
+                <div className="absolute left-0 top-2 w-6 h-6 bg-indigo-600 rounded-full border-4 border-zinc-900"></div>
+                
+                <div className={theme.glass + " p-6 rounded-xl " + theme.glassHover}>
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="text-xl font-bold">{role.title}</h3>
+                      <p className="text-lg text-indigo-400">{role.company}</p>
                     </div>
-                    <ChevronDown className={`w-4 h-4 ${theme.muted} shrink-0 transition-transform ${expandedTimeline.has(i) ? 'rotate-180' : ''}`} />
-                  </button>
-                  {expandedTimeline.has(i) && fb.facts.length > 0 && (
-                    <div className="px-4 pb-4 border-t border-white/5">
-                      <ul className="space-y-2 mt-3">
-                        {fb.facts.map((fact, fi) => (
-                          <li key={fi} className={`text-sm ${theme.muted} flex items-start gap-2`}>
-                            <span className="w-1 h-1 rounded-full bg-indigo-500/50 mt-2 shrink-0" />
-                            {fact}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                    <span className="text-sm text-white/60">{role.years}</span>
+                  </div>
+                  
+                  {/* Collapsible achievements */}
+                  <details className="mt-4">
+                    <summary className="cursor-pointer text-white/70 hover:text-white transition-colors">
+                      Key Achievements ({role.achievements.length})
+                    </summary>
+                    <ul className="mt-3 space-y-2 pl-5">
+                      {role.achievements.map((achievement, j) => (
+                        <li key={j} className="text-white/80 list-disc">{achievement}</li>
+                      ))}
+                    </ul>
+                  </details>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </section>

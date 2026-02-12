@@ -1,0 +1,220 @@
+COMBINED TASK: Add Career History to Questionnaire + Enhanced Chat Interface
+
+PART 1: ADD CAREER HISTORY STEP TO QUESTIONNAIRE
+
+FILE: Look for the questionnaire component (likely client/src/components/Questionnaire.tsx or similar)
+
+ADD NEW STEP (after Step 3 or 4 - wherever resume upload currently is):
+
+Step Title: "Career History"
+Step Description: "List your career timeline with key achievements for each role"
+
+FIELDS (Repeatable - allow adding multiple roles):
+- Company Name (text input, required)
+- Job Title (text input, required)  
+- Years (text input, required, placeholder: "2020 - 2025" or "2020 - Present")
+- Key Achievements (textarea, required, placeholder: "List 2-3 key achievements, one per line")
+- [+ Add Another Role] button (repeatable up to 10 roles)
+
+VALIDATION:
+- At least 1 role required
+- All fields must be filled for each role added
+- Years should follow format "YYYY - YYYY" or "YYYY - Present"
+
+STORAGE:
+- Save to questionnaireData.careerHistory as array:
+  [
+    { company: "...", title: "...", years: "...", achievements: ["...", "..."] }
+  ]
+
+UI DESIGN:
+- Each role in a glassmorphism card (bg-white/5, border-white/10, rounded-lg)
+- Stack roles vertically with gap-4
+- "Add Another Role" button at bottom (+ icon, ghost style)
+- "Remove Role" button on each card (X icon, top-right, red on hover)
+
+
+PART 2: ENHANCED DIGITAL TWIN CHAT INTERFACE
+
+FILE: client/src/pages/portfolio.tsx (chat section around lines 250-400)
+
+ENHANCEMENT 1 - PERSONALITY HEADER:
+Add above suggested questions, inside chat container:
+
+<div className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg mb-4">
+  <div className="relative">
+    <img 
+      src={profile.photoUrl} 
+      alt={profile.displayName}
+      className="w-14 h-14 rounded-full border-2 border-indigo-400/50"
+    />
+    {/* Online status badge */}
+    <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-zinc-900"></div>
+  </div>
+  <div>
+    <h3 className="text-lg font-semibold">I'm {profile.displayName?.split(' ')[0]}'s Digital Twin</h3>
+    <p className="text-sm text-white/70">Ask me about my experience, approach, or war stories</p>
+  </div>
+</div>
+
+ENHANCEMENT 2 - TYPING INDICATOR:
+When isLoading is true, show typing indicator BEFORE the loading text:
+
+{isLoading && (
+  <div className="flex items-center gap-3 mb-4">
+    <img 
+      src={profile.photoUrl} 
+      alt={profile.displayName}
+      className="w-8 h-8 rounded-full"
+    />
+    <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
+      <span className="text-white/70">{profile.displayName?.split(' ')[0]} is typing</span>
+      <div className="flex gap-1">
+        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+      </div>
+    </div>
+  </div>
+)}
+
+ENHANCEMENT 3 - AVATAR IN AI MESSAGES:
+Modify the message rendering for assistant messages:
+
+{messages.map((msg, i) => (
+  <div key={i} className={msg.role === 'user' ? 'flex justify-end' : 'flex justify-start items-start gap-3'}>
+    {/* Show avatar for assistant messages */}
+    {msg.role === 'assistant' && (
+      <img 
+        src={profile.photoUrl} 
+        alt={profile.displayName}
+        className="w-8 h-8 rounded-full flex-shrink-0 mt-1"
+      />
+    )}
+    <div className={
+      msg.role === 'user' 
+        ? 'inline-block bg-indigo-600 px-4 py-2 rounded-lg max-w-[80%]'
+        : 'inline-block bg-white/10 px-4 py-2 rounded-lg max-w-[80%]'
+    }>
+      {msg.content}
+    </div>
+  </div>
+))}
+
+ENHANCEMENT 4 - WELCOME ANIMATION:
+Wrap the entire chat container in a fade-in animation:
+
+Add to the parent chat div:
+className="... animate-fade-in"
+
+Add to your CSS or Tailwind config:
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+Or use Tailwind's built-in if available:
+className="... opacity-0 animate-[fadeIn_0.6s_ease-out_forwards]"
+
+
+PART 3: UPDATE AI PROCESSOR TO USE CAREER HISTORY
+
+FILE: server/ai-processor.ts
+
+In the processQuestionnaire function, find where you build portfolioData.
+
+ADD this section to use the career history data:
+
+// Extract career timeline from questionnaire
+const careerTimeline = data.careerHistory?.map((role: any) => ({
+  company: role.company,
+  title: role.title,
+  years: role.years,
+  achievements: typeof role.achievements === 'string' 
+    ? role.achievements.split('\n').filter(Boolean) 
+    : role.achievements
+})) || [];
+
+// Add to portfolioData
+portfolioData.careerTimeline = careerTimeline;
+
+// Then in storage.updateProfileById, add:
+careerTimeline: portfolioData.careerTimeline || null,
+
+
+PART 4: UPDATE DATABASE SCHEMA
+
+FILE: shared/schema.ts
+
+Add to twinProfiles table:
+careerTimeline: jsonb("career_timeline"),
+
+Then run this migration in psql:
+ALTER TABLE twin_profiles ADD COLUMN IF NOT EXISTS career_timeline JSONB;
+
+
+PART 5: UPDATE PORTFOLIO PAGE TO RENDER TIMELINE
+
+FILE: client/src/pages/portfolio.tsx
+
+In the Career Trajectory section, replace the current rendering with:
+
+{profile.careerTimeline && profile.careerTimeline.length > 0 && (
+  <section className="py-12 px-6 max-w-6xl mx-auto">
+    <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
+      <span className="text-2xl">💼</span> Career Trajectory
+    </h2>
+    
+    <div className="relative">
+      {/* Vertical timeline line */}
+      <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-indigo-400/30"></div>
+      
+      {profile.careerTimeline.map((role, i) => (
+        <div key={i} className="relative pl-10 pb-8 last:pb-0">
+          {/* Timeline dot */}
+          <div className="absolute left-0 top-2 w-6 h-6 bg-indigo-600 rounded-full border-4 border-zinc-900"></div>
+          
+          <div className={theme.glass + " p-6 rounded-xl " + theme.glassHover}>
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <h3 className="text-xl font-bold">{role.title}</h3>
+                <p className="text-lg text-indigo-400">{role.company}</p>
+              </div>
+              <span className="text-sm text-white/60">{role.years}</span>
+            </div>
+            
+            {/* Collapsible achievements */}
+            <details className="mt-4">
+              <summary className="cursor-pointer text-white/70 hover:text-white transition-colors">
+                Key Achievements ({role.achievements.length})
+              </summary>
+              <ul className="mt-3 space-y-2 pl-5">
+                {role.achievements.map((achievement, j) => (
+                  <li key={j} className="text-white/80 list-disc">{achievement}</li>
+                ))}
+              </ul>
+            </details>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+
+
+TESTING CHECKLIST:
+✅ Questionnaire shows new Career History step
+✅ Can add/remove multiple roles
+✅ Data saves to database correctly
+✅ Portfolio shows timeline with vertical line and dots
+✅ Achievements collapse/expand properly
+✅ Chat shows personality header with avatar and online badge
+✅ "Sarah is typing..." shows when loading
+✅ Avatar appears next to AI messages
+✅ Chat fades in smoothly on page load
+
+Please implement all 5 parts and confirm everything works.

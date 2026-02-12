@@ -60,6 +60,12 @@ export interface QuestionnaireData {
   };
   step2: {
     professionalSummary: string;
+    careerHistory?: Array<{
+      company: string;
+      title: string;
+      years: string;
+      achievements: string;
+    }>;
   };
   step3: {
     resumeUrl: string;
@@ -111,7 +117,12 @@ export interface QuestionnaireData {
 
 const defaultData: QuestionnaireData = {
   step1: { fullName: "", currentTitle: "", email: "", phone: "", linkedinUrl: "", location: "" },
-  step2: { professionalSummary: "" },
+  step2: { 
+    professionalSummary: "",
+    careerHistory: [
+      { company: "", title: "", years: "", achievements: "" }
+    ]
+  },
   step3: { resumeUrl: "" },
   step4: {
     stories: [
@@ -183,6 +194,9 @@ export default function QuestionnairePage() {
             merged[key] = { ...defaultData[key], ...saved[key] } as any;
           }
         }
+        if (saved.step2?.careerHistory) {
+          merged.step2.careerHistory = saved.step2.careerHistory;
+        }
         if (saved.step4?.stories?.length >= 3) {
           merged.step4.stories = saved.step4.stories;
         }
@@ -223,6 +237,13 @@ export default function QuestionnairePage() {
   const progress = (currentStep / STEPS.length) * 100;
 
   const goNext = () => {
+    if (currentStep === 2) {
+      const roles = data.step2.careerHistory || [];
+      if (roles.length === 0 || roles.some(r => !r.company || !r.title || !r.years || !r.achievements)) {
+        toast({ title: "Validation Error", description: "Please add at least one role and fill in all career history fields.", variant: "destructive" });
+        return;
+      }
+    }
     if (currentStep < STEPS.length) {
       saveMutation.mutate(data);
       setCurrentStep(currentStep + 1);
@@ -324,6 +345,43 @@ export default function QuestionnairePage() {
       ...d,
       step9: {
         objections: d.step9.objections.map((o, i) => (i === idx ? { ...o, [field]: value } : o)),
+      },
+    }));
+  };
+
+  const addCareerRole = () => {
+    const roles = data.step2.careerHistory || [];
+    if (roles.length < 10) {
+      setData(d => ({
+        ...d,
+        step2: {
+          ...d.step2,
+          careerHistory: [...roles, { company: "", title: "", years: "", achievements: "" }],
+        },
+      }));
+    }
+  };
+
+  const removeCareerRole = (idx: number) => {
+    const roles = data.step2.careerHistory || [];
+    if (roles.length > 1) {
+      setData(d => ({
+        ...d,
+        step2: {
+          ...d.step2,
+          careerHistory: roles.filter((_, i) => i !== idx),
+        },
+      }));
+    }
+  };
+
+  const updateCareerRole = (idx: number, field: string, value: string) => {
+    const roles = data.step2.careerHistory || [];
+    setData(d => ({
+      ...d,
+      step2: {
+        ...d.step2,
+        careerHistory: roles.map((r, i) => (i === idx ? { ...r, [field]: value } : r)),
       },
     }));
   };
@@ -442,32 +500,95 @@ export default function QuestionnairePage() {
               </div>
             )}
 
-            {/* STEP 2: Professional Summary */}
+            {/* STEP 2: Professional Summary & Career History */}
             {currentStep === 2 && (
-              <div className="space-y-5">
-                <div className="p-4 rounded-md border border-white/10 bg-white/5">
-                  <p className="text-sm text-muted-foreground">
-                    In a few paragraphs, describe your positioning statement (what you do and who you help) 
-                    and your Superpower / Differentiator (your unique angle - what makes you different from others with similar titles).
-                  </p>
-                  <div className="mt-3 space-y-2">
-                    <p className="text-xs text-muted-foreground italic">
-                      Example: "I'm a commercial HR operator who builds talent systems that scale - from strategy to VMS configuration."
-                    </p>
-                    <p className="text-xs text-muted-foreground italic">
-                      Example: "The 'Barbell' profile - combines C-suite strategy with hands-on tech implementation. Doesn't just make the slide deck, configures the system."
+              <div className="space-y-8">
+                <div className="space-y-5">
+                  <div className="p-4 rounded-md border border-white/10 bg-white/5">
+                    <p className="text-sm text-muted-foreground">
+                      In a few paragraphs, describe your positioning statement (what you do and who you help) 
+                      and your Superpower / Differentiator (your unique angle - what makes you different from others with similar titles).
                     </p>
                   </div>
+                  <div className="space-y-2">
+                    <Label>Professional Summary & Superpower *</Label>
+                    <Textarea
+                      value={data.step2.professionalSummary}
+                      onChange={e => updateField("step2", "professionalSummary", e.target.value)}
+                      placeholder="Describe your positioning statement and what makes you uniquely different..."
+                      className="min-h-[150px]"
+                      data-testid="input-professional-summary"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Professional Summary & Superpower *</Label>
-                  <Textarea
-                    value={data.step2.professionalSummary}
-                    onChange={e => updateField("step2", "professionalSummary", e.target.value)}
-                    placeholder="Describe your positioning statement and what makes you uniquely different..."
-                    className="min-h-[200px]"
-                    data-testid="input-professional-summary"
-                  />
+
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold">Career History</h3>
+                      <p className="text-sm text-muted-foreground">List your career timeline with key achievements for each role</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {data.step2.careerHistory?.map((role, ri) => (
+                      <Card key={ri} className="bg-white/5 border-white/10 backdrop-blur-xl relative">
+                        <CardContent className="p-5 space-y-4">
+                          {data.step2.careerHistory!.length > 1 && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="absolute top-2 right-2 hover:text-red-500" 
+                              onClick={() => removeCareerRole(ri)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>Company Name *</Label>
+                              <Input
+                                value={role.company}
+                                onChange={e => updateCareerRole(ri, "company", e.target.value)}
+                                placeholder="e.g. Google"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Job Title *</Label>
+                              <Input
+                                value={role.title}
+                                onChange={e => updateCareerRole(ri, "title", e.target.value)}
+                                placeholder="e.g. Senior Manager"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Years *</Label>
+                            <Input
+                              value={role.years}
+                              onChange={e => updateCareerRole(ri, "years", e.target.value)}
+                              placeholder="2020 - 2025 or 2020 - Present"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Key Achievements *</Label>
+                            <Textarea
+                              value={role.achievements}
+                              onChange={e => updateCareerRole(ri, "achievements", e.target.value)}
+                              placeholder="List 2-3 key achievements, one per line"
+                              className="min-h-[100px]"
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {(!data.step2.careerHistory || data.step2.careerHistory.length < 10) && (
+                    <Button variant="ghost" onClick={addCareerRole} className="w-full border-dashed border-white/10">
+                      <Plus className="mr-2 h-4 w-4" /> Add Another Role
+                    </Button>
+                  )}
                 </div>
               </div>
             )}

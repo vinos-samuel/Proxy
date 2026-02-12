@@ -20,6 +20,12 @@ interface QuestionnaireData {
   };
   step2: {
     professionalSummary: string;
+    careerHistory?: Array<{
+      company: string;
+      title: string;
+      years: string;
+      achievements: string | string[];
+    }>;
   };
   step3: {
     resumeUrl: string;
@@ -207,6 +213,17 @@ Generate a JSON object with the following structure. Follow these rules exactly:
     if (jsonMatch) {
       portfolioData = JSON.parse(jsonMatch[0]);
     }
+
+    // Extract career timeline from questionnaire
+    const careerTimeline = data.step2?.careerHistory?.map((role: any) => ({
+      company: role.company,
+      title: role.title,
+      years: role.years,
+      achievements: typeof role.achievements === 'string' 
+        ? role.achievements.split('\n').filter(Boolean) 
+        : role.achievements
+    })) || [];
+    portfolioData.careerTimeline = careerTimeline;
   } catch (error) {
     console.error("Error generating portfolio data:", error);
     // Fallback to basic structure
@@ -243,6 +260,7 @@ Generate a JSON object with the following structure. Follow these rules exactly:
     howIWork: portfolioData.howIWork || null,
     whyAiCv: portfolioData.whyAiCv || null,
     portfolioSuggestedQuestions: portfolioData.suggestedQuestions || null,
+    careerTimeline: portfolioData.careerTimeline || null,
     // Store full questionnaire data
     questionnaireData: {
       ...data,

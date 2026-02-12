@@ -120,6 +120,7 @@ export default function PortfolioPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const [showAllStats, setShowAllStats] = useState(false);
   const [expandedTimeline, setExpandedTimeline] = useState<Set<number>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -284,11 +285,13 @@ export default function PortfolioPage() {
                   <MessageSquare className="w-4 h-4" /> Talk to My AI Twin
                 </button>
                 {portfolio.contact.email && (
-                  <a href={`mailto:${portfolio.contact.email}`}>
-                    <button className={`${theme.glass} px-6 py-3 rounded-xl ${theme.glassHover} font-medium flex items-center gap-2`} data-testid="button-email">
-                      <Mail className="w-4 h-4" /> Email
-                    </button>
-                  </a>
+                  <button 
+                    onClick={() => setShowEmailModal(true)}
+                    className={`${theme.glass} px-6 py-3 rounded-xl ${theme.glassHover} font-medium flex items-center gap-2`} 
+                    data-testid="button-email"
+                  >
+                    <Mail className="w-4 h-4" /> Email
+                  </button>
                 )}
                 {portfolio.contact.linkedin && (
                   <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer">
@@ -606,11 +609,13 @@ export default function PortfolioPage() {
         </h2>
         <div className="flex flex-wrap gap-4 justify-center mb-12">
           {portfolio.contact.email && (
-            <a href={`mailto:${portfolio.contact.email}`}>
-              <button className={`${theme.ctaBg} text-white px-8 py-4 rounded-xl text-lg font-bold ${theme.ctaGlow} transition-all flex items-center gap-2`} data-testid="button-footer-email">
-                <Mail className="w-5 h-5" /> Get in Touch
-              </button>
-            </a>
+            <button 
+              onClick={() => setShowEmailModal(true)}
+              className={`${theme.ctaBg} text-white px-8 py-4 rounded-xl text-lg font-bold ${theme.ctaGlow} transition-all flex items-center gap-2`} 
+              data-testid="button-footer-email"
+            >
+              <Mail className="w-5 h-5" /> Get in Touch
+            </button>
           )}
           <a href="/register">
             <button className={`${theme.glass} px-8 py-4 rounded-xl text-lg font-bold ${theme.glassHover}`} data-testid="button-build-twin">
@@ -622,6 +627,63 @@ export default function PortfolioPage() {
           Powered by BIOS.ai
         </p>
       </footer>
+
+      {showEmailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`${theme.glass} w-full max-w-lg rounded-3xl overflow-hidden ${theme.glow} border-white/20`}
+          >
+            <div className="p-8 space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className={`text-2xl font-bold ${theme.headingFont}`}>Get in Touch</h3>
+                <button 
+                  onClick={() => setShowEmailModal(false)}
+                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                >
+                  <Globe className="w-6 h-6 rotate-45" /> {/* Use Globe as a close X if X is missing, or just a placeholder */}
+                  <span className="sr-only">Close</span>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <p className={`${theme.muted} text-sm mb-1`}>Contact Email</p>
+                  <p className="font-mono text-lg">{portfolio.contact.email}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(portfolio.contact.email!);
+                      // Optional: add toast or feedback here
+                    }}
+                    className={`${theme.glass} p-4 rounded-xl flex flex-col items-center gap-2 ${theme.glassHover} transition-all`}
+                  >
+                    <Download className="w-6 h-6" />
+                    <span className="text-sm font-semibold">Copy Email</span>
+                  </button>
+                  
+                  <a 
+                    href={`mailto:${portfolio.contact.email}`}
+                    className={`${theme.ctaBg} p-4 rounded-xl flex flex-col items-center gap-2 text-white transition-all`}
+                  >
+                    <Mail className="w-6 h-6" />
+                    <span className="text-sm font-semibold">Open Mail App</span>
+                  </a>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <p className={`${theme.muted} text-xs text-center`}>
+                  Feel free to reach out regarding collaborations, opportunities, or just to say hi.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

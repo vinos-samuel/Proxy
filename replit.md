@@ -21,7 +21,9 @@ A SaaS platform ("BIOS.ai") that lets professionals create AI-powered interactiv
 - SSE streaming for chatbot responses
 - Session-based auth with bcrypt password hashing
 - Object Storage for file uploads (authenticated upload, public serving)
-- Three portfolio branding themes: Executive, Futurist, Minimalist
+- Three portfolio branding themes: Corporate, Tech, Creative
+- Stripe payment integration via stripe-replit-sync (one-time payments, webhook processing)
+- Payment gates portfolio publishing (must pay before going public)
 
 ## Branding
 - Color: Dark green primary (hsl 152, 60%, 30%) on light gray background

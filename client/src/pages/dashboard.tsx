@@ -11,6 +11,7 @@ import {
   FileText, Sparkles, ExternalLink, ArrowRight
 } from "lucide-react";
 import type { TwinProfile } from "@shared/schema";
+import PaymentGate from "@/components/PaymentGate";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -185,6 +186,10 @@ export default function DashboardPage() {
                   </Badge>
                 </CardContent>
               </Card>
+
+              {profile?.status === "ready" && profile?.paymentStatus !== "paid" && (
+                <PaymentGate profileId={profile.id} />
+              )}
 
               {profile?.status === "published" && (
                 <Card className="md:col-span-2">

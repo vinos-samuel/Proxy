@@ -13,6 +13,8 @@ import QuestionnairePage from "@/pages/questionnaire";
 import PreviewPage from "@/pages/preview";
 import PortfolioPage from "@/pages/portfolio";
 import AdminPage from "@/pages/admin";
+import PaymentSuccessPage from "@/pages/payment-success";
+import PaymentCancelledPage from "@/pages/payment-cancelled";
 import { Loader2 } from "lucide-react";
 import { Redirect } from "wouter";
 
@@ -62,6 +64,8 @@ function Router() {
       <Route path="/questionnaire">{() => <ProtectedRoute component={QuestionnairePage} />}</Route>
       <Route path="/preview">{() => <ProtectedRoute component={PreviewPage} />}</Route>
       <Route path="/admin">{() => <ProtectedRoute component={AdminPage} />}</Route>
+      <Route path="/payment/success" component={PaymentSuccessPage} />
+      <Route path="/payment/cancelled" component={PaymentCancelledPage} />
       <Route path="/portfolio/:username" component={PortfolioPage} />
       <Route component={NotFound} />
     </Switch>

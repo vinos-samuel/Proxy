@@ -34,6 +34,11 @@ export interface IStorage {
   createKnowledgeEntry(data: InsertKnowledgeEntry): Promise<KnowledgeEntry>;
   deleteKnowledgeEntriesByProfileId(profileId: string): Promise<void>;
 
+  // Payment
+  getProfileById(id: string): Promise<TwinProfile | undefined>;
+  getProfileByStripeSessionId(sessionId: string): Promise<TwinProfile | undefined>;
+  deleteProfileById(id: string): Promise<void>;
+
   // Admin
   getAdminStats(): Promise<{ totalCustomers: number; publishedProfiles: number; totalRevenue: number }>;
   getCustomersWithProfiles(): Promise<(Customer & { profile?: TwinProfile | null })[]>;
@@ -125,6 +130,20 @@ export class DatabaseStorage implements IStorage {
 
   async deleteKnowledgeEntriesByProfileId(profileId: string): Promise<void> {
     await db.delete(knowledgeEntries).where(eq(knowledgeEntries.twinProfileId, profileId));
+  }
+
+  async getProfileById(id: string): Promise<TwinProfile | undefined> {
+    const [profile] = await db.select().from(twinProfiles).where(eq(twinProfiles.id, id));
+    return profile;
+  }
+
+  async getProfileByStripeSessionId(sessionId: string): Promise<TwinProfile | undefined> {
+    const [profile] = await db.select().from(twinProfiles).where(eq(twinProfiles.stripeSessionId, sessionId));
+    return profile;
+  }
+
+  async deleteProfileById(id: string): Promise<void> {
+    await db.delete(twinProfiles).where(eq(twinProfiles.id, id));
   }
 
   async getAdminStats() {

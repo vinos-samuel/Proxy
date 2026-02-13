@@ -40,6 +40,12 @@ export const twinProfiles = pgTable("twin_profiles", {
   status: text("status").notNull().default("draft"),
   careerTimeline: jsonb("career_timeline"),
   questionnaireData: jsonb("questionnaire_data"),
+  paymentStatus: text("payment_status").default("unpaid"),
+  tier: text("tier"),
+  stripeSessionId: text("stripe_session_id"),
+  paidAt: timestamp("paid_at"),
+  publicDomain: text("public_domain"),
+  isPublic: boolean("is_public").default(false),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

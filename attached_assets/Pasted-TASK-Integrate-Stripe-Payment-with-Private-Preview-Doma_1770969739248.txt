@@ -1,0 +1,633 @@
+TASK: Integrate Stripe Payment with Private Preview & Domain Assignment
+
+CONTEXT: Users complete questionnaire → AI generates portfolio → Portfolio is in "ready" state but PRIVATE (only accessible on creator's network, not public). User must pay to publish publicly at username.biosai.com. We have 3 pricing tiers: Launch ($199), Evolve ($399), Concierge ($1,199).
+
+CRITICAL REQUIREMENTS:
+- Unpaid portfolios are ONLY accessible to the creator (not public)
+- After payment succeeds → portfolio becomes public at username.biosai.com
+- If payment is cancelled → delete the unpublished portfolio
+- Success page shows the public domain name
+
+---
+
+PART 1: ADD PAYMENT & ACCESS CONTROL FIELDS TO DATABASE
+
+FILE: shared/schema.ts
+
+ADD these fields to twinProfiles table:
+```typescript
+paymentStatus: text("payment_status").default("unpaid"), // "unpaid" | "paid" | "refunded"
+tier: text("tier"), // "launch" | "evolve" | "concierge"
+stripeSessionId: text("stripe_session_id"), // for tracking
+stripePriceId: text("stripe_price_id"), // which product they bought
+paidAt: timestamp("paid_at"),
+publicDomain: text("public_domain"), // e.g., "sarah23.biosai.com" or custom domain
+isPublic: boolean("is_public").default(false), // false until payment
+```
+
+Run migration:
+```sql
+ALTER TABLE twin_profiles 
+ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'unpaid',
+ADD COLUMN IF NOT EXISTS tier TEXT,
+ADD COLUMN IF NOT EXISTS stripe_session_id TEXT,
+ADD COLUMN IF NOT EXISTS stripe_price_id TEXT,
+ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP,
+ADD COLUMN IF NOT EXISTS public_domain TEXT,
+ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT false;
+```
+
+---
+
+PART 2: UPDATE PROFILE CREATION TO SET DOMAIN
+
+FILE: server/ai-processor.ts
+
+FIND the processQuestionnaire function where you call storage.updateProfileById
+
+ADD publicDomain generation:
+```typescript
+// Generate subdomain from username
+const username = data.step1.fullName
+  .toLowerCase()
+  .replace(/[^a-z0-9]/g, '')
+  .substring(0, 20);
+
+// Add random suffix if needed to ensure uniqueness
+const existingProfile = await storage.getProfileByUsername(username);
+const uniqueUsername = existingProfile 
+  ? `${username}${Math.floor(Math.random() * 100)}` 
+  : username;
+
+const publicDomain = `${uniqueUsername}.biosai.com`;
+
+await storage.updateProfileById(profileId, {
+  // ... existing fields ...
+  publicDomain,
+  isPublic: false, // stays private until payment
+});
+```
+
+---
+
+PART 3: CREATE STRIPE CHECKOUT ENDPOINT
+
+FILE: server/routes.ts
+
+ADD new endpoint:
+```typescript
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-11-20.acacia',
+});
+
+// POST /api/create-checkout-session
+app.post('/api/create-checkout-session', async (req, res) => {
+  try {
+    const { profileId, tier } = req.body;
+    
+    if (!profileId || !tier) {
+      return res.status(400).json({ error: 'Missing profileId or tier' });
+    }
+    
+    // Verify profile exists and is unpaid
+    const profile = await storage.getProfileById(profileId);
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    if (profile.paymentStatus === 'paid') {
+      return res.status(400).json({ error: 'Already paid' });
+    }
+    
+    // Define pricing
+    const prices = {
+      launch: {
+        amount: 19900, // $199 in cents
+        name: 'Launch - AI Twin Portfolio',
+        description: 'One-time creation, 90-day hosting, downloadable',
+      },
+      evolve: {
+        amount: 39900, // $399 in cents
+        name: 'Evolve - AI Twin Portfolio + Editing',
+        description: 'Custom domain, unlimited edits, 12-month hosting',
+      },
+      concierge: {
+        amount: 119900, // $1,199 in cents
+        name: 'Concierge - White-Glove AI Twin',
+        description: 'Strategy interview, professional copywriting, launch posts',
+      },
+    };
+    
+    const selectedPrice = prices[tier as keyof typeof prices];
+    if (!selectedPrice) {
+      return res.status(400).json({ error: 'Invalid tier' });
+    }
+    
+    // Create Stripe checkout session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: selectedPrice.name,
+              description: selectedPrice.description,
+            },
+            unit_amount: selectedPrice.amount,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${process.env.BASE_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.BASE_URL}/payment/cancelled?profile_id=${profileId}`,
+      metadata: {
+        profileId,
+        tier,
+      },
+    });
+    
+    // Update profile with session ID
+    await storage.updateProfileById(profileId, {
+      stripeSessionId: session.id,
+      tier,
+    });
+    
+    res.json({ sessionId: session.id, url: session.url });
+  } catch (error) {
+    console.error('[Stripe] Checkout error:', error);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+```
+
+---
+
+PART 4: CREATE STRIPE WEBHOOK ENDPOINT
+
+ADD webhook handler (this confirms payment and makes portfolio public):
+```typescript
+import { buffer } from 'express';
+
+// IMPORTANT: This route must parse raw body, not JSON
+app.post('/api/stripe/webhook', 
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    const sig = req.headers['stripe-signature'] as string;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+    
+    let event: Stripe.Event;
+    
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } catch (err: any) {
+      console.error('[Stripe] Webhook signature verification failed:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+    
+    // Handle successful payment
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const { profileId, tier } = session.metadata || {};
+      
+      if (profileId) {
+        try {
+          // Update profile to "paid" and make PUBLIC
+          await storage.updateProfileById(profileId, {
+            paymentStatus: 'paid',
+            paidAt: new Date(),
+            stripePriceId: session.payment_intent as string,
+            isPublic: true, // CRITICAL: Make portfolio public
+          });
+          
+          console.log(`[Stripe] Payment confirmed for profile ${profileId}, tier: ${tier}. Portfolio is now PUBLIC.`);
+          
+          // TODO: Send confirmation email with domain link
+          
+        } catch (error) {
+          console.error('[Stripe] Error updating profile after payment:', error);
+        }
+      }
+    }
+    
+    res.json({ received: true });
+  }
+);
+```
+
+---
+
+PART 5: UPDATE PORTFOLIO ROUTE - ACCESS CONTROL
+
+FILE: server/routes.ts
+
+FIND the `/api/portfolio/:username` endpoint
+
+UPDATE to check payment status AND ownership:
+```typescript
+app.get('/api/portfolio/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    
+    // ... existing code to fetch profile ...
+    
+    // NEW: Access control
+    const profile = await storage.getProfileByUsername(username);
+    
+    if (!profile) {
+      return res.status(404).json({ error: 'Portfolio not found' });
+    }
+    
+    // Check if portfolio is public
+    if (!profile.isPublic) {
+      // Portfolio exists but not paid/public
+      // Only allow access if requester is the owner (check session/auth)
+      const requesterId = req.session?.customerId; // adjust based on your auth
+      
+      if (requesterId !== profile.customerId) {
+        // Not the owner trying to preview
+        return res.status(403).json({ 
+          error: 'This portfolio is private',
+          message: 'Payment required to publish',
+        });
+      }
+      
+      // Owner can preview - return data with warning
+      return res.json({
+        ...profileData,
+        isPreview: true,
+        warning: 'This is a private preview. Pay to publish publicly.',
+      });
+    }
+    
+    // Portfolio is public - return normally
+    res.json(profileData);
+    
+  } catch (error) {
+    console.error('[Portfolio] Error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+```
+
+---
+
+PART 6: HANDLE PAYMENT CANCELLATION
+
+FILE: server/routes.ts
+
+ADD new endpoint to handle cancellation:
+```typescript
+// POST /api/payment/cancel
+app.post('/api/payment/cancel', async (req, res) => {
+  try {
+    const { profileId } = req.body;
+    
+    if (!profileId) {
+      return res.status(400).json({ error: 'Missing profileId' });
+    }
+    
+    // Verify profile is unpaid
+    const profile = await storage.getProfileById(profileId);
+    
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    
+    if (profile.paymentStatus === 'paid') {
+      return res.status(400).json({ error: 'Cannot delete paid portfolio' });
+    }
+    
+    // DELETE the unpaid portfolio
+    await storage.deleteProfileById(profileId);
+    
+    console.log(`[Payment] Cancelled - deleted unpaid portfolio ${profileId}`);
+    
+    res.json({ success: true, message: 'Portfolio deleted' });
+    
+  } catch (error) {
+    console.error('[Payment] Cancel error:', error);
+    res.status(500).json({ error: 'Failed to cancel' });
+  }
+});
+```
+
+---
+
+PART 7: PAYMENT CANCELLATION PAGE
+
+FILE: Create client/src/pages/PaymentCancelled.tsx
+```typescript
+import { useEffect, useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+
+export default function PaymentCancelled() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [deleting, setDeleting] = useState(false);
+  
+  const profileId = searchParams.get('profile_id');
+  
+  const handleRetry = () => {
+    // Go back to payment gate
+    navigate(`/dashboard`);
+  };
+  
+  const handleDelete = async () => {
+    if (!profileId) return;
+    
+    setDeleting(true);
+    try {
+      await fetch('/api/payment/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profileId }),
+      });
+      
+      alert('Portfolio deleted. You can create a new one anytime.');
+      navigate('/');
+      
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Failed to delete. Please contact support.');
+      setDeleting(false);
+    }
+  };
+  
+  return (
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
+      <div className="max-w-md w-full text-center">
+        <div className="text-6xl mb-4">⚠️</div>
+        <h1 className="text-3xl font-bold mb-4">Payment Cancelled</h1>
+        <p className="text-white/70 mb-8">
+          Your portfolio is still in draft mode. It won't be published until payment is complete.
+        </p>
+        
+        <div className="space-y-4">
+          <button
+            onClick={handleRetry}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-colors"
+          >
+            Retry Payment
+          </button>
+          
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="w-full bg-zinc-800 hover:bg-zinc-700 text-white/70 font-bold py-3 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {deleting ? 'Deleting...' : 'Delete Draft Portfolio'}
+          </button>
+        </div>
+        
+        <p className="text-xs text-white/50 mt-6">
+          Draft portfolios are automatically deleted after 7 days if unpaid.
+        </p>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+PART 8: PAYMENT SUCCESS PAGE WITH DOMAIN
+
+FILE: Create client/src/pages/PaymentSuccess.tsx
+```typescript
+import { useEffect, useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+
+export default function PaymentSuccess() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [domain, setDomain] = useState<string>('');
+  const sessionId = searchParams.get('session_id');
+  
+  useEffect(() => {
+    if (!sessionId) return;
+    
+    // Poll backend to check if payment is confirmed
+    const checkPayment = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/payment/status?session_id=${sessionId}`);
+        const data = await res.json();
+        
+        if (data.paid) {
+          setDomain(data.publicDomain);
+          setLoading(false);
+          clearInterval(checkPayment);
+        }
+      } catch (error) {
+        console.error('Status check error:', error);
+      }
+    }, 2000); // Check every 2 seconds
+    
+    // Stop checking after 30 seconds
+    setTimeout(() => {
+      clearInterval(checkPayment);
+      if (loading) {
+        setLoading(false);
+      }
+    }, 30000);
+    
+    return () => clearInterval(checkPayment);
+  }, [sessionId, loading]);
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-pulse">⏳</div>
+          <h1 className="text-2xl font-bold mb-2">Processing Payment...</h1>
+          <p className="text-white/70">Confirming your transaction</p>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
+      <div className="max-w-xl w-full text-center">
+        <div className="text-6xl mb-6">🎉</div>
+        <h1 className="text-4xl font-bold mb-4">Your AI Twin is Live!</h1>
+        <p className="text-xl text-white/70 mb-8">
+          Your portfolio is now publicly accessible
+        </p>
+        
+        <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-8">
+          <p className="text-sm text-white/60 mb-2">Your Portfolio URL:</p>
+          <a 
+            href={`https://${domain}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-2xl font-mono text-green-500 hover:text-green-400 break-all"
+          >
+            {domain}
+          </a>
+          <button
+            onClick={() => navigator.clipboard.writeText(`https://${domain}`)}
+            className="mt-4 text-sm text-white/60 hover:text-white transition-colors"
+          >
+            📋 Copy Link
+          </button>
+        </div>
+        
+        <div className="space-y-3 text-left bg-white/5 border border-white/10 rounded-xl p-6 mb-8">
+          <h3 className="font-bold text-lg mb-3">Next Steps:</h3>
+          <div className="flex items-start gap-3">
+            <span className="text-green-500">✓</span>
+            <p className="text-white/80">Share your link on LinkedIn, email signatures, and networking messages</p>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-green-500">✓</span>
+            <p className="text-white/80">Test your chatbot by asking it career questions</p>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-green-500">✓</span>
+            <p className="text-white/80">Track engagement in your dashboard (coming soon for Evolve tier)</p>
+          </div>
+        </div>
+        
+        <div className="flex gap-4">
+          <button
+            onClick={() => window.open(`https://${domain}`, '_blank')}
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-colors"
+          >
+            View Portfolio
+          </button>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-lg transition-colors"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+PART 9: ADD PAYMENT STATUS CHECK ENDPOINT
+
+FILE: server/routes.ts
+
+ADD endpoint for success page polling:
+```typescript
+// GET /api/payment/status
+app.get('/api/payment/status', async (req, res) => {
+  try {
+    const { session_id } = req.query;
+    
+    if (!session_id) {
+      return res.status(400).json({ error: 'Missing session_id' });
+    }
+    
+    // Find profile by session ID
+    const profile = await storage.getProfileByStripeSessionId(session_id as string);
+    
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    
+    res.json({
+      paid: profile.paymentStatus === 'paid',
+      publicDomain: profile.publicDomain,
+      tier: profile.tier,
+    });
+    
+  } catch (error) {
+    console.error('[Payment] Status check error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+```
+
+Also ADD method to storage (server/storage.ts or equivalent):
+```typescript
+async getProfileByStripeSessionId(sessionId: string) {
+  const result = await db
+    .select()
+    .from(twinProfiles)
+    .where(eq(twinProfiles.stripeSessionId, sessionId))
+    .limit(1);
+  
+  return result[0] || null;
+}
+```
+
+---
+
+PART 10: UPDATE DASHBOARD TO SHOW PAYMENT GATE
+
+FILE: Update dashboard component to check payment status
+
+When user's profile status is "ready" but paymentStatus is "unpaid", show:
+```typescript
+{profile.status === 'ready' && profile.paymentStatus === 'unpaid' && (
+  <div className="bg-zinc-900 border border-white/10 rounded-xl p-8 text-center">
+    <h2 className="text-2xl font-bold mb-4">Your AI Twin is Ready!</h2>
+    <p className="text-white/70 mb-6">
+      Complete payment to publish your portfolio publicly
+    </p>
+    <button
+      onClick={() => navigate(`/payment/${profile.id}`)}
+      className="bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded-lg"
+    >
+      Unlock & Publish →
+    </button>
+  </div>
+)}
+```
+
+---
+
+PART 11: ADD ENVIRONMENT VARIABLES
+
+In Replit Secrets, add:
+- STRIPE_SECRET_KEY=sk_test_...
+- STRIPE_PUBLISHABLE_KEY=pk_test_...
+- STRIPE_WEBHOOK_SECRET=whsec_... (get after setting up webhook)
+- BASE_URL=https://biosai.replit.app
+
+In client .env or vite config:
+- VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+
+---
+
+PART 12: STRIPE DASHBOARD SETUP (YOU NEED TO DO THIS MANUALLY)
+
+1. Go to https://dashboard.stripe.com/test/webhooks
+2. Click "Add endpoint"
+3. Enter URL: https://biosai.replit.app/api/stripe/webhook
+4. Select events: 
+   - checkout.session.completed
+   - checkout.session.expired (optional, for cleanup)
+5. Copy the "Signing secret" (starts with whsec_...)
+6. Add it to Replit Secrets as STRIPE_WEBHOOK_SECRET
+
+---
+
+TESTING CHECKLIST:
+✅ User completes questionnaire → portfolio generated (status: ready, isPublic: false)
+✅ Trying to access /portfolio/username without being logged in shows "Private" error
+✅ Creator can preview portfolio (sees warning banner)
+✅ Dashboard shows "Unlock & Publish" button
+✅ Clicking button shows payment tiers
+✅ Selecting tier redirects to Stripe checkout
+✅ Using test card 4242 4242 4242 4242 completes payment
+✅ Webhook updates database (paymentStatus: paid, isPublic: true)
+✅ Success page shows public domain (username.biosai.com)
+✅ Portfolio is now publicly accessible at that domain
+✅ Clicking "Cancel" on Stripe page → Cancellation page
+✅ Clicking "Delete Draft" removes unpaid portfolio from database
+
+IMPORTANT: Test the full flow in Stripe TEST mode before going live!
+
+Please implement all 12 parts carefully. The access control logic is critical for security.

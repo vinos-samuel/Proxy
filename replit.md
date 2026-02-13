@@ -69,9 +69,9 @@ A SaaS platform ("BIOS.ai") that lets professionals create AI-powered interactiv
 - `payments` - Payment records
 
 ## Portfolio Themes
-- **Executive**: Navy/gold, serif headings (Playfair Display), formal
-- **Futurist**: Dark mode, purple/cyan, sans-serif (Space Grotesk)
-- **Minimalist**: Black & white, Helvetica/Arial, maximum whitespace
+- **Corporate**: Deep navy bg (#0A1128), gold accents (#C9A961), serif headings (Playfair Display), SECTION I/II/III labels, formal style
+- **Tech**: Black bg, blue/cyan neon accents, Space Grotesk font, MODULE_01/02/03 labels, system status indicators
+- **Creative**: Warm off-black (#18181B), sage green accents (#8BA888), refined serif headings, no section labels, minimal style
 
 ## Portfolio Sections
 1. Hero (video/avatar, name, title, positioning, contact buttons)
@@ -103,4 +103,4 @@ Plus floating chat FAB for mobile
 - Light gray + dark green theme (not dark glassmorphic)
 - Open Sans font
 - "Agent" metaphor: portfolios that work for you 24/7
-- Three branding themes for portfolios (Executive/Futurist/Minimalist)
+- Three branding themes for portfolios (Corporate/Tech/Creative)

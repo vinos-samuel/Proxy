@@ -7,7 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Send, Mail, Linkedin, Download,
   Loader2, MessageSquare, Globe,
-  ChevronDown, Terminal, Briefcase, Code2, ArrowRight
+  Terminal, ArrowRight
 } from "lucide-react";
 
 interface PortfolioData {
@@ -61,57 +61,80 @@ interface ChatMessage {
   content: string;
 }
 
+function toRomanNumeral(num: number): string {
+  const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+  return romanNumerals[num - 1] || String(num);
+}
+
 const themes = {
-  executive: {
-    bg: "bg-[#18181b]",
-    gradient: "bg-gradient-to-br from-indigo-900/20 via-transparent to-violet-900/20",
-    glass: "bg-white/5 backdrop-blur-xl border border-white/10",
-    glassHover: "hover:bg-white/8 transition-all duration-300",
-    accent: "from-indigo-400 to-violet-400",
-    accentSolid: "text-indigo-400",
-    glow: "shadow-[0_0_60px_rgba(79,70,229,0.3)]",
+  corporate: {
+    name: "Corporate",
+    bg: "bg-[#0A1128]",
+    gradient: "bg-gradient-to-br from-[#1A1A2E]/40 via-transparent to-[#6B2C3E]/20",
+    glass: "bg-gradient-to-br from-[#1a1a2e]/90 to-[#16213e]/90 backdrop-blur-md border-2 border-[#C9A961]",
+    glassHover: "hover:shadow-[0_4px_24px_rgba(201,169,97,0.25)] transition-all duration-300",
+    accent: "from-[#C9A961] to-[#D4AF37]",
+    accentSolid: "text-[#C9A961]",
+    glow: "shadow-[0_0_20px_rgba(201,169,97,0.2)]",
     text: "text-white",
     muted: "text-zinc-400",
-    headingFont: "font-['Inter',sans-serif]",
-    bodyFont: "font-['Inter',sans-serif]",
-    chatUserBg: "bg-indigo-600 text-white",
-    chatBotBg: "bg-white/10 border border-white/10 text-white",
-    ctaBg: "bg-indigo-600 hover:bg-indigo-700",
-    ctaGlow: "shadow-lg shadow-indigo-500/20",
+    headingClass: "font-serif",
+    bodyClass: "font-sans",
+    chatUserBg: "bg-[#C9A961] text-[#0A1128]",
+    chatBotBg: "bg-white/10 border border-[#C9A961]/30 text-white",
+    ctaBg: "bg-[#C9A961] hover:bg-[#D4AF37]",
+    ctaGlow: "shadow-lg shadow-[#C9A961]/20",
+    sectionLabel: (num: number) => `SECTION ${toRomanNumeral(num)} `,
+    moduleStyle: "formal" as const,
+    dotColor: "bg-[#C9A961]",
+    timelineLineColor: "bg-[#C9A961]/30",
+    selectionColor: "selection:bg-[#C9A961]/30",
   },
-  futurist: {
-    bg: "bg-[#0a0a0f]",
-    gradient: "bg-gradient-to-br from-purple-900/30 via-transparent to-cyan-900/30",
-    glass: "bg-white/5 backdrop-blur-2xl border border-white/10",
-    glassHover: "hover:bg-white/10 transition-all duration-300",
-    accent: "from-purple-400 to-cyan-400",
-    accentSolid: "text-purple-400",
-    glow: "shadow-[0_0_60px_rgba(168,85,247,0.25)]",
+  tech: {
+    name: "Tech",
+    bg: "bg-black",
+    gradient: "bg-gradient-to-br from-blue-600/20 via-transparent to-purple-600/20",
+    glass: "bg-slate-900/80 backdrop-blur-xl border border-blue-500/50",
+    glassHover: "hover:border-blue-500 hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] transition-all duration-300",
+    accent: "from-blue-500 to-cyan-400",
+    accentSolid: "text-blue-500",
+    glow: "shadow-[0_0_24px_rgba(59,130,246,0.4)]",
     text: "text-white",
     muted: "text-zinc-500",
-    headingFont: "font-['Space_Grotesk',sans-serif]",
-    bodyFont: "font-sans",
-    chatUserBg: "bg-purple-600 text-white",
-    chatBotBg: "bg-white/5 border border-white/10 text-white",
-    ctaBg: "bg-purple-600 hover:bg-purple-700",
-    ctaGlow: "shadow-lg shadow-purple-500/20",
+    headingClass: "font-['Space_Grotesk',sans-serif] tracking-tight",
+    bodyClass: "font-sans",
+    chatUserBg: "bg-blue-600 text-white",
+    chatBotBg: "bg-white/5 border border-blue-500/30 text-white",
+    ctaBg: "bg-blue-600 hover:bg-blue-700",
+    ctaGlow: "shadow-lg shadow-blue-500/20",
+    sectionLabel: (num: number) => `MODULE_${String(num).padStart(2, '0')} `,
+    moduleStyle: "system" as const,
+    dotColor: "bg-blue-500",
+    timelineLineColor: "bg-blue-500/30",
+    selectionColor: "selection:bg-blue-500/30",
   },
-  minimalist: {
-    bg: "bg-[#fafafa]",
-    gradient: "bg-gradient-to-br from-zinc-200/50 via-transparent to-zinc-200/50",
-    glass: "bg-white/80 backdrop-blur-md border border-zinc-200 shadow-sm",
-    glassHover: "hover:bg-white/95 transition-all duration-300",
-    accent: "from-zinc-800 to-zinc-600",
-    accentSolid: "text-zinc-700",
-    glow: "shadow-xl shadow-zinc-300/40",
-    text: "text-zinc-900",
+  creative: {
+    name: "Creative",
+    bg: "bg-[#18181B]",
+    gradient: "bg-gradient-to-br from-transparent via-[#8BA888]/5 to-transparent",
+    glass: "bg-white/[0.03] backdrop-blur-sm border border-white/[0.08]",
+    glassHover: "hover:bg-white/[0.05] transition-all duration-500",
+    accent: "from-[#8BA888] to-[#9BB89A]",
+    accentSolid: "text-[#8BA888]",
+    glow: "shadow-[0_2px_12px_rgba(0,0,0,0.15)]",
+    text: "text-white",
     muted: "text-zinc-500",
-    headingFont: "font-sans",
-    bodyFont: "font-sans",
-    chatUserBg: "bg-zinc-900 text-white",
-    chatBotBg: "bg-zinc-100 border border-zinc-200 text-zinc-900",
-    ctaBg: "bg-zinc-900 hover:bg-zinc-800",
-    ctaGlow: "shadow-lg shadow-zinc-400/20",
+    headingClass: "font-serif tracking-tight",
+    bodyClass: "font-sans",
+    chatUserBg: "bg-[#8BA888] text-[#18181B]",
+    chatBotBg: "bg-white/5 border border-white/[0.08] text-white",
+    ctaBg: "bg-[#8BA888] hover:bg-[#9BB89A]",
+    ctaGlow: "shadow-lg shadow-[#8BA888]/20",
+    sectionLabel: (_num: number) => "",
+    moduleStyle: "minimal" as const,
+    dotColor: "bg-[#8BA888]",
+    timelineLineColor: "bg-[#8BA888]/30",
+    selectionColor: "selection:bg-[#8BA888]/30",
   },
 };
 
@@ -212,7 +235,12 @@ export default function PortfolioPage() {
   }
 
   const profile = portfolio.profile;
-  const brandingTheme = (profile.brandingTheme?.toLowerCase() as keyof typeof themes) || "executive";
+  const rawTheme = profile.brandingTheme?.toLowerCase() || "corporate";
+  const themeMap: Record<string, keyof typeof themes> = {
+    executive: "corporate", futurist: "tech", minimalist: "creative",
+    corporate: "corporate", tech: "tech", creative: "creative",
+  };
+  const brandingTheme = themeMap[rawTheme] || "corporate";
   const theme = themes[brandingTheme];
   const hasVideo = !!profile.videoUrl;
   const hasPhoto = !!profile.photoUrl;
@@ -229,7 +257,7 @@ export default function PortfolioPage() {
   const visibleStats = showAllStats ? (profile.stats || []) : (profile.stats || []).slice(0, 6);
 
   return (
-    <div className={`${theme.bg} ${theme.text} ${theme.bodyFont} min-h-screen selection:bg-indigo-500/30 overflow-x-hidden`}>
+    <div className={`${theme.bg} ${theme.text} ${theme.bodyClass} min-h-screen ${theme.selectionColor} overflow-x-hidden`}>
       <div className={`${theme.gradient} fixed inset-0 pointer-events-none`} />
       
       {/* 1. HERO SECTION */}
@@ -244,17 +272,17 @@ export default function PortfolioPage() {
               <div className="flex items-center gap-4 mb-6">
                 {hasVideo && hasPhoto && (
                   <div className="relative shrink-0">
-                    <Avatar className="h-20 w-20 border-2 border-indigo-500/30">
+                    <Avatar className="h-20 w-20 border-2 border-white/20">
                       <AvatarImage src={profile.photoUrl!} alt={profile.displayName} />
-                      <AvatarFallback className="bg-indigo-600 text-white text-lg">{initials}</AvatarFallback>
+                      <AvatarFallback className="bg-white/10 text-white text-lg">{initials}</AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-1 -right-1 bg-green-500 text-[9px] font-black text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                    <div className={`absolute -bottom-1 -right-1 ${theme.dotColor} text-[9px] font-black text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider`}>
                       Open
                     </div>
                   </div>
                 )}
                 <div>
-                  <h1 className={`text-5xl md:text-6xl font-black tracking-tight ${theme.headingFont}`} data-testid="text-display-name">
+                  <h1 className={`text-5xl md:text-6xl font-black tracking-tight ${theme.headingClass}`} data-testid="text-display-name">
                     {profile.displayName}
                   </h1>
                 </div>
@@ -276,6 +304,16 @@ export default function PortfolioPage() {
                   <p key={i}>{para}</p>
                 ))}
               </div>
+
+              {theme.moduleStyle === 'system' && (
+                <div className="flex flex-wrap gap-4 text-xs font-mono text-white/60 mb-6" data-testid="tech-status-bar">
+                  <span>STATUS: <span className="text-lime-400">ONLINE</span></span>
+                  <span>|</span>
+                  <span>LATENCY: 0.8s</span>
+                  <span>|</span>
+                  <span>PORTFOLIO_ID: {profile.displayName?.toUpperCase().replace(/\s/g, '_')}</span>
+                </div>
+              )}
 
               <div className="flex flex-wrap gap-3">
                 <button 
@@ -316,7 +354,7 @@ export default function PortfolioPage() {
               animate={{ opacity: 1, scale: 1 }}
               className="md:col-span-2 relative"
             >
-              <div className="absolute -inset-6 bg-indigo-500/15 blur-3xl rounded-full pointer-events-none" />
+              <div className={`absolute -inset-6 bg-gradient-to-r ${theme.accent} opacity-15 blur-3xl rounded-full pointer-events-none`} />
               {hasVideo ? (
                 <div className="relative">
                   <div className={`${theme.glass} rounded-2xl overflow-hidden ${theme.glow}`}>
@@ -337,7 +375,7 @@ export default function PortfolioPage() {
                   <div className={`${theme.glass} rounded-2xl overflow-hidden ${theme.glow}`}>
                     <img src={profile.photoUrl!} className="w-full aspect-[4/5] object-cover" alt={profile.displayName} />
                   </div>
-                  <div className="absolute bottom-4 left-4 bg-green-500 text-xs font-black text-white px-3 py-1.5 rounded-full uppercase tracking-wider">
+                  <div className={`absolute bottom-4 left-4 ${theme.dotColor} text-xs font-black text-white px-3 py-1.5 rounded-full uppercase tracking-wider`}>
                     Open to Work
                   </div>
                 </div>
@@ -350,7 +388,7 @@ export default function PortfolioPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h1 className={`text-6xl font-black mb-6 tracking-tight ${theme.headingFont}`}>{profile.displayName}</h1>
+            <h1 className={`text-6xl font-black mb-6 tracking-tight ${theme.headingClass}`}>{profile.displayName}</h1>
             <p className={`text-xl font-medium ${theme.muted} mb-6`}>
               {profile.heroSubtitle || profile.roleTitle}
             </p>
@@ -381,19 +419,19 @@ export default function PortfolioPage() {
       {/* 2. DIGITAL TWIN CONSOLE — THE STAR */}
       <section id="section-chatbot" className="py-12 px-6 max-w-4xl mx-auto opacity-0 animate-[fadeIn_0.6s_ease-out_forwards]">
         <div className="text-center mb-6">
-          <h2 className={`text-3xl font-bold mb-2 ${theme.headingFont}`}>Twin Interface</h2>
+          <h2 className={`text-3xl font-bold mb-2 ${theme.headingClass}`}>Twin Interface</h2>
           <p className={`${theme.muted} text-sm`}>Trained on {profile.displayName}'s career data, decision models, and communication style.</p>
         </div>
         
         <div className={`${theme.glass} rounded-3xl overflow-hidden flex flex-col ${theme.glow} relative`} style={{ minHeight: "600px" }}>
           {/* PERSONALITY HEADER */}
-          <div className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border-b border-white/10">
+          <div className={`flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border-b border-white/10`}>
             <div className="relative">
-              <Avatar className="w-14 h-14 border-2 border-indigo-400/50">
+              <Avatar className="w-14 h-14 border-2 border-white/20">
                 <AvatarImage src={profile.photoUrl || ""} alt={profile.displayName} />
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
-              <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-zinc-900"></div>
+              <div className={`absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 ${theme.bg}`}></div>
             </div>
             <div>
               <h3 className="text-lg font-semibold">I'm {profile.displayName?.split(' ')[0]}'s Digital Twin</h3>
@@ -430,8 +468,8 @@ export default function PortfolioPage() {
                 )}
                 <div className={
                   msg.role === 'user' 
-                    ? 'inline-block bg-indigo-600 px-4 py-2 rounded-lg max-w-[80%] text-sm'
-                    : 'inline-block bg-white/10 px-4 py-2 rounded-lg max-w-[80%] text-sm'
+                    ? `inline-block ${theme.chatUserBg} px-4 py-2 rounded-lg max-w-[80%] text-sm`
+                    : `inline-block ${theme.chatBotBg} px-4 py-2 rounded-lg max-w-[80%] text-sm`
                 }>
                   {msg.content}
                 </div>
@@ -446,9 +484,9 @@ export default function PortfolioPage() {
                 <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
                   <span className="text-white/70 text-xs">{profile.displayName?.split(' ')[0]} is typing</span>
                   <div className="flex gap-1">
-                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                    <div className={`w-1.5 h-1.5 ${theme.dotColor} rounded-full animate-bounce`} style={{animationDelay: '0ms'}}></div>
+                    <div className={`w-1.5 h-1.5 ${theme.dotColor} rounded-full animate-bounce`} style={{animationDelay: '150ms'}}></div>
+                    <div className={`w-1.5 h-1.5 ${theme.dotColor} rounded-full animate-bounce`} style={{animationDelay: '300ms'}}></div>
                   </div>
                 </div>
               </div>
@@ -483,7 +521,7 @@ export default function PortfolioPage() {
         <section className="py-12 px-6 max-w-6xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
             <div className="h-px flex-1 bg-white/10" />
-            <h2 className={`text-2xl font-bold uppercase tracking-widest ${theme.accentSolid}`}>Impact Metrics</h2>
+            <h2 className={`text-2xl font-bold uppercase tracking-widest ${theme.accentSolid} ${theme.headingClass}`}>{theme.sectionLabel(1)}Impact Metrics</h2>
             <div className="h-px flex-1 bg-white/10" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -517,12 +555,12 @@ export default function PortfolioPage() {
       {/* 4. WHERE I'M MOST USEFUL — Max 4 */}
       {profile.problemFit && profile.problemFit.length > 0 && (
         <section className="py-12 px-6 max-w-5xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-8 ${theme.headingFont}`}>Where I'm Most Useful</h2>
+          <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`}>{theme.sectionLabel(2)}Where I'm Most Useful</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {profile.problemFit.slice(0, 4).map((problem, i) => (
               <div key={i} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover} group`}>
                 <div className="flex items-start gap-3">
-                  <div className={`w-2 h-2 rounded-full bg-indigo-500 mt-2.5 shrink-0 group-hover:scale-150 transition-transform`} />
+                  <div className={`w-2 h-2 rounded-full ${theme.dotColor} mt-2.5 shrink-0 group-hover:scale-150 transition-transform`} />
                   <p className={`text-base ${theme.muted} leading-relaxed`}>{problem}</p>
                 </div>
               </div>
@@ -534,7 +572,7 @@ export default function PortfolioPage() {
       {/* 5. HOW I WORK — Horizontal timeline with arrows */}
       {profile.howIWork && profile.howIWork.steps?.length > 0 && (
         <section className="py-12 px-6 max-w-6xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-8 text-center ${theme.headingFont}`}>{profile.howIWork.name || "How I Work"}</h2>
+          <h2 className={`text-3xl font-bold mb-8 text-center ${theme.headingClass}`}>{theme.sectionLabel(3)}{profile.howIWork.name || "How I Work"}</h2>
           <div className="flex flex-col md:flex-row items-stretch gap-2">
             {profile.howIWork.steps.map((step, i, arr) => (
               <div key={i} className="flex items-center flex-1 gap-2">
@@ -555,26 +593,25 @@ export default function PortfolioPage() {
       {/* 6. CAREER TRAJECTORY */}
       {profile.careerTimeline && profile.careerTimeline.length > 0 && (
         <section className="py-12 px-6 max-w-6xl mx-auto opacity-0 animate-[fadeIn_0.6s_ease-out_forwards]">
-          <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-            <span className="text-2xl">💼</span> Career Trajectory
+          <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`}>
+            {theme.sectionLabel(4)}Career Trajectory
           </h2>
           
           <div className="relative">
             {/* Vertical timeline line */}
-            <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-indigo-400/30"></div>
+            <div className={`absolute left-3 top-0 bottom-0 w-0.5 ${theme.timelineLineColor}`}></div>
             
             {profile.careerTimeline.map((role, i) => (
               <div key={i} className="relative pl-10 pb-8 last:pb-0">
-                {/* Timeline dot */}
-                <div className="absolute left-0 top-2 w-6 h-6 bg-indigo-600 rounded-full border-4 border-zinc-900"></div>
+                <div className={`absolute left-0 top-2 w-6 h-6 ${theme.dotColor} rounded-full border-4 ${theme.bg}`}></div>
                 
                 <div className={theme.glass + " p-6 rounded-xl " + theme.glassHover}>
-                  <div className="flex justify-between items-start mb-2">
+                  <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
                     <div>
-                      <h3 className="text-xl font-bold">{role.title}</h3>
-                      <p className="text-lg text-indigo-400">{role.company}</p>
+                      <h3 className={`text-xl font-bold ${theme.headingClass}`}>{role.title}</h3>
+                      <p className={`text-lg ${theme.accentSolid}`}>{role.company}</p>
                     </div>
-                    <span className="text-sm text-white/60">{role.years}</span>
+                    <span className={`text-sm ${theme.muted}`}>{role.years}</span>
                   </div>
                   
                   {/* Collapsible achievements */}
@@ -598,9 +635,8 @@ export default function PortfolioPage() {
       {/* 7. SKILL MATRIX — Grouped pills */}
       {skills.length > 0 && (
         <section className="py-12 px-6 max-w-5xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-8 flex items-center gap-3 ${theme.headingFont}`}>
-            <Code2 className={`w-6 h-6 ${theme.accentSolid}`} />
-            Skill Matrix
+          <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`}>
+            {theme.sectionLabel(5)}Skill Matrix
           </h2>
           <div className="flex flex-wrap gap-2">
             {skills.map((skill, i) => (
@@ -619,7 +655,7 @@ export default function PortfolioPage() {
 
       {/* 8. FOOTER CTA */}
       <footer className="py-20 px-6 max-w-4xl mx-auto text-center border-t border-white/5">
-        <h2 className={`text-4xl font-black mb-6 tracking-tight ${theme.headingFont}`}>
+        <h2 className={`text-4xl font-black mb-6 tracking-tight ${theme.headingClass}`}>
           Don't Just Send a Resume. <br/><span className={theme.accentSolid}>Deploy an Agent.</span>
         </h2>
         <div className="flex flex-wrap gap-4 justify-center mb-12">
@@ -652,7 +688,7 @@ export default function PortfolioPage() {
           >
             <div className="p-8 space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className={`text-2xl font-bold ${theme.headingFont}`}>Get in Touch</h3>
+                <h3 className={`text-2xl font-bold ${theme.headingClass}`}>Get in Touch</h3>
                 <button 
                   onClick={() => setShowEmailModal(false)}
                   className="p-2 hover:bg-white/10 rounded-full transition-colors"

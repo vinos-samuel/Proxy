@@ -373,7 +373,7 @@ export async function registerRoutes(
           brandingTheme:
             profile.brandingTheme ||
             questionnaireData?.step10?.brandingTheme ||
-            "executive",
+            "corporate",
           technicalSkills: questionnaireData?.step6?.technicalSkills || null,
           achievements: questionnaireData?.step5?.achievements || null,
           communicationStyle:
@@ -386,6 +386,7 @@ export async function registerRoutes(
           whyAiCv: profile.whyAiCv || [],
           portfolioSuggestedQuestions:
             profile.portfolioSuggestedQuestions || suggestedQuestions,
+          careerTimeline: profile.careerTimeline || [],
         },
         factBanks: factBanksList,
         knowledgeEntries: entries,

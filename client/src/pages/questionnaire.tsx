@@ -44,9 +44,9 @@ const COMMUNICATION_STYLES = [
 ];
 
 const BRANDING_THEMES = [
-  { value: "executive", label: "Executive", description: "Navy, gold accents, serif typography — boardroom-ready" },
-  { value: "futurist", label: "Futurist", description: "Dark mode, purple/cyan accents, clean sans-serif — tech-forward" },
-  { value: "minimalist", label: "Minimalist", description: "Black & white, Helvetica, maximum whitespace — let results speak" },
+  { value: "corporate", label: "Corporate", description: "Traditional industries. Authoritative, institutional. Think: Finance, Consulting, Corporate HR." },
+  { value: "tech", label: "Tech", description: "Technology & innovation. Modern, cutting-edge. Think: Startups, AI/ML, Product." },
+  { value: "creative", label: "Creative", description: "Design & strategy. Refined, confident. Think: Consulting, Coaching, Creative roles." },
 ];
 
 export interface QuestionnaireData {
@@ -147,7 +147,7 @@ const defaultData: QuestionnaireData = {
       { objection: "", response: "" },
     ],
   },
-  step10: { brandingTheme: "executive", headshot: "", introVideo: "", cvResume: "" },
+  step10: { brandingTheme: "corporate", headshot: "", introVideo: "", cvResume: "" },
   step11: { suggestedQuestions: "", specialInstructions: "", easterEgg: "" },
 };
 

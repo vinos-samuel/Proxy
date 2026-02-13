@@ -250,7 +250,7 @@ Generate a JSON object with the following structure. Follow these rules exactly:
     fallbackResponse: `I appreciate the question, but that's outside my area of expertise. I'm ${data.step1.fullName}, and I'm happy to discuss my experience as a ${data.step1.currentTitle}. Feel free to ask about my career history, key projects, or professional philosophy.`,
     photoUrl: data.step10?.headshot || null,
     resumeUrl: data.step3?.resumeUrl || null,
-    brandingTheme: data.step10?.brandingTheme || "executive",
+    brandingTheme: data.step10?.brandingTheme || "corporate",
     videoUrl: data.step10?.introVideo || null,
     cvResumeUrl: data.step10?.cvResume || null,
     // NEW PORTFOLIO FIELDS

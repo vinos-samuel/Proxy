@@ -1,0 +1,254 @@
+TASK: Implement 3 Professional Portfolio Themes
+
+CONTEXT: We currently have Executive/Futurist/Minimalist themes that need to be renamed and restyled to Corporate/Tech/Creative with distinct professional aesthetics.
+
+PART 1: UPDATE QUESTIONNAIRE
+
+FILE: Find the questionnaire component (likely client/src/components/Questionnaire.tsx)
+
+FIND the step where user selects theme (currently labeled "Executive", "Futurist", "Minimalist")
+
+UPDATE to:
+- Theme 1: "Corporate" (previously Executive)
+- Theme 2: "Tech" (previously Futurist)  
+- Theme 3: "Creative" (previously Minimalist)
+
+UPDATE descriptions:
+- Corporate: "Traditional industries. Authoritative, institutional. Think: Finance, Consulting, Corporate HR."
+- Tech: "Technology & innovation. Modern, cutting-edge. Think: Startups, AI/ML, Product."
+- Creative: "Design & strategy. Refined, confident. Think: Consulting, Coaching, Creative roles."
+
+SAVE selection to database as: brandingTheme: "corporate" | "tech" | "creative" (lowercase)
+
+---
+
+PART 2: UPDATE THEME DEFINITIONS IN PORTFOLIO
+
+FILE: client/src/pages/portfolio.tsx
+
+FIND the themes configuration object (around lines 60-115)
+
+REPLACE with these 3 theme definitions:
+```typescript
+const themes = {
+  corporate: {
+    name: "Corporate",
+    // Colors
+    bg: "bg-[#0A1128]", // deep navy
+    gradient: "bg-gradient-to-br from-[#1A1A2E]/40 via-transparent to-[#6B2C3E]/20",
+    
+    // Cards
+    glass: "bg-gradient-to-br from-[#1a1a2e]/90 to-[#16213e]/90 backdrop-blur-md border-2 border-[#C9A961]",
+    glassHover: "hover:shadow-[0_4px_24px_rgba(201,169,97,0.25)] transition-all duration-300",
+    
+    // Accents & Text
+    accent: "from-[#C9A961] to-[#D4AF37]", // gold gradient
+    accentSolid: "text-[#C9A961]",
+    secondaryAccent: "text-[#2D5F3F]", // forest green for success
+    alertAccent: "text-[#6B2C3E]", // burgundy for urgency
+    
+    // Effects
+    glow: "shadow-[0_0_20px_rgba(201,169,97,0.2)]",
+    borderRadius: "rounded-sm", // sharp corners
+    
+    // Typography hints (applied via Tailwind)
+    headingClass: "font-serif", // will use Playfair Display
+    bodyClass: "font-sans",
+    monoClass: "font-mono",
+    
+    // Labels & Formatting
+    sectionLabel: (num: number) => `SECTION ${toRomanNumeral(num)}`,
+    moduleStyle: "formal", // affects how data is displayed
+  },
+  
+  tech: {
+    name: "Tech",
+    // Colors
+    bg: "bg-black",
+    gradient: "bg-gradient-to-br from-blue-600/20 via-transparent to-purple-600/20",
+    
+    // Cards
+    glass: "bg-slate-900/80 backdrop-blur-xl border border-blue-500/50",
+    glassHover: "hover:border-blue-500 hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] transition-all duration-300",
+    
+    // Accents & Text
+    accent: "from-blue-500 to-cyan-400", // electric blue to cyan
+    accentSolid: "text-blue-500",
+    secondaryAccent: "text-purple-500",
+    alertAccent: "text-lime-400",
+    
+    // Effects
+    glow: "shadow-[0_0_24px_rgba(59,130,246,0.4)]",
+    borderRadius: "rounded-xl",
+    
+    // Typography
+    headingClass: "font-sans tracking-tight", // geometric
+    bodyClass: "font-sans",
+    monoClass: "font-mono",
+    
+    // Labels & Formatting
+    sectionLabel: (num: number) => `MODULE_${String(num).padStart(2, '0')}`,
+    moduleStyle: "system", // system-style indicators
+  },
+  
+  creative: {
+    name: "Creative",
+    // Colors  
+    bg: "bg-[#18181B]", // warm off-black
+    gradient: "bg-gradient-to-br from-transparent via-[#8BA888]/5 to-transparent",
+    
+    // Cards
+    glass: "bg-white/[0.03] backdrop-blur-sm border border-white/[0.08]",
+    glassHover: "hover:bg-white/[0.05] transition-all duration-500",
+    
+    // Accents & Text (single accent only)
+    accent: "from-[#8BA888] to-[#9BB89A]", // sage green
+    accentSolid: "text-[#8BA888]",
+    secondaryAccent: "text-white/90",
+    alertAccent: "text-[#8BA888]",
+    
+    // Effects
+    glow: "shadow-[0_2px_12px_rgba(0,0,0,0.15)]", // subtle
+    borderRadius: "rounded-lg",
+    
+    // Typography
+    headingClass: "font-serif tracking-tight", // refined
+    bodyClass: "font-sans",
+    monoClass: "", // no monospace in creative
+    
+    // Labels & Formatting
+    sectionLabel: (num: number) => "", // no labels, just titles
+    moduleStyle: "minimal", // clean, no decorations
+  },
+};
+
+// Helper function for Corporate theme
+function toRomanNumeral(num: number): string {
+  const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+  return romanNumerals[num - 1] || String(num);
+}
+```
+
+---
+
+PART 3: APPLY THEME TO PORTFOLIO SECTIONS
+
+FIND where theme is selected (should be something like):
+```typescript
+const theme = themes[profile.brandingTheme || 'executive'];
+```
+
+UPDATE to:
+```typescript
+const theme = themes[profile.brandingTheme || 'corporate'];
+```
+
+Then UPDATE all section headers to use theme.sectionLabel:
+
+Example:
+```typescript
+// OLD:
+<h2 className="text-3xl font-bold mb-8">Impact Metrics</h2>
+
+// NEW:
+<h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`}>
+  {theme.sectionLabel(1)} IMPACT METRICS
+</h2>
+```
+
+Apply to all major sections:
+- Impact Metrics → SECTION I (Corporate) | MODULE_01 (Tech) | (no label) (Creative)
+- Where I'm Most Useful → SECTION II | MODULE_02 | (no label)
+- How I Work → SECTION III | MODULE_03 | (no label)
+- Career Trajectory → SECTION IV | MODULE_04 | (no label)
+- Skill Matrix → SECTION V | MODULE_05 | (no label)
+
+---
+
+PART 4: TECH THEME SPECIFIC ADDITIONS
+
+For TECH theme only, add system status indicators in the hero section:
+```typescript
+{theme.moduleStyle === 'system' && (
+  <div className="flex gap-4 text-xs font-mono text-white/60 mt-4">
+    <span>STATUS: <span className="text-lime-400">ONLINE</span></span>
+    <span>|</span>
+    <span>LATENCY: 0.8s</span>
+    <span>|</span>
+    <span>PORTFOLIO_ID: {profile.displayName?.toUpperCase().replace(' ', '_')}</span>
+  </div>
+)}
+```
+
+---
+
+PART 5: TYPOGRAPHY SETUP
+
+Ensure these fonts are loaded in your app:
+
+**Corporate:**
+- Playfair Display (serif) for headlines
+- Source Sans Pro (sans) for body
+- IBM Plex Mono for data
+
+**Tech:**
+- Space Grotesk or Geist (geometric sans) for all
+- Geist Mono for code
+
+**Creative:**
+- Freight Display or similar refined serif for headlines
+- Inter for body
+
+Add to client/index.html or equivalent:
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+Pro:wght@400;600&family=IBM+Plex+Mono&family=Space+Grotesk:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+```
+
+Update tailwind.config to use these fonts:
+```javascript
+module.exports = {
+  theme: {
+    extend: {
+      fontFamily: {
+        serif: ['Playfair Display', 'serif'],
+        sans: ['Inter', 'Source Sans Pro', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'Geist Mono', 'monospace'],
+      }
+    }
+  }
+}
+```
+
+---
+
+PART 6: DATABASE UPDATE
+
+Add migration to ensure brandingTheme accepts new values:
+
+In psql:
+```sql
+-- Update any existing profiles with old theme names
+UPDATE twin_profiles 
+SET branding_theme = CASE 
+  WHEN branding_theme = 'executive' THEN 'corporate'
+  WHEN branding_theme = 'futurist' THEN 'tech'
+  WHEN branding_theme = 'minimalist' THEN 'creative'
+  ELSE 'corporate'
+END;
+```
+
+---
+
+TESTING CHECKLIST:
+✅ Questionnaire shows Corporate/Tech/Creative options
+✅ Selection saves to database correctly
+✅ Portfolio renders with correct theme
+✅ Corporate theme: Navy bg, gold accents, serif headlines, SECTION I labels
+✅ Tech theme: Black bg, neon accents, system indicators, MODULE_01 labels  
+✅ Creative theme: Gray bg, sage green, no labels, generous spacing
+✅ All themes look professional/polished
+✅ Mobile responsive for all 3 themes
+
+Please implement all 6 parts and test with a sample profile.

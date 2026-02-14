@@ -24,6 +24,7 @@ A SaaS platform ("Proxy") that lets professionals create AI-powered interactive 
 - Three portfolio branding themes: Corporate, Tech, Creative
 - Payment system in test mode (Stripe code backed up in stripe-backup/ for future activation)
 - Test mode bypass allows testers to publish without payment via POST /api/test-publish
+- Published portfolios generate subdomains as username.myproxy.work
 
 ## Branding
 - Color: Dark green primary (hsl 152, 60%, 30%) on light gray background

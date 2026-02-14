@@ -194,7 +194,7 @@ export async function registerRoutes(
         }
 
         const customer = await storage.getCustomer(req.session.customerId!);
-        const publicDomain = customer ? `${customer.username}.proxy.ai` : undefined;
+        const publicDomain = customer ? `${customer.username}.myproxy.work` : undefined;
 
         await storage.updateProfileById(profile.id, {
           isPublic: true,
@@ -566,7 +566,7 @@ export async function registerRoutes(
       }
 
       const customer = await storage.getCustomer(req.session.customerId!);
-      const publicDomain = customer ? `${customer.username}.proxy.ai` : undefined;
+      const publicDomain = customer ? `${customer.username}.myproxy.work` : undefined;
 
       await storage.updateProfileById(profile.id, {
         paymentStatus: 'paid',

@@ -291,3 +291,37 @@
     inset: -1px;
   }
 }
+
+.mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.brutal-card {
+  border: 3px solid;
+  transition: transform 0.2s;
+}
+
+.brutal-card:hover {
+  transform: translateY(-4px);
+}
+
+.terminal-input {
+  background: rgba(255,255,255,0.5);
+  border: 3px solid;
+  font-family: 'IBM Plex Mono', monospace;
+  padding: 16px 24px;
+  font-size: 18px;
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.scan-line {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: rgba(34, 197, 94, 0.3);
+  animation: scan 3s linear infinite;
+}

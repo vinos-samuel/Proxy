@@ -1,282 +1,373 @@
-import { Link } from "wouter";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Bot, Sparkles, Globe, ArrowRight, CheckCircle, Zap, Shield, Users, Terminal, MessageSquare } from "lucide-react";
-
-const fadeUp = {
-  initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6 },
-};
-
-const stagger = {
-  animate: { transition: { staggerChildren: 0.1 } },
-};
+import { Link, useLocation } from "wouter";
+import { FileText, Zap, Rocket, Target, X, Check } from "lucide-react";
 
 export default function LandingPage() {
+  const [, navigate] = useLocation();
+
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
+    <div className="min-h-screen bg-[#E8E8E3] text-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+
+      <nav className="border-b-[3px] border-black bg-[#D1D1CC] sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/">
-            <div className="flex items-center gap-2 cursor-pointer">
-              <div className="h-9 w-9 rounded-md bg-primary flex items-center justify-center">
-                <Terminal className="h-5 w-5 text-primary-foreground" />
+            <div className="flex items-center gap-3 cursor-pointer">
+              <div className="w-10 h-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
+                P
               </div>
-              <span className="text-lg font-semibold tracking-tight" data-testid="text-brand-name">Proxy</span>
+              <span className="text-2xl font-bold tracking-tight" data-testid="text-brand-name">PROXY</span>
             </div>
           </Link>
-          <div className="flex items-center gap-3">
-            <Link href="/login">
-              <Button variant="ghost" data-testid="link-login">Log In</Button>
-            </Link>
-            <Link href="/register">
-              <Button data-testid="link-register">
-                Get Started
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </Link>
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#how" className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider" data-testid="link-how">How</a>
+            <a href="#pricing" className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider" data-testid="link-pricing">Pricing</a>
+            <button
+              onClick={() => navigate("/login")}
+              className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider"
+              data-testid="link-login"
+            >
+              Login
+            </button>
+            <button
+              onClick={() => navigate("/register")}
+              className="bg-[#22C55E] text-black px-6 py-3 font-bold hover:bg-[#16A34A] border-[3px] border-black mono text-sm uppercase tracking-wider"
+              data-testid="link-register"
+            >
+              ENGAGE &rarr;
+            </button>
           </div>
         </div>
       </nav>
 
-      <section className="relative pt-20 pb-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/8 rounded-full blur-3xl" />
-        <div className="absolute top-40 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-3xl" />
+      <section className="px-6 py-20">
+        <div className="max-w-7xl mx-auto">
 
-        <motion.div
-          className="relative mx-auto max-w-4xl px-6 text-center"
-          initial="initial"
-          animate="animate"
-          variants={stagger}
-        >
-          <motion.div variants={fadeUp}>
-            <Badge variant="secondary" className="mb-6 px-4 py-1.5">
-              <Terminal className="mr-1.5 h-3.5 w-3.5" />
-              AI-Powered Career Agents
-            </Badge>
-          </motion.div>
-
-          <motion.h1
-            variants={fadeUp}
-            className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6"
-          >
-            Don't Just Send a Resume.{" "}
-            <span className="text-primary">
-              Deploy an Agent.
-            </span>
-          </motion.h1>
-
-          <motion.p
-            variants={fadeUp}
-            className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
-          >
-            Static PDFs stay in the inbox. Your Digital Twin engages stakeholders 24/7 — answering strategy questions, sharing war stories, and selling your value while you sleep.
-          </motion.p>
-
-          <motion.div variants={fadeUp} className="flex items-center justify-center gap-4 flex-wrap">
-            <Link href="/register">
-              <Button size="lg" className="text-base px-8" data-testid="button-hero-cta">
-                Initialize Your Twin
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/portfolio/demo">
-              <Button size="lg" variant="outline" className="text-base px-8" data-testid="button-view-demo">
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Talk to a Demo
-              </Button>
-            </Link>
-          </motion.div>
-        </motion.div>
-      </section>
-
-      <section className="py-24 relative">
-        <div className="mx-auto max-w-6xl px-6">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Three steps from raw career data to a live AI agent
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                step: "01",
-                icon: <Users className="h-6 w-6" />,
-                title: "Context Ingestion",
-                description: "Complete a guided intake covering career history, war stories, voice personality, and objection handling.",
-              },
-              {
-                step: "02",
-                icon: <Sparkles className="h-6 w-6" />,
-                title: "AI Processes Everything",
-                description: "Gemini AI rewrites, structures, and transforms your raw input into a polished knowledge base.",
-              },
-              {
-                step: "03",
-                icon: <Globe className="h-6 w-6" />,
-                title: "Deploy Your Twin",
-                description: "Your AI CV goes live with a working chatbot that answers questions like you would.",
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15 }}
-              >
-                <Card className="p-8 h-full">
-                  <div className="text-xs font-mono text-muted-foreground mb-4">{item.step}</div>
-                  <div className="h-12 w-12 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center mb-5 text-primary">
-                    {item.icon}
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{item.description}</p>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/3 to-transparent" />
-        <div className="relative mx-auto max-w-6xl px-6">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Proxy</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Your career deserves more than a static document
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {[
-              {
-                icon: <Bot className="h-5 w-5" />,
-                title: "24/7 Digital Twin",
-                description: "Your AI agent answers career questions, shares war stories, and handles objections — even while you sleep.",
-              },
-              {
-                icon: <Zap className="h-5 w-5" />,
-                title: "AI-Polished Content",
-                description: "Raw input gets rewritten for maximum impact. Your twin speaks with clarity and authority.",
-              },
-              {
-                icon: <Shield className="h-5 w-5" />,
-                title: "Trained on Your Real Experience",
-                description: "CAR-format stories, metrics, and communication style ensure authentic, detailed responses.",
-              },
-              {
-                icon: <Globe className="h-5 w-5" />,
-                title: "One Link, Full Impact",
-                description: "A permanent, shareable URL. Add it to LinkedIn, email signatures, or pitch decks.",
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <Card className="p-7 hover-elevate">
-                  <div className="flex items-start gap-4">
-                    <div className="h-10 w-10 shrink-0 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                      {item.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1.5">{item.title}</h3>
-                      <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-24">
-        <div className="mx-auto max-w-4xl px-6">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple Pricing</h2>
-            <p className="text-muted-foreground text-lg">One price to deploy your AI agent</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-sm mx-auto"
-          >
-            <Card className="p-8 text-center relative overflow-visible">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Badge className="bg-primary text-primary-foreground border-0">
-                  Most Popular
-                </Badge>
-              </div>
-              <h3 className="text-2xl font-bold mt-2 mb-2">Lifetime Access</h3>
-              <div className="flex items-baseline justify-center gap-1 mb-4">
-                <span className="text-5xl font-bold">$99</span>
-                <span className="text-muted-foreground">one-time</span>
-              </div>
-              <ul className="text-left space-y-3 mb-8">
-                {[
-                  "AI-powered interactive portfolio",
-                  "Digital Twin chatbot agent",
-                  "Unique shareable URL",
-                  "Unlimited visitor conversations",
-                  "AI-rewritten professional content",
-                  "Three premium visual themes",
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-primary shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/register">
-                <Button className="w-full" size="lg" data-testid="button-pricing-cta">
-                  Initialize Your Twin
-                </Button>
-              </Link>
-            </Card>
-          </motion.div>
-        </div>
-      </section>
-
-      <footer className="border-t py-12">
-        <div className="mx-auto max-w-6xl px-6 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center">
-              <Terminal className="h-4 w-4 text-primary-foreground" />
+          <div className="mb-12 p-4 border-[3px] border-black bg-white mono text-xs text-black/60 flex justify-between items-center flex-wrap gap-4">
+            <div className="flex gap-6 flex-wrap">
+              <span>SYS_STATUS: <span className="text-[#22C55E] font-bold">ACTIVE</span></span>
+              <span className="hidden sm:inline">|</span>
+              <span>DEPLOYED_AGENTS: <span className="text-black font-bold">127</span></span>
+              <span className="hidden sm:inline">|</span>
+              <span>AVG_RESPONSE: <span className="text-black font-bold">0.8s</span></span>
             </div>
-            <span className="font-semibold">Proxy</span>
+            <div>LAST_DEPLOY: 12_FEB_2026</div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Deploy your career agent. Powered by AI.
-          </p>
+
+          <div className="grid lg:grid-cols-2 gap-12 mb-16">
+            <div>
+              <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest" data-testid="text-hero-label">&#9698; Career Conversation System</div>
+              <h1 className="text-5xl lg:text-7xl font-bold leading-none mb-8" data-testid="text-hero-headline">
+                STOP<br />
+                APPLYING.<br />
+                START <span className="text-[#22C55E]">ENGAGING</span>.
+              </h1>
+              <div className="space-y-4 text-xl text-black/70 mb-8">
+                <p>Professionals with 10+ years experience.</p>
+                <p>200+ applications. 6 interviews. Maybe 1 offer.</p>
+                <p className="text-black font-bold">Your PDF is invisible.</p>
+              </div>
+
+              <div className="terminal-input border-[#E8A75D] text-[#D4941D] mb-8">
+                <span className="text-black/30">$</span> DEPLOY_CAREER_PROXY --user=YOUR_NAME
+              </div>
+
+              <div className="flex gap-4 flex-wrap">
+                <button
+                  onClick={() => navigate("/register")}
+                  className="bg-[#22C55E] text-black px-8 py-4 font-bold hover:bg-[#16A34A] border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                  data-testid="button-hero-cta"
+                >
+                  INITIALIZE &rarr;
+                </button>
+                <Link href="/portfolio/demo">
+                  <button
+                    className="bg-white text-black px-8 py-4 font-bold border-[3px] border-black hover:bg-gray-100 mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                    data-testid="button-view-demo"
+                  >
+                    VIEW_DEMO
+                  </button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="brutal-card bg-[#E8A75D] border-black p-6 relative overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-avg-session">
+                <div className="scan-line"></div>
+                <div className="mono text-xs text-black/60 mb-2 uppercase">AVG_SESSION</div>
+                <div className="text-5xl font-bold text-black">8m</div>
+                <div className="mono text-sm text-black/70 mt-2">vs. 6 seconds (PDF)</div>
+              </div>
+
+              <div className="brutal-card bg-[#93C5FD] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-response-rate">
+                <div className="mono text-xs text-black/60 mb-2 uppercase">RESPONSE_RATE</div>
+                <div className="text-5xl font-bold text-black">3.2x</div>
+                <div className="mono text-sm text-black/70 mt-2">higher than resume</div>
+              </div>
+
+              <div className="brutal-card bg-[#86EFAC] border-black p-6 col-span-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-engagement-model">
+                <div className="mono text-xs text-black/60 mb-2 uppercase">ENGAGEMENT_MODEL</div>
+                <div className="text-3xl font-bold text-black mb-2">ALWAYS-ON REPRESENTATION</div>
+                <div className="mono text-sm text-black/70">
+                  Recruiters &rarr; Your Proxy &rarr; Instant Answers &rarr; Interview
+                </div>
+              </div>
+
+              <div className="brutal-card bg-[#C4B5FD] border-black p-6 col-span-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-operational-status">
+                <div className="mono text-xs text-black/60 mb-2 uppercase">OPERATIONAL_STATUS</div>
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <div className="text-2xl font-bold text-black">24/7</div>
+                    <div className="mono text-xs text-black/60">UPTIME</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-black">0ms</div>
+                    <div className="mono text-xs text-black/60">LATENCY</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-black">&infin;</div>
+                    <div className="mono text-xs text-black/60">SCALE</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section className="px-6 py-20 border-t-[3px] border-b-[3px] border-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12">
+
+            <div className="border-[3px] border-black p-8 bg-[#D1D1CC] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              <div className="mono text-xs text-black/50 mb-4 uppercase tracking-widest">&#9698; The Broken System</div>
+              <h2 className="text-4xl font-bold mb-6 text-black/60">THE RESUME</h2>
+              <div className="space-y-4 text-black/70">
+                {[
+                  { title: "Send PDF \u2192 Silence", desc: "One-way broadcast into void" },
+                  { title: "ATS Black Hole", desc: "87% never reach human" },
+                  { title: "6 Second Scan", desc: "If they even open it" },
+                  { title: "200+ Applications", desc: "6 interviews. Maybe 1 offer." },
+                ].map((item, i) => (
+                  <div key={i} className={`flex items-start gap-3 ${i < 3 ? "pb-3 border-b-2 border-black/20" : ""}`}>
+                    <X className="h-4 w-4 text-red-600 mt-1 shrink-0" />
+                    <div>
+                      <div className="font-bold text-black">{item.title}</div>
+                      <div className="text-sm mono">{item.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-[3px] border-black p-8 bg-[#22C55E] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              <div className="mono text-xs text-black/60 mb-4 uppercase tracking-widest">&#9698; The Proxy Solution</div>
+              <h2 className="text-4xl font-bold mb-6 text-black">THE AGENT</h2>
+              <div className="space-y-4 text-black">
+                {[
+                  { title: "Send Link \u2192 Conversation", desc: "Two-way engagement 24/7" },
+                  { title: "Direct Access", desc: "No ATS. Straight to recruiter." },
+                  { title: "8 Minute Sessions", desc: "They actually learn about you" },
+                  { title: "50 Engagements", desc: "Quality > Quantity. 3x response rate." },
+                ].map((item, i) => (
+                  <div key={i} className={`flex items-start gap-3 ${i < 3 ? "pb-3 border-b-2 border-black/20" : ""}`}>
+                    <Check className="h-4 w-4 text-black mt-1 shrink-0" />
+                    <div>
+                      <div className="font-bold">{item.title}</div>
+                      <div className="text-sm mono text-black/80">{item.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <section id="how" className="px-6 py-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="mono text-xs text-black/50 mb-4 uppercase tracking-widest">&#9698; Deployment Sequence</div>
+          <h2 className="text-5xl font-bold mb-16">INITIALIZATION_PROTOCOL</h2>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                module: "MODULE_01",
+                icon: <FileText className="h-8 w-8" />,
+                color: "bg-[#E8A75D]",
+                title: "CONTEXT\nINGESTION",
+                desc: "Guided questionnaire extracts: career trajectory | war stories with CAR format | communication patterns | objection responses",
+                footer: "DURATION: ~20_MINUTES",
+                badge: null,
+              },
+              {
+                module: "MODULE_02",
+                icon: <Zap className="h-8 w-8" />,
+                color: "bg-[#93C5FD]",
+                title: "AI\nPROCESSING",
+                desc: "Our trained AI engine transforms raw input \u2192 structured knowledge base | polished narratives | personality calibration | response patterns",
+                footer: "PROCESSING: AUTOMATED",
+                badge: null,
+              },
+              {
+                module: "MODULE_03",
+                icon: <Rocket className="h-8 w-8" />,
+                color: "bg-[#86EFAC]",
+                title: "DEPLOYMENT",
+                desc: "Live portfolio with intelligent chatbot | yourname.myproxy.work domain | answers recruiter questions in your voice | 24/7 availability",
+                footer: "STATUS: PRODUCTION_READY",
+                badge: null,
+              },
+              {
+                module: "MODULE_04",
+                icon: <Target className="h-8 w-8" />,
+                color: "bg-[#FDE68A]",
+                title: "PERSONAL\nAGENT",
+                desc: "Research companies | Find contacts | Identify roles | Position your Agent proactively | Automated outreach",
+                footer: "STATUS: IN_DEVELOPMENT",
+                badge: "SOON",
+              },
+            ].map((item, i) => (
+              <div key={i} className={`brutal-card border-black ${item.color} p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative`} data-testid={`card-module-${i + 1}`}>
+                {item.badge && (
+                  <div className="absolute top-2 right-2 bg-black text-white px-2 py-1 mono text-xs">{item.badge}</div>
+                )}
+                <div className="mono text-sm text-black/60 mb-4 uppercase">{item.module}</div>
+                <div className="w-16 h-16 bg-white border-[3px] border-black flex items-center justify-center mb-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                  {item.icon}
+                </div>
+                <h3 className="text-2xl font-bold mb-4 whitespace-pre-line">{item.title}</h3>
+                <div className="mono text-sm text-black/80 leading-relaxed">
+                  {item.desc}
+                </div>
+                <div className="mt-6 mono text-xs text-black/60">
+                  {item.footer}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="pricing" className="px-6 py-20 border-t-[3px] border-black bg-[#D1D1CC]">
+        <div className="max-w-7xl mx-auto">
+          <div className="mono text-xs text-black/50 mb-4 uppercase tracking-widest">&#9698; Deployment Tiers</div>
+          <h2 className="text-5xl font-bold mb-16">SELECT_CONFIGURATION</h2>
+
+          <div className="grid lg:grid-cols-3 gap-8">
+
+            <div className="brutal-card border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-launch">
+              <div className="mono text-xs text-black/50 mb-2 uppercase">TIER_01</div>
+              <h3 className="text-3xl font-bold mb-4">LAUNCH</h3>
+              <div className="text-6xl font-bold mb-6 mono">$199</div>
+              <div className="space-y-3 mb-8 text-sm">
+                {["AI_PORTFOLIO + CHATBOT", "6_MONTH_HOSTING", "DOWNLOADABLE_VERSION", "SUBDOMAIN_INCLUDED"].map((f, i) => (
+                  <div key={i} className="flex gap-2 mono text-black/70">
+                    <span className="text-[#22C55E] font-bold shrink-0">&#10003;</span> {f}
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => navigate("/register")}
+                className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
+                data-testid="button-deploy-launch"
+              >
+                DEPLOY &rarr;
+              </button>
+              <div className="mt-4 mono text-xs text-black/50">USE_CASE: Testing | Single portfolio</div>
+            </div>
+
+            <div className="brutal-card border-black bg-[#22C55E] p-8 relative transform lg:scale-105 lg:-mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-evolve">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1 font-bold mono text-xs border-[3px] border-black">
+                RECOMMENDED
+              </div>
+              <div className="mono text-xs text-black/60 mb-2 uppercase">TIER_02</div>
+              <h3 className="text-3xl font-bold mb-4">EVOLVE</h3>
+              <div className="text-6xl font-bold mb-6 mono">$399</div>
+              <div className="space-y-3 mb-8 text-sm">
+                {["ALL_LAUNCH_FEATURES", "CUSTOM_DOMAIN", "PORTFOLIO_EDITOR", "PROXY_TUNING", "THEME_SWITCHER", "ANALYTICS_DASH", "12_MONTH_HOSTING"].map((f, i) => (
+                  <div key={i} className="flex gap-2 mono text-black">
+                    <span className="text-black font-bold shrink-0">&#10003;</span> {f}
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => navigate("/register")}
+                className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
+                data-testid="button-deploy-evolve"
+              >
+                DEPLOY &rarr;
+              </button>
+              <div className="mt-4 mono text-xs text-black/70">USE_CASE: Active job search | Career pivot</div>
+            </div>
+
+            <div className="brutal-card border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-concierge">
+              <div className="mono text-xs text-black/50 mb-2 uppercase">TIER_03</div>
+              <h3 className="text-3xl font-bold mb-4">CONCIERGE</h3>
+              <div className="text-6xl font-bold mb-6 mono">$1199</div>
+              <div className="space-y-3 mb-8 text-sm">
+                {["ALL_EVOLVE_FEATURES", "90MIN_INTERVIEW", "PRO_COPYWRITING", "WHITE_GLOVE_BUILD", "ADVANCED_TUNING", "PRIORITY_SUPPORT"].map((f, i) => (
+                  <div key={i} className="flex gap-2 mono text-black/70">
+                    <span className="text-[#22C55E] font-bold shrink-0">&#10003;</span> {f}
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => navigate("/register")}
+                className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
+                data-testid="button-deploy-concierge"
+              >
+                DEPLOY &rarr;
+              </button>
+              <div className="mt-4 mono text-xs text-black/50">USE_CASE: Executives | C-suite | VP level</div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 py-32">
+        <div className="max-w-5xl mx-auto text-center">
+          <h2 className="text-5xl lg:text-7xl font-bold mb-8 leading-none" data-testid="text-final-cta">
+            DON'T JUST<br />
+            SEND A RESUME.<br />
+            <span className="text-[#22C55E]">DEPLOY AN AGENT.</span>
+          </h2>
+
+          <div className="mono text-xl text-black/60 mb-12">
+            127_DEPLOYED_AGENTS | AVG_SESSION: 8M | RESPONSE_RATE: +3.2X
+          </div>
+
+          <div className="terminal-input border-black text-black mb-8 max-w-2xl mx-auto shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <span className="text-black/30">$</span> INITIALIZE_YOUR_PROXY --tier=EVOLVE
+          </div>
+
+          <button
+            onClick={() => navigate("/register")}
+            className="bg-[#22C55E] hover:bg-[#16A34A] text-black px-16 py-5 text-xl font-bold mono border-[3px] border-black uppercase tracking-wider shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+            data-testid="button-final-cta"
+          >
+            ENGAGE &rarr;
+          </button>
+        </div>
+      </section>
+
+      <footer className="border-t-[3px] border-black py-12 px-6 bg-[#D1D1CC]">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
+                P
+              </div>
+              <div>
+                <div className="font-bold text-xl">PROXY</div>
+                <div className="mono text-xs text-black/50">24/7 Career Representative</div>
+              </div>
+            </div>
+            <div className="mono text-xs text-black/50">
+              SYS_ID: PROXY_v1.0 | &copy;2026
+            </div>
+          </div>
         </div>
       </footer>
     </div>

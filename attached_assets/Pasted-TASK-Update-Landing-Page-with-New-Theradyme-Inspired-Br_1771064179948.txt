@@ -1,0 +1,601 @@
+TASK: Update Landing Page with New Theradyme-Inspired Brutalist Design + SEO
+
+CONTEXT: Replace existing landing page with new brutalist design featuring light background, multi-color modules, and professional aesthetic.
+
+PART 1: REPLACE LANDING PAGE COMPONENT
+
+FILE: client/src/pages/Landing.tsx (or Home.tsx - find the main landing route)
+
+Replace the entire component with this design (convert HTML to React/TSX):
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Proxy - 24/7 AI Career Representative | Never Send a Resume Again</title>
+  <meta name="description" content="Deploy your AI career proxy. Recruiters engage with your intelligent agent 24/7 while you focus on closing offers. 3.2x higher response rate than resumes.">
+  <meta name="keywords" content="AI career agent, executive portfolio, digital career proxy, AI resume, interactive CV, career AI assistant, AI job search">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { 
+      font-family: 'Space Grotesk', sans-serif;
+      background: #E8E8E3;
+    }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+    
+    .brutal-card {
+      border: 3px solid;
+      transition: transform 0.2s;
+    }
+    .brutal-card:hover {
+      transform: translateY(-4px);
+    }
+    
+    .terminal-input {
+      background: rgba(255,255,255,0.5);
+      border: 3px solid;
+      font-family: 'IBM Plex Mono', monospace;
+      padding: 16px 24px;
+      font-size: 18px;
+    }
+    
+    @keyframes scan {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+    .scan-line {
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: rgba(34, 197, 94, 0.3);
+      animation: scan 3s linear infinite;
+    }
+  </style>
+</head>
+<body class="bg-[#E8E8E3] text-black">
+
+  <!-- NAVIGATION -->
+  <nav class="border-b-3 border-black bg-[#D1D1CC] sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-[#22C55E] border-3 border-black flex items-center justify-center font-bold text-black text-xl">
+          P
+        </div>
+        <span class="text-2xl font-bold tracking-tight">PROXY</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#how" class="mono text-sm text-black/60 hover:text-black uppercase tracking-wider">How</a>
+        <a href="#pricing" class="mono text-sm text-black/60 hover:text-black uppercase tracking-wider">Pricing</a>
+        <button class="mono text-sm text-black/60 hover:text-black uppercase tracking-wider">Login</button>
+        <button class="bg-[#22C55E] text-black px-6 py-3 font-bold hover:bg-[#16A34A] border-3 border-black mono text-sm uppercase tracking-wider">
+          ENGAGE →
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section class="px-6 py-20">
+    <div class="max-w-7xl mx-auto">
+      
+      <!-- Status Bar -->
+      <div class="mb-12 p-4 border-3 border-black bg-white mono text-xs text-black/60 flex justify-between items-center">
+        <div class="flex gap-6">
+          <span>SYS_STATUS: <span class="text-[#22C55E] font-bold">ACTIVE</span></span>
+          <span>|</span>
+          <span>DEPLOYED_AGENTS: <span class="text-black font-bold">127</span></span>
+          <span>|</span>
+          <span>AVG_RESPONSE: <span class="text-black font-bold">0.8s</span></span>
+        </div>
+        <div>LAST_DEPLOY: 12_FEB_2026</div>
+      </div>
+
+      <!-- Main Headline -->
+      <div class="grid lg:grid-cols-2 gap-12 mb-16">
+        <div>
+          <div class="mono text-sm text-black/50 mb-4 uppercase tracking-widest">◢ Career Conversation System</div>
+          <h1 class="text-6xl lg:text-7xl font-bold leading-none mb-8">
+            STOP<br/>
+            APPLYING.<br/>
+            START <span class="text-[#22C55E]">ENGAGING</span>.
+          </h1>
+          <div class="space-y-4 text-xl text-black/70 mb-8">
+            <p>Professionals with 10+ years experience.</p>
+            <p>200+ applications. 6 interviews. Maybe 1 offer.</p>
+            <p class="text-black font-bold">Your PDF is invisible.</p>
+          </div>
+          
+          <!-- Terminal Input -->
+          <div class="terminal-input border-[#E8A75D] text-[#D4941D] mb-8">
+            <span class="text-black/30">$</span> DEPLOY_CAREER_PROXY --user=YOUR_NAME
+          </div>
+          
+          <div class="flex gap-4">
+            <button class="bg-[#22C55E] text-black px-8 py-4 font-bold hover:bg-[#16A34A] border-3 border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              INITIALIZE →
+            </button>
+            <button class="bg-white text-black px-8 py-4 font-bold border-3 border-black hover:bg-gray-100 mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              VIEW_DEMO
+            </button>
+          </div>
+        </div>
+
+        <!-- Stat Cards (Bento Style) -->
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Card 1: Orange -->
+          <div class="brutal-card bg-[#E8A75D] border-black p-6 relative overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <div class="scan-line"></div>
+            <div class="mono text-xs text-black/60 mb-2 uppercase">AVG_SESSION</div>
+            <div class="text-5xl font-bold text-black">8m</div>
+            <div class="mono text-sm text-black/70 mt-2">vs. 6 seconds (PDF)</div>
+          </div>
+
+          <!-- Card 2: Blue -->
+          <div class="brutal-card bg-[#93C5FD] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <div class="mono text-xs text-black/60 mb-2 uppercase">RESPONSE_RATE</div>
+            <div class="text-5xl font-bold text-black">3.2x</div>
+            <div class="mono text-sm text-black/70 mt-2">higher than resume</div>
+          </div>
+
+          <!-- Card 3: Green -->
+          <div class="brutal-card bg-[#86EFAC] border-black p-6 col-span-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <div class="mono text-xs text-black/60 mb-2 uppercase">ENGAGEMENT_MODEL</div>
+            <div class="text-3xl font-bold text-black mb-2">ALWAYS-ON REPRESENTATION</div>
+            <div class="mono text-sm text-black/70">
+              Recruiters → Your Proxy → Instant Answers → Interview
+            </div>
+          </div>
+
+          <!-- Card 4: Purple -->
+          <div class="brutal-card bg-[#C4B5FD] border-black p-6 col-span-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <div class="mono text-xs text-black/60 mb-2 uppercase">OPERATIONAL_STATUS</div>
+            <div class="grid grid-cols-3 gap-4 mt-4">
+              <div>
+                <div class="text-2xl font-bold text-black">24/7</div>
+                <div class="mono text-xs text-black/60">UPTIME</div>
+              </div>
+              <div>
+                <div class="text-2xl font-bold text-black">0ms</div>
+                <div class="mono text-xs text-black/60">LATENCY</div>
+              </div>
+              <div>
+                <div class="text-2xl font-bold text-black">∞</div>
+                <div class="mono text-xs text-black/60">SCALE</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PROBLEM / SOLUTION SPLIT -->
+  <section class="px-6 py-20 border-t-3 border-b-3 border-black">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid lg:grid-cols-2 gap-12">
+        
+        <!-- THE PROBLEM -->
+        <div class="border-3 border-black p-8 bg-[#D1D1CC] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div class="mono text-xs text-black/50 mb-4 uppercase tracking-widest">◢ The Broken System</div>
+          <h2 class="text-4xl font-bold mb-6 text-black/60">THE RESUME</h2>
+          <div class="space-y-4 text-black/70">
+            <div class="flex items-start gap-3 pb-3 border-b-2 border-black/20">
+              <span class="mono text-red-600 font-bold">×</span>
+              <div>
+                <div class="font-bold text-black">Send PDF → Silence</div>
+                <div class="text-sm mono">One-way broadcast into void</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 pb-3 border-b-2 border-black/20">
+              <span class="mono text-red-600 font-bold">×</span>
+              <div>
+                <div class="font-bold text-black">ATS Black Hole</div>
+                <div class="text-sm mono">87% never reach human</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 pb-3 border-b-2 border-black/20">
+              <span class="mono text-red-600 font-bold">×</span>
+              <div>
+                <div class="font-bold text-black">6 Second Scan</div>
+                <div class="text-sm mono">If they even open it</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="mono text-red-600 font-bold">×</span>
+              <div>
+                <div class="font-bold text-black">200+ Applications</div>
+                <div class="text-sm mono">6 interviews. Maybe 1 offer.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- THE SOLUTION -->
+        <div class="border-3 border-black p-8 bg-[#22C55E] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div class="mono text-xs text-black/60 mb-4 uppercase tracking-widest">◢ The Proxy Solution</div>
+          <h2 class="text-4xl font-bold mb-6 text-black">THE AGENT</h2>
+          <div class="space-y-4 text-black">
+            <div class="flex items-start gap-3 pb-3 border-b-2 border-black/20">
+              <span class="mono text-black font-bold">✓</span>
+              <div>
+                <div class="font-bold">Send Link → Conversation</div>
+                <div class="text-sm mono text-black/80">Two-way engagement 24/7</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 pb-3 border-b-2 border-black/20">
+              <span class="mono text-black font-bold">✓</span>
+              <div>
+                <div class="font-bold">Direct Access</div>
+                <div class="text-sm mono text-black/80">No ATS. Straight to recruiter.</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 pb-3 border-b-2 border-black/20">
+              <span class="mono text-black font-bold">✓</span>
+              <div>
+                <div class="font-bold">8 Minute Sessions</div>
+                <div class="text-sm mono text-black/80">They actually learn about you</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="mono text-black font-bold">✓</span>
+              <div>
+                <div class="font-bold">50 Engagements</div>
+                <div class="text-sm mono text-black/80">Quality > Quantity. 3x response rate.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS (Modular System) -->
+  <section id="how" class="px-6 py-20">
+    <div class="max-w-7xl mx-auto">
+      <div class="mono text-xs text-black/50 mb-4 uppercase tracking-widest">◢ Deployment Sequence</div>
+      <h2 class="text-5xl font-bold mb-16">INITIALIZATION_PROTOCOL</h2>
+      
+      <div class="grid lg:grid-cols-4 gap-8">
+        <!-- MODULE 01 -->
+        <div class="brutal-card border-black bg-[#E8A75D] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <div class="mono text-sm text-black/60 mb-4 uppercase">MODULE_01</div>
+          <div class="w-16 h-16 bg-white border-3 border-black flex items-center justify-center text-3xl mb-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+            📝
+          </div>
+          <h3 class="text-2xl font-bold mb-4">CONTEXT<br/>INGESTION</h3>
+          <div class="mono text-sm text-black/80 leading-relaxed">
+            Guided questionnaire extracts: career trajectory | war stories with CAR format | communication patterns | objection responses
+          </div>
+          <div class="mt-6 mono text-xs text-black/60">
+            DURATION: ~20_MINUTES
+          </div>
+        </div>
+
+        <!-- MODULE 02 -->
+        <div class="brutal-card border-black bg-[#93C5FD] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <div class="mono text-sm text-black/60 mb-4 uppercase">MODULE_02</div>
+          <div class="w-16 h-16 bg-white border-3 border-black flex items-center justify-center text-3xl mb-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+            ⚡
+          </div>
+          <h3 class="text-2xl font-bold mb-4">AI<br/>PROCESSING</h3>
+          <div class="mono text-sm text-black/80 leading-relaxed">
+            Our trained AI engine transforms raw input → structured knowledge base | polished narratives | personality calibration | response patterns
+          </div>
+          <div class="mt-6 mono text-xs text-black/60">
+            PROCESSING: AUTOMATED
+          </div>
+        </div>
+
+        <!-- MODULE 03 -->
+        <div class="brutal-card border-black bg-[#86EFAC] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <div class="mono text-sm text-black/60 mb-4 uppercase">MODULE_03</div>
+          <div class="w-16 h-16 bg-white border-3 border-black flex items-center justify-center text-3xl mb-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+            🚀
+          </div>
+          <h3 class="text-2xl font-bold mb-4">DEPLOYMENT</h3>
+          <div class="mono text-sm text-black/80 leading-relaxed">
+            Live portfolio with intelligent chatbot | yourname.myproxy.work domain | answers recruiter questions in your voice | 24/7 availability
+          </div>
+          <div class="mt-6 mono text-xs text-black/60">
+            STATUS: PRODUCTION_READY
+          </div>
+        </div>
+
+        <!-- MODULE 04 - COMING SOON -->
+        <div class="brutal-card border-black bg-[#FDE68A] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative">
+          <div class="absolute top-2 right-2 bg-black text-white px-2 py-1 mono text-xs">SOON</div>
+          <div class="mono text-sm text-black/60 mb-4 uppercase">MODULE_04</div>
+          <div class="w-16 h-16 bg-white border-3 border-black flex items-center justify-center text-3xl mb-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+            🎯
+          </div>
+          <h3 class="text-2xl font-bold mb-4">PERSONAL<br/>AGENT</h3>
+          <div class="mono text-sm text-black/80 leading-relaxed">
+            Research companies | Find contacts | Identify roles | Position your Agent proactively | Automated outreach
+          </div>
+          <div class="mt-6 mono text-xs text-black/60">
+            STATUS: IN_DEVELOPMENT
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING (Brutalist Cards) -->
+  <section id="pricing" class="px-6 py-20 border-t-3 border-black bg-[#D1D1CC]">
+    <div class="max-w-7xl mx-auto">
+      <div class="mono text-xs text-black/50 mb-4 uppercase tracking-widest">◢ Deployment Tiers</div>
+      <h2 class="text-5xl font-bold mb-16">SELECT_CONFIGURATION</h2>
+      
+      <div class="grid lg:grid-cols-3 gap-8">
+        
+        <!-- LAUNCH -->
+        <div class="brutal-card border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <div class="mono text-xs text-black/50 mb-2 uppercase">TIER_01</div>
+          <h3 class="text-3xl font-bold mb-4">LAUNCH</h3>
+          <div class="text-6xl font-bold mb-6 mono">$199</div>
+          
+          <div class="space-y-3 mb-8 text-sm">
+            <div class="flex gap-2 mono text-black/70">
+              <span class="text-[#22C55E] font-bold">✓</span> AI_PORTFOLIO + CHATBOT
+            </div>
+            <div class="flex gap-2 mono text-black/70">
+              <span class="text-[#22C55E] font-bold">✓</span> 6_MONTH_HOSTING
+            </div>
+            <div class="flex gap-2 mono text-black/70">
+              <span class="text-[#22C55E] font-bold">✓</span> DOWNLOADABLE_VERSION
+            </div>
+            <div class="flex gap-2 mono text-black/70">
+              <span class="text-[#22C55E] font-bold">✓</span> SUBDOMAIN_INCLUDED
+            </div>
+          </div>
+          
+          <button class="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]">
+            DEPLOY →
+          </button>
+          
+          <div class="mt-4 mono text-xs text-black/50">
+            USE_CASE: Testing | Single portfolio
+          </div>
+        </div>
+
+        <!-- EVOLVE (HIGHLIGHTED) -->
+        <div class="brutal-card border-black bg-[#22C55E] p-8 relative transform scale-105 lg:-mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1 font-bold mono text-xs border-3 border-black">
+            RECOMMENDED
+          </div>
+          <div class="mono text-xs text-black/60 mb-2 uppercase">TIER_02</div>
+          <h3 class="text-3xl font-bold mb-4">EVOLVE</h3>
+          <div class="text-6xl font-bold mb-6 mono">$399</div>
+          
+          <div class="space-y-3 mb-8 text-sm">
+            <div class="flex gap-2 mono text-black">
+              <span class="text-black font-bold">✓</span> ALL_LAUNCH_FEATURES
+            </div>
+            <div class="flex gap-2 mono text-black">
+              <span class="text-black font-bold">✓</span> CUSTOM_DOMAIN
+            </div>
+            <div class="flex gap-2 mono text-black">
+              <span class="text-black font-bold">✓</span> PORTFOLIO_EDITOR
+            </div>
+            <div class="flex gap-2 mono text-black">
+              <span class="text-black font-bold">✓</span> PROXY_TUNING
+            </div>
+            <div class="flex gap-2 mono text-black">
+              <span class="text-black font-bold">✓</span> THEME_SWITCHER
+            </div>
+            <div class="flex gap-2 mono text-black">
+              <span class="text-black font-bold">✓</span> ANALYTICS_DASH
+            </div>
+            <div class="flex gap-2 mono text-black">
+              <span class="text-black font-bold">✓</span> 12_MONTH_HOSTING
+            </div>
+          </div>
+          
+          <button class="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]">
+            DEPLOY →
+          </button>
+          
+          <div class="mt-4 mono text-xs text-black/70">
+            USE_CASE: Active job search | Career pivot
+          </div>
+        </div>
+
+        <!-- CONCIERGE -->
+        <div class="brutal-card border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <div class="mono text-xs text-black/50 mb-2 uppercase">TIER_03</div>
+          <h3 class="text-3xl font-bold mb-4">CONCIERGE</h3>
+          <div class="text-6xl font-bold mb-6 mono">$1199</div>
+          
+          <div class="space-y-3 mb-8 text-sm">
+            <div class="flex gap-2 mono text-black/70">
+              <span class="text-[#22C55E] font-bold">✓</span> ALL_EVOLVE_FEATURES
+            </div>
+            <div class="flex gap-2 mono text-black/70">
+              <span class="text-[#22C55E] font-bold">✓</span> 90MIN_INTERVIEW
+            </div>
+            <div class="flex gap-2 mono text-black/70">
+              <span class="text-[#22C55E] font-bold">✓</span> PRO_COPYWRITING
+            </div>
+            <div class="flex gap-2 mono text-black/70">
+              <span class="text-[#22C55E] font-bold">✓</span> WHITE_GLOVE_BUILD
+            </div>
+            <div class="flex gap-2 mono text-black/70">
+              <span class="text-[#22C55E] font-bold">✓</span> ADVANCED_TUNING
+            </div>
+            <div class="flex gap-2 mono text-black/70">
+              <span class="text-[#22C55E] font-bold">✓</span> PRIORITY_SUPPORT
+            </div>
+          </div>
+          
+          <button class="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]">
+            DEPLOY →
+          </button>
+          
+          <div class="mt-4 mono text-xs text-black/50">
+            USE_CASE: Executives | C-suite | VP level
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="px-6 py-32">
+    <div class="max-w-5xl mx-auto text-center">
+      <h2 class="text-6xl lg:text-7xl font-bold mb-8 leading-none">
+        DON'T JUST<br/>
+        SEND A RESUME.<br/>
+        <span class="text-[#22C55E]">DEPLOY AN AGENT.</span>
+      </h2>
+      
+      <div class="mono text-xl text-black/60 mb-12">
+        127_DEPLOYED_AGENTS | AVG_SESSION: 8M | RESPONSE_RATE: +3.2X
+      </div>
+      
+      <div class="terminal-input border-black text-black mb-8 max-w-2xl mx-auto shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        <span class="text-black/30">$</span> INITIALIZE_YOUR_PROXY --tier=EVOLVE
+      </div>
+      
+      <button class="bg-[#22C55E] hover:bg-[#16A34A] text-black px-16 py-5 text-xl font-bold mono border-3 border-black uppercase tracking-wider shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        ENGAGE →
+      </button>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t-3 border-black py-12 px-6 bg-[#D1D1CC]">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-[#22C55E] border-3 border-black flex items-center justify-center font-bold text-black text-xl">
+            P
+          </div>
+          <div>
+            <div class="font-bold text-xl">PROXY</div>
+            <div class="mono text-xs text-black/50">24/7 Career Representative</div>
+          </div>
+        </div>
+        <div class="mono text-xs text-black/50">
+          SYS_ID: PROXY_v1.0 | ©2026
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
+
+IMPORTANT CONVERSION NOTES:
+- Convert HTML to React/TSX component structure
+- Import { useNavigate } from 'react-router-dom'
+- Convert all class → className
+- Replace all <button> onClick handlers:
+  * Nav "ENGAGE →" button → onClick={() => navigate('/register')}
+  * Nav "Login" button → onClick={() => navigate('/login')}
+  * Hero "INITIALIZE →" button → onClick={() => navigate('/register')}
+  * Hero "VIEW_DEMO" button → onClick={() => window.open('DEMO_VIDEO_URL', '_blank')}
+  * All pricing "DEPLOY →" buttons → onClick={() => navigate('/register')}
+- Move <style> content to Part 4 (CSS file)
+- Keep all Tailwind classes exactly as-is
+- Ensure mobile responsiveness (grid becomes single column on small screens)
+
+PART 2: ADD SEO META TAGS
+
+FILE: client/index.html
+
+In <head> section, add these meta tags (if they don't already exist):
+
+<!-- Primary Meta Tags -->
+<title>Proxy - 24/7 AI Career Representative | Never Send a Resume Again</title>
+<meta name="description" content="Deploy your AI career proxy. Recruiters engage with your intelligent agent 24/7 while you focus on closing offers. 3.2x higher response rate than resumes.">
+<meta name="keywords" content="AI career agent, executive portfolio, digital career proxy, AI resume, interactive CV, career AI assistant, AI job search">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://myproxy.work/">
+<meta property="og:title" content="Proxy - Your 24/7 AI Career Representative">
+<meta property="og:description" content="Stop applying. Start engaging. Deploy an AI agent that represents your career 24/7.">
+<meta property="og:image" content="https://myproxy.work/og-image.png">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="https://myproxy.work/">
+<meta property="twitter:title" content="Proxy - Your 24/7 AI Career Representative">
+<meta property="twitter:description" content="Deploy an AI agent that represents your career 24/7. 3.2x higher recruiter response rate.">
+<meta property="twitter:image" content="https://myproxy.work/twitter-image.png">
+
+<!-- Canonical -->
+<link rel="canonical" href="https://myproxy.work/">
+
+PART 3: ADD GOOGLE FONTS
+
+In client/index.html <head>, add:
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+PART 4: ADD CUSTOM CSS
+
+In client/src/index.css (or your global CSS file), add:
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.mono { 
+  font-family: 'IBM Plex Mono', monospace; 
+}
+
+.brutal-card {
+  border: 3px solid;
+  transition: transform 0.2s;
+}
+
+.brutal-card:hover {
+  transform: translateY(-4px);
+}
+
+.terminal-input {
+  background: rgba(255,255,255,0.5);
+  border: 3px solid;
+  font-family: 'IBM Plex Mono', monospace;
+  padding: 16px 24px;
+  font-size: 18px;
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.scan-line {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: rgba(34, 197, 94, 0.3);
+  animation: scan 3s linear infinite;
+}
+
+TESTING CHECKLIST:
+✅ Landing page loads with light cream background (#E8E8E3)
+✅ Multi-color module cards visible (orange, blue, green, yellow)
+✅ All CTA buttons navigate to /register or /login
+✅ "VIEW_DEMO" button opens placeholder (update URL later)
+✅ Pricing section shows 3 tiers with correct features
+✅ MODULE_04 shows "SOON" badge
+✅ Responsive on mobile (test viewport < 768px)
+✅ Meta tags visible in page source (view-source:localhost:5173)
+✅ Space Grotesk and IBM Plex Mono fonts load correctly
+✅ Hover effects work on cards and buttons
+
+Please implement all 4 parts and confirm when complete. Use Normal Mode for this task.

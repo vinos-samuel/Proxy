@@ -1,7 +1,7 @@
-# BIOS.ai
+# Proxy
 
 ## Overview
-A SaaS platform ("BIOS.ai") that lets professionals create AI-powered interactive portfolio websites with a chatbot "Digital Twin" that actively represents their career 24/7. Tagline: "Don't Just Send a Resume. Deploy an Agent."
+A SaaS platform ("Proxy") that lets professionals create AI-powered interactive portfolio websites with a chatbot "Digital Twin" that actively represents their career 24/7. Tagline: "Don't Just Send a Resume. Deploy an Agent."
 
 ## Tech Stack
 - React 18 + TypeScript + Vite (frontend)
@@ -22,8 +22,8 @@ A SaaS platform ("BIOS.ai") that lets professionals create AI-powered interactiv
 - Session-based auth with bcrypt password hashing
 - Object Storage for file uploads (authenticated upload, public serving)
 - Three portfolio branding themes: Corporate, Tech, Creative
-- Stripe payment integration via stripe-replit-sync (one-time payments, webhook processing)
-- Payment gates portfolio publishing (must pay before going public)
+- Payment system in test mode (Stripe code backed up in stripe-backup/ for future activation)
+- Test mode bypass allows testers to publish without payment via POST /api/test-publish
 
 ## Branding
 - Color: Dark green primary (hsl 152, 60%, 30%) on light gray background
@@ -54,6 +54,7 @@ A SaaS platform ("BIOS.ai") that lets professionals create AI-powered interactiv
 - `GET /api/profile` - Get user's twin profile
 - `PATCH /api/profile` - Edit profile fields (displayName, roleTitle, positioning, persona, tone, achievements)
 - `POST /api/profile/publish` - Publish portfolio
+- `POST /api/test-publish` - Test mode: publish with tier selection, no payment required
 - `POST /api/questionnaire/save` - Save questionnaire progress
 - `POST /api/questionnaire/submit` - Submit for AI processing
 - `GET /api/portfolio/:username` - Public portfolio data (includes brandingTheme, videoUrl, cvResumeUrl)
@@ -82,7 +83,7 @@ A SaaS platform ("BIOS.ai") that lets professionals create AI-powered interactiv
 4. Career Timeline (vertical timeline of career history)
 5. Signature Stories (expandable CAR format cards)
 6. Embedded Chatbot (full inline chat, main feature)
-7. Footer (Powered by BIOS.ai)
+7. Footer (Powered by Proxy)
 Plus floating chat FAB for mobile
 
 ## File Upload Flow
@@ -106,3 +107,8 @@ Plus floating chat FAB for mobile
 - Open Sans font
 - "Agent" metaphor: portfolios that work for you 24/7
 - Three branding themes for portfolios (Corporate/Tech/Creative)
+
+## Stripe Backup
+- Stripe code saved in stripe-backup/ directory for future restoration
+- Files: stripeClient.ts, webhookHandlers.ts, seed-stripe-products.ts, index.ts.bak, routes.ts.bak
+- To restore: copy files back and reinstall stripe + stripe-replit-sync packages

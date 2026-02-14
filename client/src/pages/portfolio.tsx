@@ -675,7 +675,7 @@ export default function PortfolioPage() {
           </a>
         </div>
         <p className={`${theme.muted} text-xs tracking-widest uppercase opacity-50`}>
-          Powered by BIOS.ai
+          Powered by Proxy
         </p>
       </footer>
 

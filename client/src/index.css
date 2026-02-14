@@ -7,7 +7,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* LIGHT MODE - Light gray + Dark green theme for BIOS.ai */
+/* LIGHT MODE - Light gray + Dark green theme for Proxy */
 :root {
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);

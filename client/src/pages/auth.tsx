@@ -49,7 +49,7 @@ export function LoginPage() {
               <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center">
                 <Terminal className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-lg font-semibold">BIOS.ai</span>
+              <span className="text-lg font-semibold">Proxy</span>
             </div>
           </Link>
           <h1 className="text-2xl font-bold mb-1">Welcome back</h1>
@@ -158,7 +158,7 @@ export function RegisterPage() {
               <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center">
                 <Terminal className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-lg font-semibold">BIOS.ai</span>
+              <span className="text-lg font-semibold">Proxy</span>
             </div>
           </Link>
           <h1 className="text-2xl font-bold mb-1">Initialize Your Twin</h1>
@@ -190,7 +190,7 @@ export function RegisterPage() {
                     {...form.register("username")}
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                    .bios.ai
+                    .proxy.ai
                   </span>
                 </div>
                 {form.formState.errors.username && (

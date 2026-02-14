@@ -44,7 +44,7 @@ export default function DashboardPage() {
               <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
                 <Terminal className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="font-semibold">BIOS.ai</span>
+              <span className="font-semibold">Proxy</span>
             </div>
           </Link>
           <div className="flex items-center gap-3">

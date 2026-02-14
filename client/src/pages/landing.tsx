@@ -25,7 +25,7 @@ export default function LandingPage() {
               <div className="h-9 w-9 rounded-md bg-primary flex items-center justify-center">
                 <Terminal className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-lg font-semibold tracking-tight" data-testid="text-brand-name">BIOS.ai</span>
+              <span className="text-lg font-semibold tracking-tight" data-testid="text-brand-name">Proxy</span>
             </div>
           </Link>
           <div className="flex items-center gap-3">
@@ -159,7 +159,7 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why BIOS.ai</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Proxy</h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
               Your career deserves more than a static document
             </p>
@@ -272,7 +272,7 @@ export default function LandingPage() {
             <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center">
               <Terminal className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-semibold">BIOS.ai</span>
+            <span className="font-semibold">Proxy</span>
           </div>
           <p className="text-sm text-muted-foreground">
             Deploy your career agent. Powered by AI.

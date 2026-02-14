@@ -20,7 +20,7 @@ const tiers = [
       "AI portfolio + chatbot",
       "6-month hosting",
       "Downloadable version",
-      "username.biosai.com domain",
+      "username.proxy.ai domain",
     ],
   },
   {

@@ -2,9 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
-import { runMigrations } from 'stripe-replit-sync';
-import { getStripeSync } from "./stripeClient";
-import { WebhookHandlers } from "./webhookHandlers";
+import { isStripeConfigured, getStripeSync } from "./stripeClient";
 
 const app = express();
 const httpServer = createServer(app);
@@ -22,12 +20,23 @@ async function initStripe() {
     return;
   }
 
+  const configured = await isStripeConfigured();
+  if (!configured) {
+    console.warn('[Stripe] No Stripe connection found - payment features will be disabled');
+    return;
+  }
+
   try {
+    const { runMigrations } = await import('stripe-replit-sync');
     console.log('Initializing Stripe schema...');
     await runMigrations({ databaseUrl });
     console.log('Stripe schema ready');
 
     const stripeSync = await getStripeSync();
+    if (!stripeSync) {
+      console.warn('[Stripe] Could not initialize sync');
+      return;
+    }
 
     console.log('Setting up managed webhook...');
     const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
@@ -54,6 +63,11 @@ app.post(
   '/api/stripe/webhook',
   express.raw({ type: 'application/json' }),
   async (req, res) => {
+    const configured = await isStripeConfigured();
+    if (!configured) {
+      return res.status(503).json({ error: 'Stripe not configured' });
+    }
+
     const signature = req.headers['stripe-signature'];
     if (!signature) {
       return res.status(400).json({ error: 'Missing stripe-signature' });
@@ -67,6 +81,7 @@ app.post(
         return res.status(500).json({ error: 'Webhook processing error' });
       }
 
+      const { WebhookHandlers } = await import('./webhookHandlers');
       await WebhookHandlers.processWebhook(req.body as Buffer, sig);
       res.status(200).json({ received: true });
     } catch (error: any) {

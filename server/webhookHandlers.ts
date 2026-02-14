@@ -11,6 +11,9 @@ export class WebhookHandlers {
     }
 
     const sync = await getStripeSync();
+    if (!sync) {
+      throw new Error('Stripe is not configured - cannot process webhook');
+    }
     await sync.processWebhook(payload, signature);
   }
 }

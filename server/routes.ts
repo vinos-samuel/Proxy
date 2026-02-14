@@ -12,7 +12,7 @@ import Fuse from "fuse.js";
 import { buildSystemPrompt } from "./system-prompt-builder";
 import type { KnowledgeEntry } from "@shared/schema";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
-import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
+import { getUncachableStripeClient, getStripePublishableKey, isStripeConfigured } from "./stripeClient";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 
@@ -550,9 +550,17 @@ export async function registerRoutes(
 
   // ==================== PAYMENTS (Stripe) ====================
 
+  app.get("/api/stripe/status", async (_req: Request, res: Response) => {
+    const configured = await isStripeConfigured();
+    res.json({ configured });
+  });
+
   app.get("/api/stripe/publishable-key", async (_req: Request, res: Response) => {
     try {
       const key = await getStripePublishableKey();
+      if (!key) {
+        return res.status(503).json({ message: "Stripe not configured" });
+      }
       res.json({ publishableKey: key });
     } catch (error) {
       console.error("[Stripe] Publishable key error:", error);
@@ -562,6 +570,11 @@ export async function registerRoutes(
 
   app.post("/api/create-checkout-session", requireAuth, async (req: Request, res: Response) => {
     try {
+      const configured = await isStripeConfigured();
+      if (!configured) {
+        return res.status(503).json({ message: "Payment processing is not available yet. Please try again later." });
+      }
+
       const { tier } = req.body;
       if (!tier || !['launch', 'evolve', 'concierge'].includes(tier)) {
         return res.status(400).json({ message: "Invalid tier" });
@@ -581,20 +594,29 @@ export async function registerRoutes(
         concierge: 'Concierge - White-Glove AI Twin',
       };
 
-      const result = await db.execute(
-        sql`SELECT pr.id as price_id, pr.unit_amount
-            FROM stripe.products p
-            JOIN stripe.prices pr ON pr.product = p.id AND pr.active = true
-            WHERE p.name = ${tierNameMap[tier]} AND p.active = true
-            LIMIT 1`
-      );
+      let priceId: string | null = null;
 
-      let priceId: string;
-      if (result.rows.length > 0) {
-        priceId = result.rows[0].price_id as string;
-      } else {
+      try {
+        const result = await db.execute(
+          sql`SELECT pr.id as price_id, pr.unit_amount
+              FROM stripe.products p
+              JOIN stripe.prices pr ON pr.product = p.id AND pr.active = true
+              WHERE p.name = ${tierNameMap[tier]} AND p.active = true
+              LIMIT 1`
+        );
+        if (result.rows.length > 0) {
+          priceId = result.rows[0].price_id as string;
+        }
+      } catch {
+        // stripe schema tables may not exist yet
+      }
+
+      if (!priceId) {
         const tierPrices: Record<string, number> = { launch: 19900, evolve: 39900, concierge: 119900 };
         const stripe = await getUncachableStripeClient();
+        if (!stripe) {
+          return res.status(503).json({ message: "Payment processing is not available yet." });
+        }
         const product = await stripe.products.create({
           name: tierNameMap[tier],
           metadata: { tier },
@@ -608,10 +630,13 @@ export async function registerRoutes(
       }
 
       const stripe = await getUncachableStripeClient();
+      if (!stripe) {
+        return res.status(503).json({ message: "Payment processing is not available yet." });
+      }
       const customer = await storage.getCustomer(req.session.customerId!);
       const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0] || req.get('host')}`;
 
-      const session = await stripe.checkout.sessions.create({
+      const checkoutSession = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: [{ price: priceId, quantity: 1 }],
         mode: 'payment',
@@ -626,11 +651,11 @@ export async function registerRoutes(
       });
 
       await storage.updateProfileById(profile.id, {
-        stripeSessionId: session.id,
+        stripeSessionId: checkoutSession.id,
         tier,
       });
 
-      res.json({ sessionId: session.id, url: session.url });
+      res.json({ sessionId: checkoutSession.id, url: checkoutSession.url });
     } catch (error) {
       console.error("[Stripe] Checkout error:", error);
       res.status(500).json({ message: "Failed to create checkout session" });
@@ -647,31 +672,33 @@ export async function registerRoutes(
       const profile = await storage.getProfileByStripeSessionId(sessionId);
       if (!profile) {
         const stripe = await getUncachableStripeClient();
-        try {
-          const stripeSession = await stripe.checkout.sessions.retrieve(sessionId);
-          if (stripeSession.payment_status === 'paid' && stripeSession.metadata?.profileId) {
-            const profileId = stripeSession.metadata.profileId;
-            const tier = stripeSession.metadata.tier || 'launch';
-            const customer = await storage.getCustomer(stripeSession.metadata.customerId || '');
+        if (stripe) {
+          try {
+            const stripeSession = await stripe.checkout.sessions.retrieve(sessionId);
+            if (stripeSession.payment_status === 'paid' && stripeSession.metadata?.profileId) {
+              const profileId = stripeSession.metadata.profileId;
+              const tier = stripeSession.metadata.tier || 'launch';
+              const customer = await storage.getCustomer(stripeSession.metadata.customerId || '');
 
-            await storage.updateProfileById(profileId, {
-              paymentStatus: 'paid',
-              paidAt: new Date(),
-              isPublic: true,
-              stripeSessionId: sessionId,
-              tier,
-              publicDomain: customer ? `${customer.username}.biosai.com` : undefined,
-            });
-            await storage.updateProfileStatus(profileId, 'published');
+              await storage.updateProfileById(profileId, {
+                paymentStatus: 'paid',
+                paidAt: new Date(),
+                isPublic: true,
+                stripeSessionId: sessionId,
+                tier,
+                publicDomain: customer ? `${customer.username}.biosai.com` : undefined,
+              });
+              await storage.updateProfileStatus(profileId, 'published');
 
-            const updatedProfile = await storage.getProfileById(profileId);
-            return res.json({
-              paid: true,
-              publicDomain: updatedProfile?.publicDomain || `${customer?.username}.biosai.com`,
-              tier,
-            });
-          }
-        } catch {}
+              const updatedProfile = await storage.getProfileById(profileId);
+              return res.json({
+                paid: true,
+                publicDomain: updatedProfile?.publicDomain || `${customer?.username}.biosai.com`,
+                tier,
+              });
+            }
+          } catch {}
+        }
         return res.status(404).json({ message: "Session not found" });
       }
 

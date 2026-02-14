@@ -34,10 +34,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/3" />
-      <div className="absolute top-20 left-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
-
+    <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center p-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
       <motion.div
         className="relative w-full max-w-md"
         initial={{ opacity: 0, y: 20 }}
@@ -46,77 +43,77 @@ export function LoginPage() {
         <div className="text-center mb-8">
           <Link href="/">
             <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center">
-                <Terminal className="h-5 w-5 text-primary-foreground" />
+              <div className="h-10 w-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
+                P
               </div>
-              <span className="text-lg font-semibold">Proxy</span>
+              <span className="text-2xl font-bold tracking-tight">PROXY</span>
             </div>
           </Link>
-          <h1 className="text-2xl font-bold mb-1">Welcome back</h1>
-          <p className="text-muted-foreground text-sm">Sign in to manage your Digital Twin</p>
+          <h1 className="text-4xl font-bold mb-2">Welcome back</h1>
+          <p className="mono text-sm text-black/60 uppercase tracking-wider">Sign in to manage your Digital Twin</p>
         </div>
 
-        <Card>
-          <CardContent className="p-6">
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+        <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="mono text-xs uppercase tracking-wider text-black/60">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                data-testid="input-email"
+                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+                {...form.register("email")}
+              />
+              {form.formState.errors.email && (
+                <p className="mono text-xs text-destructive">{form.formState.errors.email.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="mono text-xs uppercase tracking-wider text-black/60">Password</Label>
+              <div className="relative">
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  data-testid="input-email"
-                  {...form.register("email")}
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  data-testid="input-password"
+                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+                  {...form.register("password")}
                 />
-                {form.formState.errors.email && (
-                  <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40"
+                  data-testid="button-toggle-password"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    data-testid="input-password"
-                    {...form.register("password")}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                    data-testid="button-toggle-password"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                {form.formState.errors.password && (
-                  <p className="text-xs text-destructive">{form.formState.errors.password.message}</p>
-                )}
-              </div>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={form.formState.isSubmitting}
-                data-testid="button-login"
-              >
-                {form.formState.isSubmitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>Sign In<ArrowRight className="ml-2 h-4 w-4" /></>
-                )}
-              </Button>
-            </form>
+              {form.formState.errors.password && (
+                <p className="mono text-xs text-destructive">{form.formState.errors.password.message}</p>
+              )}
+            </div>
+            <Button
+              type="submit"
+              className="w-full bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold py-6 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+              disabled={form.formState.isSubmitting}
+              data-testid="button-login"
+            >
+              {form.formState.isSubmitting ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <>Sign In &rarr;</>
+              )}
+            </Button>
+          </form>
 
-            <p className="text-center text-sm text-muted-foreground mt-6">
-              Don't have an account?{" "}
-              <Link href="/register" className="text-primary hover:underline" data-testid="link-register">
-                Create one
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
+          <p className="text-center text-sm mt-8">
+            <span className="text-black/60 mono uppercase tracking-wider">Don't have an account?</span>{" "}
+            <Link href="/register" className="text-black font-bold mono uppercase tracking-wider hover:underline" data-testid="link-register">
+              Create one
+            </Link>
+          </p>
+        </div>
       </motion.div>
     </div>
   );
@@ -143,10 +140,7 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/3" />
-      <div className="absolute top-20 right-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
-
+    <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center p-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
       <motion.div
         className="relative w-full max-w-md"
         initial={{ opacity: 0, y: 20 }}
@@ -155,105 +149,107 @@ export function RegisterPage() {
         <div className="text-center mb-8">
           <Link href="/">
             <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center">
-                <Terminal className="h-5 w-5 text-primary-foreground" />
+              <div className="h-10 w-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
+                P
               </div>
-              <span className="text-lg font-semibold">Proxy</span>
+              <span className="text-2xl font-bold tracking-tight">PROXY</span>
             </div>
           </Link>
-          <h1 className="text-2xl font-bold mb-1">Initialize Your Twin</h1>
-          <p className="text-muted-foreground text-sm">Start building your AI-powered career agent</p>
+          <h1 className="text-4xl font-bold mb-2">Initialize Your Twin</h1>
+          <p className="mono text-sm text-black/60 uppercase tracking-wider">Start building your AI career agent</p>
         </div>
 
-        <Card>
-          <CardContent className="p-6">
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+        <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="mono text-xs uppercase tracking-wider text-black/60">Full Name</Label>
+              <Input
+                id="name"
+                placeholder="John Doe"
+                data-testid="input-name"
+                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+                {...form.register("name")}
+              />
+              {form.formState.errors.name && (
+                <p className="mono text-xs text-destructive">{form.formState.errors.name.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username" className="mono text-xs uppercase tracking-wider text-black/60">Username</Label>
+              <div className="relative">
                 <Input
-                  id="name"
-                  placeholder="John Doe"
-                  data-testid="input-name"
-                  {...form.register("name")}
+                  id="username"
+                  placeholder="john-doe"
+                  data-testid="input-username"
+                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+                  {...form.register("username")}
                 />
-                {form.formState.errors.name && (
-                  <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
-                )}
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs mono text-black/40">
+                  .myproxy.work
+                </span>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <div className="relative">
-                  <Input
-                    id="username"
-                    placeholder="john-doe"
-                    data-testid="input-username"
-                    {...form.register("username")}
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                    .proxy.ai
-                  </span>
-                </div>
-                {form.formState.errors.username && (
-                  <p className="text-xs text-destructive">{form.formState.errors.username.message}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="reg-email">Email</Label>
+              {form.formState.errors.username && (
+                <p className="mono text-xs text-destructive">{form.formState.errors.username.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reg-email" className="mono text-xs uppercase tracking-wider text-black/60">Email</Label>
+              <Input
+                id="reg-email"
+                type="email"
+                placeholder="you@example.com"
+                data-testid="input-reg-email"
+                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+                {...form.register("email")}
+              />
+              {form.formState.errors.email && (
+                <p className="mono text-xs text-destructive">{form.formState.errors.email.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reg-password" className="mono text-xs uppercase tracking-wider text-black/60">Password</Label>
+              <div className="relative">
                 <Input
-                  id="reg-email"
-                  type="email"
-                  placeholder="you@example.com"
-                  data-testid="input-reg-email"
-                  {...form.register("email")}
+                  id="reg-password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Min 8 characters"
+                  data-testid="input-reg-password"
+                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+                  {...form.register("password")}
                 />
-                {form.formState.errors.email && (
-                  <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="reg-password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="reg-password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Min 8 characters"
-                    data-testid="input-reg-password"
-                    {...form.register("password")}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                {form.formState.errors.password && (
-                  <p className="text-xs text-destructive">{form.formState.errors.password.message}</p>
-                )}
-              </div>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={form.formState.isSubmitting}
-                data-testid="button-register"
-              >
-                {form.formState.isSubmitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>Create Account<ArrowRight className="ml-2 h-4 w-4" /></>
-                )}
-              </Button>
-            </form>
+              {form.formState.errors.password && (
+                <p className="mono text-xs text-destructive">{form.formState.errors.password.message}</p>
+              )}
+            </div>
+            <Button
+              type="submit"
+              className="w-full bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold py-6 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+              disabled={form.formState.isSubmitting}
+              data-testid="button-register"
+            >
+              {form.formState.isSubmitting ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <>Create Account &rarr;</>
+              )}
+            </Button>
+          </form>
 
-            <p className="text-center text-sm text-muted-foreground mt-6">
-              Already have an account?{" "}
-              <Link href="/login" className="text-primary hover:underline" data-testid="link-login">
-                Sign in
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
+          <p className="text-center text-sm mt-8">
+            <span className="text-black/60 mono uppercase tracking-wider">Already have an account?</span>{" "}
+            <Link href="/login" className="text-black font-bold mono uppercase tracking-wider hover:underline" data-testid="link-login">
+              Sign in
+            </Link>
+          </p>
+        </div>
       </motion.div>
     </div>
   );

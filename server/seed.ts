@@ -1,6 +1,5 @@
 import { storage } from "./storage";
 import bcrypt from "bcryptjs";
-import { seedStripeProducts } from "./seed-stripe-products";
 
 export async function seedDatabase() {
   try {
@@ -242,9 +241,4 @@ export async function seedDatabase() {
     console.error("Seed error:", error);
   }
 
-  try {
-    await seedStripeProducts();
-  } catch (error) {
-    console.error("Stripe product seed error:", error);
-  }
 }

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Loader2, Rocket, Star, Crown } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 interface PaymentGateProps {
   profileId: string;
@@ -58,22 +59,55 @@ const tiers = [
 export default function PaymentGate({ profileId }: PaymentGateProps) {
   const [loading, setLoading] = useState(false);
   const [selectedTier, setSelectedTier] = useState<string>("evolve");
+  const [published, setPublished] = useState(false);
+  const [publishData, setPublishData] = useState<{ publicDomain?: string; username?: string } | null>(null);
+  const [, navigate] = useLocation();
 
-  const handleCheckout = async () => {
+  const handleTestPublish = async () => {
     setLoading(true);
     try {
-      const response = await apiRequest("POST", "/api/create-checkout-session", {
+      const response = await apiRequest("POST", "/api/test-publish", {
         tier: selectedTier,
       });
       const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
+      if (data.success) {
+        setPublished(true);
+        setPublishData(data);
       }
     } catch (error) {
-      console.error("Payment error:", error);
+      console.error("Publish error:", error);
+    } finally {
       setLoading(false);
     }
   };
+
+  if (published && publishData) {
+    return (
+      <Card className="md:col-span-2">
+        <CardContent className="p-6">
+          <div className="text-center space-y-4">
+            <div className="text-4xl">
+              <Check className="h-12 w-12 text-primary mx-auto" />
+            </div>
+            <h2 className="text-2xl font-bold" data-testid="text-publish-success">
+              Portfolio Published
+            </h2>
+            <p className="text-muted-foreground">
+              Your AI Twin is now live and ready to represent you.
+            </p>
+            {publishData.username && (
+              <Button
+                onClick={() => navigate(`/portfolio/${publishData.username}`)}
+                data-testid="button-view-portfolio"
+              >
+                View Your Portfolio
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="md:col-span-2">
@@ -85,6 +119,9 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
           <p className="text-muted-foreground">
             Choose a plan to publish your portfolio and make it public
           </p>
+          <Badge variant="outline" className="mt-2" data-testid="badge-test-mode">
+            Test Mode - No payment required
+          </Badge>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4 mb-6">
@@ -135,14 +172,14 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
         <Button
           className="w-full"
           size="lg"
-          onClick={handleCheckout}
+          onClick={handleTestPublish}
           disabled={loading}
           data-testid="button-checkout"
         >
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
+              Publishing...
             </>
           ) : (
             `Publish with ${tiers.find((t) => t.key === selectedTier)?.name} Plan`

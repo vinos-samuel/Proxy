@@ -16,36 +16,7 @@ export default function PaymentSuccessPage() {
   const sessionId = params.get("session_id");
 
   useEffect(() => {
-    if (!sessionId) {
-      setLoading(false);
-      return;
-    }
-
-    const checkPayment = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/payment/status?session_id=${sessionId}`);
-        const data = await res.json();
-
-        if (data.paid) {
-          setDomain(data.publicDomain || "");
-          setTier(data.tier || "");
-          setLoading(false);
-          clearInterval(checkPayment);
-        }
-      } catch (error) {
-        console.error("Status check error:", error);
-      }
-    }, 2000);
-
-    const timeout = setTimeout(() => {
-      clearInterval(checkPayment);
-      setLoading(false);
-    }, 30000);
-
-    return () => {
-      clearInterval(checkPayment);
-      clearTimeout(timeout);
-    };
+    setLoading(false);
   }, [sessionId]);
 
   if (loading) {

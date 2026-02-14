@@ -46,10 +46,10 @@ export function LoginPage() {
               <div className="h-10 w-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
                 P
               </div>
-              <span className="text-2xl font-bold tracking-tight">PROXY</span>
+              <span className="text-2xl font-bold tracking-tight text-black">PROXY</span>
             </div>
           </Link>
-          <h1 className="text-4xl font-bold mb-2">Welcome back</h1>
+          <h1 className="text-4xl font-bold mb-2 text-black/60">Welcome back</h1>
           <p className="mono text-sm text-black/60 uppercase tracking-wider">Sign in to manage your Digital Twin</p>
         </div>
 
@@ -152,10 +152,10 @@ export function RegisterPage() {
               <div className="h-10 w-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
                 P
               </div>
-              <span className="text-2xl font-bold tracking-tight">PROXY</span>
+              <span className="text-2xl font-bold tracking-tight text-black">PROXY</span>
             </div>
           </Link>
-          <h1 className="text-4xl font-bold mb-2">Initialize Your Twin</h1>
+          <h1 className="text-4xl font-bold mb-2 text-black/60">Initialize Your Twin</h1>
           <p className="mono text-sm text-black/60 uppercase tracking-wider">Start building your AI career agent</p>
         </div>
 

@@ -73,19 +73,32 @@ A SaaS platform ("Proxy") that lets professionals create AI-powered interactive 
 - `payments` - Payment records
 
 ## Portfolio Themes
-- **Corporate**: Deep navy bg (#0A1128), gold accents (#C9A961), serif headings (Playfair Display), SECTION I/II/III labels, formal style
-- **Tech**: Black bg, blue/cyan neon accents, Space Grotesk font, MODULE_01/02/03 labels, system status indicators
-- **Creative**: Warm off-black (#18181B), sage green accents (#8BA888), refined serif headings, no section labels, minimal style
+- **Corporate**: Deep navy bg (#0A1128), gold accents (#C9A961), serif headings, formal style
+- **Tech**: Black bg, blue/cyan neon accents, Space Grotesk font, system style
+- **Creative**: Warm off-black (#18181B), sage green accents (#8BA888), refined serif headings, minimal style
+- All themes: No section labels (SECTION I/MODULE_01 removed), clean headings only
 
 ## Portfolio Sections
 1. Hero (video/avatar, name, title, positioning, contact buttons)
-2. Impact Metrics (achievements as metric cards)
-3. Skill Matrix (technical skills as badge grid)
-4. Career Timeline (vertical timeline of career history)
-5. Signature Stories (expandable CAR format cards)
-6. Embedded Chatbot (full inline chat, main feature)
-7. Footer (Powered by Proxy)
-Plus floating chat FAB for mobile
+2. Embedded Chatbot (full inline chat, main feature)
+3. Impact Metrics (quantified achievements with icons, ALL CAPS labels, comparison context)
+4. Where I'm Most Useful (scenario-based positioning cards with icons and intro text)
+5. How I Work / Operating Model (4-step methodology with subtitle)
+6. Career Trajectory (grouped by company with role progression, collapsible achievements)
+7. Skill Matrix (grouped categories with EXPERT/ADVANCED proficiency badges, icons, descriptions)
+8. Footer (Powered by Proxy)
+
+## AI Processing Quality
+- Three parallel Gemini calls: main portfolio, skills matrix, positioning scenarios
+- Strategic positioning mindset (not resume listing)
+- Skills grouped by category with proficiency levels and evidence-based descriptions
+- "Where I'm Most Useful" uses scenario-based buyer pain points with icons
+- Impact metrics include comparison context (e.g., "vs 18% industry average")
+- Career timeline groups roles by company to show progression
+- NA/N/A/None values filtered from all achievement lists
+- Double bullets stripped from achievement formatting
+- User's suggested questions from Step 11 override AI-generated ones
+- Chatbot responds conversationally (no markdown, no section headers like Challenge/Approach/Result)
 
 ## File Upload Flow
 - Two-step presigned URL pattern: request URL with metadata (authenticated), then direct upload to GCS
@@ -93,10 +106,14 @@ Plus floating chat FAB for mobile
 - Questionnaire step 10 has upload fields for headshot, intro video, CV/resume
 
 ## AI Processing
-- Gemini rewrites war stories in CAR format (Challenge, Action, Result) for maximum impact
-- Achievements rewritten with quantified metrics
+- Three parallel Gemini calls generate portfolio data, skills matrix, and positioning scenarios
+- Gemini rewrites war stories as narratives for maximum impact
+- Achievements rewritten with quantified metrics, NA/empty values filtered
+- Skills analyzed and grouped into 4-8 categories with proficiency levels
+- "Where I'm Most Useful" scenarios created from buyer pain point perspective
 - Generates knowledge base entries from questionnaire data
 - Builds chatbot persona from user's communication style and career data
+- Chatbot system prompt enforces conversational tone (no markdown formatting)
 
 ## Demo Accounts
 - Admin: admin@digitaltwin.studio / admin123

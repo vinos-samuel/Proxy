@@ -1,0 +1,560 @@
+You're 100% right. The difference is NIGHT and DAY.
+Looking at Mani's portfolio vs. the platform output - it's clear the platform is producing "good enough" content when it should be producing "WOW" content.
+
+THE CORE ISSUE:
+Mani's portfolio (manual):
+
+✅ Rich, contextual skill descriptions
+✅ Grouped logically (not just a list)
+✅ Proficiency levels (EXPERT/ADVANCED)
+✅ Visual hierarchy with icons
+✅ Compelling "Where I'm Most Useful" scenarios
+✅ Clean career trajectory (grouped by company)
+✅ Impact metrics presented beautifully
+
+Platform output (automated):
+
+❌ Generic bullet points
+❌ No grouping or context
+❌ No proficiency indicators
+❌ Flat, list-based layout
+❌ Missing the "why this matters" context
+
+
+ROOT CAUSE:
+The AI prompt is asking for DATA EXTRACTION when it should be asking for STRATEGIC POSITIONING.
+Current prompt mindset: "List their achievements"
+Required mindset: "Position them as an expert with compelling evidence"
+
+THE FIX: Complete AI Processor Overhaul
+I'm going to give you a comprehensive prompt for Replit Agent that transforms the AI processor to generate Mani-quality output.
+What we'll change:
+
+Skills Matrix: Group by category, add proficiency levels, write context-rich descriptions
+Where I'm Most Useful: Create scenario-based positioning (not generic statements)
+Career Trajectory: Group by company, emphasize progression narrative
+Impact Metrics: Extract and present the most impressive numbers with context
+Overall tone: Consultative/strategic vs. resume-listing
+
+
+COMPLETE AI PROCESSOR OVERHAUL PROMPT:
+TASK: Transform AI Processor to Generate Mani-Quality Portfolio Output
+
+CONTEXT: Current AI output is functional but generic. We need output that matches the quality of this reference: https://mani-digitalcv.replit.app/ 
+
+The difference:
+- Current: Generic lists, no context, flat presentation
+- Target: Strategic positioning, grouped insights, proficiency indicators, compelling scenarios
+
+FILES TO UPDATE:
+1. server/ai-processor.ts (complete rewrite of AI prompts)
+2. client/src/pages/portfolio.tsx (update rendering to support new data structure)
+
+---
+
+CRITICAL CHANGE 1: SKILLS MATRIX
+
+CURRENT OUTPUT (Bad):
+```json
+{
+  "skills": [
+    "Executive Search",
+    "Retained Search",
+    "Market Mapping",
+    "Stakeholder Engagement"
+  ]
+}
+```
+
+TARGET OUTPUT (Good - like Mani):
+```json
+{
+  "skillsMatrix": [
+    {
+      "title": "Executive Search & Retained Mandates",
+      "proficiency": "EXPERT",
+      "description": "Successfully concluding 98% of all retained mandates across FMCG, Consumer, Life Sciences, and Financial Services.",
+      "icon": "target"
+    },
+    {
+      "title": "Client Services & Solutions Design",
+      "proficiency": "ADVANCED",
+      "description": "Designing and delivering leading-edge recruitment solutions that leverage technology, infrastructure and diverse skills across APAC.",
+      "icon": "users"
+    },
+    {
+      "title": "Stakeholder Engagement",
+      "proficiency": "EXPERT",
+      "description": "Trusted advisor to C-Level leadership, aligning talent strategies with broader business objectives.",
+      "icon": "ribbon"
+    },
+    {
+      "title": "Key Account Management",
+      "proficiency": "ADVANCED",
+      "description": "Certified Miller Heiman LAMP practitioner. Built KAM framework resulting in 3x growth across 5 key accounts.",
+      "icon": "briefcase"
+    },
+    {
+      "title": "Market Mapping & Intelligence",
+      "proficiency": "ADVANCED",
+      "description": "Deep understanding of talent acquisition strategies, market trends. Data-driven approach to decision-making.",
+      "icon": "chart"
+    },
+    {
+      "title": "Team Leadership",
+      "proficiency": "EXPERT",
+      "description": "Built and managed high-performing teams of 11 billing consultants and 3 researchers consistently exceeding targets.",
+      "icon": "lightning"
+    }
+  ]
+}
+```
+
+UPDATE AI PROMPT:
+```typescript
+const skillsPrompt = `
+Analyze the user's career data and create a Skills Matrix with 4-8 skill categories.
+
+REQUIREMENTS:
+- Group related skills into meaningful categories (not individual skills)
+- Write context-rich descriptions that include specific achievements or methodologies
+- Assign proficiency levels: EXPERT (10+ years or flagship skill) or ADVANCED (5+ years or secondary skill)
+- Each description should answer: "What can you DO with this skill?" not just "You have this skill"
+- Include specific frameworks, certifications, or metrics where applicable
+- Icons will be assigned automatically (target, users, ribbon, briefcase, chart, lightning, globe)
+
+EXAMPLES:
+Bad: "Leadership" (too generic)
+Good: "Team Leadership - Built and managed high-performing teams of 11 billing consultants and 3 researchers consistently exceeding targets."
+
+Bad: "Stakeholder Management" (vague)
+Good: "Stakeholder Engagement - Trusted advisor to C-Level leadership, aligning talent strategies with broader business objectives."
+
+INPUT DATA:
+${JSON.stringify(data)}
+
+OUTPUT FORMAT:
+{
+  "skillsMatrix": [
+    {
+      "title": "string (category name)",
+      "proficiency": "EXPERT" | "ADVANCED",
+      "description": "string (achievement-focused, 15-25 words)",
+      "icon": "target" | "users" | "ribbon" | "briefcase" | "chart" | "lightning" | "globe"
+    }
+  ]
+}
+`;
+```
+
+---
+
+CRITICAL CHANGE 2: WHERE I'M MOST USEFUL
+
+CURRENT OUTPUT (Bad):
+```json
+{
+  "positioning": "I help companies scale recruitment across APAC"
+}
+```
+
+TARGET OUTPUT (Good - like Mani):
+```json
+{
+  "whereImMostUseful": {
+    "intro": "I'm most effective when companies need a recruitment partner who can design, deliver, and scale talent solutions across APAC.",
+    "scenarios": [
+      {
+        "title": "You're scaling across APAC and need a trusted recruitment partner",
+        "description": "You're scaling across APAC and need a trusted recruitment partner who understands regional talent markets and cultural nuances.",
+        "icon": "globe"
+      },
+      {
+        "title": "You need access to senior and executive talent",
+        "description": "You need access to senior and executive talent through retained or exclusive search mandates with proven completion rates.",
+        "icon": "users"
+      },
+      {
+        "title": "Your internal talent team needs external support",
+        "description": "Your internal talent team needs external support for complex, confidential or hard-to-fill leadership positions.",
+        "icon": "target"
+      },
+      {
+        "title": "You want a solutions-led recruitment partner",
+        "description": "You want a solutions-led recruitment partner who provides market mapping, competitor intelligence and strategic workforce insight.",
+        "icon": "chart"
+      },
+      {
+        "title": "You need a Key Account Management approach to recruitment",
+        "description": "You need a Key Account Management approach to recruitment, with structured governance and measurable outcomes.",
+        "icon": "briefcase"
+      },
+      {
+        "title": "You want a recruitment consultant who adapts quickly",
+        "description": "You want a recruitment consultant who adapts quickly to different markets, cultures and leadership styles with a consultative approach.",
+        "icon": "lightning"
+      }
+    ]
+  }
+}
+```
+
+UPDATE AI PROMPT:
+```typescript
+const positioningPrompt = `
+Create a "Where I'm Most Useful" section that positions the user through scenario-based statements.
+
+REQUIREMENTS:
+- Write 4-6 scenarios starting with "You..."
+- Each scenario should be a specific situation where hiring this person makes sense
+- Be concrete and avoid generic statements
+- Include context about their unique value (e.g., "across APAC", "with proven completion rates", "for confidential positions")
+- Frame around client pain points, not just capabilities
+
+STRUCTURE EACH SCENARIO:
+"You [situation/need] [specific context that makes them the right fit]"
+
+EXAMPLES:
+Bad: "You need a leader" (too generic)
+Good: "Your internal talent team needs external support for complex, confidential or hard-to-fill leadership positions."
+
+Bad: "You're hiring in Asia" (vague)
+Good: "You're scaling across APAC and need a trusted recruitment partner who understands regional talent markets and cultural nuances."
+
+INPUT DATA:
+${JSON.stringify(data)}
+
+OUTPUT FORMAT:
+{
+  "whereImMostUseful": {
+    "intro": "I'm most effective when [one-sentence positioning]",
+    "scenarios": [
+      {
+        "title": "You [situation]",
+        "description": "You [situation] [specific context/value]",
+        "icon": "globe" | "users" | "target" | "chart" | "briefcase" | "lightning"
+      }
+    ]
+  }
+}
+`;
+```
+
+---
+
+CRITICAL CHANGE 3: CAREER TRAJECTORY
+
+CURRENT OUTPUT (Bad):
+```json
+{
+  "roles": [
+    {"title": "Client Services Director", "company": "Argyll Scott", "dates": "Feb 2021 - Present", "achievements": [...]},
+    {"title": "Director - Commerce", "company": "Argyll Scott", "dates": "Oct 2017 - Jan 2021", "achievements": [...]}
+  ]
+}
+```
+
+TARGET OUTPUT (Good - like Mani):
+```json
+{
+  "careerTrajectory": [
+    {
+      "company": "Argyll Scott",
+      "period": "2010 - Present",
+      "roles": [
+        {
+          "title": "Client Services Director APAC",
+          "location": "Singapore",
+          "dates": "Feb 2021 - Present"
+        },
+        {
+          "title": "Director - Commerce",
+          "location": "Singapore",
+          "dates": "Oct 2017 - Jan 2021"
+        },
+        {
+          "title": "Associate Director",
+          "location": "Hong Kong",
+          "dates": "Oct 2013 - Sep 2017"
+        },
+        {
+          "title": "Managing Executive",
+          "location": "Hong Kong",
+          "dates": "Oct 2012 - Mar 2013"
+        },
+        {
+          "title": "Senior Executive",
+          "location": "Hong Kong",
+          "dates": "Sep 2010 - Sep 2012"
+        }
+      ]
+    },
+    {
+      "company": "Tigerhall",
+      "period": "2024 - Present",
+      "roles": [
+        {
+          "title": "Thinkfluencer",
+          "location": "Singapore",
+          "dates": "Feb 2024 - Present"
+        }
+      ]
+    }
+  ]
+}
+```
+
+UPDATE AI PROMPT:
+```typescript
+const trajectoryPrompt = `
+Create a Career Trajectory that groups roles by company and emphasizes progression.
+
+REQUIREMENTS:
+- Group all roles by company
+- Show progression within each company (if applicable)
+- Include location for each role
+- Calculate overall period per company
+- Present in reverse chronological order (current first)
+- Emphasize upward movement in titles
+
+DO NOT include achievements here - those go in a separate section
+
+INPUT DATA:
+${JSON.stringify(data)}
+
+OUTPUT FORMAT:
+{
+  "careerTrajectory": [
+    {
+      "company": "string",
+      "period": "YYYY - Present" | "YYYY - YYYY",
+      "roles": [
+        {
+          "title": "string",
+          "location": "string",
+          "dates": "MMM YYYY - MMM YYYY" | "MMM YYYY - Present"
+        }
+      ]
+    }
+  ]
+}
+`;
+```
+
+---
+
+CRITICAL CHANGE 4: IMPACT METRICS
+
+CURRENT OUTPUT (Bad):
+Metrics scattered across achievements, no visual hierarchy
+
+TARGET OUTPUT (Good - like Mani):
+```json
+{
+  "impactMetrics": [
+    {
+      "value": "98%",
+      "label": "RETAINED MANDATE COMPLETION RATE",
+      "icon": "target"
+    },
+    {
+      "value": "GBP 1.2M+",
+      "label": "NFI EXCEEDED",
+      "icon": "chart"
+    },
+    {
+      "value": "3x",
+      "label": "KEY ACCOUNT GROWTH (5 ACCOUNTS)",
+      "icon": "users"
+    },
+    {
+      "value": "35%",
+      "label": "NPS SCORE (VS 18% INDUSTRY AVERAGE)",
+      "icon": "ribbon"
+    },
+    {
+      "value": "22%",
+      "label": "CROSS-SELL REVENUE (UP FROM 13%)",
+      "icon": "lightning"
+    },
+    {
+      "value": "18+",
+      "label": "YEARS IN EXECUTIVE SEARCH",
+      "icon": "globe"
+    }
+  ]
+}
+```
+
+UPDATE AI PROMPT:
+```typescript
+const metricsPrompt = `
+Extract the 5-8 most impressive quantifiable achievements and present them as Impact Metrics.
+
+REQUIREMENTS:
+- Look for: percentages, revenue figures, growth multiples, years of experience, team sizes, completion rates
+- Each metric should have context (what it represents)
+- Format large numbers with appropriate units (K, M, +)
+- Include comparison context where relevant (vs industry average, up from X)
+- Prioritize business impact metrics over activity metrics
+
+EXAMPLES:
+Bad: "Managed 5 accounts" (activity, not impact)
+Good: "3x growth across 5 key accounts"
+
+Bad: "High NPS score" (no number)
+Good: "35% NPS Score (vs 18% industry average)"
+
+Bad: "Increased revenue" (vague)
+Good: "22% cross-sell revenue (up from 13%)"
+
+INPUT DATA:
+${JSON.stringify(data)}
+
+OUTPUT FORMAT:
+{
+  "impactMetrics": [
+    {
+      "value": "string (the number/metric)",
+      "label": "string (what it represents, all caps)",
+      "icon": "target" | "chart" | "users" | "ribbon" | "lightning" | "globe"
+    }
+  ]
+}
+`;
+```
+
+---
+
+CRITICAL CHANGE 5: OVERALL PORTFOLIO STRUCTURE
+
+Update the main processing function to call all these new prompts:
+```typescript
+async function processQuestionnaire(profileId: string, data: QuestionnaireData) {
+  // ... existing setup ...
+  
+  // NEW: Generate all sections with new prompts
+  const [skillsResult, positioningResult, trajectoryResult, metricsResult, warStoriesResult] = await Promise.all([
+    gemini.generateContent(skillsPrompt),
+    gemini.generateContent(positioningPrompt),
+    gemini.generateContent(trajectoryPrompt),
+    gemini.generateContent(metricsPrompt),
+    gemini.generateContent(warStoriesPrompt) // existing, but enhanced
+  ]);
+  
+  const portfolioData = {
+    skillsMatrix: JSON.parse(skillsResult.response.text()),
+    whereImMostUseful: JSON.parse(positioningResult.response.text()),
+    careerTrajectory: JSON.parse(trajectoryResult.response.text()),
+    impactMetrics: JSON.parse(metricsResult.response.text()),
+    warStories: JSON.parse(warStoriesResult.response.text()),
+    // ... other fields ...
+  };
+  
+  await storage.updateProfileById(profileId, {
+    portfolioData: JSON.stringify(portfolioData),
+    status: 'ready'
+  });
+}
+```
+
+---
+
+CRITICAL CHANGE 6: UPDATE PORTFOLIO RENDERING
+
+In client/src/pages/portfolio.tsx, update sections to render new data structures:
+
+SKILLS MATRIX:
+```tsx
+<section className="mb-16">
+  <h2 className="text-3xl font-bold mb-8">Skill Matrix</h2>
+  <div className="grid md:grid-cols-2 gap-6">
+    {portfolioData.skillsMatrix.map((skill, i) => (
+      <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="flex items-start justify-between mb-3">
+          <h3 className="text-xl font-bold">{skill.title}</h3>
+          <span className={`text-xs px-3 py-1 rounded-full ${
+            skill.proficiency === 'EXPERT' ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/20 text-blue-300'
+          }`}>
+            {skill.proficiency}
+          </span>
+        </div>
+        <p className="text-white/70">{skill.description}</p>
+      </div>
+    ))}
+  </div>
+</section>
+```
+
+WHERE I'M MOST USEFUL:
+```tsx
+<section className="mb-16">
+  <h2 className="text-3xl font-bold mb-4">Where I'm Most Useful</h2>
+  <p className="text-xl text-white/70 mb-8">{portfolioData.whereImMostUseful.intro}</p>
+  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {portfolioData.whereImMostUseful.scenarios.map((scenario, i) => (
+      <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4">
+          {/* Icon here */}
+        </div>
+        <p className="text-white/90">{scenario.description}</p>
+      </div>
+    ))}
+  </div>
+</section>
+```
+
+CAREER TRAJECTORY:
+```tsx
+<section className="mb-16">
+  <h2 className="text-3xl font-bold mb-8">Career Trajectory</h2>
+  <div className="space-y-8">
+    {portfolioData.careerTrajectory.map((company, i) => (
+      <div key={i} className="border-l-2 border-purple-500 pl-8">
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-2xl font-bold">{company.company}</h3>
+          <span className="text-white/60">{company.period}</span>
+        </div>
+        <div className="space-y-3">
+          {company.roles.map((role, j) => (
+            <div key={j} className="flex justify-between text-purple-300">
+              <span className="font-semibold">{role.title} • {role.location}</span>
+              <span className="text-white/60">{role.dates}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+```
+
+IMPACT METRICS:
+```tsx
+<section className="mb-16">
+  <h2 className="text-3xl font-bold mb-8">Impact Metrics</h2>
+  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {portfolioData.impactMetrics.map((metric, i) => (
+      <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-8 text-center">
+        <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+          {/* Icon here */}
+        </div>
+        <div className="text-5xl font-bold text-purple-400 mb-2">{metric.value}</div>
+        <div className="text-sm text-white/60">{metric.label}</div>
+      </div>
+    ))}
+  </div>
+</section>
+```
+
+---
+
+TESTING CHECKLIST:
+✅ Skills Matrix has 4-8 grouped categories with proficiency levels
+✅ Each skill has achievement-focused description (not just "has this skill")
+✅ "Where I'm Most Useful" has 4-6 scenario-based statements
+✅ Career Trajectory groups roles by company
+✅ Impact Metrics extracts 5-8 impressive numbers with context
+✅ Overall output quality matches https://mani-digitalcv.replit.app/
+✅ No generic statements or flat lists
+✅ Strategic positioning throughout

@@ -109,133 +109,150 @@ export async function processQuestionnaire(
   const tone = data.step7?.communicationStyle || "direct";
 
   // ====================
-  // STEP 1: Generate Portfolio Display Data (RESUME_DATA structure)
+  // STEP 1: Generate Portfolio Display Data
   // ====================
 
-  let portfolioData: any = {};
-
-  try {
-    const portfolioPrompt = `You are an expert career storyteller and portfolio designer. Transform this executive's raw questionnaire data into a polished, high-impact portfolio structure.
-
-**EXECUTIVE PROFILE:**
+  const fullInputData = `
+EXECUTIVE PROFILE:
 Name: ${data.step1.fullName}
 Title: ${data.step1.currentTitle}
 Location: ${data.step1.location || "N/A"}
 
-**PROFESSIONAL SUMMARY:**
+PROFESSIONAL SUMMARY:
 ${data.step2.professionalSummary}
 
-**KEY ACHIEVEMENTS:**
+CAREER HISTORY:
+${(data.step2?.careerHistory || []).map((r: any) => `${r.title} at ${r.company} (${r.years})\nAchievements: ${typeof r.achievements === 'string' ? r.achievements : (r.achievements || []).join('; ')}`).join('\n\n')}
+
+KEY ACHIEVEMENTS:
 ${data.step5?.achievements || "Not provided"}
 
-**TECHNICAL SKILLS:**
+TECHNICAL SKILLS:
 ${data.step6?.technicalSkills || "Not provided"}
 
-**WAR STORIES:**
-${data.step4.stories
-  .map(
-    (s, i) => `
-Story ${i + 1}: ${s.title}
-Challenge: ${s.challenge}
-Approach: ${s.approach}
-Result: ${s.result}
-`,
-  )
-  .join("\n")}
+WAR STORIES:
+${data.step4.stories.map((s, i) => `Story ${i + 1}: ${s.title}\nChallenge: ${s.challenge}\nApproach: ${s.approach}\nResult: ${s.result}`).join('\n\n')}
 
-**COMMUNICATION STYLE:**
+COMMUNICATION STYLE:
 Tone: ${toneMap[tone]}
 Words they use: ${data.step7?.wordsUsedOften || "N/A"}
-Words they avoid: ${data.step7?.wordsAvoided || "N/A"}
+Words they avoid: ${data.step7?.wordsAvoided || "N/A"}`;
+
+  let portfolioData: any = {};
+  let skillsMatrixData: any = null;
+  let whereImMostUsefulData: any = null;
+
+  try {
+    const portfolioPrompt = `You are an expert career strategist and executive positioning specialist. Transform this professional's raw data into a strategically positioned portfolio. Think like a branding consultant, not a resume writer.
+
+${fullInputData}
 
 ---
 
-**INSTRUCTIONS:**
+MINDSET: You are POSITIONING this person, not listing their history. Every section should answer "why should I hire THIS person?"
 
-Generate a JSON object with the following structure. Follow these rules exactly:
+Generate a JSON object with the following structure:
 
-1. **heroDescription**: Write EXACTLY 2 paragraphs:
-   - Paragraph 1: One-line positioning statement ("I [verb] [what] for [who]")
-   - Paragraph 2: A specific proof story from their most impressive achievement with concrete outcomes
+1. "heroDescription": Write EXACTLY 2 paragraphs:
+   - Paragraph 1: Bold positioning statement. Not "I am a..." but a value proposition. Example: "I architect talent solutions that transform how organizations compete for leadership across Asia Pacific."
+   - Paragraph 2: A specific proof story with concrete metrics that demonstrates the positioning.
 
-2. **heroSubtitle**: Take their role title and split into 3 facets separated by " • ". Don't just copy the title - reframe it into positioning language.
+2. "heroSubtitle": Reframe their title into 3 positioning facets separated by " • ". Not "Director of Sales" but "Revenue Architecture • Market Expansion • Client Partnership".
 
-3. **stats**: Extract ALL numbers from achievements and stories. Each stat must have:
-   - label: What was measured (string)
-   - value: The number with units (e.g., "$100M+", "25%", "15 People")
-   - Minimum 6 stats, maximum 9 stats
+3. "impactMetrics": Extract 5-8 most impressive quantifiable achievements. Each must have:
+   - "value": The number with context (e.g., "98%", "GBP 1.2M+", "3x", "18+")
+   - "label": What it represents IN ALL CAPS with comparison context where possible (e.g., "RETAINED MANDATE COMPLETION RATE", "NPS SCORE (VS 18% INDUSTRY AVG)")
+   - "icon": One of "target", "chart", "users", "ribbon", "lightning", "globe"
+   Prioritize business IMPACT metrics over activity metrics. Bad: "Managed 5 accounts". Good: "3x GROWTH ACROSS 5 KEY ACCOUNTS"
 
-4. **problemFit**: Rewrite their skills as 5-6 BUYER PROBLEMS. Each starts with "You're..." or "Your..." and frames the buyer's pain, not the candidate's skills.
-   Example: NOT "I can scale operations" but "You're scaling fast and your ops can't keep up"
+4. "howIWork": Create a 4-step methodology. Give it a strategic name using arrows (e.g., "Diagnose → Design → Deploy → Optimize")
+   - Each step: {"label": "Step Name", "description": "What specifically happens in this phase (15-20 words)"}
 
-5. **howIWork**: Create a 4-step methodology that describes their approach. Give it a name (e.g., "Strategy → Build → Scale → Optimize")
+5. "whyAiCv": Write 4-5 short paragraphs explaining why this AI portfolio exists and what to ask it.
 
-6. **whyAiCv**: Write 4-5 short paragraphs explaining:
-   - Why static CVs fail for senior roles
-   - How this cuts through noise
-   - What the AI is trained on
-   - What to ask it
-   - Future vision
+6. "suggestedQuestions": Write 8 questions a HIRING MANAGER would ask, mapped to their war stories.
 
-7. **suggestedQuestions**: Write 8 questions a HIRING MANAGER would ask. Should map to their war stories. Mix types:
-   - Specific project questions
-   - Scenario questions
-   - Leadership philosophy
-   - Technical depth
-
-QUALITY STANDARDS:
-- Write with confidence and precision
+QUALITY RULES:
+- NO generic corporate jargon ("passionate", "results-driven", "team player")
+- Every statement must be specific and evidence-backed
 - Use active voice and strong verbs
-- Include specific metrics naturally in prose
-- Avoid generic corporate jargon like "passionate", "results-driven", "team player"
-- Make achievements concrete and visual
-- If achievement list is empty or contains only "NA"/"N/A", omit achievements section entirely
-- Strip any existing bullet points before formatting
+- If data contains "NA"/"N/A"/"None", skip that item entirely
 
-**CRITICAL:** Return ONLY valid JSON. No markdown, no code fences, no preamble.
+CRITICAL: Return ONLY valid JSON. No markdown, no code fences.
 
 {
-  "heroDescription": "Paragraph 1\\n\\nParagraph 2",
-  "heroSubtitle": "Facet 1 • Facet 2 • Facet 3",
-  "stats": [
-    {"label": "Description", "value": "$100M+"},
-    {"label": "Description", "value": "25%"}
-  ],
-  "problemFit": [
-    "You're scaling fast and your ops infrastructure can't keep up",
-    "Your systems are manual and error-prone"
-  ],
-  "howIWork": {
-    "name": "Step 1 → Step 2 → Step 3 → Step 4",
-    "steps": [
-      {"label": "Step Name", "description": "What happens"},
-      {"label": "Step Name", "description": "What happens"}
-    ]
-  },
-  "whyAiCv": [
-    "Paragraph 1 about why static CVs fail",
-    "Paragraph 2 about cutting through noise",
-    "Paragraph 3 about what AI knows",
-    "Paragraph 4 about what to ask",
-    "Paragraph 5 about future vision"
-  ],
-  "suggestedQuestions": [
-    "Tell me about the project where you scaled X",
-    "How do you handle conflict with stakeholders?"
-  ]
+  "heroDescription": "string",
+  "heroSubtitle": "string",
+  "impactMetrics": [{"value": "string", "label": "string", "icon": "string"}],
+  "howIWork": {"name": "string", "steps": [{"label": "string", "description": "string"}]},
+  "whyAiCv": ["string"],
+  "suggestedQuestions": ["string"]
 }`;
 
-    const portfolioResponse = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: portfolioPrompt,
-    });
+    const skillsPrompt = `You are an expert career strategist. Analyze this professional's data and create a Skills Matrix with 4-8 skill categories.
 
-    const portfolioText = portfolioResponse.text?.trim() || "";
-    const jsonMatch = portfolioText.match(/\{[\s\S]*\}/);
+${fullInputData}
 
-    if (jsonMatch) {
-      portfolioData = JSON.parse(jsonMatch[0]);
-    }
+---
+
+REQUIREMENTS:
+- Group related skills into meaningful CATEGORIES (not individual skills)
+- Write context-rich descriptions that include specific achievements, methodologies, or certifications
+- Assign proficiency: "EXPERT" (10+ years or flagship skill) or "ADVANCED" (5+ years or secondary skill)
+- Each description must answer "What can you DO with this skill?" with evidence
+- Include specific frameworks, certifications, metrics, team sizes where applicable
+
+EXAMPLES:
+Bad: "Leadership" (too generic, no evidence)
+Good: {"title": "Team Leadership & Development", "proficiency": "EXPERT", "description": "Built and managed high-performing teams of 11 billing consultants and 3 researchers consistently exceeding targets.", "icon": "lightning"}
+
+Bad: "Stakeholder Management" (vague)
+Good: {"title": "Stakeholder Engagement", "proficiency": "EXPERT", "description": "Trusted advisor to C-Level leadership, aligning talent strategies with broader business objectives.", "icon": "ribbon"}
+
+Bad: "Sales" (single word)
+Good: {"title": "Key Account Management", "proficiency": "ADVANCED", "description": "Certified Miller Heiman LAMP practitioner. Built KAM framework resulting in 3x growth across 5 key accounts.", "icon": "briefcase"}
+
+Return ONLY valid JSON, no markdown:
+{"skillsMatrix": [{"title": "string", "proficiency": "EXPERT"|"ADVANCED", "description": "string (15-25 words with evidence)", "icon": "target"|"users"|"ribbon"|"briefcase"|"chart"|"lightning"|"globe"}]}`;
+
+    const positioningPrompt = `You are an expert at positioning professionals for their ideal roles. Create a "Where I'm Most Useful" section.
+
+${fullInputData}
+
+---
+
+REQUIREMENTS:
+- Write an intro sentence: "I'm most effective when [specific positioning]"
+- Create 4-6 scenarios starting with "You..." that describe specific situations where hiring this person makes sense
+- Be concrete and specific, not generic
+- Include context about their unique value (regions, methodologies, completion rates, team sizes)
+- Frame around CLIENT PAIN POINTS, not just capabilities
+
+EXAMPLES:
+Bad: "You need a leader" (too generic)
+Good: {"title": "You need access to senior and executive talent", "description": "You need access to senior and executive talent through retained or exclusive search mandates with proven completion rates.", "icon": "users"}
+
+Bad: "You're hiring in Asia" (vague)
+Good: {"title": "You're scaling across APAC", "description": "You're scaling across APAC and need a trusted recruitment partner who understands regional talent markets and cultural nuances.", "icon": "globe"}
+
+Return ONLY valid JSON, no markdown:
+{"intro": "string", "scenarios": [{"title": "string (short)", "description": "string (full scenario, 15-25 words)", "icon": "globe"|"users"|"target"|"chart"|"briefcase"|"lightning"}]}`;
+
+    const [portfolioResponse, skillsResponse, positioningResponse] = await Promise.all([
+      ai.models.generateContent({ model: "gemini-2.5-flash", contents: portfolioPrompt }),
+      ai.models.generateContent({ model: "gemini-2.5-flash", contents: skillsPrompt }),
+      ai.models.generateContent({ model: "gemini-2.5-flash", contents: positioningPrompt }),
+    ]);
+
+    const parseJson = (text: string | undefined) => {
+      const cleaned = (text || "").trim();
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      return match ? JSON.parse(match[0]) : null;
+    };
+
+    portfolioData = parseJson(portfolioResponse.text) || {};
+    skillsMatrixData = parseJson(skillsResponse.text);
+    whereImMostUsefulData = parseJson(positioningResponse.text);
 
     const careerTimeline = (data.step2?.careerHistory || [])
       .map((role: any) => {
@@ -250,7 +267,22 @@ QUALITY STANDARDS:
           achievements: cleaned
         };
       });
-    portfolioData.careerTimeline = careerTimeline;
+
+    const groupedCareer: any[] = [];
+    const companyMap = new Map<string, any>();
+    for (const role of careerTimeline) {
+      const key = (role.company || "").trim();
+      if (!companyMap.has(key)) {
+        companyMap.set(key, { company: key, roles: [] });
+        groupedCareer.push(companyMap.get(key));
+      }
+      companyMap.get(key).roles.push({
+        title: role.title,
+        years: role.years,
+        achievements: role.achievements
+      });
+    }
+    portfolioData.careerTimeline = groupedCareer.length > 0 ? groupedCareer : careerTimeline;
 
     const userSuggestedQuestions = data.step11?.suggestedQuestions
       ? data.step11.suggestedQuestions.split('\n').map((q: string) => q.trim()).filter(Boolean)
@@ -260,10 +292,10 @@ QUALITY STANDARDS:
     }
   } catch (error) {
     console.error("Error generating portfolio data:", error);
-    // Fallback to basic structure
     portfolioData = {
       heroDescription: `I'm ${data.step1.fullName}. ${data.step2.professionalSummary}`,
       heroSubtitle: data.step1.currentTitle,
+      impactMetrics: [],
       stats: [],
       problemFit: [],
       howIWork: { name: "", steps: [] },
@@ -272,7 +304,6 @@ QUALITY STANDARDS:
     };
   }
 
-  // Update profile with portfolio data
   await storage.updateProfileById(profileId, {
     displayName: data.step1.fullName,
     roleTitle: data.step1.currentTitle,
@@ -287,15 +318,15 @@ QUALITY STANDARDS:
     brandingTheme: data.step10?.brandingTheme || "corporate",
     videoUrl: data.step10?.introVideo || null,
     cvResumeUrl: data.step10?.cvResume || null,
-    // NEW PORTFOLIO FIELDS
     heroSubtitle: portfolioData.heroSubtitle || null,
-    stats: portfolioData.stats || null,
+    stats: portfolioData.impactMetrics || portfolioData.stats || null,
     problemFit: portfolioData.problemFit || null,
     howIWork: portfolioData.howIWork || null,
     whyAiCv: portfolioData.whyAiCv || null,
     portfolioSuggestedQuestions: portfolioData.suggestedQuestions || null,
     careerTimeline: portfolioData.careerTimeline || null,
-    // Store full questionnaire data
+    skillsMatrix: skillsMatrixData?.skillsMatrix || null,
+    whereImMostUseful: whereImMostUsefulData || null,
     questionnaireData: {
       ...data,
       portfolioData: portfolioData,

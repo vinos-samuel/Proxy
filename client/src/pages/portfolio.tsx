@@ -7,7 +7,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Send, Mail, Linkedin, Download,
   Loader2, MessageSquare, Globe,
-  Terminal, ArrowRight
+  Terminal, ArrowRight, Target, Users,
+  Award, Briefcase, BarChart3, Zap
 } from "lucide-react";
 
 interface PortfolioData {
@@ -26,12 +27,14 @@ interface PortfolioData {
     achievements: string | null;
     communicationStyle: string | null;
     heroSubtitle?: string;
-    stats?: Array<{ label: string; value: string }>;
+    stats?: Array<{ label: string; value: string; icon?: string }>;
     problemFit?: string[];
     howIWork?: { name: string; steps: Array<{ label: string; description: string }> };
     whyAiCv?: string[];
     portfolioSuggestedQuestions?: string[];
-    careerTimeline?: Array<{ company: string; title: string; years: string; achievements: string[] }>;
+    careerTimeline?: Array<{ company: string; title?: string; years?: string; achievements?: string[]; roles?: Array<{ title: string; years: string; achievements?: string[] }> }>;
+    skillsMatrix?: Array<{ title: string; proficiency: string; description: string; icon: string }>;
+    whereImMostUseful?: { intro: string; scenarios: Array<{ title: string; description: string; icon: string }> };
   };
   factBanks: Array<{
     companyName: string;
@@ -61,9 +64,18 @@ interface ChatMessage {
   content: string;
 }
 
-function toRomanNumeral(num: number): string {
-  const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
-  return romanNumerals[num - 1] || String(num);
+function getIcon(name: string, className: string) {
+  const icons: Record<string, any> = {
+    target: Target,
+    users: Users,
+    ribbon: Award,
+    briefcase: Briefcase,
+    chart: BarChart3,
+    lightning: Zap,
+    globe: Globe,
+  };
+  const Icon = icons[name] || Target;
+  return <Icon className={className} />;
 }
 
 const themes = {
@@ -516,12 +528,12 @@ export default function PortfolioPage() {
         </div>
       </section>
 
-      {/* 3. IMPACT METRICS — Top 6 with expand */}
+      {/* 3. IMPACT METRICS */}
       {profile.stats && profile.stats.length > 0 && (
         <section className="py-12 px-6 max-w-6xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
             <div className="h-px flex-1 bg-white/10" />
-            <h2 className={`text-2xl font-bold uppercase tracking-widest ${theme.accentSolid} ${theme.headingClass}`}>{theme.sectionLabel(1)}Impact Metrics</h2>
+            <h2 className={`text-2xl font-bold uppercase tracking-widest ${theme.accentSolid} ${theme.headingClass}`}>Impact Metrics</h2>
             <div className="h-px flex-1 bg-white/10" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -529,13 +541,18 @@ export default function PortfolioPage() {
               <motion.div 
                 whileHover={{ y: -3 }}
                 key={i} 
-                className={`${theme.glass} p-6 rounded-xl text-center ${theme.glassHover}`}
+                className={`${theme.glass} p-8 rounded-xl text-center ${theme.glassHover}`}
                 data-testid={`stat-card-${i}`}
               >
+                {stat.icon && (
+                  <div className={`w-10 h-10 mx-auto mb-3 rounded-lg flex items-center justify-center bg-gradient-to-r ${theme.accent} bg-opacity-20`}>
+                    {getIcon(stat.icon, "w-5 h-5 text-white")}
+                  </div>
+                )}
                 <div className={`text-3xl md:text-4xl font-black mb-2 bg-gradient-to-r ${theme.accent} bg-clip-text text-transparent`}>
                   {stat.value}
                 </div>
-                <div className={`${theme.muted} text-sm`}>{stat.label}</div>
+                <div className={`${theme.muted} text-xs uppercase tracking-wider`}>{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -552,19 +569,33 @@ export default function PortfolioPage() {
         </section>
       )}
 
-      {/* 4. WHERE I'M MOST USEFUL — Max 4 */}
-      {profile.problemFit && profile.problemFit.length > 0 && (
+      {/* 4. WHERE I'M MOST USEFUL */}
+      {(profile.whereImMostUseful?.scenarios?.length || (profile.problemFit && profile.problemFit.length > 0)) && (
         <section className="py-12 px-6 max-w-5xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`}>{theme.sectionLabel(2)}Where I'm Most Useful</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {profile.problemFit.slice(0, 4).map((problem, i) => (
-              <div key={i} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover} group`}>
-                <div className="flex items-start gap-3">
-                  <div className={`w-2 h-2 rounded-full ${theme.dotColor} mt-2.5 shrink-0 group-hover:scale-150 transition-transform`} />
-                  <p className={`text-base ${theme.muted} leading-relaxed`}>{problem}</p>
+          <h2 className={`text-3xl font-bold mb-2 ${theme.headingClass}`}>Where I'm Most Useful</h2>
+          {profile.whereImMostUseful?.intro && (
+            <p className={`text-lg ${theme.muted} mb-8 leading-relaxed`}>{profile.whereImMostUseful.intro}</p>
+          )}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {profile.whereImMostUseful?.scenarios ? (
+              profile.whereImMostUseful.scenarios.map((scenario, i) => (
+                <div key={i} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover} group`}>
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 bg-gradient-to-r ${theme.accent} bg-opacity-20`}>
+                    {getIcon(scenario.icon, `w-5 h-5 ${theme.accentSolid}`)}
+                  </div>
+                  <p className="text-white/90 text-sm leading-relaxed">{scenario.description}</p>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              profile.problemFit?.slice(0, 6).map((problem, i) => (
+                <div key={i} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover} group`}>
+                  <div className="flex items-start gap-3">
+                    <div className={`w-2 h-2 rounded-full ${theme.dotColor} mt-2.5 shrink-0 group-hover:scale-150 transition-transform`} />
+                    <p className={`text-base ${theme.muted} leading-relaxed`}>{problem}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
       )}
@@ -595,52 +626,111 @@ export default function PortfolioPage() {
       {profile.careerTimeline && profile.careerTimeline.length > 0 && (
         <section className="py-12 px-6 max-w-6xl mx-auto opacity-0 animate-[fadeIn_0.6s_ease-out_forwards]">
           <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`}>
-            {theme.sectionLabel(4)}Career Trajectory
+            Career Trajectory
           </h2>
           
-          <div className="relative">
-            {/* Vertical timeline line */}
-            <div className={`absolute left-3 top-0 bottom-0 w-0.5 ${theme.timelineLineColor}`}></div>
-            
-            {profile.careerTimeline.map((role, i) => (
-              <div key={i} className="relative pl-10 pb-8 last:pb-0">
-                <div className={`absolute left-0 top-2 w-6 h-6 ${theme.dotColor} rounded-full border-4 ${theme.bg}`}></div>
-                
-                <div className={theme.glass + " p-6 rounded-xl " + theme.glassHover}>
-                  <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
-                    <div>
-                      <h3 className={`text-xl font-bold ${theme.headingClass}`}>{role.title}</h3>
-                      <p className={`text-lg ${theme.accentSolid}`}>{role.company}</p>
+          <div className="space-y-8">
+            {profile.careerTimeline.map((entry, i) => {
+              const isGrouped = entry.roles && entry.roles.length > 0;
+              const cleanAch = (achs: string[] | undefined) => 
+                (achs || []).filter(a => a && !['na', 'n/a', 'none', 'nil'].includes(a.toLowerCase().trim()));
+              
+              if (isGrouped) {
+                return (
+                  <div key={i} className={`border-l-2 ${theme.timelineLineColor} pl-8`}>
+                    <div className="flex flex-wrap justify-between items-start mb-4">
+                      <h3 className={`text-2xl font-bold ${theme.headingClass}`}>{entry.company}</h3>
                     </div>
-                    <span className={`text-sm ${theme.muted}`}>{role.years}</span>
-                  </div>
-                  
-                  {role.achievements && role.achievements.filter(a => a && !['na', 'n/a', 'none', 'nil'].includes(a.toLowerCase().trim())).length > 0 && (
-                  <details className="mt-4">
-                    <summary className="cursor-pointer text-white/70 hover:text-white transition-colors">
-                      Key Achievements ({role.achievements.filter(a => a && !['na', 'n/a', 'none', 'nil'].includes(a.toLowerCase().trim())).length})
-                    </summary>
-                    <ul className="mt-3 space-y-2 pl-5">
-                      {role.achievements
-                        .filter(a => a && !['na', 'n/a', 'none', 'nil'].includes(a.toLowerCase().trim()))
-                        .map((achievement, j) => (
-                        <li key={j} className="text-white/80 list-disc">{achievement.replace(/^[\s•\-\*]+/, '').trim()}</li>
+                    <div className="space-y-3">
+                      {entry.roles!.map((role, j) => (
+                        <div key={j}>
+                          <div className="flex flex-wrap justify-between items-center">
+                            <span className={`font-semibold ${theme.accentSolid}`}>{role.title}</span>
+                            <span className={`text-sm ${theme.muted}`}>{role.years}</span>
+                          </div>
+                          {cleanAch(role.achievements).length > 0 && (
+                            <details className="mt-2 mb-2">
+                              <summary className="cursor-pointer text-white/50 hover:text-white/80 text-xs transition-colors">
+                                Achievements ({cleanAch(role.achievements).length})
+                              </summary>
+                              <ul className="mt-2 space-y-1 pl-4">
+                                {cleanAch(role.achievements).map((a, k) => (
+                                  <li key={k} className="text-white/70 text-sm list-disc">{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
+                                ))}
+                              </ul>
+                            </details>
+                          )}
+                        </div>
                       ))}
-                    </ul>
-                  </details>
-                  )}
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={i} className="relative pl-10 pb-4">
+                  <div className={`absolute left-0 top-2 w-6 h-6 ${theme.dotColor} rounded-full border-4 ${theme.bg}`}></div>
+                  <div className={theme.glass + " p-6 rounded-xl " + theme.glassHover}>
+                    <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
+                      <div>
+                        <h3 className={`text-xl font-bold ${theme.headingClass}`}>{entry.title}</h3>
+                        <p className={`text-lg ${theme.accentSolid}`}>{entry.company}</p>
+                      </div>
+                      <span className={`text-sm ${theme.muted}`}>{entry.years}</span>
+                    </div>
+                    {cleanAch(entry.achievements).length > 0 && (
+                      <details className="mt-4">
+                        <summary className="cursor-pointer text-white/70 hover:text-white transition-colors">
+                          Key Achievements ({cleanAch(entry.achievements).length})
+                        </summary>
+                        <ul className="mt-3 space-y-2 pl-5">
+                          {cleanAch(entry.achievements).map((a, j) => (
+                            <li key={j} className="text-white/80 list-disc">{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
+                          ))}
+                        </ul>
+                      </details>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
 
-      {/* 7. SKILL MATRIX — Grouped pills */}
-      {skills.length > 0 && (
+      {/* 7. SKILL MATRIX */}
+      {(profile.skillsMatrix && profile.skillsMatrix.length > 0) ? (
         <section className="py-12 px-6 max-w-5xl mx-auto">
           <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`}>
-            {theme.sectionLabel(5)}Skill Matrix
+            Skill Matrix
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {profile.skillsMatrix.map((skill, i) => (
+              <div key={i} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover}`} data-testid={`skill-card-${i}`}>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-r ${theme.accent} bg-opacity-20`}>
+                      {getIcon(skill.icon, `w-5 h-5 ${theme.accentSolid}`)}
+                    </div>
+                    <h3 className="text-lg font-bold">{skill.title}</h3>
+                  </div>
+                  <span className={`text-[10px] px-3 py-1 rounded-full font-bold tracking-wider ${
+                    skill.proficiency === 'EXPERT' 
+                      ? `bg-gradient-to-r ${theme.accent} text-white` 
+                      : `${theme.glass} ${theme.accentSolid}`
+                  }`}>
+                    {skill.proficiency}
+                  </span>
+                </div>
+                <p className={`${theme.muted} text-sm leading-relaxed`}>{skill.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : skills.length > 0 ? (
+        <section className="py-12 px-6 max-w-5xl mx-auto">
+          <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`}>
+            Skill Matrix
           </h2>
           <div className="flex flex-wrap gap-2">
             {skills.map((skill, i) => (
@@ -655,7 +745,7 @@ export default function PortfolioPage() {
             ))}
           </div>
         </section>
-      )}
+      ) : null}
 
       {/* 8. FOOTER CTA */}
       <footer className="py-20 px-6 max-w-4xl mx-auto text-center border-t border-white/5">

@@ -390,7 +390,6 @@ export async function registerRoutes(
           achievements: questionnaireData?.step5?.achievements || null,
           communicationStyle:
             questionnaireData?.step7?.communicationStyle || null,
-          // NEW PORTFOLIO DISPLAY DATA
           heroSubtitle: profile.heroSubtitle || null,
           stats: profile.stats || [],
           problemFit: profile.problemFit || [],
@@ -399,6 +398,8 @@ export async function registerRoutes(
           portfolioSuggestedQuestions:
             profile.portfolioSuggestedQuestions || suggestedQuestions,
           careerTimeline: profile.careerTimeline || [],
+          skillsMatrix: (profile as any).skillsMatrix || null,
+          whereImMostUseful: (profile as any).whereImMostUseful || null,
         },
         factBanks: factBanksList,
         knowledgeEntries: entries,

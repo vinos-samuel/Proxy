@@ -1,7 +1,4 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Check, Loader2, Rocket, Star, Crown } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
@@ -13,46 +10,51 @@ interface PaymentGateProps {
 const tiers = [
   {
     key: "launch",
-    name: "Launch",
+    name: "LAUNCH",
+    tierLabel: "TIER_01",
     price: "$199",
     icon: Rocket,
     features: [
-      "AI portfolio + chatbot",
-      "6-month hosting",
-      "Downloadable version",
-      "username.proxy.ai domain",
+      "AI_PORTFOLIO + CHATBOT",
+      "6_MONTH_HOSTING",
+      "DOWNLOADABLE_VERSION",
+      "SUBDOMAIN_INCLUDED",
     ],
+    useCase: "USE_CASE: Testing | Single portfolio",
   },
   {
     key: "evolve",
-    name: "Evolve",
+    name: "EVOLVE",
+    tierLabel: "TIER_02",
     price: "$399",
     icon: Star,
     popular: true,
     features: [
-      "Everything in Launch",
-      "Custom domain support",
-      "Portfolio editor",
-      "Tune Your Twin dashboard",
-      "Theme switcher",
-      "Analytics dashboard",
-      "12-month hosting",
+      "ALL_LAUNCH_FEATURES",
+      "CUSTOM_DOMAIN",
+      "PORTFOLIO_EDITOR",
+      "PROXY_TUNING",
+      "THEME_SWITCHER",
+      "ANALYTICS_DASH",
+      "12_MONTH_HOSTING",
     ],
+    useCase: "USE_CASE: Active job search | Career pivot",
   },
   {
     key: "concierge",
-    name: "Concierge",
+    name: "CONCIERGE",
+    tierLabel: "TIER_03",
     price: "$1,199",
     icon: Crown,
     features: [
-      "Everything in Evolve",
-      "90-min strategy interview",
-      "Professional copywriting",
-      "White-glove build",
-      "Advanced chatbot tuning",
-      "Priority support",
-      "60-day conversation guarantee",
+      "ALL_EVOLVE_FEATURES",
+      "90MIN_INTERVIEW",
+      "PRO_COPYWRITING",
+      "WHITE_GLOVE_BUILD",
+      "ADVANCED_TUNING",
+      "PRIORITY_SUPPORT",
     ],
+    useCase: "USE_CASE: Executives | C-suite | VP level",
   },
 ];
 
@@ -83,109 +85,113 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
 
   if (published && publishData) {
     return (
-      <Card className="md:col-span-2">
-        <CardContent className="p-6">
-          <div className="text-center space-y-4">
-            <div className="text-4xl">
-              <Check className="h-12 w-12 text-primary mx-auto" />
-            </div>
-            <h2 className="text-2xl font-bold" data-testid="text-publish-success">
-              Portfolio Published
-            </h2>
-            <p className="text-muted-foreground">
-              Your AI Twin is now live and ready to represent you.
-            </p>
-            {publishData.username && (
-              <Button
-                onClick={() => navigate(`/portfolio/${publishData.username}`)}
-                data-testid="button-view-portfolio"
-              >
-                View Your Portfolio
-              </Button>
-            )}
+      <div className="md:col-span-2 bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+        <div className="text-center space-y-6">
+          <div className="w-16 h-16 bg-[#22C55E] border-[3px] border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+            <Check className="h-8 w-8 text-black" />
           </div>
-        </CardContent>
-      </Card>
+          <h2 className="text-3xl font-bold text-black" data-testid="text-publish-success">
+            PORTFOLIO_PUBLISHED
+          </h2>
+          <p className="mono text-sm text-black/60 uppercase tracking-wider">
+            Your AI Twin is now live and ready to represent you.
+          </p>
+          {publishData.username && (
+            <button
+              onClick={() => navigate(`/portfolio/${publishData.username}`)}
+              className="bg-[#22C55E] text-black px-8 py-4 font-bold border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+              data-testid="button-view-portfolio"
+            >
+              VIEW_PORTFOLIO &rarr;
+            </button>
+          )}
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="md:col-span-2">
-      <CardContent className="p-6">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold mb-2" data-testid="text-payment-title">
-            Your AI Twin is Ready
-          </h2>
-          <p className="text-muted-foreground">
-            Choose a plan to publish your portfolio and make it public
-          </p>
-          <Badge variant="outline" className="mt-2" data-testid="badge-test-mode">
-            Test Mode - No payment required
-          </Badge>
+    <div className="md:col-span-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+      <div className="text-center mb-8">
+        <div className="mono text-xs text-black/50 mb-2 uppercase tracking-widest">&#9698; Deployment Ready</div>
+        <h2 className="text-3xl font-bold mb-2 text-black" data-testid="text-payment-title">
+          SELECT_CONFIGURATION
+        </h2>
+        <p className="mono text-sm text-black/60 uppercase tracking-wider">
+          Choose a plan to publish your portfolio and make it public
+        </p>
+        <div className="inline-block mt-3 bg-black text-white px-3 py-1 mono text-xs uppercase tracking-wider border-[3px] border-black" data-testid="badge-test-mode">
+          TEST_MODE — NO PAYMENT REQUIRED
         </div>
+      </div>
 
-        <div className="grid md:grid-cols-3 gap-4 mb-6">
-          {tiers.map((tier) => {
-            const Icon = tier.icon;
-            const isSelected = selectedTier === tier.key;
-            return (
-              <Card
-                key={tier.key}
-                className={`cursor-pointer transition-all relative ${
-                  isSelected
-                    ? "border-primary ring-1 ring-primary"
-                    : "hover-elevate"
-                }`}
-                onClick={() => setSelectedTier(tier.key)}
-                data-testid={`card-tier-${tier.key}`}
-              >
-                {tier.popular && (
-                  <Badge
-                    className="absolute -top-2.5 left-1/2 -translate-x-1/2"
-                    data-testid="badge-popular"
-                  >
-                    Most Popular
-                  </Badge>
-                )}
-                <CardContent className="p-4 pt-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Icon className="h-4 w-4 text-primary" />
-                    <h3 className="font-semibold">{tier.name}</h3>
+      <div className="grid md:grid-cols-3 gap-6 mb-8">
+        {tiers.map((tier) => {
+          const Icon = tier.icon;
+          const isSelected = selectedTier === tier.key;
+          const isPopular = tier.popular;
+          return (
+            <div
+              key={tier.key}
+              className={`brutal-card border-black cursor-pointer relative p-8 ${
+                isPopular && isSelected
+                  ? "bg-[#22C55E] transform lg:scale-105 lg:-mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+                  : isSelected
+                  ? "bg-[#22C55E] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
+                  : isPopular
+                  ? "bg-white transform lg:scale-105 lg:-mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+                  : "bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
+              }`}
+              onClick={() => setSelectedTier(tier.key)}
+              data-testid={`card-tier-${tier.key}`}
+            >
+              {tier.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#22C55E] text-black px-4 py-1 font-bold mono text-xs border-[3px] border-black uppercase tracking-wider" data-testid="badge-popular">
+                  RECOMMENDED
+                </div>
+              )}
+              <div className="mono text-xs text-black/50 mb-2 uppercase">{tier.tierLabel}</div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-white border-[3px] border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                  <Icon className="h-5 w-5 text-black" />
+                </div>
+                <h3 className="text-2xl font-bold text-black">{tier.name}</h3>
+              </div>
+              <div className="text-5xl font-bold mb-6 mono text-black" data-testid={`text-price-${tier.key}`}>
+                {tier.price}
+              </div>
+              <div className="space-y-3 mb-6 text-sm">
+                {tier.features.map((feature, i) => (
+                  <div key={i} className={`flex gap-2 mono ${isSelected ? "text-black" : "text-black/70"}`}>
+                    <span className={`font-bold shrink-0 ${isSelected ? "text-black" : "text-[#22C55E]"}`}>&#10003;</span> {feature}
                   </div>
-                  <div className="text-3xl font-bold mb-4" data-testid={`text-price-${tier.key}`}>
-                    {tier.price}
-                  </div>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    {tier.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <Check className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                ))}
+              </div>
+              {isSelected && (
+                <div className="mono text-xs text-black/60 mt-4 pt-4 border-t-2 border-black/20">
+                  {tier.useCase}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
-        <Button
-          className="w-full"
-          size="lg"
-          onClick={handleTestPublish}
-          disabled={loading}
-          data-testid="button-checkout"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Publishing...
-            </>
-          ) : (
-            `Publish with ${tiers.find((t) => t.key === selectedTier)?.name} Plan`
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+      <button
+        className="w-full bg-[#22C55E] text-black py-4 font-bold mono border-[3px] border-black uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={handleTestPublish}
+        disabled={loading}
+        data-testid="button-checkout"
+      >
+        {loading ? (
+          <span className="flex items-center justify-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            DEPLOYING...
+          </span>
+        ) : (
+          `DEPLOY_WITH_${tiers.find((t) => t.key === selectedTier)?.name}_PLAN →`
+        )}
+      </button>
+    </div>
   );
 }

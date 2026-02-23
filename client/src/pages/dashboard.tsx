@@ -1,14 +1,11 @@
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
 import {
-  Terminal, Edit, Eye, Globe, LogOut,
-  FileText, Sparkles, ExternalLink, ArrowRight
+  Edit, Eye, Globe, LogOut,
+  FileText, Sparkles, ExternalLink, ArrowRight, Copy
 } from "lucide-react";
 import type { TwinProfile } from "@shared/schema";
 import PaymentGate from "@/components/PaymentGate";
@@ -26,44 +23,49 @@ export default function DashboardPage() {
     },
   });
 
-  const statusMap: Record<string, { label: string; variant: "secondary" | "default" | "destructive" }> = {
-    draft: { label: "Draft", variant: "secondary" },
-    processing: { label: "Processing", variant: "default" },
-    ready: { label: "Ready to Publish", variant: "default" },
-    published: { label: "Published", variant: "default" },
+  const statusMap: Record<string, { label: string; color: string }> = {
+    draft: { label: "DRAFT", color: "bg-[#FDE68A]" },
+    processing: { label: "PROCESSING", color: "bg-[#93C5FD]" },
+    ready: { label: "READY_TO_PUBLISH", color: "bg-[#86EFAC]" },
+    published: { label: "PUBLISHED", color: "bg-[#22C55E]" },
   };
 
   const profileStatus = profile ? statusMap[profile.status] || statusMap.draft : statusMap.draft;
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto max-w-6xl px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
+    <div className="min-h-screen bg-[#E8E8E3] text-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+      <nav className="border-b-[3px] border-black bg-[#D1D1CC] sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/dashboard">
-            <div className="flex items-center gap-2 cursor-pointer">
-              <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
-                <Terminal className="h-4 w-4 text-primary-foreground" />
+            <div className="flex items-center gap-3 cursor-pointer">
+              <div className="w-10 h-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
+                P
               </div>
-              <span className="font-semibold">Proxy</span>
+              <span className="text-2xl font-bold tracking-tight" data-testid="text-brand-name">PROXY</span>
             </div>
           </Link>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground hidden sm:inline">{user?.name}</span>
-            <Button variant="ghost" size="icon" onClick={() => logout()} data-testid="button-logout">
+          <div className="flex items-center gap-4">
+            <span className="mono text-sm text-black/60 hidden sm:inline uppercase tracking-wider">{user?.name}</span>
+            <button
+              onClick={() => logout()}
+              className="flex items-center gap-2 mono text-sm text-black/60 hover:text-black uppercase tracking-wider"
+              data-testid="button-logout"
+            >
               <LogOut className="h-4 w-4" />
-            </Button>
+            </button>
           </div>
         </div>
       </nav>
 
-      <div className="mx-auto max-w-6xl px-6 py-8">
+      <div className="max-w-6xl mx-auto px-6 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-            <p className="text-muted-foreground">
+            <div className="mono text-xs text-black/50 mb-2 uppercase tracking-widest">&#9698; Control Panel</div>
+            <h1 className="text-4xl font-bold mb-2">DASHBOARD</h1>
+            <p className="mono text-sm text-black/60">
               Welcome back, {user?.name}. Manage your Digital Twin below.
             </p>
           </div>
@@ -71,150 +73,177 @@ export default function DashboardPage() {
           {isLoading ? (
             <div className="grid md:grid-cols-2 gap-6">
               {[1, 2, 3, 4].map(i => (
-                <Card key={i}>
-                  <CardContent className="p-6">
-                    <Skeleton className="h-6 w-32 mb-4" />
-                    <Skeleton className="h-4 w-full mb-2" />
-                    <Skeleton className="h-4 w-2/3" />
-                  </CardContent>
-                </Card>
+                <div key={i} className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <Skeleton className="h-6 w-32 mb-4 bg-black/10" />
+                  <Skeleton className="h-4 w-full mb-2 bg-black/10" />
+                  <Skeleton className="h-4 w-2/3 bg-black/10" />
+                </div>
               ))}
             </div>
           ) : (
             <div className="grid md:grid-cols-2 gap-6">
-              <Card className="md:col-span-2">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div>
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="h-12 w-12 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center">
-                          <Terminal className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <h2 className="text-xl font-semibold">
-                            {profile?.displayName || "Your Digital Twin"}
-                          </h2>
-                          <p className="text-sm text-muted-foreground">
-                            {profile?.roleTitle || "No role set yet"}
-                          </p>
-                        </div>
+              <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div>
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-14 h-14 bg-[#22C55E] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                        <span className="text-2xl font-bold text-black">
+                          {(profile?.displayName || user?.name || "?")[0].toUpperCase()}
+                        </span>
                       </div>
-                      <Badge variant={profileStatus.variant} data-testid="badge-profile-status">
-                        {profileStatus.label}
-                      </Badge>
+                      <div>
+                        <h2 className="text-2xl font-bold">
+                          {profile?.displayName || "Your Digital Twin"}
+                        </h2>
+                        <p className="mono text-sm text-black/60">
+                          {profile?.roleTitle || "No role set yet"}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {!profile && (
-                        <Link href="/questionnaire">
-                          <Button data-testid="button-start-questionnaire">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Start Questionnaire
-                          </Button>
+                    <div className={`inline-block px-3 py-1 ${profileStatus.color} border-[3px] border-black mono text-xs uppercase tracking-wider font-bold`} data-testid="badge-profile-status">
+                      {profileStatus.label}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {!profile && (
+                      <Link href="/questionnaire">
+                        <button
+                          className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                          data-testid="button-start-questionnaire"
+                        >
+                          <span className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            START QUESTIONNAIRE
+                          </span>
+                        </button>
+                      </Link>
+                    )}
+                    {profile?.status === "draft" && (
+                      <Link href="/questionnaire">
+                        <button
+                          className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                          data-testid="button-continue-questionnaire"
+                        >
+                          <span className="flex items-center gap-2">
+                            <Edit className="h-4 w-4" />
+                            CONTINUE SETUP
+                          </span>
+                        </button>
+                      </Link>
+                    )}
+                    {(profile?.status === "ready" || profile?.status === "published") && (
+                      <>
+                        <Link href="/preview">
+                          <button
+                            className="bg-white text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                            data-testid="button-preview"
+                          >
+                            <span className="flex items-center gap-2">
+                              <Eye className="h-4 w-4" />
+                              PREVIEW
+                            </span>
+                          </button>
                         </Link>
-                      )}
-                      {profile?.status === "draft" && (
-                        <Link href="/questionnaire">
-                          <Button data-testid="button-continue-questionnaire">
-                            <Edit className="mr-2 h-4 w-4" />
-                            Continue Setup
-                          </Button>
-                        </Link>
-                      )}
-                      {(profile?.status === "ready" || profile?.status === "published") && (
-                        <>
-                          <Link href="/preview">
-                            <Button variant="outline" data-testid="button-preview">
-                              <Eye className="mr-2 h-4 w-4" />
-                              Preview
-                            </Button>
-                          </Link>
-                          {profile.status === "published" && (
-                            <a
-                              href={`/portfolio/${user?.username}`}
-                              target="_blank"
-                              rel="noreferrer"
+                        {profile.status === "published" && (
+                          <a
+                            href={`/portfolio/${user?.username}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <button
+                              className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                              data-testid="button-view-live"
                             >
-                              <Button data-testid="button-view-live">
-                                <Globe className="mr-2 h-4 w-4" />
-                                View Live
-                                <ExternalLink className="ml-1 h-3 w-3" />
-                              </Button>
-                            </a>
-                          )}
-                        </>
-                      )}
-                    </div>
+                              <span className="flex items-center gap-2">
+                                <Globe className="h-4 w-4" />
+                                VIEW LIVE
+                                <ExternalLink className="h-3 w-3" />
+                              </span>
+                            </button>
+                          </a>
+                        )}
+                      </>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              <Card className="hover-elevate">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-10 w-10 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center">
-                      <FileText className="h-5 w-5 text-primary" />
-                    </div>
-                    <h3 className="font-semibold">Questionnaire</h3>
+              <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] brutal-card">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-[#E8A75D] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    <FileText className="h-6 w-6 text-black" />
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {profile ? "Update your career information and stories." : "Tell us about your career to build your Digital Twin."}
-                  </p>
-                  <Link href="/questionnaire">
-                    <Button variant="outline" size="sm" data-testid="button-goto-questionnaire">
-                      {profile ? "Edit Answers" : "Get Started"}
-                      <ArrowRight className="ml-1 h-3 w-3" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
+                  <div>
+                    <h3 className="font-bold text-lg">QUESTIONNAIRE</h3>
+                    <div className="mono text-xs text-black/50 uppercase">CONTEXT_INGESTION</div>
+                  </div>
+                </div>
+                <p className="mono text-sm text-black/60 mb-4">
+                  {profile ? "Update your career information and stories." : "Tell us about your career to build your Digital Twin."}
+                </p>
+                <Link href="/questionnaire">
+                  <button
+                    className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                    data-testid="button-goto-questionnaire"
+                  >
+                    <span className="flex items-center gap-2">
+                      {profile ? "EDIT ANSWERS" : "GET STARTED"}
+                      <ArrowRight className="h-3 w-3" />
+                    </span>
+                  </button>
+                </Link>
+              </div>
 
-              <Card className="hover-elevate">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-10 w-10 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center">
-                      <Sparkles className="h-5 w-5 text-primary" />
-                    </div>
-                    <h3 className="font-semibold">AI Processing</h3>
+              <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] brutal-card">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-[#93C5FD] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    <Sparkles className="h-6 w-6 text-black" />
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {profile?.status === "ready" || profile?.status === "published"
-                      ? "Your content has been processed by AI."
-                      : "Submit your questionnaire to start AI processing."}
-                  </p>
-                  <Badge variant="secondary" className="text-xs">
-                    {profile?.status === "processing" ? "In Progress..." : profile?.status === "ready" || profile?.status === "published" ? "Complete" : "Waiting for input"}
-                  </Badge>
-                </CardContent>
-              </Card>
+                  <div>
+                    <h3 className="font-bold text-lg">AI PROCESSING</h3>
+                    <div className="mono text-xs text-black/50 uppercase">NEURAL_ENGINE</div>
+                  </div>
+                </div>
+                <p className="mono text-sm text-black/60 mb-4">
+                  {profile?.status === "ready" || profile?.status === "published"
+                    ? "Your content has been processed by AI."
+                    : "Submit your questionnaire to start AI processing."}
+                </p>
+                <div className={`inline-block px-3 py-1 ${
+                  profile?.status === "processing" ? "bg-[#93C5FD]" :
+                  profile?.status === "ready" || profile?.status === "published" ? "bg-[#86EFAC]" :
+                  "bg-[#D1D1CC]"
+                } border-[3px] border-black mono text-xs uppercase tracking-wider font-bold`}>
+                  {profile?.status === "processing" ? "IN_PROGRESS" : profile?.status === "ready" || profile?.status === "published" ? "COMPLETE" : "WAITING_FOR_INPUT"}
+                </div>
+              </div>
 
               {profile?.status === "ready" && profile?.paymentStatus !== "paid" && (
                 <PaymentGate profileId={profile.id} />
               )}
 
               {profile?.status === "published" && (
-                <Card className="md:col-span-2">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Globe className="h-5 w-5 text-primary" />
-                      <h3 className="font-semibold">Your Portfolio URL</h3>
+                <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Globe className="h-5 w-5 text-black" />
+                    <h3 className="font-bold text-lg">PORTFOLIO_URL</h3>
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex-1 min-w-0 border-[3px] border-black bg-[#D1D1CC] px-4 py-3 mono text-sm text-black overflow-x-auto" data-testid="text-portfolio-url">
+                      <span className="text-black/40">$ </span>{window.location.origin}/portfolio/{user?.username}
                     </div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <code className="px-3 py-2 rounded-md bg-muted border text-sm text-primary font-mono" data-testid="text-portfolio-url">
-                        {window.location.origin}/portfolio/{user?.username}
-                      </code>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/portfolio/${user?.username}`);
-                        }}
-                        data-testid="button-copy-url"
-                      >
-                        Copy
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/portfolio/${user?.username}`);
+                      }}
+                      className="bg-black text-white px-5 py-3 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center gap-2"
+                      data-testid="button-copy-url"
+                    >
+                      <Copy className="h-3 w-3" />
+                      COPY
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           )}

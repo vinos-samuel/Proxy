@@ -1,0 +1,247 @@
+TASK: Update Dashboard and Questionnaire to Match Brutalist Landing Page Aesthetic
+
+CONTEXT: Landing page is now brutalist (light cream bg, black borders, mono fonts, multi-color cards). Dashboard and questionnaire are still dark green theme. Need consistency across entire user journey.
+
+FILES TO UPDATE:
+1. client/src/pages/Dashboard.tsx
+2. client/src/components/Questionnaire.tsx (or wherever multi-step form is)
+3. Any shared dashboard components
+
+DESIGN SYSTEM (Match Landing Page):
+- Background: bg-[#E8E8E3] (light cream)
+- Cards: bg-white border-3 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]
+- Headings: font-bold (Space Grotesk)
+- Labels: mono text-xs uppercase tracking-wider text-black/60
+- Inputs: border-2 border-black bg-white px-4 py-3 mono focus:border-[#22C55E]
+- Primary buttons: bg-[#22C55E] text-black font-bold border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase
+- Secondary buttons: bg-white text-black border-3 border-black mono
+- Progress indicators: brutalist style (not green circles)
+- Status badges: brutal-card style with appropriate colors
+
+---
+
+PART 1: DASHBOARD PAGE UPDATE
+
+Current state: Dark background with green accents
+Target: Light cream background with brutalist cards
+
+LAYOUT STRUCTURE:
+```tsx
+<div className="min-h-screen bg-[#E8E8E3] p-6">
+  {/* Top nav bar */}
+  <nav className="bg-[#D1D1CC] border-b-3 border-black p-4 mb-8">
+    <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 bg-[#22C55E] border-3 border-black flex items-center justify-center font-bold text-black">P</div>
+        <span className="text-xl font-bold">Proxy</span>
+      </div>
+      <div className="flex items-center gap-4">
+        <span className="mono text-sm">{user.name}</span>
+        <button className="mono text-sm">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  {/* Main content */}
+  <div className="max-w-5xl mx-auto">
+    <h1 className="text-5xl font-bold mb-2">Dashboard</h1>
+    <p className="text-xl text-black/60 mb-12">Welcome back, {user.name}. Manage your Career Proxy below.</p>
+
+    {/* Status Card */}
+    <div className="bg-white border-3 border-black p-8 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-3xl font-bold mb-2">Your Career Proxy</h2>
+          <p className="text-black/60 mono text-sm uppercase">{status}</p>
+        </div>
+        {status === 'ready' && (
+          <button className="bg-[#22C55E] text-black px-6 py-3 font-bold border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase">
+            View Live →
+          </button>
+        )}
+      </div>
+    </div>
+
+    {/* Action Cards Grid */}
+    <div className="grid md:grid-cols-2 gap-6">
+      {/* Questionnaire Card */}
+      <div className="bg-white border-3 border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        <div className="w-12 h-12 bg-[#E8A75D] border-3 border-black flex items-center justify-center mb-4">
+          📝
+        </div>
+        <h3 className="text-xl font-bold mb-2">Questionnaire</h3>
+        <p className="text-black/70 mb-4">Tell us about your career to build your Proxy.</p>
+        <button className="w-full bg-black text-white py-3 font-bold mono border-3 border-black">
+          Get Started →
+        </button>
+      </div>
+
+      {/* AI Processing Card */}
+      <div className="bg-white border-3 border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        <div className="w-12 h-12 bg-[#93C5FD] border-3 border-black flex items-center justify-center mb-4">
+          ⚡
+        </div>
+        <h3 className="text-xl font-bold mb-2">AI Processing</h3>
+        <p className="text-black/70 mb-4">Submit your questionnaire to start AI processing.</p>
+        <div className="bg-black/5 border-2 border-black/20 px-4 py-2 mono text-xs uppercase">
+          {status === 'processing' ? 'Processing...' : 'Waiting for input'}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+CRITICAL CHANGES:
+- Replace dark (#1a1a1a) → light cream (#E8E8E3)
+- Replace green cards → white cards with black borders
+- Replace rounded corners → sharp/minimal rounding
+- Add offset box shadows to all cards
+- Update all buttons to brutalist style
+- Change status badges to mono uppercase style
+
+---
+
+PART 2: QUESTIONNAIRE UPDATE
+
+Current state: Dark multi-step form with green progress
+Target: Light brutalist form with clean progress indicator
+
+PROGRESS INDICATOR:
+Replace circular progress with brutalist step indicator:
+```tsx
+<div className="mb-12 p-4 border-3 border-black bg-white">
+  <div className="flex items-center justify-between mono text-xs">
+    <span>STEP_{String(currentStep).padStart(2, '0')}</span>
+    <span>PROGRESS: {Math.round((currentStep / totalSteps) * 100)}%</span>
+  </div>
+  <div className="mt-2 h-2 bg-black/10 border-2 border-black">
+    <div 
+      className="h-full bg-[#22C55E]"
+      style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+    />
+  </div>
+</div>
+```
+
+FORM CONTAINER:
+```tsx
+<div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center p-6">
+  <div className="max-w-3xl w-full">
+    {/* Header */}
+    <div className="mb-8 text-center">
+      <h1 className="text-4xl font-bold mb-2">Context Ingestion</h1>
+      <p className="text-black/60 mono text-sm uppercase">Building your career proxy</p>
+    </div>
+
+    {/* Progress */}
+    {/* ... progress indicator from above ... */}
+
+    {/* Question Card */}
+    <div className="bg-white border-3 border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+      <label className="mono text-xs uppercase tracking-wider text-black/60 block mb-2">
+        {questionLabel}
+      </label>
+      
+      {/* Input based on question type */}
+      <input 
+        className="w-full border-2 border-black bg-white px-4 py-3 mono mb-6 focus:outline-none focus:border-[#22C55E]"
+        type="text"
+      />
+      
+      {/* Navigation */}
+      <div className="flex gap-4">
+        {currentStep > 1 && (
+          <button className="bg-white text-black px-6 py-3 font-bold border-3 border-black mono uppercase">
+            ← Previous
+          </button>
+        )}
+        <button className="flex-1 bg-[#22C55E] text-black px-6 py-3 font-bold border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase">
+          {currentStep === totalSteps ? 'Submit & Generate →' : 'Next →'}
+        </button>
+      </div>
+    </div>
+
+    {/* Auto-save indicator */}
+    <p className="text-center mt-4 mono text-xs text-black/40">Auto-saved</p>
+  </div>
+</div>
+```
+
+QUESTION TYPE SPECIFIC STYLING:
+
+For textarea:
+```tsx
+<textarea 
+  className="w-full border-2 border-black bg-white px-4 py-3 mono resize-none focus:outline-none focus:border-[#22C55E]"
+  rows={6}
+/>
+```
+
+For select/dropdown:
+```tsx
+<select className="w-full border-2 border-black bg-white px-4 py-3 mono focus:outline-none focus:border-[#22C55E]">
+  <option>Choose...</option>
+</select>
+```
+
+For file upload:
+```tsx
+<div className="border-2 border-dashed border-black bg-white/50 p-8 text-center">
+  <div className="w-16 h-16 bg-black/5 border-2 border-black rounded-lg mx-auto mb-4 flex items-center justify-center text-2xl">
+    📄
+  </div>
+  <p className="mono text-sm mb-2">Drag & drop or click to upload</p>
+  <input type="file" className="hidden" />
+</div>
+```
+
+For multi-choice (radio/checkbox):
+```tsx
+<div className="space-y-3">
+  {options.map(option => (
+    <label key={option} className="flex items-center gap-3 p-4 border-2 border-black bg-white cursor-pointer hover:bg-black/5">
+      <input type="radio" className="w-5 h-5" />
+      <span className="mono">{option}</span>
+    </label>
+  ))}
+</div>
+```
+
+---
+
+PART 3: SHARED COMPONENTS
+
+Update any shared components (buttons, inputs, cards) to use the new brutalist style.
+
+Create reusable component classes if needed:
+```tsx
+// Button variants
+const buttonStyles = {
+  primary: "bg-[#22C55E] text-black font-bold border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase px-6 py-3",
+  secondary: "bg-white text-black font-bold border-3 border-black mono uppercase px-6 py-3",
+  ghost: "text-black mono uppercase px-6 py-3 hover:bg-black/5"
+};
+
+// Card styles
+const cardStyles = {
+  default: "bg-white border-3 border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]",
+  large: "bg-white border-3 border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+};
+```
+
+---
+
+TESTING CHECKLIST:
+✅ Dashboard loads with light cream background
+✅ All cards have black borders and offset shadows
+✅ Buttons match brutalist style (green primary, white secondary)
+✅ Questionnaire has clean progress indicator
+✅ All form inputs have black borders
+✅ Focus states show green border
+✅ Mobile responsive (cards stack on small screens)
+✅ Consistent with landing page aesthetic
+✅ No remnants of dark green theme
+✅ Status badges use mono uppercase style
+
+Please implement all 3 parts and test thoroughly.

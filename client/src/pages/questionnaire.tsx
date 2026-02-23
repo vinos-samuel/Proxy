@@ -146,8 +146,11 @@ const defaultData: QuestionnaireData = {
 export default function QuestionnairePage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<QuestionnaireData>(defaultData);
+  const [resumeUploading, setResumeUploading] = useState(false);
+  const [resumeFileName, setResumeFileName] = useState("");
+  const resumeInputRef = useRef<HTMLInputElement>(null);
 
   const headshotInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -202,6 +205,79 @@ export default function QuestionnairePage() {
       });
     }
   }, [existingProfile]);
+
+  const handleResumeUpload = async (file: File) => {
+    if (file.type !== "application/pdf") {
+      toast({ title: "Invalid file", description: "Please upload a PDF file. If you have a Word document, save it as PDF first.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Please upload a resume under 5MB.", variant: "destructive" });
+      return;
+    }
+
+    setResumeUploading(true);
+    setResumeFileName(file.name);
+
+    try {
+      const formData = new FormData();
+      formData.append("resume", file);
+
+      const response = await fetch("/api/parse-resume", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Failed to parse resume");
+      }
+
+      const extracted = await response.json();
+
+      setData(prev => ({
+        ...prev,
+        step1: {
+          fullName: extracted.name || prev.step1.fullName,
+          currentTitle: extracted.currentTitle || prev.step1.currentTitle,
+          email: extracted.email || prev.step1.email,
+          phone: extracted.phone || prev.step1.phone,
+          linkedinUrl: extracted.linkedin || prev.step1.linkedinUrl,
+          location: extracted.location || prev.step1.location,
+        },
+        step2: {
+          professionalSummary: extracted.summary || prev.step2.professionalSummary,
+          careerHistory: extracted.roles?.length > 0
+            ? extracted.roles.map((r: any) => ({
+                company: r.company || "",
+                title: r.title || "",
+                years: r.years || "",
+                achievements: typeof r.achievements === "string" ? r.achievements : (r.achievements || []).join("\n"),
+              }))
+            : prev.step2.careerHistory,
+        },
+        step5: {
+          achievements: extracted.achievements?.length > 0
+            ? extracted.achievements.join("\n")
+            : prev.step5.achievements,
+        },
+        step6: {
+          technicalSkills: extracted.skills?.length > 0
+            ? extracted.skills.join(", ")
+            : prev.step6.technicalSkills,
+        },
+      }));
+
+      toast({ title: "Resume analyzed", description: `Pre-filled your information from ${file.name}. Please review each section.` });
+      setCurrentStep(1);
+    } catch (error: any) {
+      console.error("Resume upload error:", error);
+      toast({ title: "Parse failed", description: error.message || "Could not parse resume. You can fill the form manually.", variant: "destructive" });
+    } finally {
+      setResumeUploading(false);
+    }
+  };
 
   const saveMutation = useMutation({
     mutationFn: async (formData: QuestionnaireData) => {
@@ -384,6 +460,123 @@ export default function QuestionnairePage() {
     return (
       <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
         <Loader2 className="h-8 w-8 animate-spin text-black/40" />
+      </div>
+    );
+  }
+
+  if (currentStep === 0) {
+    return (
+      <div className="min-h-screen bg-[#E8E8E3] text-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+        <nav className="sticky top-0 z-50 border-b-[3px] border-black bg-[#D1D1CC]">
+          <div className="mx-auto max-w-4xl px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
+            <Link href="/dashboard">
+              <div className="flex items-center gap-3 cursor-pointer">
+                <div className="w-10 h-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
+                  P
+                </div>
+                <span className="text-xl font-bold tracking-tight">Context Ingestion</span>
+              </div>
+            </Link>
+          </div>
+        </nav>
+
+        <div className="mx-auto max-w-3xl px-6 py-12">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-2">Context Ingestion</h1>
+            <p className="mono text-sm text-black/60 uppercase tracking-wider">Building your career proxy</p>
+          </div>
+
+          <div className="mb-8 p-4 border-[3px] border-black bg-white">
+            <div className="flex items-center justify-between mono text-xs">
+              <span>STEP_00 &bull; OPTIONAL</span>
+              <span>PROGRESS: 0%</span>
+            </div>
+            <div className="mt-2 h-2 bg-black/10 border-2 border-black">
+              <div className="h-full bg-[#22C55E]" style={{ width: "0%" }} />
+            </div>
+          </div>
+
+          <div className="bg-white border-[3px] border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <h2 className="text-3xl font-bold mb-4">Upload Resume (Optional)</h2>
+            <p className="text-black/70 mb-6">
+              Upload your PDF resume and we'll extract your career data to pre-fill the questionnaire.
+              This saves approximately 15 minutes of typing.
+            </p>
+
+            <div className="bg-[#93C5FD]/20 border-2 border-[#93C5FD] p-4 mb-6 mono text-sm">
+              <div className="font-bold mb-1">WHAT_WE_EXTRACT:</div>
+              <div className="text-black/70">
+                &bull; Contact info (name, email, location)<br/>
+                &bull; Career history (titles, companies, dates, achievements)<br/>
+                &bull; Skills and education<br/>
+                <br/>
+                You'll still need to add war stories and preferences manually.
+              </div>
+            </div>
+
+            <input
+              type="file"
+              ref={resumeInputRef}
+              className="hidden"
+              accept=".pdf,application/pdf"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleResumeUpload(f);
+                e.target.value = "";
+              }}
+              data-testid="input-resume-upload"
+            />
+
+            <div
+              className="border-2 border-dashed border-black bg-[#E8E8E3]/50 p-12 text-center mb-6 cursor-pointer hover:bg-[#E8E8E3] transition-colors"
+              onClick={() => !resumeUploading && resumeInputRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const f = e.dataTransfer.files?.[0];
+                if (f) handleResumeUpload(f);
+              }}
+              data-testid="dropzone-resume"
+            >
+              <div className="w-20 h-20 bg-[#E8A75D] border-[3px] border-black mx-auto mb-4 flex items-center justify-center">
+                {resumeUploading ? (
+                  <Loader2 className="h-8 w-8 animate-spin text-black" />
+                ) : (
+                  <FileText className="h-8 w-8 text-black" />
+                )}
+              </div>
+
+              {resumeUploading ? (
+                <>
+                  <p className="mono text-sm font-bold mb-2">EXTRACTING DATA...</p>
+                  <p className="mono text-xs text-black/60">{resumeFileName}</p>
+                  <p className="mono text-xs text-black/40 mt-2">This may take 10-15 seconds</p>
+                </>
+              ) : (
+                <>
+                  <p className="mono text-sm mb-4">Drag & drop PDF or click to upload</p>
+                  <span className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase inline-block hover:bg-[#16A34A] transition-colors">
+                    CHOOSE FILE
+                  </span>
+                </>
+              )}
+            </div>
+
+            <button
+              onClick={() => setCurrentStep(1)}
+              disabled={resumeUploading}
+              className="w-full bg-white text-black px-6 py-3 font-bold border-[3px] border-black mono uppercase hover:bg-black/5 transition-colors disabled:opacity-50"
+              data-testid="button-skip-resume"
+            >
+              SKIP &mdash; FILL MANUALLY &rarr;
+            </button>
+
+            <p className="text-xs text-black/40 mt-4 mono text-center uppercase tracking-wider">
+              PDF only &bull; Max size: 5MB
+            </p>
+          </div>
+        </div>
       </div>
     );
   }

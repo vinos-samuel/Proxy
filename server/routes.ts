@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import { registerSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import session from "express-session";
-import { processQuestionnaire } from "./ai-processor";
+import { processQuestionnaire, parseResumeWithGemini } from "./ai-processor";
+import multer from "multer";
 import { GoogleGenAI } from "@google/genai";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
@@ -256,6 +257,47 @@ export async function registerRoutes(
       } catch (error) {
         console.error("Profile update error:", error);
         res.status(500).json({ message: "Failed to update profile" });
+      }
+    },
+  );
+
+  // ==================== RESUME PARSING ====================
+
+  const resumeUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 },
+  });
+
+  app.post(
+    "/api/parse-resume",
+    requireAuth,
+    resumeUpload.single("resume"),
+    async (req: Request, res: Response) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ error: "No file uploaded" });
+        }
+
+        if (req.file.mimetype !== "application/pdf") {
+          return res.status(400).json({
+            error: "Only PDF resumes are supported. Please convert your document to PDF first.",
+          });
+        }
+
+        const pdfBuffer = req.file.buffer;
+        const extractedData = await parseResumeWithGemini(pdfBuffer);
+
+        console.log("[Resume Parse] Successfully extracted data:", {
+          name: extractedData.name,
+          rolesCount: extractedData.roles?.length || 0,
+        });
+
+        res.json(extractedData);
+      } catch (error: any) {
+        console.error("[Resume Parse] Error:", error);
+        res.status(500).json({
+          error: error.message || "Failed to parse resume. Please try again or fill the form manually.",
+        });
       }
     },
   );

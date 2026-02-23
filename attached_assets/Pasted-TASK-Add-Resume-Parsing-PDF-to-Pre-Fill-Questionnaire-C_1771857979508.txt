@@ -1,0 +1,423 @@
+TASK: Add Resume Parsing (PDF) to Pre-Fill Questionnaire
+
+CONTEXT: Add optional PDF resume upload as Step 0 of questionnaire. If user uploads resume, Gemini Vision API extracts data and pre-fills form fields. User can review/edit before submitting.
+
+SCOPE: PDF only for MVP (covers 90%+ of users). DOCX support can be added later.
+
+FILES TO UPDATE:
+1. server/routes.ts - Add resume upload endpoint
+2. server/ai-processor.ts - Add Gemini parsing function  
+3. client/src/components/Questionnaire.tsx - Add Step 0 with upload
+4. package.json - Add multer for file uploads
+
+---
+
+PART 1: ADD RESUME UPLOAD ENDPOINT
+
+In server/routes.ts:
+```typescript
+import multer from 'multer';
+
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB max
+});
+
+app.post('/api/parse-resume', upload.single('resume'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Only accept PDFs for now
+    if (req.file.mimetype !== 'application/pdf') {
+      return res.status(400).json({ 
+        error: 'Only PDF resumes are supported. Please convert your Word document to PDF first.' 
+      });
+    }
+
+    const pdfBuffer = req.file.buffer;
+    const extractedData = await parseResumeWithGemini(pdfBuffer);
+    
+    console.log('[Resume Parse] Successfully extracted data:', {
+      name: extractedData.name,
+      rolesCount: extractedData.roles?.length || 0
+    });
+    
+    res.json(extractedData);
+  } catch (error) {
+    console.error('[Resume Parse] Error:', error);
+    res.status(500).json({ 
+      error: 'Failed to parse resume. Please try again or fill the form manually.' 
+    });
+  }
+});
+```
+
+---
+
+PART 2: ADD GEMINI PARSING FUNCTION
+
+In server/ai-processor.ts:
+```typescript
+import { gemini } from './gemini'; // or wherever your Gemini client is
+
+export async function parseResumeWithGemini(pdfBuffer: Buffer) {
+  const base64Pdf = pdfBuffer.toString('base64');
+  
+  const prompt = `
+You are a resume data extraction expert. Extract structured career information from this resume PDF.
+
+CRITICAL INSTRUCTIONS:
+- Extract ALL information exactly as written
+- Preserve original wording for achievements (don't paraphrase)
+- Use "Present" for current roles (not "Current" or "Now")
+- Standardize all dates to "MMM YYYY" format (e.g., "Jan 2020", "Mar 2019")
+- If a field is missing, use empty string ("") or empty array ([])
+- Extract skills as individual items, not grouped phrases
+
+REQUIRED OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
+{
+  "name": "string (full name from resume)",
+  "email": "string (email address if present, else empty)",
+  "phone": "string (phone number if present, else empty)",
+  "location": "string (city, country format, e.g., 'Singapore, SG' or 'London, UK')",
+  "linkedin": "string (LinkedIn URL if present, else empty)",
+  "summary": "string (professional summary/objective if present, 2-3 sentences max)",
+  "roles": [
+    {
+      "title": "string (exact job title from resume)",
+      "company": "string (company name)",
+      "location": "string (city, country where role was based)",
+      "startDate": "string (MMM YYYY format)",
+      "endDate": "string (MMM YYYY or 'Present')",
+      "achievements": [
+        "string (each bullet point from resume, preserved exactly)"
+      ]
+    }
+  ],
+  "skills": [
+    "string (individual skill, tool, or methodology)"
+  ],
+  "education": [
+    {
+      "degree": "string (degree name, e.g., 'Bachelor of Science in Computer Science')",
+      "institution": "string (university/school name)",
+      "year": "string (graduation year YYYY or range YYYY-YYYY)"
+    }
+  ]
+}
+
+EXAMPLES OF GOOD EXTRACTION:
+
+Input: "Jan 2020 - Current"
+Output: "startDate": "Jan 2020", "endDate": "Present"
+
+Input: "2019-2021"  
+Output: "startDate": "Jan 2019", "endDate": "Dec 2021"
+
+Input bullet: "Led team of 15 engineers across 3 time zones"
+Output: "Led team of 15 engineers across 3 time zones" (exact copy)
+
+Input skills section: "Python, React, AWS, Agile methodology"
+Output: ["Python", "React", "AWS", "Agile methodology"]
+
+Return ONLY valid JSON. No markdown code fences, no explanations, no preamble.
+`;
+
+  try {
+    const result = await gemini.generateContent([
+      { text: prompt },
+      { 
+        inlineData: { 
+          data: base64Pdf, 
+          mimeType: 'application/pdf' 
+        } 
+      }
+    ]);
+
+    const responseText = result.response.text();
+    
+    // Strip markdown code fences if Gemini adds them despite instructions
+    const cleanJson = responseText
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim();
+    
+    const parsed = JSON.parse(cleanJson);
+    
+    // Validate required fields
+    if (!parsed.name) {
+      throw new Error('Could not extract name from resume');
+    }
+    
+    // Ensure arrays exist even if empty
+    parsed.roles = parsed.roles || [];
+    parsed.skills = parsed.skills || [];
+    parsed.education = parsed.education || [];
+    
+    return parsed;
+    
+  } catch (error) {
+    console.error('[Gemini Parse] Error:', error);
+    throw new Error('Failed to extract data from resume. The file may be corrupted or unreadable.');
+  }
+}
+```
+
+---
+
+PART 3: ADD STEP 0 TO QUESTIONNAIRE
+
+In client/src/components/Questionnaire.tsx:
+
+Find where you initialize currentStep and update:
+```typescript
+const [currentStep, setCurrentStep] = useState(0); // Changed from 1
+const totalSteps = 13; // Changed from 12 to account for Step 0
+```
+
+Add state for resume upload:
+```typescript
+const [resumeUploading, setResumeUploading] = useState(false);
+const [resumeExtracted, setResumeExtracted] = useState(false);
+const [resumeFileName, setResumeFileName] = useState('');
+```
+
+Add upload handler:
+```typescript
+const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  // Validate file type
+  if (file.type !== 'application/pdf') {
+    alert('Please upload a PDF file. If you have a Word document, save it as PDF first.');
+    return;
+  }
+
+  // Validate file size (5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    alert('File too large. Please upload a resume under 5MB.');
+    return;
+  }
+
+  setResumeUploading(true);
+  setResumeFileName(file.name);
+
+  try {
+    const formData = new FormData();
+    formData.append('resume', file);
+
+    const response = await fetch('/api/parse-resume', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to parse resume');
+    }
+
+    const extractedData = await response.json();
+
+    // Pre-fill form state with extracted data
+    setFormData(prev => ({
+      ...prev,
+      step1: {
+        fullName: extractedData.name || '',
+        email: extractedData.email || '',
+        phone: extractedData.phone || '',
+        location: extractedData.location || ''
+      },
+      step2: {
+        linkedinUrl: extractedData.linkedin || '',
+        personalWebsite: prev.step2?.personalWebsite || '',
+        otherLinks: prev.step2?.otherLinks || ''
+      },
+      step3: {
+        professionalSummary: extractedData.summary || ''
+      },
+      step4: {
+        careerHistory: extractedData.roles.map(role => ({
+          title: role.title,
+          company: role.company,
+          location: role.location,
+          startDate: role.startDate,
+          endDate: role.endDate,
+          achievements: role.achievements || []
+        }))
+      },
+      step8: {
+        technicalSkills: extractedData.skills.join(', ') || ''
+      },
+      step9: {
+        education: extractedData.education.map(edu => ({
+          degree: edu.degree,
+          institution: edu.institution,
+          year: edu.year
+        }))
+      }
+    }));
+
+    setResumeExtracted(true);
+    
+    // Show success and move to Step 1
+    alert(`✓ Resume analyzed successfully!\n\nWe've pre-filled your information from ${file.name}. Please review each section and add your war stories in the upcoming steps.`);
+    
+    setCurrentStep(1);
+
+  } catch (error: any) {
+    console.error('Resume upload error:', error);
+    alert(`Failed to parse resume: ${error.message}\n\nYou can continue filling the form manually.`);
+  } finally {
+    setResumeUploading(false);
+  }
+};
+```
+
+Add Step 0 rendering (add this BEFORE your existing Step 1 rendering):
+```tsx
+{currentStep === 0 && (
+  <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center p-6">
+    <div className="max-w-3xl w-full">
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-bold mb-2">Context Ingestion</h1>
+        <p className="text-black/60 mono text-sm uppercase">Building your career proxy</p>
+      </div>
+
+      {/* Progress indicator for Step 0 */}
+      <div className="mb-12 p-4 border-3 border-black bg-white">
+        <div className="flex items-center justify-between mono text-xs">
+          <span>STEP_00 • OPTIONAL</span>
+          <span>PROGRESS: 0%</span>
+        </div>
+        <div className="mt-2 h-2 bg-black/10 border-2 border-black">
+          <div className="h-full bg-[#22C55E]" style={{ width: '0%' }} />
+        </div>
+      </div>
+
+      {/* Upload card */}
+      <div className="bg-white border-3 border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <h2 className="text-3xl font-bold mb-4">Upload Resume (Optional)</h2>
+        <p className="text-black/70 mb-6">
+          Upload your PDF resume and we'll extract your career data to pre-fill the questionnaire. 
+          This saves approximately 15 minutes of typing.
+        </p>
+
+        {/* Info box */}
+        <div className="bg-[#93C5FD]/20 border-2 border-[#93C5FD] p-4 mb-6 mono text-sm">
+          <div className="font-bold mb-1">ℹ️ What we'll extract:</div>
+          <div className="text-black/70">
+            • Contact info (name, email, location)<br/>
+            • Career history (titles, companies, dates, achievements)<br/>
+            • Skills and education<br/>
+            <br/>
+            You'll still need to add war stories and preferences manually.
+          </div>
+        </div>
+
+        {/* Upload area */}
+        <div className="border-2 border-dashed border-black bg-white/50 p-12 text-center mb-6">
+          <div className="w-20 h-20 bg-[#E8A75D] border-3 border-black mx-auto mb-4 flex items-center justify-center text-3xl">
+            {resumeUploading ? '⚡' : '📄'}
+          </div>
+          
+          {resumeUploading ? (
+            <>
+              <p className="mono text-sm font-bold mb-2">EXTRACTING DATA...</p>
+              <p className="mono text-xs text-black/60">{resumeFileName}</p>
+            </>
+          ) : (
+            <>
+              <p className="mono text-sm mb-4">Drag & drop PDF or click to upload</p>
+              <input 
+                type="file" 
+                accept=".pdf"
+                onChange={handleResumeUpload}
+                disabled={resumeUploading}
+                className="hidden"
+                id="resume-upload"
+              />
+              <label 
+                htmlFor="resume-upload"
+                className="bg-[#22C55E] text-black px-6 py-3 font-bold border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase cursor-pointer inline-block hover:bg-[#16A34A] transition-colors"
+              >
+                Choose File
+              </label>
+            </>
+          )}
+        </div>
+
+        {/* Skip button */}
+        <button 
+          onClick={() => setCurrentStep(1)}
+          disabled={resumeUploading}
+          className="w-full bg-white text-black px-6 py-3 font-bold border-3 border-black mono uppercase hover:bg-black/5 transition-colors disabled:opacity-50"
+        >
+          Skip - Fill Manually →
+        </button>
+
+        <p className="text-xs text-black/40 mt-4 mono text-center">
+          PDF only • Max size: 5MB • Your data is never stored on our servers
+        </p>
+      </div>
+    </div>
+  </div>
+)}
+```
+
+Update progress indicator for other steps to account for Step 0:
+```tsx
+{currentStep > 0 && (
+  <div className="mb-12 p-4 border-3 border-black bg-white">
+    <div className="flex items-center justify-between mono text-xs">
+      <span>STEP_{String(currentStep).padStart(2, '0')}</span>
+      <span>PROGRESS: {Math.round((currentStep / totalSteps) * 100)}%</span>
+    </div>
+    <div className="mt-2 h-2 bg-black/10 border-2 border-black">
+      <div 
+        className="h-full bg-[#22C55E]"
+        style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+      />
+    </div>
+  </div>
+)}
+```
+
+---
+
+PART 4: ADD MULTER DEPENDENCY
+
+If not already in package.json:
+```json
+{
+  "dependencies": {
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "@types/multer": "^1.4.11"
+  }
+}
+```
+
+Run: `npm install`
+
+---
+
+PART 5: ADD HELPFUL USER MESSAGING
+
+Add a banner after extraction to remind users what's pre-filled:
+
+In Step 1 (after resume extraction), show:
+```tsx
+{resumeExtracted && (
+  <div className="bg-[#86EFAC]/20 border-2 border-[#86EFAC] p-4 mb-6 mono text-sm">
+    <div className="font-bold mb-1">✓ Resume data loaded</div>
+    <div className="text-black/70">
+      We've pre-filled this step from your resume. Please review and edit if needed.
+    </div>
+  </div>
+)}
+```

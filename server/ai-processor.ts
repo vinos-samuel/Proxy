@@ -813,3 +813,76 @@ Return ONLY the response text.`;
 
   await storage.updateProfileStatus(profileId, "ready");
 }
+
+export async function parseResumeWithGemini(pdfBuffer: Buffer) {
+  const base64Pdf = pdfBuffer.toString("base64");
+
+  const prompt = `You are a resume data extraction expert. Extract structured career information from this resume PDF.
+
+CRITICAL INSTRUCTIONS:
+- Extract ALL information exactly as written
+- Preserve original wording for achievements (don't paraphrase)
+- Use "Present" for current roles (not "Current" or "Now")
+- If dates show just years like "2019-2021", output startDate as "2019" and endDate as "2021"
+- If a field is missing, use empty string ("") or empty array ([])
+- Extract skills as individual items, not grouped phrases
+
+REQUIRED OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
+{
+  "name": "string (full name from resume)",
+  "currentTitle": "string (most recent job title)",
+  "email": "string (email if present, else empty)",
+  "phone": "string (phone if present, else empty)",
+  "location": "string (city, country format)",
+  "linkedin": "string (LinkedIn URL if present, else empty)",
+  "summary": "string (professional summary if present, 2-3 sentences max)",
+  "roles": [
+    {
+      "title": "string (exact job title)",
+      "company": "string (company name)",
+      "years": "string (date range, e.g. '2020 - Present' or '2018 - 2020')",
+      "achievements": "string (bullet points joined with newlines)"
+    }
+  ],
+  "skills": ["string (individual skill, tool, or methodology)"],
+  "achievements": ["string (quantified achievement statements)"]
+}
+
+Return ONLY valid JSON. No markdown code fences, no explanations, no preamble.`;
+
+  try {
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: prompt },
+            { inlineData: { data: base64Pdf, mimeType: "application/pdf" } },
+          ],
+        },
+      ],
+    });
+
+    const responseText = result.text || "";
+    const cleanJson = responseText
+      .replace(/```json\n?/g, "")
+      .replace(/```\n?/g, "")
+      .trim();
+
+    const parsed = JSON.parse(cleanJson);
+
+    if (!parsed.name) {
+      throw new Error("Could not extract name from resume");
+    }
+
+    parsed.roles = parsed.roles || [];
+    parsed.skills = parsed.skills || [];
+    parsed.achievements = parsed.achievements || [];
+
+    return parsed;
+  } catch (error) {
+    console.error("[Gemini Resume Parse] Error:", error);
+    throw new Error("Failed to extract data from resume. The file may be corrupted or unreadable.");
+  }
+}

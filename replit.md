@@ -41,7 +41,7 @@ A SaaS platform ("Proxy") that lets professionals create AI-powered interactive 
 
 ### Customer (authenticated)
 - `/dashboard` - Customer home
-- `/questionnaire` - 12-step career form
+- `/questionnaire` - Step 0 (optional PDF resume upload) + 12-step career form
 - `/preview` - Live preview with inline editing and publish button
 
 ### Admin
@@ -56,6 +56,7 @@ A SaaS platform ("Proxy") that lets professionals create AI-powered interactive 
 - `PATCH /api/profile` - Edit profile fields (displayName, roleTitle, positioning, persona, tone, achievements)
 - `POST /api/profile/publish` - Publish portfolio
 - `POST /api/test-publish` - Test mode: publish with tier selection, no payment required
+- `POST /api/parse-resume` - Upload PDF resume for AI extraction (authenticated, multer)
 - `POST /api/questionnaire/save` - Save questionnaire progress
 - `POST /api/questionnaire/submit` - Submit for AI processing
 - `GET /api/portfolio/:username` - Public portfolio data (includes brandingTheme, videoUrl, cvResumeUrl)

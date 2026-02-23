@@ -359,8 +359,9 @@ export async function registerRoutes(
       const suggestedQuestions = questionnaireData?.step11?.suggestedQuestions
         ? questionnaireData.step11.suggestedQuestions
             .split("\n")
+            .map((q: string) => q.trim())
             .filter(Boolean)
-            .slice(0, 4)
+            .slice(0, 8)
         : [];
 
       res.json({

@@ -84,7 +84,7 @@ const themes = {
     chatBotBg: "bg-white/10 border border-[#C9A961]/30 text-white",
     ctaBg: "bg-[#C9A961] hover:bg-[#D4AF37]",
     ctaGlow: "shadow-lg shadow-[#C9A961]/20",
-    sectionLabel: (num: number) => `SECTION ${toRomanNumeral(num)} `,
+    sectionLabel: (_num: number) => "",
     moduleStyle: "formal" as const,
     dotColor: "bg-[#C9A961]",
     timelineLineColor: "bg-[#C9A961]/30",
@@ -107,7 +107,7 @@ const themes = {
     chatBotBg: "bg-white/5 border border-blue-500/30 text-white",
     ctaBg: "bg-blue-600 hover:bg-blue-700",
     ctaGlow: "shadow-lg shadow-blue-500/20",
-    sectionLabel: (num: number) => `MODULE_${String(num).padStart(2, '0')} `,
+    sectionLabel: (_num: number) => "",
     moduleStyle: "system" as const,
     dotColor: "bg-blue-500",
     timelineLineColor: "bg-blue-500/30",
@@ -248,10 +248,10 @@ export default function PortfolioPage() {
   const initials = profile.displayName?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "DT";
 
   const skills = profile.technicalSkills?.split(/[,\n]/).map(s => s.trim()).filter(Boolean) || [];
-  const suggestedQs = profile.portfolioSuggestedQuestions?.length
-    ? profile.portfolioSuggestedQuestions
-    : portfolio.suggestedQuestions?.length
-      ? portfolio.suggestedQuestions
+  const suggestedQs = portfolio.suggestedQuestions?.length
+    ? portfolio.suggestedQuestions
+    : profile.portfolioSuggestedQuestions?.length
+      ? profile.portfolioSuggestedQuestions
       : ["Tell me about yourself", "What's your biggest achievement?", "How do you handle challenges?"];
 
   const visibleStats = showAllStats ? (profile.stats || []) : (profile.stats || []).slice(0, 6);
@@ -572,7 +572,8 @@ export default function PortfolioPage() {
       {/* 5. HOW I WORK — Horizontal timeline with arrows */}
       {profile.howIWork && profile.howIWork.steps?.length > 0 && (
         <section className="py-12 px-6 max-w-6xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-8 text-center ${theme.headingClass}`}>{theme.sectionLabel(3)}{profile.howIWork.name || "How I Work"}</h2>
+          <h2 className={`text-3xl font-bold mb-2 text-center ${theme.headingClass}`}>{profile.howIWork.name || "My Operating Model"}</h2>
+          <p className={`text-center ${theme.muted} mb-8`}>How I approach engagements and deliver results</p>
           <div className="flex flex-col md:flex-row items-stretch gap-2">
             {profile.howIWork.steps.map((step, i, arr) => (
               <div key={i} className="flex items-center flex-1 gap-2">
@@ -614,17 +615,20 @@ export default function PortfolioPage() {
                     <span className={`text-sm ${theme.muted}`}>{role.years}</span>
                   </div>
                   
-                  {/* Collapsible achievements */}
+                  {role.achievements && role.achievements.filter(a => a && !['na', 'n/a', 'none', 'nil'].includes(a.toLowerCase().trim())).length > 0 && (
                   <details className="mt-4">
                     <summary className="cursor-pointer text-white/70 hover:text-white transition-colors">
-                      Key Achievements ({role.achievements.length})
+                      Key Achievements ({role.achievements.filter(a => a && !['na', 'n/a', 'none', 'nil'].includes(a.toLowerCase().trim())).length})
                     </summary>
                     <ul className="mt-3 space-y-2 pl-5">
-                      {role.achievements.map((achievement, j) => (
-                        <li key={j} className="text-white/80 list-disc">{achievement}</li>
+                      {role.achievements
+                        .filter(a => a && !['na', 'n/a', 'none', 'nil'].includes(a.toLowerCase().trim()))
+                        .map((achievement, j) => (
+                        <li key={j} className="text-white/80 list-disc">{achievement.replace(/^[\s•\-\*]+/, '').trim()}</li>
                       ))}
                     </ul>
                   </details>
+                  )}
                 </div>
               </div>
             ))}

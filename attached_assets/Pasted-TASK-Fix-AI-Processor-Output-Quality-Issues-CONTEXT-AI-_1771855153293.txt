@@ -1,0 +1,188 @@
+TASK: Fix AI Processor Output Quality Issues
+
+CONTEXT: AI-generated portfolios have formatting issues, wrong suggested questions, "NA" showing up, double bullets, markdown in chat responses, unclear section labels. Need to match quality of reference examples: https://mani-digitalcv.replit.app/ and https://vinosaicv.replit.app/
+
+FILES TO UPDATE:
+1. server/ai-processor.ts (main AI processing logic)
+2. server/gemini.ts (chatbot system prompt)
+
+CRITICAL FIXES NEEDED:
+
+FIX 1: USE USER'S EXACT SUGGESTED QUESTIONS
+Current: AI generates its own questions
+Required: Use exactly what user entered in Step 11 of questionnaire
+
+In ai-processor.ts, find where suggestedQuestions is set.
+REPLACE AI generation with:
+```typescript
+const suggestedQuestions = data.step11?.suggestedQuestions || [
+  "Tell me about your most impactful project",
+  "How do you approach complex problems?",
+  "What makes you different from other candidates?"
+];
+```
+
+FIX 2: FILTER OUT "NA" / "N/A" / "None" FROM ACHIEVEMENTS
+Add this helper function:
+```typescript
+function cleanAchievements(achievements: string[]): string[] {
+  return achievements
+    .filter(a => a && a.trim().length > 0)
+    .filter(a => !['na', 'n/a', 'none', 'nil', 'null'].includes(a.toLowerCase().trim()))
+    .map(a => a.trim());
+}
+```
+
+Apply to career history processing:
+```typescript
+const cleanedAchievements = cleanAchievements(role.achievements);
+if (cleanedAchievements.length > 0) {
+  // Only show achievements section if there are valid ones
+  rolesData.push({
+    ...role,
+    achievements: cleanedAchievements
+  });
+}
+```
+
+FIX 3: REMOVE DOUBLE BULLETS IN ACHIEVEMENTS
+Update achievement formatting:
+```typescript
+function formatAchievement(text: string): string {
+  // Remove existing bullets/markers
+  let cleaned = text.replace(/^[\s•\-\*]+/, '').trim();
+  // Don't add bullet if already starts with number
+  if (/^\d+\./.test(cleaned)) return cleaned;
+  return cleaned;
+}
+```
+
+FIX 4: UPDATE CHATBOT SYSTEM PROMPT - NO MARKDOWN IN RESPONSES
+In server/gemini.ts, update the system prompt:
+
+OLD:
+Respond using this format:
+Challenge: ...
+Approach: ...
+Result: ...
+
+NEW:
+RESPONSE RULES:
+
+Write conversationally, NOT in structured format
+NO markdown (no **, ##, bullets in your response)
+Tell stories naturally like you're speaking to a recruiter in person
+Use "I" statements: "I designed...", "I led...", "I achieved..."
+Include metrics naturally in sentences: "which resulted in 3x growth across 5 accounts"
+Keep responses 2-3 paragraphs max
+NO section headers like "Challenge:" or "Approach:"
+
+Example GOOD response:
+"Throughout my career, I've consistently faced the strategic challenge of driving commercial success across vastly different cultural landscapes. When launching a new desk in Singapore, I positioned myself as an engaged learner, leveraging curiosity to build rapport and uncover bespoke needs. This adaptive framework proved highly effective - I successfully launched new service desks in two distinct markets from zero-base, and secured exclusive mandates worth six-figure sums by demonstrating transparent, strategic understanding."
+Example BAD response:
+"Challenge: Driving commercial success
+Approach: I positioned myself as...
+Result: Successfully launched..."
+
+FIX 5: REMOVE CONFUSING "SECTION I, SECTION II" LABELS
+In portfolio.tsx (or wherever sections render):
+
+FIND:
+```typescript
+{theme.sectionLabel(1) && <span>{theme.sectionLabel(1)}</span>}
+```
+
+REPLACE WITH:
+```typescript
+{/* Removed section labels - confusing without context */}
+```
+
+OR if you want to keep labels, make them meaningful:
+```typescript
+const sectionLabels = {
+  1: "IMPACT",
+  2: "EXPERTISE", 
+  3: "APPROACH",
+  4: "JOURNEY",
+  5: "CAPABILITIES"
+};
+```
+
+FIX 6: ADD CLEAR HEADER FOR METHODOLOGY SECTION
+In portfolio.tsx, find the "How I Work" or methodology section.
+
+ADD clear context:
+```typescript
+<h2 className="text-3xl font-bold mb-4">MY OPERATING MODEL</h2>
+<p className="text-lg text-white/70 mb-8">How I approach client engagements and deliver results</p>
+{/* Then show the framework */}
+```
+
+FIX 7: IMPROVE AI PROMPT QUALITY TO MATCH REFERENCE EXAMPLES
+Update the main AI processing prompt in ai-processor.ts:
+```typescript
+const portfolioPrompt = `
+You are an expert career copywriter. Transform this professional's raw questionnaire data into polished, compelling portfolio content.
+
+QUALITY STANDARDS:
+- Reference these examples for quality: mani-digitalcv.replit.app and vinosaicv.replit.app
+- Write with confidence and precision
+- Use active voice and strong verbs
+- Include specific metrics naturally in prose
+- Avoid generic corporate jargon
+- Make achievements concrete and visual
+
+INPUT DATA:
+${JSON.stringify(questionnaireData, null, 2)}
+
+OUTPUT REQUIREMENTS:
+
+1. HERO DESCRIPTION (2-3 sentences):
+- Start with their unique value prop
+- Include years of experience and core expertise
+- End with what they deliver/enable
+- NO clichés like "passionate", "results-driven", "team player"
+
+2. CAREER ROLES:
+- For each role, write achievements as complete sentences
+- Include context + action + result in each achievement
+- Strip any existing bullet points before formatting
+- If achievement list is empty or contains only "NA"/"N/A", omit achievements section entirely
+
+3. WAR STORIES:
+- Rewrite in CAR format but as narrative paragraphs
+- Challenge: 1-2 sentences of context
+- Approach: 2-3 sentences of what THEY did (use "I")
+- Result: 1-2 sentences with specific metrics
+- NO section headers in the final output
+
+4. SKILLS:
+- Group by category if possible
+- Be specific (not just "Leadership" but "P&L Leadership for $100M+ portfolios")
+
+Return as JSON with this structure:
+{
+  "heroDescription": "string",
+  "roles": [{"title": "string", "company": "string", "dates": "string", "achievements": ["string"]}],
+  "warStories": [{"title": "string", "narrative": "string"}],
+  "skills": ["string"],
+  "methodology": {"title": "string", "steps": [{"label": "string", "description": "string"}]}
+}
+`;
+```
+
+TESTING CHECKLIST:
+✅ Suggested questions match user input exactly
+✅ No "NA" showing in achievements
+✅ No double bullets in lists
+✅ Chatbot responses are conversational (no **)
+✅ Section labels removed or made meaningful
+✅ Methodology section has clear header
+✅ Overall quality matches reference examples
+✅ Test with portfolio that has:
+  - Some roles WITH achievements
+  - Some roles WITHOUT achievements (should not show section)
+  - User-entered suggested questions
+  - War stories with CAR format
+
+Please implement all 7 fixes and test thoroughly. This is CRITICAL for professional quality.

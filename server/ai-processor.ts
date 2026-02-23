@@ -75,6 +75,20 @@ interface QuestionnaireData {
   };
 }
 
+function cleanAchievements(achievements: string[]): string[] {
+  return achievements
+    .filter(a => a && a.trim().length > 0)
+    .filter(a => !['na', 'n/a', 'none', 'nil', 'null', '-', '—'].includes(a.toLowerCase().trim()))
+    .map(a => a.replace(/^[\s•\-\*]+/, '').trim())
+    .filter(a => a.length > 0);
+}
+
+function formatAchievement(text: string): string {
+  let cleaned = text.replace(/^[\s•\-\*]+/, '').trim();
+  if (/^\d+\./.test(cleaned)) return cleaned;
+  return cleaned;
+}
+
 export async function processQuestionnaire(
   profileId: string,
   data: QuestionnaireData,
@@ -169,6 +183,15 @@ Generate a JSON object with the following structure. Follow these rules exactly:
    - Leadership philosophy
    - Technical depth
 
+QUALITY STANDARDS:
+- Write with confidence and precision
+- Use active voice and strong verbs
+- Include specific metrics naturally in prose
+- Avoid generic corporate jargon like "passionate", "results-driven", "team player"
+- Make achievements concrete and visual
+- If achievement list is empty or contains only "NA"/"N/A", omit achievements section entirely
+- Strip any existing bullet points before formatting
+
 **CRITICAL:** Return ONLY valid JSON. No markdown, no code fences, no preamble.
 
 {
@@ -214,16 +237,27 @@ Generate a JSON object with the following structure. Follow these rules exactly:
       portfolioData = JSON.parse(jsonMatch[0]);
     }
 
-    // Extract career timeline from questionnaire
-    const careerTimeline = data.step2?.careerHistory?.map((role: any) => ({
-      company: role.company,
-      title: role.title,
-      years: role.years,
-      achievements: typeof role.achievements === 'string' 
-        ? role.achievements.split('\n').filter(Boolean) 
-        : role.achievements
-    })) || [];
+    const careerTimeline = (data.step2?.careerHistory || [])
+      .map((role: any) => {
+        const rawAchievements = typeof role.achievements === 'string' 
+          ? role.achievements.split('\n').filter(Boolean) 
+          : (role.achievements || []);
+        const cleaned = cleanAchievements(rawAchievements).map(formatAchievement);
+        return {
+          company: role.company,
+          title: role.title,
+          years: role.years,
+          achievements: cleaned
+        };
+      });
     portfolioData.careerTimeline = careerTimeline;
+
+    const userSuggestedQuestions = data.step11?.suggestedQuestions
+      ? data.step11.suggestedQuestions.split('\n').map((q: string) => q.trim()).filter(Boolean)
+      : null;
+    if (userSuggestedQuestions && userSuggestedQuestions.length > 0) {
+      portfolioData.suggestedQuestions = userSuggestedQuestions;
+    }
   } catch (error) {
     console.error("Error generating portfolio data:", error);
     // Fallback to basic structure
@@ -431,11 +465,15 @@ Return ONLY valid JSON (no markdown, no code fences):
   // ====================
 
   if (data.step5?.achievements) {
-    const achievementLines = data.step5.achievements
+    const rawAchievementLines = data.step5.achievements
       .split("\n")
       .filter(Boolean);
+    const achievementLines = cleanAchievements(rawAchievementLines).map(formatAchievement);
+    if (achievementLines.length === 0) {
+      // Skip achievements if all entries were NA/empty
+    } else {
     let enhancedAchievements = achievementLines
-      .map((a) => `- ${a.trim()}`)
+      .map((a) => `- ${a}`)
       .join("\n");
 
     try {
@@ -489,14 +527,14 @@ Return ONLY the rewritten bullet points, nothing else.`;
       ],
     });
 
-    // Create fact bank from achievements
     await storage.createFactBank({
       twinProfileId: profileId,
       companyName: "Key Achievements",
       roleName: data.step1.currentTitle,
       duration: "Career Highlights",
-      facts: achievementLines.map((a) => a.trim()).filter(Boolean),
+      facts: achievementLines,
     });
+    } // end else (valid achievements)
   }
 
   // ====================

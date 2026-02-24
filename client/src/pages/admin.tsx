@@ -145,72 +145,66 @@ export default function AdminPage() {
                   ))}
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="whitespace-nowrap">Name</TableHead>
+                      <TableHead className="whitespace-nowrap">Email</TableHead>
+                      <TableHead className="whitespace-nowrap">Username</TableHead>
+                      <TableHead className="whitespace-nowrap">Status</TableHead>
+                      <TableHead className="whitespace-nowrap">Profile</TableHead>
+                      <TableHead className="whitespace-nowrap">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data?.customers.length === 0 ? (
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Username</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Profile</TableHead>
-                        <TableHead>Joined</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          No customers yet
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data?.customers.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                            No customers yet
+                    ) : (
+                      data?.customers.map((customer) => (
+                        <TableRow key={customer.id} data-testid={`row-customer-${customer.id}`}>
+                          <TableCell className="font-medium whitespace-nowrap">{customer.name}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">{customer.email}</TableCell>
+                          <TableCell className="font-mono text-sm">{customer.username}</TableCell>
+                          <TableCell>
+                            <Badge variant={customer.subscriptionStatus === "paid" ? "default" : "secondary"} className="text-xs">
+                              {customer.subscriptionStatus}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {customer.profile?.status || "none"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {!!customer.profile?.questionnaireData && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => reprocessMutation.mutate(customer.id)}
+                                disabled={reprocessMutation.isPending || customer.profile?.status === "processing"}
+                                data-testid={`button-reprocess-${customer.id}`}
+                              >
+                                {(reprocessMutation.isPending || customer.profile?.status === "processing") ? (
+                                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                ) : (
+                                  <RefreshCw className="h-3 w-3 mr-1" />
+                                )}
+                                Reprocess
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
-                      ) : (
-                        data?.customers.map((customer) => (
-                          <TableRow key={customer.id} data-testid={`row-customer-${customer.id}`}>
-                            <TableCell className="font-medium">{customer.name}</TableCell>
-                            <TableCell className="text-muted-foreground text-sm">{customer.email}</TableCell>
-                            <TableCell className="font-mono text-sm">{customer.username}</TableCell>
-                            <TableCell>
-                              <Badge variant={customer.subscriptionStatus === "paid" ? "default" : "secondary"} className="text-xs">
-                                {customer.subscriptionStatus}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant="secondary"
-                                className="text-xs"
-                              >
-                                {customer.profile?.status || "none"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-muted-foreground text-sm">
-                              {new Date(customer.createdAt).toLocaleDateString()}
-                            </TableCell>
-                            <TableCell>
-                              {!!customer.profile?.questionnaireData && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => reprocessMutation.mutate(customer.id)}
-                                  disabled={reprocessMutation.isPending || customer.profile?.status === "processing"}
-                                  data-testid={`button-reprocess-${customer.id}`}
-                                >
-                                  {(reprocessMutation.isPending || customer.profile?.status === "processing") ? (
-                                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                                  ) : (
-                                    <RefreshCw className="h-3 w-3 mr-1" />
-                                  )}
-                                  Reprocess
-                                </Button>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               )}
             </CardContent>
           </Card>

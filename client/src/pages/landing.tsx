@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { FileText, Zap, Rocket, Target, X, Check, Play } from "lucide-react";
 import { useState } from "react";
-import aiCv1 from "@assets/Ai_Cv_1771922001756.mov";
+import aiCv1 from "@assets/Screen_Recording_2025-12-15_at_9.20.20_PM_1771923394821.mov";
 import aiCv2 from "@assets/Screen_Recording_2026-02-24_at_4.39.02_PM_1771922676447.mp4";
 
 export default function LandingPage() {

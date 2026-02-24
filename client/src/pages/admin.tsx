@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/lib/auth";
-import { Terminal, LogOut, Users, Globe, DollarSign, Activity, ArrowLeft } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Terminal, LogOut, Users, Globe, DollarSign, Activity, ArrowLeft, RefreshCw, Loader2 } from "lucide-react";
 import type { Customer, TwinProfile } from "@shared/schema";
 
 interface AdminData {
@@ -21,9 +23,23 @@ interface AdminData {
 
 export default function AdminPage() {
   const { user, logout } = useAuth();
+  const { toast } = useToast();
 
   const { data, isLoading } = useQuery<AdminData>({
     queryKey: ["/api/admin/overview"],
+  });
+
+  const reprocessMutation = useMutation({
+    mutationFn: async (customerId: string) => {
+      await apiRequest("POST", `/api/admin/reprocess/${customerId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/overview"] });
+      toast({ title: "Reprocessing started", description: "The AI is regenerating the portfolio. This may take a minute." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Reprocess failed", description: err.message, variant: "destructive" });
+    },
   });
 
   if (!user?.isAdmin) {
@@ -139,6 +155,7 @@ export default function AdminPage() {
                         <TableHead>Status</TableHead>
                         <TableHead>Profile</TableHead>
                         <TableHead>Joined</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -169,6 +186,24 @@ export default function AdminPage() {
                             </TableCell>
                             <TableCell className="text-muted-foreground text-sm">
                               {new Date(customer.createdAt).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>
+                              {!!customer.profile?.questionnaireData && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => reprocessMutation.mutate(customer.id)}
+                                  disabled={reprocessMutation.isPending || customer.profile?.status === "processing"}
+                                  data-testid={`button-reprocess-${customer.id}`}
+                                >
+                                  {(reprocessMutation.isPending || customer.profile?.status === "processing") ? (
+                                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                  ) : (
+                                    <RefreshCw className="h-3 w-3 mr-1" />
+                                  )}
+                                  Reprocess
+                                </Button>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))

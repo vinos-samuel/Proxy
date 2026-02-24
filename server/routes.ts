@@ -236,15 +236,30 @@ export async function registerRoutes(
           return res.status(404).json({ message: "No profile found" });
         }
 
-        const allowedFields = [
+        const textFields = [
           "displayName",
           "roleTitle",
           "positioning",
           "persona",
           "tone",
+          "heroSubtitle",
+        ];
+        const jsonFields = [
+          "stats",
+          "howIWork",
+          "whyAiCv",
+          "skillsMatrix",
+          "careerTimeline",
+          "whereImMostUseful",
+          "portfolioSuggestedQuestions",
         ];
         const updates: Record<string, any> = {};
-        for (const field of allowedFields) {
+        for (const field of textFields) {
+          if (req.body[field] !== undefined) {
+            updates[field] = req.body[field];
+          }
+        }
+        for (const field of jsonFields) {
           if (req.body[field] !== undefined) {
             updates[field] = req.body[field];
           }
@@ -648,6 +663,33 @@ export async function registerRoutes(
   });
 
   // ==================== ADMIN ====================
+
+  app.post(
+    "/api/admin/reprocess/:customerId",
+    requireAdmin,
+    async (req: Request, res: Response) => {
+      try {
+        const profile = await storage.getProfileByCustomerId(req.params.customerId);
+        if (!profile) {
+          return res.status(404).json({ message: "Profile not found" });
+        }
+        if (!profile.questionnaireData) {
+          return res.status(400).json({ message: "No questionnaire data to reprocess" });
+        }
+
+        await storage.updateProfileStatus(profile.id, "processing");
+        res.json({ message: "Reprocessing started" });
+
+        processQuestionnaire(profile.id, profile.questionnaireData as any).catch((err) => {
+          console.error("[Admin Reprocess] AI error:", err);
+          storage.updateProfileStatus(profile.id, "ready");
+        });
+      } catch (error) {
+        console.error("[Admin Reprocess] Error:", error);
+        res.status(500).json({ message: "Failed to reprocess" });
+      }
+    },
+  );
 
   app.get(
     "/api/admin/overview",

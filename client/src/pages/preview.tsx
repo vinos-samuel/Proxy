@@ -12,17 +12,22 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   ArrowLeft, Globe, Eye, Loader2, CheckCircle,
-  Pencil, Save, X, ChevronDown, ChevronUp, Lock
+  Pencil, Save, X, ChevronDown, ChevronUp, Lock, Plus, Trash2
 } from "lucide-react";
 import { useLocation as useWouterLocation } from "wouter";
 import type { TwinProfile } from "@shared/schema";
 
-interface EditFields {
+interface EditState {
   displayName: string;
   roleTitle: string;
   positioning: string;
+  heroSubtitle: string;
   persona: string;
   achievements: string;
+  impactMetrics: Array<{ value: string; label: string; icon: string }>;
+  howIWork: { name: string; steps: Array<{ label: string; description: string }> } | null;
+  whyAiCv: string[];
+  suggestedQuestions: string[];
 }
 
 export default function PreviewPage() {
@@ -30,14 +35,19 @@ export default function PreviewPage() {
   const { toast } = useToast();
   const [, navigate] = useWouterLocation();
   const [editMode, setEditMode] = useState(false);
-  const [editFields, setEditFields] = useState<EditFields>({
+  const [editState, setEditState] = useState<EditState>({
     displayName: "",
     roleTitle: "",
     positioning: "",
+    heroSubtitle: "",
     persona: "",
     achievements: "",
+    impactMetrics: [],
+    howIWork: null,
+    whyAiCv: [],
+    suggestedQuestions: [],
   });
-  const [expandedField, setExpandedField] = useState<string | null>(null);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [iframeKey, setIframeKey] = useState(0);
 
   const { data: profile, isLoading } = useQuery<TwinProfile | null>({
@@ -69,12 +79,12 @@ export default function PreviewPage() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (fields: Partial<EditFields>) => {
+    mutationFn: async (updates: Record<string, any>) => {
       const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(fields),
+        body: JSON.stringify(updates),
       });
       if (!res.ok) throw new Error("Failed to save changes");
       return res.json();
@@ -93,30 +103,57 @@ export default function PreviewPage() {
   const startEditing = () => {
     if (!profile) return;
     const qData = profile.questionnaireData as any;
-    setEditFields({
+    const pData = (profile as any);
+    setEditState({
       displayName: profile.displayName || "",
       roleTitle: profile.roleTitle || "",
       positioning: profile.positioning || "",
+      heroSubtitle: pData.heroSubtitle || "",
       persona: profile.persona || "",
       achievements: qData?.step5?.achievements || "",
+      impactMetrics: Array.isArray(pData.stats) ? pData.stats : [],
+      howIWork: pData.howIWork || null,
+      whyAiCv: Array.isArray(pData.whyAiCv) ? pData.whyAiCv : [],
+      suggestedQuestions: Array.isArray(pData.portfolioSuggestedQuestions) ? pData.portfolioSuggestedQuestions : [],
     });
     setEditMode(true);
   };
 
   const saveEdits = () => {
-    const updates: Partial<EditFields> = {};
-    if (editFields.displayName !== (profile?.displayName || "")) updates.displayName = editFields.displayName;
-    if (editFields.roleTitle !== (profile?.roleTitle || "")) updates.roleTitle = editFields.roleTitle;
-    if (editFields.positioning !== (profile?.positioning || "")) updates.positioning = editFields.positioning;
-    if (editFields.persona !== (profile?.persona || "")) updates.persona = editFields.persona;
-    const qData = profile?.questionnaireData as any;
-    if (editFields.achievements !== (qData?.step5?.achievements || "")) updates.achievements = editFields.achievements;
+    if (!profile) return;
+    const pData = (profile as any);
+    const qData = profile.questionnaireData as any;
+    const updates: Record<string, any> = {};
+
+    if (editState.displayName !== (profile.displayName || "")) updates.displayName = editState.displayName;
+    if (editState.roleTitle !== (profile.roleTitle || "")) updates.roleTitle = editState.roleTitle;
+    if (editState.positioning !== (profile.positioning || "")) updates.positioning = editState.positioning;
+    if (editState.heroSubtitle !== (pData.heroSubtitle || "")) updates.heroSubtitle = editState.heroSubtitle;
+    if (editState.persona !== (profile.persona || "")) updates.persona = editState.persona;
+    if (editState.achievements !== (qData?.step5?.achievements || "")) updates.achievements = editState.achievements;
+
+    if (JSON.stringify(editState.impactMetrics) !== JSON.stringify(pData.stats || [])) {
+      updates.stats = editState.impactMetrics;
+    }
+    if (JSON.stringify(editState.howIWork) !== JSON.stringify(pData.howIWork || null)) {
+      updates.howIWork = editState.howIWork;
+    }
+    if (JSON.stringify(editState.whyAiCv) !== JSON.stringify(pData.whyAiCv || [])) {
+      updates.whyAiCv = editState.whyAiCv;
+    }
+    if (JSON.stringify(editState.suggestedQuestions) !== JSON.stringify(pData.portfolioSuggestedQuestions || [])) {
+      updates.portfolioSuggestedQuestions = editState.suggestedQuestions;
+    }
 
     if (Object.keys(updates).length === 0) {
       setEditMode(false);
       return;
     }
     saveMutation.mutate(updates);
+  };
+
+  const toggleSection = (key: string) => {
+    setExpandedSection(prev => prev === key ? null : key);
   };
 
   if (isLoading) {
@@ -146,13 +183,22 @@ export default function PreviewPage() {
     );
   }
 
-  const editableFields = [
-    { key: "displayName", label: "Display Name", type: "input" as const, help: "Your name as shown on the portfolio" },
-    { key: "roleTitle", label: "Professional Title", type: "input" as const, help: "Your role/title headline" },
-    { key: "positioning", label: "Positioning Statement", type: "textarea" as const, help: "Your unique value proposition" },
-    { key: "persona", label: "AI Persona", type: "textarea" as const, help: "How your digital twin presents itself" },
-    { key: "achievements", label: "Key Achievements", type: "textarea" as const, help: "One achievement per line" },
-  ];
+  const renderSection = (key: string, title: string, content: React.ReactNode) => {
+    const isExpanded = expandedSection === key;
+    return (
+      <div key={key} className="border rounded-md">
+        <button
+          className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-sm font-medium hover:bg-muted/50 transition-colors"
+          onClick={() => toggleSection(key)}
+          data-testid={`button-expand-${key}`}
+        >
+          <span>{title}</span>
+          {isExpanded ? <ChevronUp className="h-4 w-4 shrink-0" /> : <ChevronDown className="h-4 w-4 shrink-0" />}
+        </button>
+        {isExpanded && <div className="px-3 pb-3 space-y-3">{content}</div>}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -297,51 +343,310 @@ export default function PreviewPage() {
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="lg:w-[360px] shrink-0"
+                className="lg:w-[400px] shrink-0"
               >
                 <Card>
                   <CardContent className="p-4">
                     <h2 className="font-semibold mb-1 text-sm">Edit Content</h2>
                     <p className="text-xs text-muted-foreground mb-4">
-                      Tweak AI-generated content. Changes update the preview.
+                      Edit any section of your portfolio. Changes update the preview on save.
                     </p>
-                    <div className="space-y-2">
-                      {editableFields.map((field) => {
-                        const isExpanded = expandedField === field.key;
-                        return (
-                          <div key={field.key} className="border rounded-md">
-                            <button
-                              className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-sm font-medium"
-                              onClick={() => setExpandedField(isExpanded ? null : field.key)}
-                              data-testid={`button-expand-${field.key}`}
-                            >
-                              <span>{field.label}</span>
-                              {isExpanded ? <ChevronUp className="h-4 w-4 shrink-0" /> : <ChevronDown className="h-4 w-4 shrink-0" />}
-                            </button>
-                            {isExpanded && (
-                              <div className="px-3 pb-3">
-                                <p className="text-xs text-muted-foreground mb-2">{field.help}</p>
-                                {field.type === "input" ? (
-                                  <Input
-                                    value={editFields[field.key as keyof EditFields]}
-                                    onChange={(e) => setEditFields(prev => ({ ...prev, [field.key]: e.target.value }))}
-                                    data-testid={`input-edit-${field.key}`}
-                                  />
-                                ) : (
-                                  <Textarea
-                                    value={editFields[field.key as keyof EditFields]}
-                                    onChange={(e) => setEditFields(prev => ({ ...prev, [field.key]: e.target.value }))}
-                                    rows={field.key === "achievements" ? 6 : 3}
-                                    className="text-sm"
-                                    data-testid={`input-edit-${field.key}`}
-                                  />
-                                )}
-                              </div>
-                            )}
+                    <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+
+                      {renderSection("hero", "Hero Section", (
+                        <>
+                          <div>
+                            <label className="text-xs text-muted-foreground block mb-1">Display Name</label>
+                            <Input
+                              value={editState.displayName}
+                              onChange={(e) => setEditState(prev => ({ ...prev, displayName: e.target.value }))}
+                              data-testid="input-edit-displayName"
+                            />
                           </div>
-                        );
-                      })}
+                          <div>
+                            <label className="text-xs text-muted-foreground block mb-1">Professional Title</label>
+                            <Input
+                              value={editState.roleTitle}
+                              onChange={(e) => setEditState(prev => ({ ...prev, roleTitle: e.target.value }))}
+                              data-testid="input-edit-roleTitle"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-muted-foreground block mb-1">Subtitle / Expertise Tags</label>
+                            <Input
+                              value={editState.heroSubtitle}
+                              onChange={(e) => setEditState(prev => ({ ...prev, heroSubtitle: e.target.value }))}
+                              data-testid="input-edit-heroSubtitle"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-muted-foreground block mb-1">Positioning Statement</label>
+                            <Textarea
+                              value={editState.positioning}
+                              onChange={(e) => setEditState(prev => ({ ...prev, positioning: e.target.value }))}
+                              rows={3}
+                              className="text-sm"
+                              data-testid="input-edit-positioning"
+                            />
+                          </div>
+                        </>
+                      ))}
+
+                      {renderSection("metrics", "Impact Metrics", (
+                        <>
+                          <p className="text-xs text-muted-foreground">Edit the key numbers shown on your portfolio.</p>
+                          {editState.impactMetrics.map((metric, i) => (
+                            <div key={i} className="border rounded p-2 space-y-2 relative">
+                              {editState.impactMetrics.length > 1 && (
+                                <button
+                                  className="absolute top-1 right-1 text-muted-foreground hover:text-destructive"
+                                  onClick={() => setEditState(prev => ({
+                                    ...prev,
+                                    impactMetrics: prev.impactMetrics.filter((_, j) => j !== i),
+                                  }))}
+                                  data-testid={`button-remove-metric-${i}`}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              )}
+                              <Input
+                                value={metric.value}
+                                onChange={(e) => {
+                                  const updated = [...editState.impactMetrics];
+                                  updated[i] = { ...updated[i], value: e.target.value };
+                                  setEditState(prev => ({ ...prev, impactMetrics: updated }));
+                                }}
+                                placeholder="e.g. 98%"
+                                className="text-sm"
+                                data-testid={`input-metric-value-${i}`}
+                              />
+                              <Input
+                                value={metric.label}
+                                onChange={(e) => {
+                                  const updated = [...editState.impactMetrics];
+                                  updated[i] = { ...updated[i], label: e.target.value };
+                                  setEditState(prev => ({ ...prev, impactMetrics: updated }));
+                                }}
+                                placeholder="e.g. COMPLETION RATE"
+                                className="text-sm"
+                                data-testid={`input-metric-label-${i}`}
+                              />
+                            </div>
+                          ))}
+                          {editState.impactMetrics.length < 8 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => setEditState(prev => ({
+                                ...prev,
+                                impactMetrics: [...prev.impactMetrics, { value: "", label: "", icon: "target" }],
+                              }))}
+                              data-testid="button-add-metric"
+                            >
+                              <Plus className="h-3 w-3 mr-1" /> Add Metric
+                            </Button>
+                          )}
+                        </>
+                      ))}
+
+                      {renderSection("methodology", "How I Work", (
+                        <>
+                          <p className="text-xs text-muted-foreground">Edit your methodology/framework steps.</p>
+                          {editState.howIWork ? (
+                            <>
+                              <div>
+                                <label className="text-xs text-muted-foreground block mb-1">Framework Name</label>
+                                <Input
+                                  value={editState.howIWork.name}
+                                  onChange={(e) => setEditState(prev => ({
+                                    ...prev,
+                                    howIWork: prev.howIWork ? { ...prev.howIWork, name: e.target.value } : null,
+                                  }))}
+                                  placeholder="e.g. Diagnose → Design → Deploy"
+                                  className="text-sm"
+                                  data-testid="input-edit-howIWorkName"
+                                />
+                              </div>
+                              {editState.howIWork.steps.map((step, i) => (
+                                <div key={i} className="border rounded p-2 space-y-2 relative">
+                                  {editState.howIWork!.steps.length > 2 && (
+                                    <button
+                                      className="absolute top-1 right-1 text-muted-foreground hover:text-destructive"
+                                      onClick={() => setEditState(prev => ({
+                                        ...prev,
+                                        howIWork: prev.howIWork ? {
+                                          ...prev.howIWork,
+                                          steps: prev.howIWork.steps.filter((_, j) => j !== i),
+                                        } : null,
+                                      }))}
+                                      data-testid={`button-remove-step-${i}`}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </button>
+                                  )}
+                                  <Input
+                                    value={step.label}
+                                    onChange={(e) => {
+                                      const steps = [...editState.howIWork!.steps];
+                                      steps[i] = { ...steps[i], label: e.target.value };
+                                      setEditState(prev => ({ ...prev, howIWork: { ...prev.howIWork!, steps } }));
+                                    }}
+                                    placeholder="Step name"
+                                    className="text-sm"
+                                    data-testid={`input-step-label-${i}`}
+                                  />
+                                  <Textarea
+                                    value={step.description}
+                                    onChange={(e) => {
+                                      const steps = [...editState.howIWork!.steps];
+                                      steps[i] = { ...steps[i], description: e.target.value };
+                                      setEditState(prev => ({ ...prev, howIWork: { ...prev.howIWork!, steps } }));
+                                    }}
+                                    placeholder="What happens in this phase"
+                                    rows={2}
+                                    className="text-sm"
+                                    data-testid={`input-step-desc-${i}`}
+                                  />
+                                </div>
+                              ))}
+                              {editState.howIWork.steps.length < 6 && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full"
+                                  onClick={() => setEditState(prev => ({
+                                    ...prev,
+                                    howIWork: prev.howIWork ? {
+                                      ...prev.howIWork,
+                                      steps: [...prev.howIWork.steps, { label: "", description: "" }],
+                                    } : null,
+                                  }))}
+                                  data-testid="button-add-step"
+                                >
+                                  <Plus className="h-3 w-3 mr-1" /> Add Step
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full text-destructive hover:text-destructive"
+                                onClick={() => setEditState(prev => ({ ...prev, howIWork: null }))}
+                                data-testid="button-remove-methodology"
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" /> Remove Section
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => setEditState(prev => ({
+                                ...prev,
+                                howIWork: { name: "", steps: [{ label: "", description: "" }, { label: "", description: "" }] },
+                              }))}
+                              data-testid="button-add-methodology"
+                            >
+                              <Plus className="h-3 w-3 mr-1" /> Add Methodology
+                            </Button>
+                          )}
+                        </>
+                      ))}
+
+                      {renderSection("persona", "AI Persona & Chatbot", (
+                        <>
+                          <div>
+                            <label className="text-xs text-muted-foreground block mb-1">AI Persona Description</label>
+                            <Textarea
+                              value={editState.persona}
+                              onChange={(e) => setEditState(prev => ({ ...prev, persona: e.target.value }))}
+                              rows={3}
+                              className="text-sm"
+                              data-testid="input-edit-persona"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-muted-foreground block mb-1">Suggested Questions (one per line)</label>
+                            <Textarea
+                              value={editState.suggestedQuestions.join("\n")}
+                              onChange={(e) => setEditState(prev => ({
+                                ...prev,
+                                suggestedQuestions: e.target.value.split("\n").filter(q => q.trim()),
+                              }))}
+                              rows={4}
+                              className="text-sm"
+                              data-testid="input-edit-suggestedQuestions"
+                            />
+                          </div>
+                        </>
+                      ))}
+
+                      {renderSection("achievements", "Key Achievements", (
+                        <div>
+                          <label className="text-xs text-muted-foreground block mb-1">One achievement per line</label>
+                          <Textarea
+                            value={editState.achievements}
+                            onChange={(e) => setEditState(prev => ({ ...prev, achievements: e.target.value }))}
+                            rows={6}
+                            className="text-sm"
+                            data-testid="input-edit-achievements"
+                          />
+                        </div>
+                      ))}
+
+                      {renderSection("whyAiCv", "Why an AI CV?", (
+                        <>
+                          <p className="text-xs text-muted-foreground">Edit the paragraphs explaining why this AI portfolio exists.</p>
+                          {editState.whyAiCv.map((para, i) => (
+                            <div key={i} className="relative">
+                              <Textarea
+                                value={para}
+                                onChange={(e) => {
+                                  const updated = [...editState.whyAiCv];
+                                  updated[i] = e.target.value;
+                                  setEditState(prev => ({ ...prev, whyAiCv: updated }));
+                                }}
+                                rows={3}
+                                className="text-sm pr-8"
+                                data-testid={`input-whyaicv-${i}`}
+                              />
+                              {editState.whyAiCv.length > 1 && (
+                                <button
+                                  className="absolute top-1 right-1 text-muted-foreground hover:text-destructive"
+                                  onClick={() => setEditState(prev => ({
+                                    ...prev,
+                                    whyAiCv: prev.whyAiCv.filter((_, j) => j !== i),
+                                  }))}
+                                  data-testid={`button-remove-whyaicv-${i}`}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => setEditState(prev => ({
+                              ...prev,
+                              whyAiCv: [...prev.whyAiCv, ""],
+                            }))}
+                            data-testid="button-add-whyaicv"
+                          >
+                            <Plus className="h-3 w-3 mr-1" /> Add Paragraph
+                          </Button>
+                        </>
+                      ))}
+
+                      <div className="border rounded-md p-3 bg-muted/30">
+                        <p className="text-xs text-muted-foreground">
+                          To edit Career Timeline, Skills Matrix, or Where I'm Most Useful, update your questionnaire and reprocess your profile.
+                        </p>
+                      </div>
                     </div>
+
                     <div className="mt-4 flex items-center gap-2">
                       <Button
                         className="flex-1"

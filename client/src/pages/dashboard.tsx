@@ -250,11 +250,11 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center gap-3 flex-wrap">
                     <div className="flex-1 min-w-0 border-[3px] border-black bg-[#D1D1CC] px-4 py-3 mono text-sm text-black overflow-x-auto" data-testid="text-portfolio-url">
-                      <span className="text-black/40">$ </span>{window.location.origin}/portfolio/{user?.username}
+                      <span className="text-black/40">$ </span>{user?.username}.myproxy.work
                     </div>
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/portfolio/${user?.username}`);
+                        navigator.clipboard.writeText(`https://${user?.username}.myproxy.work`);
                       }}
                       className="bg-black text-white px-5 py-3 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center gap-2"
                       data-testid="button-copy-url"

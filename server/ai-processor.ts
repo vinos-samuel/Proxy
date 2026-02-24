@@ -177,6 +177,8 @@ Generate a JSON object with the following structure:
 
 6. "suggestedQuestions": Write 8 questions a HIRING MANAGER would ask, mapped to their war stories.
 
+7. "chatbotPersona": Write a 2-3 sentence description of how the AI chatbot should BEHAVE and COMMUNICATE. This is NOT a career summary — it describes the chatbot's personality, tone, and conversational style. Example: "Speaks with quiet confidence about talent strategy, drawing on 15+ years across APAC markets. Uses real client examples rather than theory. Balances strategic insight with practical directness — no corporate jargon."
+
 QUALITY RULES:
 - NO generic corporate jargon ("passionate", "results-driven", "team player")
 - Every statement must be specific and evidence-backed
@@ -191,7 +193,8 @@ CRITICAL: Return ONLY valid JSON. No markdown, no code fences.
   "impactMetrics": [{"value": "string", "label": "string", "icon": "string"}],
   "howIWork": {"name": "string", "steps": [{"label": "string", "description": "string"}]},
   "whyAiCv": ["string"],
-  "suggestedQuestions": ["string"]
+  "suggestedQuestions": ["string"],
+  "chatbotPersona": "string"
 }`;
 
     const skillsPrompt = `You are an expert career strategist. Analyze this professional's data and create a Skills Matrix with EXACTLY 6 or 8 skill categories (must be even number for 2-column layout).
@@ -316,7 +319,7 @@ Return ONLY valid JSON, no markdown:
     roleTitle: data.step1.currentTitle,
     positioning:
       portfolioData.heroDescription || data.step2.professionalSummary,
-    persona: portfolioData.heroDescription || data.step2.professionalSummary,
+    persona: portfolioData.chatbotPersona || portfolioData.heroDescription || data.step2.professionalSummary,
     tone: tone,
     answerStyle: toneMap[tone] || toneMap.direct,
     fallbackResponse: `I appreciate the question, but that's outside my area of expertise. I'm ${data.step1.fullName}, and I'm happy to discuss my experience as a ${data.step1.currentTitle}. Feel free to ask about my career history, key projects, or professional philosophy.`,

@@ -121,9 +121,9 @@ export default function LandingPage() {
                 START <span className="text-[#22C55E]">ENGAGING</span>.
               </h1>
               <div className="space-y-4 text-xl text-black/70 mb-8">
-                <p>Professionals with 10+ years experience.</p>
+                <p>Professionals with 12+ years of experience</p>
                 <p>200+ applications. 6 interviews. Maybe 1 offer.</p>
-                <p className="text-black font-bold">Your PDF is invisible.</p>
+                <p className="text-black font-bold">Your PDF Cv is invisible.</p>
               </div>
 
               <div className="terminal-input border-[#E8A75D] text-[#D4941D] mb-8">

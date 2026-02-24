@@ -11,7 +11,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#E8E8E3] text-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
       {showDemo && (
-        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 md:p-8 overflow-y-auto">
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-start justify-center p-4 md:p-8 overflow-y-auto">
           <div className="bg-[#E8E8E3] border-[4px] border-black w-full max-w-4xl p-6 md:p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] relative my-8">
             <button 
               onClick={() => setShowDemo(false)}

@@ -1,11 +1,71 @@
 import { Link, useLocation } from "wouter";
-import { FileText, Zap, Rocket, Target, X, Check } from "lucide-react";
+import { FileText, Zap, Rocket, Target, X, Check, Play } from "lucide-react";
+import { useState } from "react";
+import aiCv1 from "@assets/Ai_Cv_1771922001756.mov";
+import aiCv2 from "@assets/Screen_Recording_2026-02-24_at_4.39.02_PM_1771922676447.mp4";
 
 export default function LandingPage() {
   const [, navigate] = useLocation();
+  const [showDemo, setShowDemo] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#E8E8E3] text-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+      {showDemo && (
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 md:p-8 overflow-y-auto">
+          <div className="bg-[#E8E8E3] border-[4px] border-black w-full max-w-4xl p-6 md:p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] relative my-8">
+            <button 
+              onClick={() => setShowDemo(false)}
+              className="absolute -top-4 -right-4 bg-red-500 text-white w-10 h-10 border-[3px] border-black flex items-center justify-center font-bold hover:bg-red-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            
+            <div className="mono text-xs text-black/50 mb-6 uppercase tracking-widest text-center">&#9698; Demo Environment</div>
+            <h2 className="text-3xl font-bold mb-8 text-center border-b-[3px] border-black pb-4">DIGITAL TWIN_SESSIONS</h2>
+            
+            <div className="space-y-12">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-[#22C55E] border-[2px] border-black flex items-center justify-center font-bold text-xs">01</div>
+                  <h3 className="font-bold text-xl uppercase tracking-tight">Digital Twin aka Ai Cv - Demo 1</h3>
+                </div>
+                <div className="border-[3px] border-black bg-black aspect-video relative group overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <video 
+                    src={aiCv1} 
+                    controls 
+                    className="w-full h-full object-contain"
+                    poster="/demo-placeholder-1.png"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-[#93C5FD] border-[2px] border-black flex items-center justify-center font-bold text-xs">02</div>
+                  <h3 className="font-bold text-xl uppercase tracking-tight">Digital Twin aka Ai Cv - Demo 2</h3>
+                </div>
+                <div className="border-[3px] border-black bg-black aspect-video relative group overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <video 
+                    src={aiCv2} 
+                    controls 
+                    className="w-full h-full object-contain"
+                    poster="/demo-placeholder-2.png"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-6 border-t-[3px] border-black flex justify-center">
+              <button
+                onClick={() => navigate("/register")}
+                className="bg-[#22C55E] text-black px-8 py-4 font-bold hover:bg-[#16A34A] border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+              >
+                INITIALIZE YOUR AGENT &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <nav className="border-b-[3px] border-black bg-[#D1D1CC] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
@@ -78,14 +138,16 @@ export default function LandingPage() {
                 >
                   INITIALIZE &rarr;
                 </button>
-                <Link href="/portfolio/demo">
-                  <button
-                    className="bg-white text-black px-8 py-4 font-bold border-[3px] border-black hover:bg-gray-100 mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                    data-testid="button-view-demo"
-                  >
+                <button
+                  onClick={() => setShowDemo(true)}
+                  className="bg-white text-black px-8 py-4 font-bold border-[3px] border-black hover:bg-gray-100 mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                  data-testid="button-view-demo"
+                >
+                  <span className="flex items-center gap-2">
+                    <Play className="h-4 w-4 fill-current" />
                     VIEW_DEMO
-                  </button>
-                </Link>
+                  </span>
+                </button>
               </div>
             </div>
 

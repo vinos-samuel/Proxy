@@ -194,14 +194,16 @@ export async function registerRoutes(
             .json({ message: "Profile is not ready to publish" });
         }
 
+        if (profile.paymentStatus !== "paid") {
+          return res.status(402).json({ message: "Payment required. Please select a plan on the dashboard first." });
+        }
+
         const customer = await storage.getCustomer(req.session.customerId!);
         const publicDomain = customer ? `${customer.username}.myproxy.work` : undefined;
 
         await storage.updateProfileById(profile.id, {
           isPublic: true,
           publicDomain,
-          paymentStatus: 'paid',
-          paidAt: new Date(),
         });
         await storage.updateProfileStatus(profile.id, "published");
         await storage.updateCustomerStatus(req.session.customerId!, "paid");
@@ -212,6 +214,15 @@ export async function registerRoutes(
       }
     },
   );
+
+  // Status endpoint for polling during AI processing
+  app.get("/api/profile/status", requireAuth, async (req: Request, res: Response) => {
+    const profile = await storage.getProfileByCustomerId(req.session.customerId!);
+    if (!profile) {
+      return res.status(404).json({ status: "not_found" });
+    }
+    res.json({ status: profile.status, paymentStatus: profile.paymentStatus });
+  });
 
   app.patch(
     "/api/profile",

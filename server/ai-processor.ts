@@ -165,7 +165,12 @@ Generate a JSON object with the following structure:
    - "icon": One of "target", "chart", "users", "ribbon", "lightning", "globe"
    Prioritize business IMPACT metrics over activity metrics. Bad: "Managed 5 accounts". Good: "3x GROWTH ACROSS 5 KEY ACCOUNTS"
 
-4. "howIWork": Create a 4-step methodology. Give it a strategic name using arrows (e.g., "Diagnose → Design → Deploy → Optimize")
+4. "howIWork": Based on the user's questionnaire data, extract or infer their professional methodology/framework.
+   RULES:
+   - Only create this if the user has described a clear, repeatable approach or process
+   - Extract 3-5 steps in their process, using their own terminology
+   - Give it a strategic name using arrows (e.g., "Diagnose → Design → Deploy → Optimize")
+   - If no clear framework exists in their data, return null for howIWork
    - Each step: {"label": "Step Name", "description": "What specifically happens in this phase (15-20 words)"}
 
 5. "whyAiCv": Write 4-5 short paragraphs explaining why this AI portfolio exists and what to ask it.
@@ -189,14 +194,16 @@ CRITICAL: Return ONLY valid JSON. No markdown, no code fences.
   "suggestedQuestions": ["string"]
 }`;
 
-    const skillsPrompt = `You are an expert career strategist. Analyze this professional's data and create a Skills Matrix with 4-8 skill categories.
+    const skillsPrompt = `You are an expert career strategist. Analyze this professional's data and create a Skills Matrix with EXACTLY 6 or 8 skill categories (must be even number for 2-column layout).
 
 ${fullInputData}
 
 ---
 
 REQUIREMENTS:
+- Generate EXACTLY 6 or 8 skills (MUST be even number for clean 2-column grid layout)
 - Group related skills into meaningful CATEGORIES (not individual skills)
+- Include ALL relevant skills from their CV, career history, and questionnaire data
 - Write context-rich descriptions that include specific achievements, methodologies, or certifications
 - Assign proficiency: "EXPERT" (10+ years or flagship skill) or "ADVANCED" (5+ years or secondary skill)
 - Each description must answer "What can you DO with this skill?" with evidence

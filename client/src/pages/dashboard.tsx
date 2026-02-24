@@ -1,8 +1,10 @@
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
+import { queryClient } from "@/lib/queryClient";
 import {
   Edit, Eye, Globe, LogOut,
   FileText, Sparkles, ExternalLink, ArrowRight, Copy
@@ -22,6 +24,24 @@ export default function DashboardPage() {
       return res.json();
     },
   });
+
+  useEffect(() => {
+    if (profile?.status === 'processing') {
+      const interval = setInterval(async () => {
+        try {
+          const res = await fetch('/api/profile/status', { credentials: 'include' });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.status !== 'processing') {
+              queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+              clearInterval(interval);
+            }
+          }
+        } catch {}
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [profile?.status]);
 
   const statusMap: Record<string, { label: string; color: string }> = {
     draft: { label: "DRAFT", color: "bg-[#FDE68A]" },

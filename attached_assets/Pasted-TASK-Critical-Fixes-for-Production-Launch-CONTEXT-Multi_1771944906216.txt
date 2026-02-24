@@ -1,0 +1,395 @@
+TASK: Critical Fixes for Production Launch
+
+CONTEXT: Multiple issues blocking launch - payment bypass, domain not working, auto-refresh missing, formatting problems, incomplete edit capabilities.
+
+PRIORITY ORDER (Most Critical First):
+
+---
+
+FIX 1: PAYMENT GATE & DOMAIN (CRITICAL - BLOCKING REVENUE)
+
+CURRENT PROBLEM:
+- Users can bypass payment by clicking "Preview" 
+- Preview shows accessible URL that can be shared
+- "Publish Now" deploys without payment
+- Domain is Replit URL instead of username.myproxy.work
+
+REQUIRED BEHAVIOR:
+- Preview ONLY shows localhost/demo view (not shareable URL)
+- "Publish Now" button redirected to payment if unpaid
+- After Stripe payment succeeds, THEN generate username.myproxy.work subdomain
+- Unpaid portfolios completely inaccessible via URL
+
+IMPLEMENTATION:
+1. In PaymentGate.tsx or wherever payment logic is:
+   - Check if user has paid before allowing publish
+   - If paymentStatus !== 'paid', redirect to /payment
+   
+2. In portfolio route handler:
+   - Add middleware to check payment status
+   - If accessing /portfolio/:username and user hasn't paid, return 403 or redirect to payment
+   
+3. Domain generation after payment:
+   - In Stripe webhook success handler
+   - Create subdomain: {username}.myproxy.work
+   - Update database: publicDomain = '{username}.myproxy.work'
+   - Set isPublic = true ONLY after payment
+
+4. Preview mode:
+   - Preview should render portfolio in iframe or modal
+   - Do NOT generate shareable URL until paid
+   - Remove any URL display in preview mode
+
+---
+
+FIX 2: AUTO-REFRESH DASHBOARD STATUS (CRITICAL - UX)
+
+CURRENT PROBLEM:
+- Status stays "PROCESSING" even when AI completes
+- User must manually refresh to see "READY_TO_PUBLISH"
+
+REQUIRED BEHAVIOR:
+- Dashboard polls status every 5 seconds while processing
+- Automatically updates to "READY_TO_PUBLISH" when AI finishes
+- Shows "Preview" button as soon as ready
+
+IMPLEMENTATION:
+In Dashboard.tsx:
+```typescript
+useEffect(() => {
+  if (status === 'processing') {
+    const interval = setInterval(async () => {
+      const response = await fetch('/api/profile/status');
+      const data = await response.json();
+      if (data.status === 'ready') {
+        setStatus('ready');
+        clearInterval(interval);
+      }
+    }, 5000); // Poll every 5 seconds
+    
+    return () => clearInterval(interval);
+  }
+}, [status]);
+```
+
+Add endpoint in routes.ts:
+```typescript
+app.get('/api/profile/status', async (req, res) => {
+  const profile = await getProfileByUserId(req.user.id);
+  res.json({ status: profile.status });
+});
+```
+
+---
+
+FIX 3: "WHERE I'M MOST USEFUL" ICONS (HIGH - VISUAL QUALITY)
+
+CURRENT PROBLEM:
+- Gold squares instead of proper icons
+- Reference (https://mani-digitalcv.replit.app/) shows better icons
+
+REQUIRED BEHAVIOR:
+- Use lucide-react icons matching the theme
+- Purple background circles (like Mani reference)
+- Icons: Globe, Users, Target, Briefcase, TrendingUp, Zap
+
+IMPLEMENTATION:
+In portfolio rendering (wherever "Where I'm Most Useful" section renders):
+```tsx
+import { Globe, Users, Target, Briefcase, TrendingUp, Zap } from 'lucide-react';
+
+const iconMap = {
+  'globe': Globe,
+  'users': Users,
+  'target': Target,
+  'briefcase': Briefcase,
+  'chart': TrendingUp,
+  'lightning': Zap
+};
+
+{scenarios.map((scenario, i) => {
+  const Icon = iconMap[scenario.icon] || Target;
+  return (
+    <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-6">
+      <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mb-4">
+        <Icon className="w-6 h-6 text-purple-300" />
+      </div>
+      <p className="text-white/90">{scenario.description}</p>
+    </div>
+  );
+})}
+```
+
+---
+
+FIX 4: METHODOLOGY SECTION - DYNAMIC PER USER
+
+CURRENT PROBLEM:
+- "Strategize → Architect → Deliver → Evolve" is static
+- Should be generated per user based on their questionnaire data
+
+REQUIRED BEHAVIOR:
+- AI generates user's unique methodology/framework from questionnaire
+- If user doesn't have a clear framework, omit this section entirely
+- Section title should be dynamic (e.g., "My Operating Model" or "How I Work")
+
+IMPLEMENTATION:
+In ai-processor.ts, update the methodology prompt:
+```typescript
+const methodologyPrompt = `
+Based on the user's questionnaire data, extract or infer their professional methodology/framework.
+
+RULES:
+- Only create this section if the user has a clear, repeatable approach they described
+- Extract 3-5 steps in their process
+- Use their own terminology and phrasing
+- If no clear framework exists in their data, return null
+
+Example input: "I always start by understanding the market, then design solutions, then execute with my team"
+Example output: {
+  "title": "My Client Engagement Process",
+  "steps": [
+    {"label": "Market Analysis", "description": "Deep dive into..."},
+    {"label": "Solution Design", "description": "Craft bespoke..."},
+    {"label": "Team Execution", "description": "Lead implementation..."}
+  ]
+}
+
+If unclear or generic, return: null
+
+INPUT: ${JSON.stringify(data)}
+OUTPUT (JSON):
+`;
+```
+
+In portfolio rendering, only show if methodology exists:
+```tsx
+{portfolioData.methodology && (
+  <section>
+    <h2>{portfolioData.methodology.title}</h2>
+    {/* render steps */}
+  </section>
+)}
+```
+
+---
+
+FIX 5: CAREER TRAJECTORY FORMATTING (HIGH - VISUAL QUALITY)
+
+CURRENT PROBLEM:
+- Not formatted like Mani reference
+- Missing achievements under each role
+- Skills from CV/questionnaire not included
+
+REQUIRED BEHAVIOR:
+- Match Mani reference exactly: https://mani-digitalcv.replit.app/
+- Group roles by company
+- Show achievements dropdown for each role ONLY if achievements exist
+- If no achievements for a role, skip the expand/collapse entirely (clean look)
+- Display location for each role
+- Clean timeline visual (purple line, dots)
+
+IMPLEMENTATION:
+Update career trajectory rendering:
+```tsx
+<section>
+  <h2>Career Trajectory</h2>
+  <div className="space-y-8 border-l-2 border-purple-500 pl-8">
+    {careerTrajectory.map((company, i) => (
+      <div key={i} className="relative">
+        <div className="absolute -left-10 w-4 h-4 bg-purple-500 rounded-full border-4 border-gray-900"></div>
+        
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-2xl font-bold">{company.company}</h3>
+          <span className="text-white/60">{company.period}</span>
+        </div>
+        
+        {company.roles.map((role, j) => (
+          <div key={j} className="mb-6 bg-white/5 border border-white/10 rounded-lg p-4">
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <h4 className="text-xl font-semibold text-purple-300">{role.title}</h4>
+                <p className="text-sm text-white/60">{role.location} • {role.dates}</p>
+              </div>
+            </div>
+            
+            {/* ONLY show achievements section if achievements exist and are not empty */}
+            {role.achievements && role.achievements.length > 0 && (
+              <details className="mt-3">
+                <summary className="cursor-pointer text-sm text-purple-300 hover:text-purple-200">
+                  ▸ Achievements ({role.achievements.length})
+                </summary>
+                <ul className="mt-2 space-y-1 text-sm text-white/70 list-disc list-inside">
+                  {role.achievements.map((ach, k) => (
+                    <li key={k}>{ach}</li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            
+            {/* No achievements section at all if array is empty or null - keeps it clean */}
+          </div>
+        ))}
+      </div>
+    ))}
+  </div>
+</section>
+```
+
+CRITICAL: The achievements section must be completely omitted (not shown at all) if:
+- role.achievements is null
+- role.achievements is an empty array []
+- role.achievements contains only "NA", "N/A", etc. (these should be filtered out in AI processing)
+
+This keeps the trajectory clean and professional when achievements aren't available.
+
+
+---
+
+FIX 6: SKILLS MATRIX - SHOW ALL SKILLS
+
+CURRENT PROBLEM:
+- Only 5 skills shown (odd number, poor layout)
+- Missing skills from CV/questionnaire
+
+REQUIRED BEHAVIOR:
+- Show 6-8 skills in 2-column grid (even number for clean layout)
+- Include ALL relevant skills from CV and questionnaire
+- Match Mani reference quality
+
+IMPLEMENTATION:
+In ai-processor.ts, update skills prompt to generate 6-8 skills minimum:
+```typescript
+const skillsPrompt = `
+Create a Skills Matrix with 6-8 skill categories (MUST be even number for 2-column layout).
+...existing prompt...
+IMPORTANT: Generate exactly 6 or 8 skills, never odd numbers.
+`;
+```
+
+In portfolio rendering, ensure 2-column grid:
+```tsx
+<div className="grid md:grid-cols-2 gap-6">
+  {skillsMatrix.map((skill, i) => (
+    // skill card
+  ))}
+</div>
+```
+
+---
+
+FIX 7: EDIT CONTENT - EXPAND TO ALL SECTIONS (MEDIUM)
+
+CURRENT PROBLEM:
+- Can only edit: name, title, positioning, AI persona, key achievements
+- Cannot edit: skills, career history, methodology, etc.
+
+REQUIRED BEHAVIOR:
+- Edit ALL sections: skills, career trajectory, where I'm most useful, methodology
+- Available ONLY after payment (check paymentStatus)
+
+IMPLEMENTATION:
+In edit-content interface, add accordion sections for:
+- Name & Title (existing)
+- Positioning Statement (existing)
+- Where I'm Most Useful (new - edit scenarios)
+- Skills Matrix (new - edit categories & descriptions)
+- Career Trajectory (new - edit roles & achievements)
+- Methodology (new - edit framework steps)
+- AI Persona (existing)
+
+Wrap entire edit UI in payment check:
+```tsx
+{paymentStatus === 'paid' ? (
+  <EditContent />
+) : (
+  <div>
+    <p>Editing is available after publishing (payment required)</p>
+    <button onClick={() => navigate('/payment')}>Publish Now →</button>
+  </div>
+)}
+```
+
+---
+
+FIX 8: ADD "WHY AI CV" FOOTER SECTION (LOW - NICE TO HAVE)
+
+CURRENT PROBLEM:
+- Portfolio ends abruptly
+- Missing context about what this is
+
+REQUIRED BEHAVIOR:
+- Add final section explaining the AI CV concept
+- Match Mani reference: https://mani-digitalcv.replit.app/ (scroll to bottom)
+- Include user's name, title, company
+- Link to LinkedIn, email
+- "Powered by myproxy.work" attribution
+
+IMPLEMENTATION:
+Add at end of portfolio before footer:
+```tsx
+<section className="py-16 border-t border-white/10">
+  <h2 className="text-4xl font-bold mb-6">Why an AI CV?</h2>
+  <div className="prose prose-invert max-w-none">
+    <p className="text-xl text-white/70 mb-4">
+      Senior leadership in [field] is defined by judgment, relationships, and structured 
+      execution - nuances that static bullet points simply cannot capture.
+    </p>
+    <p className="text-white/70">
+      In a market currently flooded with generic AI-generated noise, traditional CVs are 
+      losing their signal. I built this Digital Twin to cut through that noise and demonstrate 
+      exactly how I operate: with transparency, strategic thinking, and a solutions-oriented approach.
+    </p>
+    <p className="text-white/70">
+      This AI CV is trained on my real experience, war stories, decision frameworks, and 
+      leadership principles. Instead of reading bullet points, you can interrogate how I think.
+    </p>
+    <p className="text-white/70">
+      Ask my AI Twin the questions you'd normally save for late-stage interviews: how I'd lead 
+      your [specific challenge], how I handle [specific scenario], or how I'd structure 
+      [specific solution] for your organisation.
+    </p>
+  </div>
+</section>
+
+<footer className="py-8 border-t border-white/10">
+  <div className="flex justify-between items-center">
+    <div className="text-sm text-white/60">
+      {userData.name} • {userData.title} • {userData.company}
+    </div>
+    <div className="flex gap-6">
+      <a href={userData.linkedin} className="text-purple-300 hover:text-purple-200">
+        LinkedIn
+      </a>
+      <a href={`mailto:${userData.email}`} className="text-purple-300 hover:text-purple-200">
+        {userData.email}
+      </a>
+    </div>
+  </div>
+  <div className="mt-4 text-center text-xs text-white/40">
+    Powered by <a href="https://myproxy.work" className="text-purple-300 hover:text-purple-200">myproxy.work</a> ⚡
+  </div>
+  <div className="mt-2 text-center text-xs text-white/30">
+    © {new Date().getFullYear()} All rights reserved.
+  </div>
+</footer>
+```
+
+---
+
+TESTING CHECKLIST:
+✅ Cannot access /portfolio/:username without payment
+✅ Preview doesn't show shareable URL
+✅ "Publish Now" redirects to payment if unpaid
+✅ After payment, domain is username.myproxy.work
+✅ Dashboard auto-updates from "processing" to "ready"
+✅ "Where I'm Most Useful" has proper icons (not gold squares)
+✅ Methodology section is user-specific or omitted
+✅ Career trajectory matches Mani reference (grouped by company, expandable achievements)
+✅ Skills matrix shows 6-8 skills in 2-column grid
+✅ Edit content only accessible after payment
+✅ Edit content includes all sections
+✅ "Why AI CV" footer section present
+✅ Footer shows user info + myproxy.work attribution
+
+PRIORITY: Start with FIX 1 (payment/domain) as it's blocking revenue. Use Normal Mode - this is complex.

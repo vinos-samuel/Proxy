@@ -580,10 +580,11 @@ export default function PortfolioPage() {
             {profile.whereImMostUseful?.scenarios ? (
               profile.whereImMostUseful.scenarios.map((scenario, i) => (
                 <div key={i} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover} group`}>
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 bg-gradient-to-r ${theme.accent} bg-opacity-20`}>
-                    {getIcon(scenario.icon, `w-5 h-5 ${theme.accentSolid}`)}
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-purple-500/20">
+                    {getIcon(scenario.icon, "w-6 h-6 text-purple-300")}
                   </div>
-                  <p className="text-white/90 text-sm leading-relaxed">{scenario.description}</p>
+                  <h3 className="font-semibold text-sm mb-2 text-white/90">{scenario.title}</h3>
+                  <p className="text-white/70 text-sm leading-relaxed">{scenario.description}</p>
                 </div>
               ))
             ) : (
@@ -629,29 +630,30 @@ export default function PortfolioPage() {
             Career Trajectory
           </h2>
           
-          <div className="space-y-8">
+          <div className={`space-y-8 border-l-2 ${theme.timelineLineColor} pl-8`}>
             {profile.careerTimeline.map((entry, i) => {
               const isGrouped = entry.roles && entry.roles.length > 0;
               const cleanAch = (achs: string[] | undefined) => 
-                (achs || []).filter(a => a && !['na', 'n/a', 'none', 'nil'].includes(a.toLowerCase().trim()));
+                (achs || []).filter(a => a && !['na', 'n/a', 'none', 'nil', 'null', '-', '—'].includes(a.toLowerCase().trim()));
               
               if (isGrouped) {
                 return (
-                  <div key={i} className={`border-l-2 ${theme.timelineLineColor} pl-8`}>
+                  <div key={i} className="relative">
+                    <div className={`absolute -left-[calc(2rem+5px)] top-1 w-4 h-4 ${theme.dotColor} rounded-full border-4 ${theme.bg}`}></div>
                     <div className="flex flex-wrap justify-between items-start mb-4">
                       <h3 className={`text-2xl font-bold ${theme.headingClass}`}>{entry.company}</h3>
                     </div>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {entry.roles!.map((role, j) => (
-                        <div key={j}>
-                          <div className="flex flex-wrap justify-between items-center">
-                            <span className={`font-semibold ${theme.accentSolid}`}>{role.title}</span>
+                        <div key={j} className={`${theme.glass} p-4 rounded-lg ${theme.glassHover}`}>
+                          <div className="flex flex-wrap justify-between items-start mb-1">
+                            <h4 className={`text-xl font-semibold ${theme.accentSolid}`}>{role.title}</h4>
                             <span className={`text-sm ${theme.muted}`}>{role.years}</span>
                           </div>
                           {cleanAch(role.achievements).length > 0 && (
-                            <details className="mt-2 mb-2">
-                              <summary className="cursor-pointer text-white/50 hover:text-white/80 text-xs transition-colors">
-                                Achievements ({cleanAch(role.achievements).length})
+                            <details className="mt-3">
+                              <summary className={`cursor-pointer text-sm ${theme.accentSolid} hover:opacity-80 transition-opacity`}>
+                                ▸ Achievements ({cleanAch(role.achievements).length})
                               </summary>
                               <ul className="mt-2 space-y-1 pl-4">
                                 {cleanAch(role.achievements).map((a, k) => (
@@ -668,8 +670,8 @@ export default function PortfolioPage() {
               }
 
               return (
-                <div key={i} className="relative pl-10 pb-4">
-                  <div className={`absolute left-0 top-2 w-6 h-6 ${theme.dotColor} rounded-full border-4 ${theme.bg}`}></div>
+                <div key={i} className="relative">
+                  <div className={`absolute -left-[calc(2rem+5px)] top-2 w-4 h-4 ${theme.dotColor} rounded-full border-4 ${theme.bg}`}></div>
                   <div className={theme.glass + " p-6 rounded-xl " + theme.glassHover}>
                     <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
                       <div>
@@ -680,12 +682,12 @@ export default function PortfolioPage() {
                     </div>
                     {cleanAch(entry.achievements).length > 0 && (
                       <details className="mt-4">
-                        <summary className="cursor-pointer text-white/70 hover:text-white transition-colors">
-                          Key Achievements ({cleanAch(entry.achievements).length})
+                        <summary className={`cursor-pointer text-sm ${theme.accentSolid} hover:opacity-80 transition-opacity`}>
+                          ▸ Achievements ({cleanAch(entry.achievements).length})
                         </summary>
                         <ul className="mt-3 space-y-2 pl-5">
                           {cleanAch(entry.achievements).map((a, j) => (
-                            <li key={j} className="text-white/80 list-disc">{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
+                            <li key={j} className="text-white/80 text-sm list-disc">{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
                           ))}
                         </ul>
                       </details>
@@ -747,30 +749,63 @@ export default function PortfolioPage() {
         </section>
       ) : null}
 
-      {/* 8. FOOTER CTA */}
-      <footer className="py-20 px-6 max-w-4xl mx-auto text-center border-t border-white/5">
-        <h2 className={`text-4xl font-black mb-6 tracking-tight ${theme.headingClass}`}>
-          Don't Just Send a Resume. <br/><span className={theme.accentSolid}>Deploy an Agent.</span>
-        </h2>
-        <div className="flex flex-wrap gap-4 justify-center mb-12">
-          {portfolio.contact.email && (
-            <button 
-              onClick={() => setShowEmailModal(true)}
-              className={`${theme.ctaBg} text-white px-8 py-4 rounded-xl text-lg font-bold ${theme.ctaGlow} transition-all flex items-center gap-2`} 
-              data-testid="button-footer-email"
-            >
-              <Mail className="w-5 h-5" /> Get in Touch
-            </button>
-          )}
-          <a href="/register">
-            <button className={`${theme.glass} px-8 py-4 rounded-xl text-lg font-bold ${theme.glassHover}`} data-testid="button-build-twin">
-              Build Your Own Twin
-            </button>
-          </a>
+      {/* 8. WHY AI CV */}
+      {profile.whyAiCv && profile.whyAiCv.length > 0 && (
+        <section className="py-16 px-6 max-w-4xl mx-auto border-t border-white/10">
+          <h2 className={`text-4xl font-bold mb-6 ${theme.headingClass}`}>Why an AI CV?</h2>
+          <div className="space-y-4">
+            {profile.whyAiCv.map((para, i) => (
+              <p key={i} className={`text-lg ${theme.muted} leading-relaxed`}>{para}</p>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 9. FOOTER */}
+      <footer className="py-12 px-6 border-t border-white/10">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+            <div className={`text-sm ${theme.muted}`}>
+              {profile.displayName} {profile.roleTitle ? `• ${profile.roleTitle}` : ""}
+            </div>
+            <div className="flex gap-6">
+              {portfolio.contact.linkedin && (
+                <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer" className={`${theme.accentSolid} hover:opacity-80 transition-opacity text-sm`}>
+                  LinkedIn
+                </a>
+              )}
+              {portfolio.contact.email && (
+                <a href={`mailto:${portfolio.contact.email}`} className={`${theme.accentSolid} hover:opacity-80 transition-opacity text-sm`}>
+                  {portfolio.contact.email}
+                </a>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-4 justify-center mb-8">
+            {portfolio.contact.email && (
+              <button 
+                onClick={() => setShowEmailModal(true)}
+                className={`${theme.ctaBg} text-white px-8 py-4 rounded-xl text-lg font-bold ${theme.ctaGlow} transition-all flex items-center gap-2`} 
+                data-testid="button-footer-email"
+              >
+                <Mail className="w-5 h-5" /> Get in Touch
+              </button>
+            )}
+            <a href="/register">
+              <button className={`${theme.glass} px-8 py-4 rounded-xl text-lg font-bold ${theme.glassHover}`} data-testid="button-build-twin">
+                Build Your Own Twin
+              </button>
+            </a>
+          </div>
+          <div className="text-center">
+            <p className={`${theme.muted} text-xs tracking-widest uppercase opacity-50`}>
+              Powered by <a href="/" className={`${theme.accentSolid} hover:opacity-80`}>myproxy.work</a>
+            </p>
+            <p className={`${theme.muted} text-xs mt-2 opacity-30`}>
+              &copy; {new Date().getFullYear()} All rights reserved.
+            </p>
+          </div>
         </div>
-        <p className={`${theme.muted} text-xs tracking-widest uppercase opacity-50`}>
-          Powered by Proxy
-        </p>
       </footer>
 
       {showEmailModal && (

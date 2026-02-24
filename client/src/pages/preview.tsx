@@ -12,8 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   ArrowLeft, Globe, Eye, Loader2, CheckCircle,
-  Pencil, Save, X, ChevronDown, ChevronUp
+  Pencil, Save, X, ChevronDown, ChevronUp, Lock
 } from "lucide-react";
+import { useLocation as useWouterLocation } from "wouter";
 import type { TwinProfile } from "@shared/schema";
 
 interface EditFields {
@@ -27,6 +28,7 @@ interface EditFields {
 export default function PreviewPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, navigate] = useWouterLocation();
   const [editMode, setEditMode] = useState(false);
   const [editFields, setEditFields] = useState<EditFields>({
     displayName: "",
@@ -57,6 +59,11 @@ export default function PreviewPage() {
       toast({ title: "Published!", description: "Your Digital Twin is now live." });
     },
     onError: (err: any) => {
+      if (err.message?.includes("payment required") || err.message?.includes("Payment required")) {
+        toast({ title: "Payment Required", description: "Please complete payment on the dashboard first.", variant: "destructive" });
+        navigate("/dashboard");
+        return;
+      }
       toast({ title: "Error", description: err.message, variant: "destructive" });
     },
   });
@@ -194,7 +201,18 @@ export default function PreviewPage() {
                 </Button>
               </>
             )}
-            {profile.status === "ready" && !editMode && (
+            {profile.status === "ready" && !editMode && profile.paymentStatus !== 'paid' && (
+              <Button
+                onClick={() => {
+                  toast({ title: "Payment Required", description: "Please select a plan on the dashboard to publish." });
+                  navigate("/dashboard");
+                }}
+                data-testid="button-publish"
+              >
+                <Lock className="mr-2 h-4 w-4" /> Publish Now
+              </Button>
+            )}
+            {profile.status === "ready" && !editMode && profile.paymentStatus === 'paid' && (
               <Button
                 onClick={() => publishMutation.mutate()}
                 disabled={publishMutation.isPending}
@@ -235,7 +253,9 @@ export default function PreviewPage() {
                 <CheckCircle className="h-8 w-8 text-primary mx-auto mb-3" />
                 <h3 className="font-semibold mb-2">Your Digital Twin is Ready</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Review the preview below. Click "Edit Content" to tweak any AI-generated text, or "Publish Now" to go live.
+                  {profile.paymentStatus === 'paid' 
+                    ? 'Review the preview below. Click "Edit Content" to tweak any AI-generated text, or "Publish Now" to go live.'
+                    : 'Review the preview below. Click "Edit Content" to tweak text, or go to Dashboard to select a plan and publish.'}
                 </p>
                 <div className="flex items-center justify-center gap-3">
                   <Button
@@ -245,18 +265,28 @@ export default function PreviewPage() {
                   >
                     <Pencil className="mr-2 h-4 w-4" /> Edit Content
                   </Button>
-                  <Button
-                    onClick={() => publishMutation.mutate()}
-                    disabled={publishMutation.isPending}
-                    className="px-8"
-                    data-testid="button-publish-cta"
-                  >
-                    {publishMutation.isPending ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Publishing...</>
-                    ) : (
-                      <><Globe className="mr-2 h-4 w-4" /> Publish Now</>
-                    )}
-                  </Button>
+                  {profile.paymentStatus === 'paid' ? (
+                    <Button
+                      onClick={() => publishMutation.mutate()}
+                      disabled={publishMutation.isPending}
+                      className="px-8"
+                      data-testid="button-publish-cta"
+                    >
+                      {publishMutation.isPending ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Publishing...</>
+                      ) : (
+                        <><Globe className="mr-2 h-4 w-4" /> Publish Now</>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => navigate("/dashboard")}
+                      className="px-8"
+                      data-testid="button-goto-payment"
+                    >
+                      <Lock className="mr-2 h-4 w-4" /> Select Plan to Publish
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -347,7 +377,9 @@ export default function PreviewPage() {
                   </div>
                   <div className="flex-1 mx-4">
                     <div className="bg-muted rounded-md px-3 py-1 text-xs text-muted-foreground font-mono text-center">
-                      {typeof window !== "undefined" ? window.location.origin : ""}/portfolio/{user?.username}
+                      {profile?.paymentStatus === 'paid' 
+                        ? `${user?.username}.myproxy.work`
+                        : "Preview Mode — Publish to get your live URL"}
                     </div>
                   </div>
                 </div>

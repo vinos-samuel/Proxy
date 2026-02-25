@@ -612,7 +612,7 @@ export async function registerRoutes(
       }
 
       if (!priceId) {
-        const tierPrices: Record<string, number> = { launch: 19900, evolve: 39900, concierge: 119900 };
+        const tierPrices: Record<string, number> = { launch: 19900, evolve: 39900, concierge: 99900 };
         const stripe = await getUncachableStripeClient();
         if (!stripe) {
           return res.status(503).json({ message: "Payment processing is not available yet." });

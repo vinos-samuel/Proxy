@@ -217,10 +217,21 @@ export default function PreviewPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={startEditing}
+                onClick={() => {
+                  if (profile.tier === 'launch') {
+                    toast({ 
+                      title: "Upgrade Required", 
+                      description: "Upgrade to Evolve ($399) to edit your portfolio content.",
+                      variant: "default"
+                    });
+                    navigate("/dashboard");
+                    return;
+                  }
+                  startEditing();
+                }}
                 data-testid="button-edit-profile"
               >
-                <Pencil className="mr-2 h-4 w-4" /> Edit Content
+                <Pencil className="mr-2 h-4 w-4" /> {profile.tier === 'launch' ? "Upgrade to Edit" : "Edit Content"}
               </Button>
             )}
             {editMode && (
@@ -306,10 +317,16 @@ export default function PreviewPage() {
                 <div className="flex items-center justify-center gap-3">
                   <Button
                     variant="outline"
-                    onClick={startEditing}
+                    onClick={() => {
+                      if (profile.tier === 'launch') {
+                        navigate("/dashboard");
+                        return;
+                      }
+                      startEditing();
+                    }}
                     data-testid="button-edit-cta"
                   >
-                    <Pencil className="mr-2 h-4 w-4" /> Edit Content
+                    <Pencil className="mr-2 h-4 w-4" /> {profile.tier === 'launch' ? "Upgrade to Edit" : "Edit Content"}
                   </Button>
                   {profile.paymentStatus === 'paid' ? (
                     <Button

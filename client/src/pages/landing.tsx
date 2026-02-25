@@ -366,7 +366,7 @@ export default function LandingPage() {
             <div className="brutal-card border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-concierge">
               <div className="mono text-xs text-black/50 mb-2 uppercase">TIER_03</div>
               <h3 className="text-3xl font-bold mb-4">CONCIERGE</h3>
-              <div className="text-6xl font-bold mb-6 mono">$1199</div>
+              <div className="text-6xl font-bold mb-6 mono">$999</div>
               <div className="space-y-3 mb-8 text-sm">
                 {["ALL_EVOLVE_FEATURES", "90MIN_INTERVIEW", "PRO_COPYWRITING", "WHITE_GLOVE_BUILD", "ADVANCED_TUNING", "PRIORITY_SUPPORT"].map((f, i) => (
                   <div key={i} className="flex gap-2 mono text-black/70">
@@ -381,7 +381,7 @@ export default function LandingPage() {
               >
                 DEPLOY &rarr;
               </button>
-              <div className="mt-4 mono text-xs text-black/50">USE_CASE: Executives | C-suite | VP level</div>
+              <div className="mt-4 mono text-xs text-black/50">USE_CASE: Executive positioning | Brand building</div>
             </div>
 
           </div>

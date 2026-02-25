@@ -44,7 +44,7 @@ const tiers = [
     key: "concierge",
     name: "CONCIERGE",
     tierLabel: "TIER_03",
-    price: "$1,199",
+    price: "$999",
     icon: Crown,
     features: [
       "ALL_EVOLVE_FEATURES",
@@ -54,7 +54,7 @@ const tiers = [
       "ADVANCED_TUNING",
       "PRIORITY_SUPPORT",
     ],
-    useCase: "USE_CASE: Executives | C-suite | VP level",
+    useCase: "USE_CASE: Executive positioning | Brand building",
   },
 ];
 

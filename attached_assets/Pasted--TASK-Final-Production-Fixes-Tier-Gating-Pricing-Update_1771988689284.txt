@@ -1,0 +1,177 @@
+
+TASK: Final Production Fixes - Tier Gating & Pricing Update
+
+CONTEXT: Core features are working. Need to add tier-based access control and update Concierge pricing from $1,199 to $999.
+
+---
+
+FIX 1: TIER-GATE PORTFOLIO EDITOR (CRITICAL - REVENUE PROTECTION)
+
+CURRENT PROBLEM:
+- Portfolio editor accessible to ALL users regardless of tier
+- Launch tier ($199) should NOT have editing capability
+- Only Evolve ($399) and Concierge ($999) should have editing
+
+REQUIRED BEHAVIOR:
+- Check user's tier from database before showing edit interface
+- If tier === 'launch', show upgrade prompt instead of edit UI
+- If tier === 'evolve' or tier === 'concierge', show full edit interface (including existing chatbot personality tuning)
+- Concierge gets ALL Evolve technical features + white-glove service
+
+IMPLEMENTATION:
+
+In Edit Content page (client/src/pages/EditContent.tsx or wherever edit UI is):
+```typescript
+const EditContentPage = () => {
+  const { tier, paymentStatus } = useUserProfile(); // or however you access user data
+
+  // Must be paid to access editing at all
+  if (paymentStatus !== 'paid') {
+    return (
+      <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center p-6">
+        <div className="bg-white border-3 border-black p-8 max-w-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <h2 className="text-3xl font-bold mb-4">Please Publish First</h2>
+          <p className="text-black/70 mb-6 text-lg">
+            Editing is available after you publish your portfolio.
+          </p>
+          <button 
+            onClick={() => navigate('/payment')}
+            className="bg-[#22C55E] text-black px-6 py-4 font-bold border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase w-full"
+          >
+            Publish Now →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Launch tier cannot edit - show upgrade prompt
+  if (tier === 'launch') {
+    return (
+      <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center p-6">
+        <div className="bg-white border-3 border-black p-8 max-w-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <h2 className="text-3xl font-bold mb-4">Editing Available in Evolve Tier</h2>
+          <p className="text-black/70 mb-6 text-lg">
+            Upgrade to Evolve ($399) to edit your portfolio content and tune your AI chatbot personality after publishing.
+          </p>
+          
+          <div className="bg-[#86EFAC]/20 border-2 border-[#86EFAC] p-6 mb-6 mono text-sm">
+            <div className="font-bold mb-3 uppercase text-base">Evolve Tier Includes:</div>
+            <ul className="space-y-2 text-black/70">
+              <li>✓ Portfolio Editor (edit all sections)</li>
+              <li>✓ Chatbot Personality Tuning</li>
+              <li>✓ Custom domain support</li>
+              <li>✓ 12-month hosting (vs 6-month)</li>
+              <li>✓ Analytics dashboard (coming soon)</li>
+            </ul>
+          </div>
+          
+          <button 
+            onClick={() => navigate('/upgrade')} // or '/payment' with tier=evolve param
+            className="w-full bg-[#22C55E] text-black px-6 py-4 font-bold border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase hover:bg-[#16A34A] transition-colors"
+          >
+            Upgrade to Evolve ($399) →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Evolve and Concierge users get full editing
+  // Concierge has all Evolve technical features + white-glove service
+  return (
+    <div className="min-h-screen bg-[#E8E8E3] p-6">
+      {/* Existing edit content interface - don't change this */}
+      <EditContentInterface />
+    </div>
+  );
+};
+```
+
+ALSO UPDATE: Any other places where editing is referenced (e.g., dashboard "Edit Content" button)
+- Only show "Edit Content" button to Evolve/Concierge tiers
+- For Launch tier, show "Upgrade to Edit" button instead
+
+---
+
+FIX 2: UPDATE CONCIERGE PRICING TO $999
+
+CURRENT PROBLEM:
+- Concierge tier is $1,199
+- Need to change to $999
+- Concierge should include ALL Evolve technical features
+
+REQUIRED CHANGES:
+
+1. Update PaymentGate.tsx (or wherever pricing tiers are defined):
+```typescript
+const pricingTiers = [
+  {
+    id: 'tier_01',
+    name: 'LAUNCH',
+    price: 199,
+    icon: '🚀',
+    features: [
+      'AI_PORTFOLIO + CHATBOT',
+      '6_MONTH_HOSTING',
+      'DOWNLOADABLE_VERSION',
+      'SUBDOMAIN_INCLUDED'
+    ],
+    useCase: 'Perfect for active job search'
+  },
+  {
+    id: 'tier_02',
+    name: 'EVOLVE',
+    price: 399,
+    icon: '⭐',
+    recommended: true,
+    features: [
+      'ALL_LAUNCH_FEATURES',
+      'CUSTOM_DOMAIN',
+      'PORTFOLIO_EDITOR',
+      'PROXY_TUNING',
+      'THEME_SWITCHER',
+      'ANALYTICS_DASH',
+      '12_MONTH_HOSTING'
+    ],
+    useCase: 'Active job search | Career pivot'
+  },
+  {
+    id: 'tier_03',
+    name: 'CONCIERGE',
+    price: 999, // CHANGED FROM 1199
+    icon: '👑',
+    features: [
+      'ALL_EVOLVE_FEATURES',
+      '90MIN_INTERVIEW',
+      'PRO_COPYWRITING',
+      'WHITE_GLOVE_BUILD',
+      'ADVANCED_TUNING',
+      'PRIORITY_SUPPORT'
+    ],
+    useCase: 'Executive positioning | Brand building'
+  }
+];
+```
+
+2. Update Stripe integration:
+- If you have hardcoded Stripe price IDs, create new $999 price in Stripe dashboard
+- Update price ID mapping for Concierge tier
+- Or if using dynamic pricing, just change the amount to 999
+
+3. Update ALL copy referencing $1,199:
+- Landing page (if mentioned)
+- Master context file
+- Any marketing materials
+
+4. Ensure Concierge tier has same technical features as Evolve:
+```typescript
+// When checking tier permissions for features:
+const hasEditAccess = tier === 'evolve' || tier === 'concierge';
+const hasAnalytics = tier === 'evolve' || tier === 'concierge';
+const hasProxyTuning = tier === 'evolve' || tier === 'concierge';
+
+// Concierge ALSO gets (in addition to all Evolve features):
+const hasWhiteGloveService = tier === 'concierge';
+const hasPrioritySupport = tier === 'concierge';
+```

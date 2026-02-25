@@ -16,7 +16,7 @@ const PRODUCTS = [
   {
     name: 'Concierge - White-Glove AI Twin',
     description: '90-min strategy interview, professional copywriting, white-glove build, advanced chatbot tuning, priority support, 60-day conversation guarantee',
-    amount: 119900,
+    amount: 99900,
     metadata: { tier: 'concierge' },
   },
 ];

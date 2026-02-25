@@ -347,7 +347,7 @@ export default function LandingPage() {
               <h3 className="text-3xl font-bold mb-4">EVOLVE</h3>
               <div className="text-6xl font-bold mb-6 mono">$399</div>
               <div className="space-y-3 mb-8 text-sm">
-                {["ALL_LAUNCH_FEATURES", "CUSTOM_DOMAIN", "PORTFOLIO_EDITOR", "PROXY_TUNING", "THEME_SWITCHER", "ANALYTICS_DASH", "12_MONTH_HOSTING"].map((f, i) => (
+                {["ALL_LAUNCH_FEATURES", "CUSTOM_DOMAIN", "PORTFOLIO_EDITOR", "PROXY_TUNING", "THEME_SWITCHER", "ANALYTICS_DASH (Coming Soon)", "12_MONTH_HOSTING"].map((f, i) => (
                   <div key={i} className="flex gap-2 mono text-black">
                     <span className="text-black font-bold shrink-0">&#10003;</span> {f}
                   </div>

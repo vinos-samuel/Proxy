@@ -35,7 +35,7 @@ const tiers = [
       "PORTFOLIO_EDITOR",
       "PROXY_TUNING",
       "THEME_SWITCHER",
-      "ANALYTICS_DASH",
+      "ANALYTICS_DASH (Coming Soon)",
       "12_MONTH_HOSTING",
     ],
     useCase: "USE_CASE: Active job search | Career pivot",

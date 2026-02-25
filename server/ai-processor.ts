@@ -197,20 +197,21 @@ CRITICAL: Return ONLY valid JSON. No markdown, no code fences.
   "chatbotPersona": "string"
 }`;
 
-    const skillsPrompt = `You are an expert career strategist. Analyze this professional's data and create a Skills Matrix with EXACTLY 6 or 8 skill categories (must be even number for 2-column layout).
+    const skillsPrompt = `You are an expert career strategist. Analyze this professional's data and create a comprehensive Skills Matrix.
 
 ${fullInputData}
 
 ---
 
 REQUIREMENTS:
-- Generate EXACTLY 6 or 8 skills (MUST be even number for clean 2-column grid layout)
+- Generate 10-14 skill categories (MUST be even number for clean 2-column grid layout)
 - Group related skills into meaningful CATEGORIES (not individual skills)
 - Include ALL relevant skills from their CV, career history, and questionnaire data
 - Write context-rich descriptions that include specific achievements, methodologies, or certifications
 - Assign proficiency: "EXPERT" (10+ years or flagship skill) or "ADVANCED" (5+ years or secondary skill)
 - Each description must answer "What can you DO with this skill?" with evidence
 - Include specific frameworks, certifications, metrics, team sizes where applicable
+- Additionally, extract 10-20 individual skill TAGS: specific tools, methodologies, certifications, frameworks, and niche competencies mentioned in their data (e.g., "Miller Heiman LAMP", "NPS / Client Satisfaction", "GTM Strategy", "Cross-Sell Revenue Strategies")
 
 EXAMPLES:
 Bad: "Leadership" (too generic, no evidence)
@@ -223,7 +224,7 @@ Bad: "Sales" (single word)
 Good: {"title": "Key Account Management", "proficiency": "ADVANCED", "description": "Certified Miller Heiman LAMP practitioner. Built KAM framework resulting in 3x growth across 5 key accounts.", "icon": "briefcase"}
 
 Return ONLY valid JSON, no markdown:
-{"skillsMatrix": [{"title": "string", "proficiency": "EXPERT"|"ADVANCED", "description": "string (15-25 words with evidence)", "icon": "target"|"users"|"ribbon"|"briefcase"|"chart"|"lightning"|"globe"}]}`;
+{"skillsMatrix": [{"title": "string", "proficiency": "EXPERT"|"ADVANCED", "description": "string (15-25 words with evidence)", "icon": "target"|"users"|"ribbon"|"briefcase"|"chart"|"lightning"|"globe"}], "skillTags": ["string"]}`;
 
     const positioningPrompt = `You are an expert at positioning professionals for their ideal roles. Create a "Where I'm Most Useful" section.
 
@@ -233,7 +234,7 @@ ${fullInputData}
 
 REQUIREMENTS:
 - Write an intro sentence: "I'm most effective when [specific positioning]"
-- Create 4-6 scenarios starting with "You..." that describe specific situations where hiring this person makes sense
+- Create 6-8 scenarios starting with "You..." that describe specific situations where hiring this person makes sense
 - Be concrete and specific, not generic
 - Include context about their unique value (regions, methodologies, completion rates, team sizes)
 - Frame around CLIENT PAIN POINTS, not just capabilities
@@ -336,6 +337,7 @@ Return ONLY valid JSON, no markdown:
     portfolioSuggestedQuestions: portfolioData.suggestedQuestions || null,
     careerTimeline: portfolioData.careerTimeline || null,
     skillsMatrix: skillsMatrixData?.skillsMatrix || null,
+    skillTags: skillsMatrixData?.skillTags || null,
     whereImMostUseful: whereImMostUsefulData || null,
     questionnaireData: {
       ...data,

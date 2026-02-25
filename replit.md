@@ -86,7 +86,7 @@ A SaaS platform ("Proxy") that lets professionals create AI-powered interactive 
 4. Where I'm Most Useful (scenario-based positioning cards with icons and intro text)
 5. How I Work / Operating Model (4-step methodology with subtitle)
 6. Career Trajectory (grouped by company with role progression, collapsible achievements)
-7. Skill Matrix (grouped categories with EXPERT/ADVANCED proficiency badges, icons, descriptions)
+7. Skill Matrix (10-14 grouped categories with EXPERT/ADVANCED proficiency badges, icons, descriptions) + individual skill tags row below
 8. Footer (Powered by Proxy)
 
 ## AI Processing Quality

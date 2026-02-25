@@ -40,6 +40,7 @@ export const twinProfiles = pgTable("twin_profiles", {
   status: text("status").notNull().default("draft"),
   careerTimeline: jsonb("career_timeline"),
   skillsMatrix: jsonb("skills_matrix"),
+  skillTags: jsonb("skill_tags"),
   whereImMostUseful: jsonb("where_im_most_useful"),
   questionnaireData: jsonb("questionnaire_data"),
   paymentStatus: text("payment_status").default("unpaid"),

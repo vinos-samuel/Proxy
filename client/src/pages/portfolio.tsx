@@ -34,6 +34,7 @@ interface PortfolioData {
     portfolioSuggestedQuestions?: string[];
     careerTimeline?: Array<{ company: string; title?: string; years?: string; achievements?: string[]; roles?: Array<{ title: string; years: string; achievements?: string[] }> }>;
     skillsMatrix?: Array<{ title: string; proficiency: string; description: string; icon: string }>;
+    skillTags?: string[];
     whereImMostUseful?: { intro: string; scenarios: Array<{ title: string; description: string; icon: string }> };
   };
   factBanks: Array<{
@@ -728,6 +729,19 @@ export default function PortfolioPage() {
               </div>
             ))}
           </div>
+          {profile.skillTags && profile.skillTags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-8" data-testid="skill-tags">
+              {profile.skillTags.map((tag, i) => (
+                <span
+                  key={i}
+                  className={`px-4 py-1.5 rounded-full text-sm border ${theme.glass} ${theme.accentSolid} font-medium`}
+                  data-testid={`skill-tag-${i}`}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </section>
       ) : skills.length > 0 ? (
         <section className="py-12 px-6 max-w-5xl mx-auto">

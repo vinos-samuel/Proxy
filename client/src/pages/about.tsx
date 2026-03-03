@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Brain, Target, Rocket, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import founderPhoto from "@assets/image_1772539840046.png";
 
 export default function AboutPage() {
   return (
@@ -61,8 +62,8 @@ export default function AboutPage() {
         <div className="max-w-5xl mx-auto">
           <div className="brutal-card border-black bg-[#E8E8E3] p-12 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row gap-12 items-start">
             <div className="md:w-1/3">
-               <div className="w-full aspect-square bg-black border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(34,197,94,1)] flex items-center justify-center">
-                 <span className="text-[#22C55E] text-6xl font-bold">VS</span>
+               <div className="w-full aspect-square border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(34,197,94,1)] overflow-hidden">
+                 <img src={founderPhoto} alt="Vinos Samuel" className="w-full h-full object-cover" />
                </div>
                <div className="mt-6">
                  <div className="font-bold text-xl uppercase">Vinos Samuel</div>

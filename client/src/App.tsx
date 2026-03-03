@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
+import AboutPage from "@/pages/about";
+import FAQPage from "@/pages/faq";
 import { LoginPage, RegisterPage } from "@/pages/auth";
 import DashboardPage from "@/pages/dashboard";
 import QuestionnairePage from "@/pages/questionnaire";
@@ -58,6 +60,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={LandingPage} />
+      <Route path="/about" component={AboutPage} />
+      <Route path="/faq" component={FAQPage} />
       <Route path="/login">{() => <GuestRoute component={LoginPage} />}</Route>
       <Route path="/register">{() => <GuestRoute component={RegisterPage} />}</Route>
       <Route path="/dashboard">{() => <ProtectedRoute component={DashboardPage} />}</Route>

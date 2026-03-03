@@ -78,6 +78,8 @@ export default function LandingPage() {
             </div>
           </Link>
           <div className="hidden md:flex items-center gap-8">
+            <Link href="/about"><span className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider cursor-pointer">About</span></Link>
+            <Link href="/faq"><span className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider cursor-pointer">FAQ</span></Link>
             <a href="#how" className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider" data-testid="link-how">How</a>
             <a href="#pricing" className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider" data-testid="link-pricing">Pricing</a>
             <button
@@ -449,8 +451,11 @@ export default function LandingPage() {
                 <div className="mono text-xs text-black/50">24/7 Career Representative</div>
               </div>
             </div>
-            <div className="mono text-xs text-black/50">
-              SYS_ID: PROXY_v1.0 | &copy;2026
+            <div className="flex gap-6 mono text-xs font-bold uppercase tracking-widest text-black/50">
+              <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>
+              <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
+              <a href="#pricing" className="cursor-pointer hover:text-black">Pricing</a>
+              <span className="opacity-30">SYS_ID: PROXY_v1.0 | &copy;2026</span>
             </div>
           </div>
         </div>

@@ -1,0 +1,94 @@
+Create two new pages on the platform: an About page and a FAQ page. 
+Both should match the existing site design, using the same dark background, 
+typography, and component styles as the landing page.
+
+ABOUT PAGE (/about):
+
+Create client/src/pages/about.tsx with the following sections:
+
+Section 1 — Hero:
+Headline: "Built for the other side of the table."
+Subheading: "Most recruiting technology is built for recruiters. 
+Proxy exists for the candidate."
+
+Section 2 — The Problem (text block):
+"The job market in 2025 is brutal for senior professionals. Not because 
+they lack experience. Because the systems they're navigating were never 
+designed with them in mind. A PDF resume summarising 15 years of decisions 
+and results, evaluated in 6 seconds by a screener who doesn't know the 
+industry. That's not a talent problem. That's a communication problem. 
+Senior professionals don't need a better resume. They need a better way 
+to tell their story."
+
+Section 3 — Founder (card with text, left-aligned):
+Heading: "Why I built this"
+Content: "I'm Vinos Samuel. I've spent 15+ years leading HR operations, 
+talent acquisition, and workforce strategy across APAC at Netflix, Cielo, 
+and Randstad Sourceright. I've sat in the rooms where hiring decisions get 
+made. I've seen exceptional candidates lose out not because they weren't 
+qualified — but because their story didn't land. Proxy is my answer to that. 
+Not a resume builder. Not a LinkedIn makeover. An AI-powered career portfolio 
+that represents you the way you'd represent yourself in the room."
+
+Section 4 — Vision (3-column card grid):
+Card 1: Icon: brain. Title: "AI Career Portfolio". 
+Body: "An interactive portfolio that answers recruiter questions with 
+your actual stories and results."
+Card 2: Icon: target. Title: "Built for Senior Professionals". 
+Body: "Directors, VPs, C-suite leaders with deep experience that 
+a PDF can't contain."
+Card 3: Icon: rocket. Title: "Agents Coming". 
+Body: "Interview prep, job search strategy, personal brand — 
+a full suite of AI tools built around the candidate."
+
+Section 5 — CTA:
+Heading: "Ready to tell your story properly?"
+Button: "Build Your Portfolio" — links to /pricing
+
+Add /about to the navigation in the main layout or header component.
+
+---
+
+FAQ PAGE (/faq):
+
+Create client/src/pages/faq.tsx with an accordion component. 
+Each question expands on click to show the answer.
+
+Use this content exactly:
+
+Q: What exactly is an AI career portfolio?
+A: It's an interactive web page that represents your career. Recruiters and hiring managers can visit it, ask questions, and get specific answers about your experience - powered by a personalized AI bot trained on your background, your stories, and how you think.
+
+Q: How is this different from LinkedIn or a resume?
+A: LinkedIn shows your history. A resume lists your credentials. Proxy lets people have a conversation with your experience. It answers questions, shares specific results, and represents your thinking - not just your job titles.
+
+Q: Who is this for?
+A: Senior professionals - Leads, Managers, Directors, VPs, C-suite - who have deep experience 
+and want a modern way to present it. Particularly useful if you're actively looking, exploring opportunities, or positioning yourself for a career transition.
+
+Q: How long does it take to build?
+A: Once you complete the detailed intake questionnaire, upload your CV, your profile image, and a 60-second personal video, your portfolio will be ready in less than 10 minutes. The Concierge tier includes a personal discovery call for a higher-fidelity result and customization.
+Q: What do I need to provide?
+A: Your CV and answers to our intake questionnaire. For best results, a short video introduction (60-90 seconds) and a professional headshot are highly recommended. 
+The questionnaire guides you through everything.
+
+Q: Will recruiters actually use it?
+A: Yes - but you control when. Most clients share their Proxy link in outreach messages, email signatures, or alongside their resume. It gives whoever receives it a reason to engage rather than just file.
+
+Q: Is my information private?
+A: Your portfolio is only accessible via your unique link. You control who sees it. We don't share your data with recruiters or third parties.
+
+Q: What's coming next?
+A: We're building additional AI agents to help with interview preparation, job search strategy, and personal brand development. Sign up for any tier, and you'll be first in line for early access.
+
+Add /faq to the navigation and add a "FAQ" link in the landing page 
+footer if a footer exists.
+
+---
+
+ROUTING:
+Add both /about and /faq to the router in client/src/App.tsx or 
+wherever routes are defined.
+
+Confirm: both pages created, both routes added, navigation updated, 
+accordion works on FAQ.

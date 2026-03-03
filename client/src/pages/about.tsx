@@ -66,7 +66,7 @@ export default function AboutPage() {
                </div>
                <div className="mt-6">
                  <div className="font-bold text-xl uppercase">Vinos Samuel</div>
-                 <div className="mono text-xs text-black/50 uppercase">Founder & CEO</div>
+                 <div className="mono text-xs text-black/50 uppercase">BUILDER | Founder</div>
                </div>
             </div>
             <div className="md:w-2/3">

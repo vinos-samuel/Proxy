@@ -641,24 +641,24 @@ export default function PortfolioPage() {
                 return (
                   <div key={i} className="relative">
                     <div className={`absolute -left-[calc(2rem+5px)] top-1 w-4 h-4 ${theme.dotColor} rounded-full border-4 ${theme.bg}`}></div>
-                    <div className="flex flex-wrap justify-between items-start mb-4">
-                      <h3 className={`text-2xl font-bold ${theme.headingClass}`}>{entry.company}</h3>
+                    <div className="flex flex-wrap justify-between items-start mb-4 gap-4">
+                      <h3 className={`text-3xl font-bold ${theme.headingClass}`}>{entry.company}</h3>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       {entry.roles!.map((role, j) => (
-                        <div key={j} className={`${theme.glass} p-4 rounded-lg ${theme.glassHover}`}>
-                          <div className="flex flex-wrap justify-between items-start mb-1">
-                            <h4 className={`text-xl font-semibold ${theme.accentSolid}`}>{role.title}</h4>
-                            <span className={`text-sm ${theme.muted}`}>{role.years}</span>
+                        <div key={j} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover} w-full overflow-hidden`}>
+                          <div className="flex flex-wrap justify-between items-start mb-2 gap-2">
+                            <h4 className="text-xl font-bold text-white/90">{role.title}</h4>
+                            <span className="text-sm text-white/75 font-medium">{role.years}</span>
                           </div>
                           {cleanAch(role.achievements).length > 0 && (
-                            <details className="mt-3">
-                              <summary className={`cursor-pointer text-sm ${theme.accentSolid} hover:opacity-80 transition-opacity`}>
-                                ▸ Achievements ({cleanAch(role.achievements).length})
+                            <details className="mt-4">
+                              <summary className={`cursor-pointer text-sm ${theme.accentSolid} font-bold hover:opacity-80 transition-opacity flex items-center gap-1`}>
+                                <span>▸</span> Achievements ({cleanAch(role.achievements).length})
                               </summary>
-                              <ul className="mt-2 space-y-1 pl-4">
+                              <ul className="mt-3 space-y-2 pl-5 border-l border-white/10">
                                 {cleanAch(role.achievements).map((a, k) => (
-                                  <li key={k} className="text-white/70 text-sm list-disc">{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
+                                  <li key={k} className="text-white/80 text-sm leading-relaxed">{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
                                 ))}
                               </ul>
                             </details>
@@ -673,22 +673,22 @@ export default function PortfolioPage() {
               return (
                 <div key={i} className="relative">
                   <div className={`absolute -left-[calc(2rem+5px)] top-2 w-4 h-4 ${theme.dotColor} rounded-full border-4 ${theme.bg}`}></div>
-                  <div className={theme.glass + " p-6 rounded-xl " + theme.glassHover}>
-                    <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
+                  <div className={theme.glass + " p-8 rounded-xl w-full overflow-hidden " + theme.glassHover}>
+                    <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
                       <div>
-                        <h3 className={`text-xl font-bold ${theme.headingClass}`}>{entry.title}</h3>
-                        <p className={`text-lg ${theme.accentSolid}`}>{entry.company}</p>
+                        <h3 className={`text-2xl font-bold mb-1 ${theme.headingClass} text-white`}>{entry.title}</h3>
+                        <p className={`text-xl font-bold ${theme.accentSolid}`}>{entry.company}</p>
                       </div>
-                      <span className={`text-sm ${theme.muted}`}>{entry.years}</span>
+                      <span className="text-sm text-white/75 font-medium">{entry.years}</span>
                     </div>
                     {cleanAch(entry.achievements).length > 0 && (
-                      <details className="mt-4">
-                        <summary className={`cursor-pointer text-sm ${theme.accentSolid} hover:opacity-80 transition-opacity`}>
-                          ▸ Achievements ({cleanAch(entry.achievements).length})
+                      <details className="mt-6">
+                        <summary className={`cursor-pointer text-sm ${theme.accentSolid} font-bold hover:opacity-80 transition-opacity flex items-center gap-1`}>
+                          <span>▸</span> Achievements ({cleanAch(entry.achievements).length})
                         </summary>
-                        <ul className="mt-3 space-y-2 pl-5">
+                        <ul className="mt-4 space-y-3 pl-6 border-l border-white/10">
                           {cleanAch(entry.achievements).map((a, j) => (
-                            <li key={j} className="text-white/80 text-sm list-disc">{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
+                            <li key={j} className="text-white/85 text-sm leading-relaxed">{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
                           ))}
                         </ul>
                       </details>

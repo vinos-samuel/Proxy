@@ -159,7 +159,7 @@ Generate a JSON object with the following structure:
 
 2. "heroSubtitle": Reframe their title into 3 positioning facets separated by " • ". Not "Director of Sales" but "Revenue Architecture • Market Expansion • Client Partnership".
 
-3. "impactMetrics": Extract 5-8 most impressive quantifiable achievements. Each must have:
+3. "impactMetrics": Extract EXACTLY 6 most impressive quantifiable achievements. Return exactly 6 items, no more, no fewer. Each must have:
    - "value": The number with context (e.g., "98%", "GBP 1.2M+", "3x", "18+")
    - "label": What it represents IN ALL CAPS with comparison context where possible (e.g., "RETAINED MANDATE COMPLETION RATE", "NPS SCORE (VS 18% INDUSTRY AVG)")
    - "icon": One of "target", "chart", "users", "ribbon", "lightning", "globe"
@@ -234,7 +234,7 @@ ${fullInputData}
 
 REQUIREMENTS:
 - Write an intro sentence: "I'm most effective when [specific positioning]"
-- Create 6-8 scenarios starting with "You..." that describe specific situations where hiring this person makes sense
+- Create EXACTLY 6 scenarios starting with "You...". Return exactly 6 items, no more, no fewer.
 - Be concrete and specific, not generic
 - Include context about their unique value (regions, methodologies, completion rates, team sizes)
 - Frame around CLIENT PAIN POINTS, not just capabilities

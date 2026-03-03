@@ -537,7 +537,7 @@ export default function PortfolioPage() {
             <h2 className={`text-2xl font-bold uppercase tracking-widest ${theme.accentSolid} ${theme.headingClass}`}>Impact Metrics</h2>
             <div className="h-px flex-1 bg-white/10" />
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {visibleStats.map((stat, i) => (
               <motion.div 
                 whileHover={{ y: -3 }}
@@ -577,7 +577,7 @@ export default function PortfolioPage() {
           {profile.whereImMostUseful?.intro && (
             <p className={`text-lg ${theme.muted} mb-8 leading-relaxed`}>{profile.whereImMostUseful.intro}</p>
           )}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {profile.whereImMostUseful?.scenarios ? (
               profile.whereImMostUseful.scenarios.map((scenario, i) => (
                 <div key={i} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover} group`}>

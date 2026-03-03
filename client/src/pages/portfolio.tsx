@@ -106,7 +106,7 @@ const themes = {
   tech: {
     name: "Tech",
     bg: "bg-black",
-    gradient: "bg-gradient-to-br from-blue-600/20 via-transparent to-purple-600/20",
+    gradient: "bg-gradient-to-br from-blue-600/20 via-transparent to-cyan-400/20",
     glass: "bg-slate-900/80 backdrop-blur-xl border border-blue-500/50",
     glassHover: "hover:border-blue-500 hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] transition-all duration-300",
     accent: "from-blue-500 to-cyan-400",
@@ -581,8 +581,8 @@ export default function PortfolioPage() {
             {profile.whereImMostUseful?.scenarios ? (
               profile.whereImMostUseful.scenarios.map((scenario, i) => (
                 <div key={i} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover} group`}>
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-purple-500/20">
-                    {getIcon(scenario.icon, "w-6 h-6 text-purple-300")}
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-gradient-to-r ${theme.accent} bg-opacity-20`}>
+                    {getIcon(scenario.icon, "w-6 h-6 text-white/80")}
                   </div>
                   <h3 className="font-semibold text-sm mb-2 text-white/90">{scenario.title}</h3>
                   <p className="text-white/70 text-sm leading-relaxed">{scenario.description}</p>

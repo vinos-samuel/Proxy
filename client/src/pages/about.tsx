@@ -24,7 +24,6 @@ export default function AboutPage() {
           </div>
         </div>
       </nav>
-
       {/* Section 1 — Hero */}
       <section className="px-6 py-24 border-b-[3px] border-black bg-white">
         <div className="max-w-4xl mx-auto text-center">
@@ -42,14 +41,11 @@ export default function AboutPage() {
           </motion.div>
         </div>
       </section>
-
       {/* Section 2 — The Problem */}
       <section className="px-6 py-24 border-b-[3px] border-black">
         <div className="max-w-3xl mx-auto">
           <div className="mono text-xs text-black/50 mb-8 uppercase tracking-widest">&#9698; The Context</div>
-          <div className="text-3xl font-bold leading-tight mb-8">
-            The job market in 2025 is brutal for senior professionals. Not because they lack experience. Because the systems they're navigating were never designed with them in mind.
-          </div>
+          <div className="text-3xl font-bold leading-tight mb-8">The job market in 2026 is brutal for senior professionals. Not because they lack experience. Because the systems they're navigating were never designed with them in mind.</div>
           <div className="mono text-lg text-black/70 space-y-6 leading-relaxed">
             <p>
               A PDF resume summarising 15 years of decisions and results, evaluated in 6 seconds by a screener who doesn't know the industry. That's not a talent problem. That's a communication problem.
@@ -60,7 +56,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
       {/* Section 3 — Founder */}
       <section className="px-6 py-24 border-b-[3px] border-black bg-white">
         <div className="max-w-5xl mx-auto">
@@ -91,7 +86,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
       {/* Section 4 — Vision */}
       <section className="px-6 py-24 border-b-[3px] border-black bg-[#D1D1CC]">
         <div className="max-w-7xl mx-auto">
@@ -127,7 +121,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
       {/* Section 5 — CTA */}
       <section className="px-6 py-32 bg-black text-white">
         <div className="max-w-4xl mx-auto text-center">
@@ -142,7 +135,6 @@ export default function AboutPage() {
           </Link>
         </div>
       </section>
-
       {/* Footer */}
       <footer className="px-6 py-12 border-t-[3px] border-black bg-[#E8E8E3]">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">

@@ -129,6 +129,11 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
         <div className="mt-2 mono text-xs text-black/50 uppercase tracking-wider" data-testid="text-founding-member">
           Founding member pricing. Full price resumes after 100 members.
         </div>
+        <Link href="/faq">
+          <div className="text-center mt-4 text-black/50 text-sm hover:text-black/80 transition cursor-pointer">
+            Questions before you decide? Read our FAQ &rarr;
+          </div>
+        </Link>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 mb-8">

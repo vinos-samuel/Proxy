@@ -409,6 +409,11 @@ export default function LandingPage() {
             <p className="mono text-sm text-black/60 uppercase tracking-wider">
               Founding member pricing &mdash; Full price resumes after 100 members.
             </p>
+            <Link href="/faq">
+              <span className="block mt-4 text-black/50 text-sm hover:text-black/80 transition cursor-pointer">
+                Questions before you decide? Read our FAQ &rarr;
+              </span>
+            </Link>
           </div>
         </div>
       </section>
@@ -455,6 +460,7 @@ export default function LandingPage() {
               <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>
               <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
               <a href="#pricing" className="cursor-pointer hover:text-black">Pricing</a>
+              <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-black">Support</a>
               <span className="opacity-30">SYS_ID: PROXY_v1.0 | &copy;2026</span>
             </div>
           </div>

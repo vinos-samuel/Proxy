@@ -77,6 +77,9 @@ export default function FAQPage() {
       {/* FAQ Accordion */}
       <section className="px-6 py-24 border-b-[3px] border-black">
         <div className="max-w-3xl mx-auto">
+          <div className="mb-12 text-center">
+            <p className="mono text-sm text-black/60">Need more help? Contact support at <a href="mailto:myproxy_work@proton.me" className="text-black font-bold hover:text-[#22C55E]">myproxy_work@proton.me</a></p>
+          </div>
           <Accordion type="single" collapsible className="space-y-4">
             {faqs.map((faq, i) => (
               <AccordionItem key={i} value={`item-${i}`} className="border-[3px] border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] px-6">
@@ -105,6 +108,7 @@ export default function FAQPage() {
             <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>
             <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
             <Link href="/pricing"><span className="cursor-pointer hover:text-black">Pricing</span></Link>
+            <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-black">Support</a>
             <span>© 2026 Digital Twin Studio</span>
           </div>
         </div>

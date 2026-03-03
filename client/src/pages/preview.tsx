@@ -717,6 +717,21 @@ export default function PreviewPage() {
           </div>
         </motion.div>
       </div>
+
+      <footer className="max-w-7xl mx-auto px-6 py-12 border-t border-border flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="flex items-center gap-2 opacity-40">
+          <div className="w-5 h-5 bg-foreground flex items-center justify-center rounded-sm">
+            <span className="text-background font-black text-xs">P</span>
+          </div>
+          <span className="font-bold text-sm tracking-tighter uppercase">Proxy</span>
+        </div>
+        <div className="flex gap-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <Link href="/about"><span className="cursor-pointer hover:text-foreground">About</span></Link>
+          <Link href="/faq"><span className="cursor-pointer hover:text-foreground">FAQ</span></Link>
+          <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-foreground">Support</a>
+          <span>© 2026</span>
+        </div>
+      </footer>
     </div>
   );
 }

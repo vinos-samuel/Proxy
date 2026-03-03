@@ -148,6 +148,7 @@ export default function AboutPage() {
             <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>
             <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
             <Link href="/pricing"><span className="cursor-pointer hover:text-black">Pricing</span></Link>
+            <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-black">Support</a>
             <span>© 2026 Digital Twin Studio</span>
           </div>
         </div>

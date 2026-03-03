@@ -53,7 +53,7 @@ export default function DashboardPage() {
   const profileStatus = profile ? statusMap[profile.status] || statusMap.draft : statusMap.draft;
 
   return (
-    <div className="min-h-screen bg-[#E8E8E3] text-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+    <div className="min-h-screen bg-[#E8E8E3] text-black pb-12" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
       <nav className="border-b-[3px] border-black bg-[#D1D1CC] sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/dashboard">
@@ -269,6 +269,21 @@ export default function DashboardPage() {
           )}
         </motion.div>
       </div>
+
+      <footer className="max-w-6xl mx-auto px-6 pt-12 border-t-2 border-black/10 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="flex items-center gap-2 opacity-50">
+          <div className="w-6 h-6 bg-black flex items-center justify-center border-[2px] border-black">
+            <span className="text-white font-black text-sm leading-none">P</span>
+          </div>
+          <span className="font-bold text-lg tracking-tighter uppercase">Proxy</span>
+        </div>
+        <div className="flex gap-6 mono text-xs font-bold uppercase tracking-widest text-black/40">
+          <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>
+          <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
+          <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-black">Support</a>
+          <span>© 2026</span>
+        </div>
+      </footer>
     </div>
   );
 }

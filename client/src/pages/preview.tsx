@@ -728,7 +728,7 @@ export default function PreviewPage() {
         <div className="flex gap-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           <Link href="/about"><span className="cursor-pointer hover:text-foreground">About</span></Link>
           <Link href="/faq"><span className="cursor-pointer hover:text-foreground">FAQ</span></Link>
-          <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-foreground">Support</a>
+          <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-foreground">myproxy_work@proton.me</a>
           <span>© 2026</span>
         </div>
       </footer>

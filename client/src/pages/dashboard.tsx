@@ -280,7 +280,7 @@ export default function DashboardPage() {
         <div className="flex gap-6 mono text-xs font-bold uppercase tracking-widest text-black/40">
           <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>
           <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
-          <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-black">Support</a>
+          <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-black">myproxy_work@proton.me</a>
           <span>© 2026</span>
         </div>
       </footer>

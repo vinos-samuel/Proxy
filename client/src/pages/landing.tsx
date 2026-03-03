@@ -460,7 +460,7 @@ export default function LandingPage() {
               <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>
               <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
               <a href="#pricing" className="cursor-pointer hover:text-black">Pricing</a>
-              <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-black">Support</a>
+              <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-black">myproxy_work@proton.me</a>
               <span className="opacity-30">SYS_ID: PROXY_v1.0 | &copy;2026</span>
             </div>
           </div>

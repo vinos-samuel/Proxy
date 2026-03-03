@@ -712,8 +712,8 @@ export default function PortfolioPage() {
               <div key={i} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover}`} data-testid={`skill-card-${i}`}>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-r ${theme.accent} bg-opacity-20`}>
-                      {getIcon(skill.icon, `w-5 h-5 ${theme.accentSolid}`)}
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-white/10 border border-white/20 group-hover:border-white/30 transition-colors shadow-sm`}>
+                      {getIcon(skill.icon, `w-6 h-6 ${theme.accentSolid} opacity-100 drop-shadow-md`)}
                     </div>
                     <h3 className="text-lg font-bold">{skill.title}</h3>
                   </div>

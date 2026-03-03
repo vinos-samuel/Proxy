@@ -314,14 +314,23 @@ export default function LandingPage() {
       <section id="pricing" className="px-6 py-20 border-t-[3px] border-black bg-[#D1D1CC]">
         <div className="max-w-7xl mx-auto">
           <div className="mono text-xs text-black/50 mb-4 uppercase tracking-widest">&#9698; Deployment Tiers</div>
-          <h2 className="text-5xl font-bold mb-16">SELECT_CONFIGURATION</h2>
+          <div className="flex flex-wrap items-center gap-4 mb-6">
+            <h2 className="text-5xl font-bold">SELECT_CONFIGURATION</h2>
+            <div className="bg-black text-[#22C55E] px-4 py-2 font-bold mono text-sm border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(34,197,94,1)] uppercase tracking-wider" data-testid="badge-launch-special">
+              &#9733; LAUNCH SPECIAL — FIRST 100 MEMBERS
+            </div>
+          </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-8 mb-8">
 
             <div className="brutal-card border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-launch">
               <div className="mono text-xs text-black/50 mb-2 uppercase">TIER_01</div>
               <h3 className="text-3xl font-bold mb-4">LAUNCH</h3>
-              <div className="text-6xl font-bold mb-6 mono">$199</div>
+              <div className="mb-6">
+                <div className="mono text-lg text-black/40 line-through mb-1" data-testid="text-original-price-launch">$199</div>
+                <div className="text-6xl font-bold mono" data-testid="text-price-launch">$99</div>
+                <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">Launch Special</div>
+              </div>
               <div className="space-y-3 mb-8 text-sm">
                 {["AI_PORTFOLIO + CHATBOT", "6_MONTH_HOSTING", "DOWNLOADABLE_VERSION", "SUBDOMAIN_INCLUDED"].map((f, i) => (
                   <div key={i} className="flex gap-2 mono text-black/70">
@@ -345,7 +354,11 @@ export default function LandingPage() {
               </div>
               <div className="mono text-xs text-black/60 mb-2 uppercase">TIER_02</div>
               <h3 className="text-3xl font-bold mb-4">EVOLVE</h3>
-              <div className="text-6xl font-bold mb-6 mono">$399</div>
+              <div className="mb-6">
+                <div className="mono text-lg text-black/40 line-through mb-1" data-testid="text-original-price-evolve">$399</div>
+                <div className="text-6xl font-bold mono" data-testid="text-price-evolve">$199</div>
+                <div className="mono text-xs text-black/60 mt-1 uppercase tracking-wider">Launch Special</div>
+              </div>
               <div className="space-y-3 mb-8 text-sm">
                 {["ALL_LAUNCH_FEATURES", "CUSTOM_DOMAIN", "PORTFOLIO_EDITOR", "PROXY_TUNING", "THEME_SWITCHER", "ANALYTICS_DASH (Coming Soon)", "12_MONTH_HOSTING"].map((f, i) => (
                   <div key={i} className="flex gap-2 mono text-black">
@@ -366,7 +379,11 @@ export default function LandingPage() {
             <div className="brutal-card border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-concierge">
               <div className="mono text-xs text-black/50 mb-2 uppercase">TIER_03</div>
               <h3 className="text-3xl font-bold mb-4">CONCIERGE</h3>
-              <div className="text-6xl font-bold mb-6 mono">$999</div>
+              <div className="mb-6">
+                <div className="mono text-lg text-black/40 line-through mb-1" data-testid="text-original-price-concierge">$999</div>
+                <div className="text-6xl font-bold mono" data-testid="text-price-concierge">$499</div>
+                <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">Launch Special</div>
+              </div>
               <div className="space-y-3 mb-8 text-sm">
                 {["ALL_EVOLVE_FEATURES", "90MIN_INTERVIEW", "PRO_COPYWRITING", "WHITE_GLOVE_BUILD", "ADVANCED_TUNING", "PRIORITY_SUPPORT"].map((f, i) => (
                   <div key={i} className="flex gap-2 mono text-black/70">
@@ -384,6 +401,12 @@ export default function LandingPage() {
               <div className="mt-4 mono text-xs text-black/50">USE_CASE: Executive positioning | Brand building</div>
             </div>
 
+          </div>
+
+          <div className="text-center py-4 border-t-[2px] border-black/20" data-testid="text-founding-member">
+            <p className="mono text-sm text-black/60 uppercase tracking-wider">
+              Founding member pricing &mdash; Full price resumes after 100 members.
+            </p>
           </div>
         </div>
       </section>

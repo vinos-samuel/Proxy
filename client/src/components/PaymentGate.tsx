@@ -12,7 +12,8 @@ const tiers = [
     key: "launch",
     name: "LAUNCH",
     tierLabel: "TIER_01",
-    price: "$199",
+    price: "$99",
+    originalPrice: "$199",
     icon: Rocket,
     features: [
       "AI_PORTFOLIO + CHATBOT",
@@ -26,7 +27,8 @@ const tiers = [
     key: "evolve",
     name: "EVOLVE",
     tierLabel: "TIER_02",
-    price: "$399",
+    price: "$199",
+    originalPrice: "$399",
     icon: Star,
     popular: true,
     features: [
@@ -44,7 +46,8 @@ const tiers = [
     key: "concierge",
     name: "CONCIERGE",
     tierLabel: "TIER_03",
-    price: "$999",
+    price: "$499",
+    originalPrice: "$999",
     icon: Crown,
     features: [
       "ALL_EVOLVE_FEATURES",
@@ -120,8 +123,11 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
         <p className="mono text-sm text-black/60 uppercase tracking-wider">
           Choose a plan to publish your portfolio and make it public
         </p>
-        <div className="inline-block mt-3 bg-black text-white px-3 py-1 mono text-xs uppercase tracking-wider border-[3px] border-black" data-testid="badge-test-mode">
-          TEST_MODE — NO PAYMENT REQUIRED
+        <div className="inline-block mt-3 bg-black text-[#22C55E] px-4 py-2 mono text-xs uppercase tracking-wider border-[3px] border-black font-bold" data-testid="badge-launch-special">
+          &#9733; LAUNCH SPECIAL — FIRST 100 MEMBERS
+        </div>
+        <div className="mt-2 mono text-xs text-black/50 uppercase tracking-wider" data-testid="text-founding-member">
+          Founding member pricing. Full price resumes after 100 members.
         </div>
       </div>
 
@@ -157,8 +163,10 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
                 </div>
                 <h3 className="text-2xl font-bold text-black">{tier.name}</h3>
               </div>
-              <div className="text-5xl font-bold mb-6 mono text-black" data-testid={`text-price-${tier.key}`}>
-                {tier.price}
+              <div className="mb-6">
+                <div className="mono text-base text-black/40 line-through mb-1">{tier.originalPrice}</div>
+                <div className="text-5xl font-bold mono text-black" data-testid={`text-price-${tier.key}`}>{tier.price}</div>
+                <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">Launch Special</div>
               </div>
               <div className="space-y-3 mb-6 text-sm">
                 {tier.features.map((feature, i) => (

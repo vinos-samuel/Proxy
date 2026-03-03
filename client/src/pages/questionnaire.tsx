@@ -203,8 +203,12 @@ export default function QuestionnairePage() {
         }
         return merged;
       });
+      // If profile exists, skip the resume upload step (Step 0) and start at Step 1
+      if (currentStep === 0) {
+        setCurrentStep(1);
+      }
     }
-  }, [existingProfile]);
+  }, [existingProfile, currentStep]);
 
   const handleResumeUpload = async (file: File) => {
     if (file.type !== "application/pdf") {
@@ -477,6 +481,11 @@ export default function QuestionnairePage() {
                 <span className="text-xl font-bold tracking-tight">Context Ingestion</span>
               </div>
             </Link>
+            <Link href="/dashboard">
+              <button className="mono text-xs uppercase tracking-wider font-bold hover:underline flex items-center gap-1">
+                <ArrowLeft className="h-3 w-3" /> Back to Dashboard
+              </button>
+            </Link>
           </div>
         </nav>
 
@@ -593,10 +602,17 @@ export default function QuestionnairePage() {
               <span className="text-xl font-bold tracking-tight" data-testid="text-context-ingestion">Context Ingestion</span>
             </div>
           </Link>
-          <div className="flex items-center gap-3">
-            <span className="mono text-xs uppercase tracking-wider text-black/50 border-[2px] border-black bg-white px-3 py-1">
-              {saveMutation.isPending ? "SAVING..." : "AUTO_SAVED"}
-            </span>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard">
+              <button className="mono text-xs uppercase tracking-wider font-bold hover:underline flex items-center gap-1">
+                <ArrowLeft className="h-3 w-3" /> Back to Dashboard
+              </button>
+            </Link>
+            <div className="flex items-center gap-3">
+              <span className="mono text-xs uppercase tracking-wider text-black/50 border-[2px] border-black bg-white px-3 py-1">
+                {saveMutation.isPending ? "SAVING..." : "AUTO_SAVED"}
+              </span>
+            </div>
           </div>
         </div>
       </nav>

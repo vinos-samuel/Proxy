@@ -1,0 +1,42 @@
+In client/src/pages/portfolio.tsx, implement distinct visual grammar for each theme. Themes currently only change colors — they need different typography, card shapes, spacing rhythm, and background feel to be genuinely distinct. Do not change any text color values (text-white, text-white/75 etc) — all themes remain dark background with light text.
+
+STEP 0 — Background differentiation (do this first, one line per theme):
+- corporate: change bg to bg-[#0F1623] (deep navy, institutional)
+- tech: change bg to bg-[#18181b] (zinc dark, unchanged — already correct)
+- creative: change bg to bg-[#1C1814] (warm espresso, not cold black)
+Confirm the field name and line number where bg is defined in the theme object.
+
+STEP 1 — Load Google Fonts in client/index.html inside <head>:
+- Playfair Display (400, 700)
+- DM Mono (400, 500)
+- Fraunces (300, 700, variable weight)
+Keep Inter as body font for all themes. Confirm addition.
+
+STEP 2 — Add fontFamily field to each theme object:
+- corporate: fontFamily: "'Playfair Display', Georgia, serif"
+- tech: fontFamily: "'DM Mono', monospace"
+- creative: fontFamily: "'Fraunces', serif"
+Apply theme.fontFamily via inline style={{ fontFamily: theme.fontFamily }} to all section headings and the hero name/title. Do not apply to body text or card descriptions — Inter only there.
+
+STEP 3 — Add cardStyle field to each theme object:
+- corporate: "rounded-sm border border-white/20 bg-white/5" (hard edges, no blur, structured)
+- tech: "rounded-md bg-zinc-900/80 border border-white/10 transition-shadow hover:shadow-[0_0_15px_rgba(34,211,238,0.12)]"
+- creative: "rounded-2xl bg-white/5 border border-white/8"
+Apply theme.cardStyle to: Impact Metrics cards, Skill Matrix cards, Where I'm Most Useful cards. Replace only the card container class — do not touch inner content classes.
+
+STEP 4 — Add metricStyle field to each theme object and apply to Impact Metrics large numbers:
+- corporate: { className: "text-4xl font-bold tracking-tight" }
+- tech: { className: "text-4xl font-bold", style: { textShadow: "0 0 24px currentColor" } }
+- creative: { className: "text-5xl font-light tracking-tight" }
+Apply className and style separately. Confirm line numbers in Impact Metrics section.
+
+STEP 5 — Corporate theme layout: reduce card gaps to gap-3 throughout (dense, structured feel). Apply only when theme is corporate.
+
+STEP 6 — Tech theme only: prepend a muted "// " prefix (text-white/30) before all section headings when tech theme is active. Use conditional rendering: {theme.name === 'Tech' && <span className="text-white/30">// </span>}
+
+STEP 7 — Creative theme only: in Impact Metrics and Skill Matrix grids, make the first card span 2 columns using col-span-2 within a 3-column grid (grid-cols-3). This creates editorial asymmetry. Ensure remaining cards fill correctly without breaking layout.
+
+After all steps, confirm:
+- No text-white values were changed
+- No existing color variables were modified
+- Each step with line numbers of what changed

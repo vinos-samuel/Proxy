@@ -82,7 +82,10 @@ function getIcon(name: string, className: string) {
 const themes = {
   corporate: {
     name: "Corporate",
-    bg: "bg-[#0A1128]",
+    bg: "bg-[#0F1623]",
+    fontFamily: "'Playfair Display', Georgia, serif",
+    cardStyle: "rounded-sm border border-white/20 bg-white/5",
+    metricStyle: { className: "text-4xl font-bold tracking-tight", style: {} as Record<string, string> },
     gradient: "bg-gradient-to-br from-[#1A1A2E]/40 via-transparent to-[#6B2C3E]/20",
     glass: "bg-gradient-to-br from-[#1a1a2e]/90 to-[#16213e]/90 backdrop-blur-md border-2 border-[#C9A961]",
     glassHover: "hover:shadow-[0_4px_24px_rgba(201,169,97,0.25)] transition-all duration-300",
@@ -105,7 +108,10 @@ const themes = {
   },
   tech: {
     name: "Tech",
-    bg: "bg-black",
+    bg: "bg-[#18181b]",
+    fontFamily: "'DM Mono', monospace",
+    cardStyle: "rounded-md bg-zinc-900/80 border border-white/10 transition-shadow hover:shadow-[0_0_15px_rgba(34,211,238,0.12)]",
+    metricStyle: { className: "text-4xl font-bold", style: { textShadow: "0 0 24px currentColor" } as Record<string, string> },
     gradient: "bg-gradient-to-br from-blue-600/20 via-transparent to-cyan-400/20",
     glass: "bg-slate-900/80 backdrop-blur-xl border border-blue-500/50",
     glassHover: "hover:border-blue-500 hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] transition-all duration-300",
@@ -128,7 +134,10 @@ const themes = {
   },
   creative: {
     name: "Creative",
-    bg: "bg-[#18181B]",
+    bg: "bg-[#1C1814]",
+    fontFamily: "'Fraunces', serif",
+    cardStyle: "rounded-2xl bg-white/5 border border-white/[0.08]",
+    metricStyle: { className: "text-5xl font-light tracking-tight", style: {} as Record<string, string> },
     gradient: "bg-gradient-to-br from-transparent via-[#8BA888]/5 to-transparent",
     glass: "bg-white/[0.03] backdrop-blur-sm border border-white/[0.08]",
     glassHover: "hover:bg-white/[0.05] transition-all duration-500",
@@ -295,7 +304,7 @@ export default function PortfolioPage() {
                   </div>
                 )}
                 <div>
-                  <h1 className={`text-5xl md:text-6xl font-black tracking-tight ${theme.headingClass}`} data-testid="text-display-name">
+                  <h1 className={`text-5xl md:text-6xl font-black tracking-tight ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }} data-testid="text-display-name">
                     {profile.displayName}
                   </h1>
                 </div>
@@ -401,7 +410,7 @@ export default function PortfolioPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h1 className={`text-6xl font-black mb-6 tracking-tight ${theme.headingClass}`}>{profile.displayName}</h1>
+            <h1 className={`text-6xl font-black mb-6 tracking-tight ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{profile.displayName}</h1>
             <p className={`text-xl font-medium ${theme.muted} mb-6`}>
               {profile.heroSubtitle || profile.roleTitle}
             </p>
@@ -432,7 +441,7 @@ export default function PortfolioPage() {
       {/* 2. DIGITAL TWIN CONSOLE — THE STAR */}
       <section id="section-chatbot" className="py-12 px-6 max-w-4xl mx-auto opacity-0 animate-[fadeIn_0.6s_ease-out_forwards]">
         <div className="text-center mb-6">
-          <h2 className={`text-3xl font-bold mb-2 ${theme.headingClass}`}>Twin Interface</h2>
+          <h2 className={`text-3xl font-bold mb-2 ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{theme.name === 'Tech' && <span className="text-white/30">// </span>}Twin Interface</h2>
           <p className={`${theme.muted} text-sm`}>Trained on {profile.displayName}'s career data, decision models, and communication style.</p>
         </div>
         
@@ -534,15 +543,15 @@ export default function PortfolioPage() {
         <section className="py-12 px-6 max-w-6xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
             <div className="h-px flex-1 bg-white/10" />
-            <h2 className={`text-2xl font-bold uppercase tracking-widest ${theme.accentSolid} ${theme.headingClass}`}>Impact Metrics</h2>
+            <h2 className={`text-2xl font-bold uppercase tracking-widest ${theme.accentSolid} ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{theme.name === 'Tech' && <span className="text-white/30">// </span>}Impact Metrics</h2>
             <div className="h-px flex-1 bg-white/10" />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className={`grid ${brandingTheme === 'creative' ? 'grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'} ${brandingTheme === 'corporate' ? 'gap-3' : 'gap-4'}`}>
             {visibleStats.map((stat, i) => (
               <motion.div 
                 whileHover={{ y: -3 }}
                 key={i} 
-                className={`${theme.glass} p-8 rounded-xl text-center ${theme.glassHover}`}
+                className={`${theme.cardStyle} p-8 text-center ${brandingTheme === 'creative' && i === 0 ? 'col-span-2' : ''}`}
                 data-testid={`stat-card-${i}`}
               >
                 {stat.icon && (
@@ -550,7 +559,7 @@ export default function PortfolioPage() {
                     {getIcon(stat.icon, "w-5 h-5 text-white")}
                   </div>
                 )}
-                <div className={`text-3xl md:text-4xl font-black mb-2 bg-gradient-to-r ${theme.accent} bg-clip-text text-transparent`}>
+                <div className={`${theme.metricStyle.className} mb-2 bg-gradient-to-r ${theme.accent} bg-clip-text text-transparent`} style={theme.metricStyle.style}>
                   {stat.value}
                 </div>
                 <div className={`${theme.muted} text-xs uppercase tracking-wider`}>{stat.label}</div>
@@ -573,14 +582,14 @@ export default function PortfolioPage() {
       {/* 4. WHERE I'M MOST USEFUL */}
       {(profile.whereImMostUseful?.scenarios?.length || (profile.problemFit && profile.problemFit.length > 0)) && (
         <section className="py-12 px-6 max-w-5xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-2 ${theme.headingClass}`}>Where I'm Most Useful</h2>
+          <h2 className={`text-3xl font-bold mb-2 ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{theme.name === 'Tech' && <span className="text-white/30">// </span>}Where I'm Most Useful</h2>
           {profile.whereImMostUseful?.intro && (
             <p className={`text-lg ${theme.muted} mb-8 leading-relaxed`}>{profile.whereImMostUseful.intro}</p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${brandingTheme === 'corporate' ? 'gap-3' : 'gap-4'}`}>
             {profile.whereImMostUseful?.scenarios ? (
               profile.whereImMostUseful.scenarios.map((scenario, i) => (
-                <div key={i} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover} group`}>
+                <div key={i} className={`${theme.cardStyle} p-6 group`}>
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-gradient-to-r ${theme.accent} bg-opacity-20`}>
                     {getIcon(scenario.icon, "w-6 h-6 text-white/80")}
                   </div>
@@ -605,7 +614,7 @@ export default function PortfolioPage() {
       {/* 5. HOW I WORK — Horizontal timeline with arrows */}
       {profile.howIWork && profile.howIWork.steps?.length > 0 && (
         <section className="py-12 px-6 max-w-6xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-2 text-center ${theme.headingClass}`}>{profile.howIWork.name || "My Operating Model"}</h2>
+          <h2 className={`text-3xl font-bold mb-2 text-center ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{theme.name === 'Tech' && <span className="text-white/30">// </span>}{profile.howIWork.name || "My Operating Model"}</h2>
           <p className={`text-center ${theme.muted} mb-8`}>How I approach engagements and deliver results</p>
           <div className="flex flex-col md:flex-row items-stretch gap-2">
             {profile.howIWork.steps.map((step, i, arr) => (
@@ -627,8 +636,8 @@ export default function PortfolioPage() {
       {/* 6. CAREER TRAJECTORY */}
       {profile.careerTimeline && profile.careerTimeline.length > 0 && (
         <section className="py-12 px-6 max-w-6xl mx-auto opacity-0 animate-[fadeIn_0.6s_ease-out_forwards]">
-          <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`}>
-            Career Trajectory
+          <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>
+            {theme.name === 'Tech' && <span className="text-white/30">// </span>}Career Trajectory
           </h2>
           
           <div className={`space-y-8 border-l-2 ${theme.timelineLineColor} pl-8`}>
@@ -704,12 +713,12 @@ export default function PortfolioPage() {
       {/* 7. SKILL MATRIX */}
       {(profile.skillsMatrix && profile.skillsMatrix.length > 0) ? (
         <section className="py-12 px-6 max-w-5xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`}>
-            Skill Matrix
+          <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>
+            {theme.name === 'Tech' && <span className="text-white/30">// </span>}Skill Matrix
           </h2>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className={`grid ${brandingTheme === 'creative' ? 'grid-cols-1 md:grid-cols-3' : 'md:grid-cols-2'} ${brandingTheme === 'corporate' ? 'gap-3' : 'gap-4'}`}>
             {profile.skillsMatrix.map((skill, i) => (
-              <div key={i} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover}`} data-testid={`skill-card-${i}`}>
+              <div key={i} className={`${theme.cardStyle} p-6 ${brandingTheme === 'creative' && i === 0 ? 'md:col-span-2' : ''}`} data-testid={`skill-card-${i}`}>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-white/10 border border-white/20 group-hover:border-white/30 transition-colors shadow-sm`}>

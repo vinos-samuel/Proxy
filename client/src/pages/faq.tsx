@@ -107,7 +107,7 @@ export default function FAQPage() {
           <div className="flex gap-8 mono text-xs font-bold uppercase tracking-widest text-black/50">
             <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>
             <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
-            <Link href="/pricing"><span className="cursor-pointer hover:text-black">Pricing</span></Link>
+            <Link href="/#pricing"><span className="cursor-pointer hover:text-black">Pricing</span></Link>
             <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-black">myproxy_work@proton.me</a>
             <span>© 2026 Digital Twin Studio</span>
           </div>

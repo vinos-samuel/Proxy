@@ -70,6 +70,7 @@ function Router() {
       <Route path="/admin">{() => <ProtectedRoute component={AdminPage} />}</Route>
       <Route path="/payment/success" component={PaymentSuccessPage} />
       <Route path="/payment/cancelled" component={PaymentCancelledPage} />
+      <Route path="/pricing" component={LandingPage} />
       <Route path="/portfolio/:username" component={PortfolioPage} />
       <Route component={NotFound} />
     </Switch>

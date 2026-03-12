@@ -617,53 +617,6 @@ export async function registerRoutes(
     }
   });
 
-  // ==================== PAYMENTS (Test Mode Bypass) ====================
-  // Stripe code is saved in stripe-backup/ for future activation.
-  // For now, testers can select a tier and publish directly.
-
-  app.post("/api/test-publish", requireAuth, async (req: Request, res: Response) => {
-    try {
-      const { tier } = req.body;
-      if (!tier || !['launch', 'evolve', 'concierge'].includes(tier)) {
-        return res.status(400).json({ message: "Invalid tier" });
-      }
-
-      const profile = await storage.getProfileByCustomerId(req.session.customerId!);
-      if (!profile) {
-        return res.status(404).json({ message: "No profile found" });
-      }
-
-      if (profile.status !== "ready" && profile.status !== "published") {
-        return res.status(400).json({ message: "Profile is not ready to publish" });
-      }
-
-      const customer = await storage.getCustomer(req.session.customerId!);
-      const publicDomain = customer ? `${customer.username}.myproxy.work` : undefined;
-
-      await storage.updateProfileById(profile.id, {
-        paymentStatus: 'paid',
-        paidAt: new Date(),
-        isPublic: true,
-        tier,
-        publicDomain,
-      });
-      await storage.updateProfileStatus(profile.id, "published");
-      await storage.updateCustomerStatus(req.session.customerId!, "paid");
-
-      console.log(`[Test Mode] Published portfolio for ${customer?.username} with tier: ${tier}`);
-
-      res.json({
-        success: true,
-        publicDomain,
-        tier,
-        username: customer?.username,
-      });
-    } catch (error) {
-      console.error("[Test Publish] Error:", error);
-      res.status(500).json({ message: "Failed to publish" });
-    }
-  });
-
   // ==================== ADMIN ====================
 
   app.post(

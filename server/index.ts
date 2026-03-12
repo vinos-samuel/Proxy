@@ -1,10 +1,15 @@
 import express, { type Request, Response, NextFunction } from "express";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
 const app = express();
 const httpServer = createServer(app);
+
+// Security: Add helmet as first middleware
+app.use(helmet());
 
 app.use(
   express.json({
@@ -15,6 +20,45 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
+
+// Rate limiters
+const generalApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requests per windowMs
+  standardHeaders: false,
+  skip: (req) => !req.path.startsWith("/api"),
+  handler: (_req, res) => {
+    res.status(429).json({ error: "Too many requests, please try again later." });
+  },
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 requests per windowMs
+  standardHeaders: false,
+  handler: (_req, res) => {
+    res.status(429).json({ error: "Too many requests, please try again later." });
+  },
+});
+
+const chatLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 30, // 30 requests per windowMs
+  standardHeaders: false,
+  handler: (_req, res) => {
+    res.status(429).json({ error: "Too many requests, please try again later." });
+  },
+});
+
+// Apply general API limiter to all /api/* routes
+app.use("/api/", generalApiLimiter);
+
+// Apply auth limiter to login and register
+app.post("/api/auth/login", authLimiter);
+app.post("/api/auth/register", authLimiter);
+
+// Apply chat limiter to the public portfolio chat endpoint
+app.post("/api/chat/:username", chatLimiter);
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {

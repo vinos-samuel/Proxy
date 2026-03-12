@@ -1,9 +1,11 @@
 import express, { type Request, Response, NextFunction } from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
+import { createServer } from "http";
+import { randomBytes } from "crypto";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
-import { createServer } from "http";
 
 const app = express();
 const httpServer = createServer(app);
@@ -20,6 +22,7 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
 // Rate limiters
 const generalApiLimiter = rateLimit({
@@ -59,6 +62,34 @@ app.post("/api/auth/register", authLimiter);
 
 // Apply chat limiter to the public portfolio chat endpoint
 app.post("/api/chat/:username", chatLimiter);
+
+// CSRF protection using double-submit cookie pattern
+app.use((req: Request, res: Response, next: NextFunction) => {
+  // Generate CSRF token on GET requests (non-API routes)
+  if (req.method === "GET" && !req.path.startsWith("/api")) {
+    const csrfToken = randomBytes(32).toString("hex");
+    res.cookie("csrf-token", csrfToken, {
+      httpOnly: false, // Allow JS to read it
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    });
+  }
+
+  // Validate CSRF token on state-changing API requests (except Stripe webhook)
+  if (["POST", "PUT", "DELETE", "PATCH"].includes(req.method) && 
+      req.path.startsWith("/api") && 
+      req.path !== "/api/stripe/webhook") {
+    const tokenFromHeader = req.headers["x-csrf-token"] as string;
+    const tokenFromCookie = req.cookies["csrf-token"] as string;
+
+    if (!tokenFromHeader || !tokenFromCookie || tokenFromHeader !== tokenFromCookie) {
+      return res.status(403).json({ error: "Invalid CSRF token" });
+    }
+  }
+
+  next();
+});
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {

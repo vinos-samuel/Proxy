@@ -76,7 +76,7 @@ export default function ResetPasswordPage() {
           <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
           <p className="font-bold text-black mono uppercase tracking-wider">Invalid or Expired Link</p>
           <p className="text-sm text-black/60 mono mt-2">This password reset link is invalid or has expired.</p>
-          <Link href="/forgot-password">
+          <Link to="/forgot-password">
             <Button
               className="mt-6 w-full bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold py-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none"
               data-testid="button-request-new-link"
@@ -94,7 +94,7 @@ export default function ResetPasswordPage() {
           <CheckCircle className="h-12 w-12 text-[#22C55E] mx-auto mb-4" />
           <p className="font-bold text-black mono uppercase tracking-wider">Password Updated</p>
           <p className="text-sm text-black/60 mono mt-2">Your password has been reset. Redirecting to sign in...</p>
-          <Link href="/login">
+          <Link to="/login">
             <Button
               className="mt-6 w-full bg-black hover:bg-black/80 text-white font-bold py-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none"
               data-testid="button-go-to-login"
@@ -180,7 +180,7 @@ export default function ResetPasswordPage() {
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="text-center mb-8">
-          <Link href="/">
+          <Link to="/">
             <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
               <div className="h-10 w-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
                 P

@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="text-center mb-8">
-          <Link href="/">
+          <Link to="/">
             <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
               <div className="h-10 w-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
                 P
@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
               <CheckCircle className="h-12 w-12 text-[#22C55E] mx-auto mb-4" />
               <p className="font-bold text-black mono uppercase tracking-wider">Check your inbox</p>
               <p className="text-sm text-black/60 mono mt-2">If that email exists, a reset link has been sent. It expires in 1 hour.</p>
-              <Link href="/login">
+              <Link to="/login">
                 <Button
                   className="mt-6 w-full bg-black hover:bg-black/80 text-white font-bold py-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none"
                   data-testid="button-back-to-login"
@@ -99,7 +99,7 @@ export default function ForgotPasswordPage() {
               </Button>
 
               <p className="text-center text-sm mt-2">
-                <Link href="/login" className="text-black font-bold mono uppercase tracking-wider hover:underline text-xs" data-testid="link-back-login">
+                <Link to="/login" className="text-black font-bold mono uppercase tracking-wider hover:underline text-xs" data-testid="link-back-login">
                   ← Back to Sign In
                 </Link>
               </p>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check, Loader2, Rocket, Star, Crown } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 
 interface PaymentGateProps {
   profileId: string;

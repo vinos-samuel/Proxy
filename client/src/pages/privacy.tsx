@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 
-export default function TermsPage() {
+export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-[#E8E8E3] flex flex-col" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
       <div className="max-w-4xl mx-auto px-6 py-12 flex-1">
@@ -13,7 +13,7 @@ export default function TermsPage() {
           </div>
         </Link>
 
-        <h1 className="text-4xl font-bold mb-8 text-black">Terms of Service</h1>
+        <h1 className="text-4xl font-bold mb-8 text-black">Privacy Policy</h1>
 
         <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-6">
           <p className="text-black/70 leading-relaxed">[CONTENT]</p>

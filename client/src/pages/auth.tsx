@@ -1,262 +1,103 @@
-import { useState } from "react";
-import { Link, useLocation } from "wouter";
-import { motion } from "framer-motion";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/auth";
-import { Terminal, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
-import { registerSchema, loginSchema } from "@shared/schema";
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { ThemeProvider } from "@/lib/theme";
+import NotFound from "@/pages/not-found";
+import LandingPage from "@/pages/landing";
+import AboutPage from "@/pages/about";
+import FAQPage from "@/pages/faq";
+import { LoginPage, RegisterPage } from "@/pages/auth";
+import DashboardPage from "@/pages/dashboard";
+import QuestionnairePage from "@/pages/questionnaire";
+import PreviewPage from "@/pages/preview";
+import PortfolioPage from "@/pages/portfolio";
+import AdminPage from "@/pages/admin";
+import PaymentSuccessPage from "@/pages/payment-success";
+import PaymentCancelledPage from "@/pages/payment-cancelled";
+import ForgotPasswordPage from "@/pages/forgot-password";
+import ResetPasswordPage from "@/pages/reset-password";
+import PrivacyPage from "@/pages/privacy";
+import TermsPage from "@/pages/terms";
+import { Loader2 } from "lucide-react";
+import { Redirect } from "wouter";
 
-export function LoginPage() {
-  const [, navigate] = useLocation();
-  const { login } = useAuth();
-  const { toast } = useToast();
-  const [showPassword, setShowPassword] = useState(false);
+function ProtectedRoute({ component: Component }: { component: () => JSX.Element }) {
+  const { user, isLoading } = useAuth();
 
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
-  });
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
-  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
-    try {
-      await login(data.email, data.password);
-      navigate("/dashboard");
-    } catch (err: any) {
-      toast({ title: "Login failed", description: err.message || "Invalid credentials", variant: "destructive" });
-    }
-  };
+  if (!user) {
+    return <Redirect to="/login" />;
+  }
 
+  return <Component />;
+}
+
+function GuestRoute({ component: Component }: { component: () => JSX.Element }) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Redirect to="/dashboard" />;
+  }
+
+  return <Component />;
+}
+
+function Router() {
   return (
-    <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center p-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-      <motion.div
-        className="relative w-full max-w-md"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div className="text-center mb-8">
-          <Link href="/">
-            <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <div className="h-10 w-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
-                P
-              </div>
-              <span className="text-2xl font-bold tracking-tight text-black">PROXY</span>
-            </div>
-          </Link>
-          <h1 className="text-4xl font-bold mb-2 text-black/60">Welcome back</h1>
-          <p className="mono text-sm text-black/60 uppercase tracking-wider">Sign in to manage your Digital Twin</p>
-        </div>
-
-        <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="mono text-xs uppercase tracking-wider text-black/60">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                data-testid="input-email"
-                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
-                {...form.register("email")}
-              />
-              {form.formState.errors.email && (
-                <p className="mono text-xs text-destructive">{form.formState.errors.email.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="mono text-xs uppercase tracking-wider text-black/60">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  data-testid="input-password"
-                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
-                  {...form.register("password")}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40"
-                  data-testid="button-toggle-password"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-              {form.formState.errors.password && (
-                <p className="mono text-xs text-destructive">{form.formState.errors.password.message}</p>
-              )}
-            </div>
-            <Button
-              type="submit"
-              className="w-full bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold py-6 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-              disabled={form.formState.isSubmitting}
-              data-testid="button-login"
-            >
-              {form.formState.isSubmitting ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <>Sign In &rarr;</>
-              )}
-            </Button>
-          </form>
-
-          <p className="text-center text-sm mt-6">
-            <Link href="/forgot-password" className="text-black/50 mono text-xs uppercase tracking-wider hover:underline" data-testid="link-forgot-password">
-              Forgot password?
-            </Link>
-          </p>
-
-          <p className="text-center text-sm mt-4">
-            <span className="text-black/60 mono uppercase tracking-wider">Don't have an account?</span>{" "}
-            <Link href="/register" className="text-black font-bold mono uppercase tracking-wider hover:underline" data-testid="link-register">
-              Create one
-            </Link>
-          </p>
-        </div>
-      </motion.div>
-    </div>
+    <Switch>
+      <Route path="/" component={LandingPage} />
+      <Route path="/about" component={AboutPage} />
+      <Route path="/faq" component={FAQPage} />
+      <Route path="/login">{() => <GuestRoute component={LoginPage} />}</Route>
+      <Route path="/register">{() => <GuestRoute component={RegisterPage} />}</Route>
+      <Route path="/dashboard">{() => <ProtectedRoute component={DashboardPage} />}</Route>
+      <Route path="/questionnaire">{() => <ProtectedRoute component={QuestionnairePage} />}</Route>
+      <Route path="/preview">{() => <ProtectedRoute component={PreviewPage} />}</Route>
+      <Route path="/admin">{() => <ProtectedRoute component={AdminPage} />}</Route>
+      <Route path="/payment/success" component={PaymentSuccessPage} />
+      <Route path="/payment/cancelled" component={PaymentCancelledPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
+      <Route path="/privacy" component={PrivacyPage} />
+      <Route path="/terms" component={TermsPage} />
+      <Route path="/pricing" component={LandingPage} />
+      <Route path="/portfolio/:username" component={PortfolioPage} />
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
-export function RegisterPage() {
-  const [, navigate] = useLocation();
-  const { register: registerUser } = useAuth();
-  const { toast } = useToast();
-  const [showPassword, setShowPassword] = useState(false);
-
-  const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { email: "", password: "", name: "", username: "" },
-  });
-
-  const onSubmit = async (data: z.infer<typeof registerSchema>) => {
-    try {
-      await registerUser(data);
-      navigate("/dashboard");
-    } catch (err: any) {
-      toast({ title: "Registration failed", description: err.message || "Could not create account", variant: "destructive" });
-    }
-  };
-
+function App() {
   return (
-    <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center p-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-      <motion.div
-        className="relative w-full max-w-md"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div className="text-center mb-8">
-          <Link href="/">
-            <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <div className="h-10 w-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
-                P
-              </div>
-              <span className="text-2xl font-bold tracking-tight text-black">PROXY</span>
-            </div>
-          </Link>
-          <h1 className="text-4xl font-bold mb-2 text-black/60">Initialize Your Twin</h1>
-          <p className="mono text-sm text-black/60 uppercase tracking-wider">Start building your AI career agent</p>
-        </div>
-
-        <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="mono text-xs uppercase tracking-wider text-black/60">Full Name</Label>
-              <Input
-                id="name"
-                placeholder="John Doe"
-                data-testid="input-name"
-                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
-                {...form.register("name")}
-              />
-              {form.formState.errors.name && (
-                <p className="mono text-xs text-destructive">{form.formState.errors.name.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="username" className="mono text-xs uppercase tracking-wider text-black/60">Username</Label>
-              <div className="relative">
-                <Input
-                  id="username"
-                  placeholder="john-doe"
-                  data-testid="input-username"
-                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
-                  {...form.register("username")}
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs mono text-black/40">
-                  .myproxy.work
-                </span>
-              </div>
-              {form.formState.errors.username && (
-                <p className="mono text-xs text-destructive">{form.formState.errors.username.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reg-email" className="mono text-xs uppercase tracking-wider text-black/60">Email</Label>
-              <Input
-                id="reg-email"
-                type="email"
-                placeholder="you@example.com"
-                data-testid="input-reg-email"
-                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
-                {...form.register("email")}
-              />
-              {form.formState.errors.email && (
-                <p className="mono text-xs text-destructive">{form.formState.errors.email.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reg-password" className="mono text-xs uppercase tracking-wider text-black/60">Password</Label>
-              <div className="relative">
-                <Input
-                  id="reg-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Min 8 characters"
-                  data-testid="input-reg-password"
-                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
-                  {...form.register("password")}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-              {form.formState.errors.password && (
-                <p className="mono text-xs text-destructive">{form.formState.errors.password.message}</p>
-              )}
-            </div>
-            <Button
-              type="submit"
-              className="w-full bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold py-6 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-              disabled={form.formState.isSubmitting}
-              data-testid="button-register"
-            >
-              {form.formState.isSubmitting ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <>Create Account &rarr;</>
-              )}
-            </Button>
-          </form>
-
-          <p className="text-center text-sm mt-8">
-            <span className="text-black/60 mono uppercase tracking-wider">Already have an account?</span>{" "}
-            <Link href="/login" className="text-black font-bold mono uppercase tracking-wider hover:underline" data-testid="link-login">
-              Sign in
-            </Link>
-          </p>
-        </div>
-      </motion.div>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <TooltipProvider>
+          <AuthProvider>
+            <Toaster />
+            <Router />
+          </AuthProvider>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
+
+export default App;

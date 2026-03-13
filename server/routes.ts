@@ -7,7 +7,7 @@ import { registerSchema, loginSchema } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import session from "express-session";
-import { processQuestionnaire, parseResumeWithGemini } from "./ai-processor";
+import { processQuestionnaire, parseResumeWithGemini, generateQuestionnaireDraft } from "./ai-processor";
 import multer from "multer";
 import { GoogleGenAI } from "@google/genai";
 import pgSession from "connect-pg-simple";
@@ -481,7 +481,31 @@ export async function registerRoutes(
           rolesCount: extractedData.roles?.length || 0,
         });
 
-        res.json(extractedData);
+        // Generate full questionnaire draft and save to DB so the
+        // questionnaire page auto-loads it when the user navigates there.
+        let questionnaireDraft: any = null;
+        try {
+          questionnaireDraft = await generateQuestionnaireDraft(extractedData);
+          // Stamp as AI draft so the frontend can show the review banner
+          questionnaireDraft._aiDraft = true;
+          questionnaireDraft._aiDraftGeneratedAt = new Date().toISOString();
+
+          await storage.upsertProfile({
+            customerId: req.session.customerId!,
+            questionnaireData: questionnaireDraft,
+          });
+
+          logger.info("[Resume Parse] Questionnaire draft saved to DB", {
+            customerId: req.session.customerId,
+          });
+        } catch (draftErr) {
+          // Non-fatal: log and continue — client still gets extractedData for basic pre-fill
+          logger.warn("[Resume Parse] Draft generation failed, continuing without full draft", {
+            error: String(draftErr),
+          });
+        }
+
+        res.json({ extractedData, questionnaireDraft });
       } catch (error: any) {
         logger.error("[Resume Parse] Error", { error: String(error) });
         res.status(500).json({

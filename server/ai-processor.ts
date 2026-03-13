@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { storage } from "./storage";
+import { logger } from "./logger";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY!,
@@ -896,5 +897,168 @@ Return ONLY valid JSON. No markdown code fences, no explanations, no preamble.`;
   } catch (error) {
     console.error("[Gemini Resume Parse] Error:", error);
     throw new Error("Failed to extract data from resume. The file may be corrupted or unreadable.");
+  }
+}
+
+// ==================== QUESTIONNAIRE DRAFT GENERATOR ====================
+
+interface ParsedResume {
+  name?: string;
+  currentTitle?: string;
+  email?: string;
+  phone?: string;
+  location?: string;
+  linkedin?: string;
+  summary?: string;
+  roles?: Array<{ title: string; company: string; years: string; achievements: string }>;
+  skills?: string[];
+  achievements?: string[];
+}
+
+export async function generateQuestionnaireDraft(parsedResume: ParsedResume) {
+  const rolesText = (parsedResume.roles || [])
+    .map((r) => `- ${r.title} at ${r.company} (${r.years}): ${r.achievements}`)
+    .join("\n");
+
+  const prompt = `You are an expert career profile writer. Based on the resume data below, generate a complete pre-filled questionnaire draft for a Digital Twin AI career profile.
+
+RESUME DATA:
+Name: ${parsedResume.name || ""}
+Title: ${parsedResume.currentTitle || ""}
+Summary: ${parsedResume.summary || ""}
+Roles:
+${rolesText}
+Skills: ${(parsedResume.skills || []).join(", ")}
+Key Achievements: ${(parsedResume.achievements || []).join(" | ")}
+
+TASK: Generate a complete questionnaire draft. Be specific using details from the resume. For war stories, Q&A, and objections, create realistic drafts — add [EDIT] wherever the person should personalise further with their own words/numbers.
+
+REQUIRED OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
+{
+  "step1": {
+    "fullName": "string",
+    "currentTitle": "string",
+    "email": "string",
+    "phone": "string",
+    "linkedinUrl": "string",
+    "location": "string"
+  },
+  "step2": {
+    "professionalSummary": "string (2-3 compelling sentences positioning this person as an expert — first person, confident)",
+    "careerHistory": [
+      { "company": "string", "title": "string", "years": "string", "achievements": "string (newline-separated bullet points)" }
+    ]
+  },
+  "step3": {
+    "resumeUrl": ""
+  },
+  "step4": {
+    "stories": [
+      {
+        "title": "string (short name for the story, e.g. 'Rebuilt the sales pipeline at [Company]')",
+        "challenge": "string (what was the high-stakes problem or pressure?)",
+        "approach": "string (what did you uniquely do — your specific actions and decisions?)",
+        "result": "string (quantified outcome — numbers where possible, add [EDIT] if unknown)"
+      }
+    ]
+  },
+  "step5": {
+    "achievements": "string (5-8 quantified achievement statements, one per line starting with bullet •)"
+  },
+  "step6": {
+    "technicalSkills": "string (comma-separated list of all tools, platforms, languages, methodologies)"
+  },
+  "step7": {
+    "communicationStyle": "string (one of: direct, warm, technical, strategic)",
+    "wordsUsedOften": "string (6-10 words or phrases this person likely uses — based on their industry and seniority)",
+    "wordsAvoided": "synergy, leverage, move the needle, circle back",
+    "writingSample": "string (2-3 sentences written exactly as this person would write them — casual but professional)"
+  },
+  "step8": {
+    "questions": [
+      { "question": "string", "answer": "string (specific draft answer using resume data, with [EDIT] where needed)" }
+    ]
+  },
+  "step9": {
+    "objections": [
+      { "objection": "string (realistic tough question or concern)", "response": "string (confident, specific response using resume evidence)" }
+    ]
+  },
+  "step10": {
+    "brandingTheme": "string (one of: corporate, tech, creative — based on their industry)",
+    "headshot": "",
+    "introVideo": "",
+    "cvResume": ""
+  },
+  "step11": {
+    "suggestedQuestions": "string (5 suggested questions a recruiter or client might ask, one per line)",
+    "specialInstructions": "Keep answers concise and confident. If asked about compensation, say you prefer to discuss details directly. Always end with an invitation to connect.",
+    "easterEgg": ""
+  }
+}
+
+RULES:
+- step4.stories: generate exactly 3 stories from the most impactful roles/achievements
+- step8.questions: generate exactly 5 likely questions with specific draft answers
+- step9.objections: generate exactly 3 common objections with confident responses
+- step10.brandingTheme: choose "corporate", "tech", or "creative" based on their industry
+- step7.communicationStyle: choose one of direct/warm/technical/strategic based on their role type
+- Use first person ("I") throughout
+- Be specific — use company names, years, technologies from the resume
+- Add [EDIT] markers where the user should add personal details, numbers, or context
+- Return ONLY valid JSON. No markdown code fences, no explanations.`;
+
+  try {
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    });
+
+    const responseText = result.text || "";
+    const cleanJson = responseText
+      .replace(/```json\n?/g, "")
+      .replace(/```\n?/g, "")
+      .trim();
+
+    const draft = JSON.parse(cleanJson);
+
+    // Enforce minimum array lengths as safety net
+    if (!Array.isArray(draft.step4?.stories) || draft.step4.stories.length < 3) {
+      draft.step4 = {
+        stories: [
+          { title: "[EDIT] Key project or initiative", challenge: "[EDIT] What was the challenge?", approach: "[EDIT] What did you do?", result: "[EDIT] What was the outcome?" },
+          { title: "[EDIT] Key project or initiative", challenge: "[EDIT] What was the challenge?", approach: "[EDIT] What did you do?", result: "[EDIT] What was the outcome?" },
+          { title: "[EDIT] Key project or initiative", challenge: "[EDIT] What was the challenge?", approach: "[EDIT] What did you do?", result: "[EDIT] What was the outcome?" },
+        ],
+      };
+    }
+    if (!Array.isArray(draft.step8?.questions) || draft.step8.questions.length < 3) {
+      draft.step8 = {
+        questions: [
+          { question: "What are your core areas of expertise?", answer: "[EDIT] Add your answer" },
+          { question: "What types of roles or projects excite you most?", answer: "[EDIT] Add your answer" },
+          { question: "How do you prefer to work with teams?", answer: "[EDIT] Add your answer" },
+        ],
+      };
+    }
+    if (!Array.isArray(draft.step9?.objections) || draft.step9.objections.length < 2) {
+      draft.step9 = {
+        objections: [
+          { objection: "[EDIT] Add a common concern people have", response: "[EDIT] Your confident response" },
+          { objection: "[EDIT] Add a common concern people have", response: "[EDIT] Your confident response" },
+        ],
+      };
+    }
+
+    logger.debug("[Questionnaire Draft] Generated successfully", {
+      name: parsedResume.name,
+      storiesCount: draft.step4?.stories?.length,
+      questionsCount: draft.step8?.questions?.length,
+    });
+
+    return draft;
+  } catch (error) {
+    logger.error("[Questionnaire Draft] Error generating draft", { error: String(error) });
+    throw new Error("Failed to generate questionnaire draft from resume.");
   }
 }

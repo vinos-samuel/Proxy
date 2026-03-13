@@ -150,6 +150,7 @@ export default function QuestionnairePage() {
   const [data, setData] = useState<QuestionnaireData>(defaultData);
   const [resumeUploading, setResumeUploading] = useState(false);
   const [resumeFileName, setResumeFileName] = useState("");
+  const [showAiDraftBanner, setShowAiDraftBanner] = useState(false);
   const resumeInputRef = useRef<HTMLInputElement>(null);
 
   const headshotInputRef = useRef<HTMLInputElement>(null);
@@ -203,6 +204,10 @@ export default function QuestionnairePage() {
         }
         return merged;
       });
+      // Show AI draft banner if this data was pre-filled by AI
+      if (saved._aiDraft === true) {
+        setShowAiDraftBanner(true);
+      }
       // If profile exists, skip the resume upload step (Step 0) and start at Step 1
       if (currentStep === 0) {
         setCurrentStep(1);
@@ -238,42 +243,65 @@ export default function QuestionnairePage() {
         throw new Error(err.error || "Failed to parse resume");
       }
 
-      const extracted = await response.json();
+      const responseJson = await response.json();
+      // Server returns { extractedData, questionnaireDraft } — handle both shapes
+      const extracted = responseJson.extractedData ?? responseJson;
+      const draft = responseJson.questionnaireDraft;
 
-      setData(prev => ({
-        ...prev,
-        step1: {
-          fullName: extracted.name || prev.step1.fullName,
-          currentTitle: extracted.currentTitle || prev.step1.currentTitle,
-          email: extracted.email || prev.step1.email,
-          phone: extracted.phone || prev.step1.phone,
-          linkedinUrl: extracted.linkedin || prev.step1.linkedinUrl,
-          location: extracted.location || prev.step1.location,
-        },
-        step2: {
-          professionalSummary: extracted.summary || prev.step2.professionalSummary,
-          careerHistory: extracted.roles?.length > 0
-            ? extracted.roles.map((r: any) => ({
-                company: r.company || "",
-                title: r.title || "",
-                years: r.years || "",
-                achievements: typeof r.achievements === "string" ? r.achievements : (r.achievements || []).join("\n"),
-              }))
-            : prev.step2.careerHistory,
-        },
-        step5: {
-          achievements: extracted.achievements?.length > 0
-            ? extracted.achievements.join("\n")
-            : prev.step5.achievements,
-        },
-        step6: {
-          technicalSkills: extracted.skills?.length > 0
-            ? extracted.skills.join(", ")
-            : prev.step6.technicalSkills,
-        },
-      }));
+      if (draft && draft._aiDraft) {
+        // Full AI draft available — merge it into all steps
+        setData(prev => {
+          const merged = { ...defaultData };
+          for (const key of Object.keys(defaultData) as (keyof QuestionnaireData)[]) {
+            if (draft[key]) {
+              merged[key] = { ...defaultData[key], ...draft[key] } as any;
+            }
+          }
+          if (draft.step2?.careerHistory?.length > 0) merged.step2.careerHistory = draft.step2.careerHistory;
+          if (draft.step4?.stories?.length >= 3) merged.step4.stories = draft.step4.stories;
+          if (draft.step8?.questions?.length >= 3) merged.step8.questions = draft.step8.questions;
+          if (draft.step9?.objections?.length >= 2) merged.step9.objections = draft.step9.objections;
+          return merged;
+        });
+        setShowAiDraftBanner(true);
+        toast({ title: "✨ AI pre-filled your profile", description: `All sections populated from ${file.name}. Review and personalise each step.` });
+      } else {
+        // Fallback: basic field pre-fill from extractedData only
+        setData(prev => ({
+          ...prev,
+          step1: {
+            fullName: extracted.name || prev.step1.fullName,
+            currentTitle: extracted.currentTitle || prev.step1.currentTitle,
+            email: extracted.email || prev.step1.email,
+            phone: extracted.phone || prev.step1.phone,
+            linkedinUrl: extracted.linkedin || prev.step1.linkedinUrl,
+            location: extracted.location || prev.step1.location,
+          },
+          step2: {
+            professionalSummary: extracted.summary || prev.step2.professionalSummary,
+            careerHistory: extracted.roles?.length > 0
+              ? extracted.roles.map((r: any) => ({
+                  company: r.company || "",
+                  title: r.title || "",
+                  years: r.years || "",
+                  achievements: typeof r.achievements === "string" ? r.achievements : (r.achievements || []).join("\n"),
+                }))
+              : prev.step2.careerHistory,
+          },
+          step5: {
+            achievements: extracted.achievements?.length > 0
+              ? extracted.achievements.join("\n")
+              : prev.step5.achievements,
+          },
+          step6: {
+            technicalSkills: extracted.skills?.length > 0
+              ? extracted.skills.join(", ")
+              : prev.step6.technicalSkills,
+          },
+        }));
+        toast({ title: "Resume analyzed", description: `Pre-filled basic info from ${file.name}. Please complete the remaining sections.` });
+      }
 
-      toast({ title: "Resume analyzed", description: `Pre-filled your information from ${file.name}. Please review each section.` });
       setCurrentStep(1);
     } catch (error: any) {
       console.error("Resume upload error:", error);
@@ -508,18 +536,18 @@ export default function QuestionnairePage() {
           <div className="bg-white border-[3px] border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <h2 className="text-3xl font-bold mb-4">Upload Resume (Optional)</h2>
             <p className="text-black/70 mb-6">
-              Upload your PDF resume and we'll extract your career data to pre-fill the questionnaire.
-              This saves approximately 15 minutes of typing.
+              Upload your PDF resume and AI will pre-fill the <strong>entire questionnaire</strong> — all 11 sections.
+              Just review, personalise the flagged parts, and you're done. Saves ~45 minutes.
             </p>
 
-            <div className="bg-[#93C5FD]/20 border-2 border-[#93C5FD] p-4 mb-6 mono text-sm">
-              <div className="font-bold mb-1">WHAT_WE_EXTRACT:</div>
+            <div className="bg-[#22C55E]/15 border-2 border-[#22C55E] p-4 mb-6 mono text-sm">
+              <div className="font-bold mb-1">✨ AI DRAFTS ALL SECTIONS:</div>
               <div className="text-black/70">
-                &bull; Contact info (name, email, location)<br/>
-                &bull; Career history (titles, companies, dates, achievements)<br/>
-                &bull; Skills and education<br/>
-                <br/>
-                You'll still need to add war stories and preferences manually.
+                &bull; Contact info &amp; professional summary<br/>
+                &bull; Career history with achievements<br/>
+                &bull; War stories &amp; objection handling<br/>
+                &bull; Common Q&amp;A &amp; voice/personality<br/>
+                &bull; Skills, achievements &amp; chatbot setup
               </div>
             </div>
 
@@ -558,9 +586,9 @@ export default function QuestionnairePage() {
 
               {resumeUploading ? (
                 <>
-                  <p className="mono text-sm font-bold mb-2">EXTRACTING DATA...</p>
+                  <p className="mono text-sm font-bold mb-2">✨ AI DRAFTING YOUR PROFILE...</p>
                   <p className="mono text-xs text-black/60">{resumeFileName}</p>
-                  <p className="mono text-xs text-black/40 mt-2">This may take 10-15 seconds</p>
+                  <p className="mono text-xs text-black/40 mt-2">Generating all 11 sections — 20-30 seconds</p>
                 </>
               ) : (
                 <>
@@ -641,6 +669,25 @@ export default function QuestionnairePage() {
           </div>
           <p className="mono text-xs text-black/50 mt-2 uppercase tracking-wider">{STEPS[currentStep - 1].description}</p>
         </div>
+
+        {showAiDraftBanner && (
+          <div className="mb-6 border-[3px] border-[#22C55E] bg-[#22C55E]/10 p-4 flex items-start gap-3">
+            <Sparkles className="h-5 w-5 text-[#22C55E] mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-sm text-black mb-0.5">✨ AI pre-filled this form from your resume</p>
+              <p className="text-xs text-black/70 mono">
+                All sections have been drafted for you. Review each step, personalise the <span className="font-bold text-black">[EDIT]</span> markers, and adjust any details that don't feel right.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAiDraftBanner(false)}
+              className="ml-2 text-black/40 hover:text-black flex-shrink-0"
+              aria-label="Dismiss banner"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         <AnimatePresence mode="wait">
           <motion.div

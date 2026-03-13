@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle, ExternalLink, Copy, ArrowRight } from "lucide-react";
+import { Loader2, CheckCircle, ExternalLink, Copy, ArrowRight, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function PaymentSuccessPage() {
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [domain, setDomain] = useState<string>("");
   const [tier, setTier] = useState<string>("");
   const { toast } = useToast();
@@ -16,7 +17,38 @@ export default function PaymentSuccessPage() {
   const sessionId = params.get("session_id");
 
   useEffect(() => {
-    setLoading(false);
+    if (!sessionId) {
+      setError("No session ID found. If you completed payment, please go to your dashboard.");
+      setLoading(false);
+      return;
+    }
+
+    const confirmPayment = async () => {
+      try {
+        const res = await fetch(`/api/payment/status?session_id=${encodeURIComponent(sessionId)}`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to confirm payment");
+        }
+
+        if (data.status === "paid") {
+          setDomain(data.domain || "");
+          setTier(data.tier || "");
+        } else {
+          setError("Payment is still processing. Please check your dashboard in a moment.");
+        }
+      } catch (err: any) {
+        console.error("Payment confirmation error:", err);
+        setError(err.message || "Failed to confirm payment. Please check your dashboard.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    confirmPayment();
   }, [sessionId]);
 
   if (loading) {
@@ -24,8 +56,23 @@ export default function PaymentSuccessPage() {
       <div className="min-h-screen bg-background flex items-center justify-center" data-testid="payment-processing">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Processing Payment...</h1>
-          <p className="text-muted-foreground">Confirming your transaction</p>
+          <h1 className="text-2xl font-bold mb-2">Confirming Payment...</h1>
+          <p className="text-muted-foreground">Setting up your portfolio</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6" data-testid="payment-error">
+        <div className="max-w-md w-full text-center">
+          <AlertCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
+          <p className="text-muted-foreground mb-6">{error}</p>
+          <Button onClick={() => setLocation("/dashboard")} data-testid="button-go-dashboard">
+            Go to Dashboard
+          </Button>
         </div>
       </div>
     );
@@ -36,9 +83,9 @@ export default function PaymentSuccessPage() {
       <div className="max-w-xl w-full">
         <div className="text-center mb-8">
           <CheckCircle className="h-16 w-16 text-primary mx-auto mb-4" />
-          <h1 className="text-3xl font-bold mb-2" data-testid="text-success-title">Your AI Twin is Live!</h1>
+          <h1 className="text-3xl font-bold mb-2" data-testid="text-success-title">Payment successful! Your profile is now live.</h1>
           <p className="text-lg text-muted-foreground">
-            Your portfolio is now publicly accessible
+            Your AI Twin portfolio is publicly accessible
           </p>
         </div>
 

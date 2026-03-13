@@ -13,6 +13,21 @@ import Fuse from "fuse.js";
 import { buildSystemPrompt } from "./system-prompt-builder";
 import type { KnowledgeEntry } from "@shared/schema";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
+import Stripe from "stripe";
+
+// Tier → Stripe Price ID mapping
+const STRIPE_PRICE_IDS: Record<string, string> = {
+  launch: "price_1TAQ4QPzBwfwKXghIiFEE6eG",
+  evolve: "price_1TAQ4oPzBwfwKXghRBwMw9F0",
+  concierge: "price_1TAQ57PzBwfwKXgh162qiUU2",
+};
+
+function getStripe(): Stripe {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY environment variable is not set");
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY);
+}
 
 const PgStore = pgSession(session);
 
@@ -616,6 +631,157 @@ export async function registerRoutes(
       }
     }
   });
+
+  // ==================== PAYMENTS ====================
+
+  app.post(
+    "/api/create-checkout-session",
+    requireAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const { tier } = req.body;
+        if (!tier || !Object.keys(STRIPE_PRICE_IDS).includes(tier)) {
+          return res.status(400).json({ message: "Invalid tier. Must be launch, evolve, or concierge." });
+        }
+
+        const profile = await storage.getProfileByCustomerId(req.session.customerId!);
+        if (!profile) {
+          return res.status(404).json({ message: "No profile found" });
+        }
+        if (profile.paymentStatus === "paid") {
+          return res.status(400).json({ message: "Already paid" });
+        }
+        if (profile.status !== "ready" && profile.status !== "published") {
+          return res.status(400).json({ message: "Profile is not ready to publish" });
+        }
+
+        const customer = await storage.getCustomer(req.session.customerId!);
+        const stripe = getStripe();
+
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ["card"],
+          line_items: [{ price: STRIPE_PRICE_IDS[tier], quantity: 1 }],
+          mode: "payment",
+          success_url: `https://myproxy.work/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `https://myproxy.work/payment/cancelled`,
+          customer_email: customer?.email,
+          metadata: {
+            profileId: profile.id,
+            customerId: req.session.customerId!,
+            tier,
+            username: customer?.username || "",
+          },
+        });
+
+        await storage.updateProfileById(profile.id, {
+          stripeSessionId: session.id,
+          tier,
+        });
+
+        res.json({ url: session.url });
+      } catch (error) {
+        console.error("[Stripe] Checkout error:", error);
+        res.status(500).json({ message: "Failed to create checkout session" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/payment/status",
+    requireAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const sessionId = req.query.session_id as string;
+        if (!sessionId) {
+          return res.status(400).json({ message: "Missing session_id" });
+        }
+
+        const stripe = getStripe();
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+        if (session.payment_status === "paid") {
+          const profileId = session.metadata?.profileId;
+          const tier = session.metadata?.tier || "launch";
+          const username = session.metadata?.username || "";
+          const customerId = session.metadata?.customerId || "";
+
+          if (profileId) {
+            await storage.updateProfileById(profileId, {
+              paymentStatus: "paid",
+              paidAt: new Date(),
+              isPublic: true,
+              tier,
+              publicDomain: `${username}.myproxy.work`,
+            });
+            await storage.updateProfileStatus(profileId, "published");
+            await storage.updateCustomerStatus(customerId, "paid");
+          }
+
+          return res.json({ status: "paid", tier, domain: `${username}.myproxy.work` });
+        }
+
+        res.json({ status: "pending" });
+      } catch (error) {
+        console.error("[Stripe] Payment status error:", error);
+        res.status(500).json({ message: "Failed to check payment status" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/stripe/webhook",
+    async (req: Request, res: Response) => {
+      const sig = req.headers["stripe-signature"] as string;
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+      if (!webhookSecret) {
+        console.error("[Stripe] STRIPE_WEBHOOK_SECRET is not set");
+        return res.status(500).json({ error: "Webhook secret not configured" });
+      }
+
+      let event: Stripe.Event;
+      try {
+        const stripe = getStripe();
+        event = stripe.webhooks.constructEvent(
+          (req as any).rawBody,
+          sig,
+          webhookSecret,
+        );
+      } catch (err: any) {
+        console.error("[Stripe] Webhook signature error:", err.message);
+        return res.status(400).json({ error: `Webhook error: ${err.message}` });
+      }
+
+      if (event.type === "checkout.session.completed") {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.payment_status === "paid") {
+          const profileId = session.metadata?.profileId;
+          const tier = session.metadata?.tier || "launch";
+          const username = session.metadata?.username || "";
+          const customerId = session.metadata?.customerId || "";
+
+          if (profileId) {
+            try {
+              await storage.updateProfileById(profileId, {
+                paymentStatus: "paid",
+                paidAt: new Date(),
+                isPublic: true,
+                tier,
+                publicDomain: `${username}.myproxy.work`,
+              });
+              await storage.updateProfileStatus(profileId, "published");
+              await storage.updateCustomerStatus(customerId, "paid");
+              console.log(`[Stripe] Webhook: published profile ${profileId} for ${username} (${tier})`);
+            } catch (dbErr) {
+              console.error("[Stripe] DB update error in webhook:", dbErr);
+            }
+          }
+        }
+      }
+
+      res.json({ received: true });
+    },
+  );
 
   // ==================== ADMIN ====================
 

@@ -1,0 +1,54 @@
+Implement the complete Stripe payment flow. Use these exact values:
+- Domain: https://myproxy.work
+- Launch price ID: price_1TAQ4QPzBwfwKXghIiFEE6eG
+- Evolve price ID: price_1TAQ4oPzBwfwKXghRBwMw9F0
+- Concierge price ID: price_1TAQ57PzBwfwKXgh162qiUU2
+
+Step 1 — Install stripe package if not already installed: npm install stripe
+
+Step 2 — Add to server/routes.ts:
+
+1. POST /api/create-checkout-session
+   - Requires requireAuth middleware
+   - Accepts body: { tier: "launch" | "evolve" | "concierge" }
+   - Maps tier to price ID (use the three IDs above)
+   - Creates Stripe Checkout Session: mode "payment", 
+     success_url: https://myproxy.work/payment/success?session_id={CHECKOUT_SESSION_ID}
+     cancel_url: https://myproxy.work/payment/cancelled
+   - Returns { url: session.url }
+
+2. GET /api/payment/status
+   - Requires requireAuth
+   - Accepts query param: session_id
+   - Retrieves Checkout Session from Stripe
+   - If session.payment_status === "paid":
+       update customer in DB: paymentStatus="paid", isPublic=true
+       return { status: "paid", tier }
+   - Else return { status: "pending" }
+
+3. POST /api/stripe/webhook
+   - NO auth middleware (already CSRF-exempt in index.ts)
+   - Verifies signature: stripe.webhooks.constructEvent(req.rawBody, 
+     req.headers["stripe-signature"], process.env.STRIPE_WEBHOOK_SECRET)
+   - On checkout.session.completed: same DB updates as above
+   - Always return res.json({ received: true })
+
+Step 3 — Add to client React Router (App.tsx or wherever routes are defined):
+
+4. Route /payment/success:
+   - Reads session_id from URL query params
+   - Calls GET /api/payment/status?session_id=xxx on mount
+   - Shows "Payment successful! Your profile is now live."
+   - Shows link to their public profile URL
+   - Shows link back to dashboard
+
+5. Route /payment/cancelled:
+   - Static page: "Payment cancelled. No charge was made."
+   - Shows link back to dashboard
+
+Step 4 — Add STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET to .env / Replit secrets 
+(just add the keys — do not hardcode values in code).
+
+Use process.env.STRIPE_SECRET_KEY to initialise Stripe.
+Do not modify or remove any existing routes.
+After changes, show me the new endpoints added and the two new frontend routes.

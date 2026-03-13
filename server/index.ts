@@ -11,8 +11,28 @@ import { logger } from "./logger";
 const app = express();
 const httpServer = createServer(app);
 
-// Security: Add helmet as first middleware
-app.use(helmet());
+// Security: helmet with relaxed settings for dev iframe + Vite inline scripts
+const isProd = process.env.NODE_ENV === "production";
+app.use(
+  helmet({
+    // Disable X-Frame-Options so Replit's preview iframe can embed the app
+    frameguard: false,
+    contentSecurityPolicy: isProd
+      ? {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+            styleSrc: ["'self'", "https:", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https:"],
+            fontSrc: ["'self'", "https:", "data:"],
+            connectSrc: ["'self'", "https:"],
+            frameSrc: ["'self'"],
+            frameAncestors: ["*"],
+          },
+        }
+      : false, // Disable CSP entirely in dev — Vite needs unsafe-inline/eval
+  }),
+);
 
 app.use(
   express.json({

@@ -2,6 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { registerSchema, loginSchema } from "@shared/schema";
+import { z } from "zod";
 import bcrypt from "bcryptjs";
 import session from "express-session";
 import { processQuestionnaire, parseResumeWithGemini } from "./ai-processor";
@@ -28,6 +29,46 @@ function getStripe(): Stripe {
   }
   return new Stripe(process.env.STRIPE_SECRET_KEY);
 }
+
+// ==================== VALIDATION SCHEMAS ====================
+
+const patchProfileSchema = z.object({
+  displayName: z.string().max(100).optional(),
+  roleTitle: z.string().max(150).optional(),
+  positioning: z.string().max(1000).optional(),
+  persona: z.string().max(500).optional(),
+  tone: z.string().max(200).optional(),
+  heroSubtitle: z.string().max(300).optional(),
+  stats: z.array(
+    z.object({ label: z.string().max(50), value: z.string().max(50) })
+  ).max(6).optional(),
+  howIWork: z.string().max(2000).optional(),
+  whyAiCv: z.string().max(2000).optional(),
+  skillTags: z.array(z.string().max(50)).max(30).optional(),
+  careerTimeline: z.array(z.record(z.unknown())).max(20).optional(),
+  whereImMostUseful: z.string().max(2000).optional(),
+  portfolioSuggestedQuestions: z.array(z.string().max(200)).max(10).optional(),
+  achievements: z.array(z.record(z.unknown())).max(20).optional(),
+});
+
+// Recursively checks that every string in a value is ≤ 5000 chars
+function noLongStrings(val: unknown): boolean {
+  if (typeof val === "string") return val.length <= 5000;
+  if (Array.isArray(val)) return val.every(noLongStrings);
+  if (val !== null && typeof val === "object") {
+    return Object.values(val as Record<string, unknown>).every(noLongStrings);
+  }
+  return true;
+}
+
+const questionnaireDataSchema = z
+  .record(z.unknown())
+  .refine((data) => Object.keys(data).length <= 50, {
+    message: "Questionnaire has too many keys (max 50)",
+  })
+  .refine((data) => noLongStrings(data), {
+    message: "A questionnaire value exceeds the maximum length of 5000 characters",
+  });
 
 const PgStore = pgSession(session);
 
@@ -244,6 +285,14 @@ export async function registerRoutes(
     requireAuth,
     async (req: Request, res: Response) => {
       try {
+        const validation = patchProfileSchema.safeParse(req.body);
+        if (!validation.success) {
+          return res.status(400).json({
+            error: "Invalid profile data",
+            details: validation.error.flatten(),
+          });
+        }
+
         const profile = await storage.getProfileByCustomerId(
           req.session.customerId!,
         );
@@ -351,6 +400,11 @@ export async function registerRoutes(
     requireAuth,
     async (req: Request, res: Response) => {
       try {
+        const validation = questionnaireDataSchema.safeParse(req.body);
+        if (!validation.success) {
+          return res.status(400).json({ error: "Invalid questionnaire data" });
+        }
+
         const existing = await storage.getProfileByCustomerId(
           req.session.customerId!,
         );
@@ -375,6 +429,11 @@ export async function registerRoutes(
     requireAuth,
     async (req: Request, res: Response) => {
       try {
+        const validation = questionnaireDataSchema.safeParse(req.body);
+        if (!validation.success) {
+          return res.status(400).json({ error: "Invalid questionnaire data" });
+        }
+
         const profile = await storage.upsertProfile({
           customerId: req.session.customerId!,
           questionnaireData: req.body,

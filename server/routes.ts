@@ -2,6 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import crypto from "crypto";
 import { storage } from "./storage";
+import { logger } from "./logger";
 import { registerSchema, loginSchema } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
@@ -166,7 +167,7 @@ export async function registerRoutes(
       const { passwordHash: _, ...safeCustomer } = customer;
       res.status(201).json(safeCustomer);
     } catch (error: any) {
-      console.error("Register error:", error);
+      logger.error("Register error", { error: String(error) });
       res.status(500).json({ message: "Failed to create account" });
     }
   });
@@ -197,7 +198,7 @@ export async function registerRoutes(
       const { passwordHash: _, ...safeCustomer } = customer;
       res.json(safeCustomer);
     } catch (error) {
-      console.error("Login error:", error);
+      logger.error("Login error", { error: String(error) });
       res.status(500).json({ message: "Login failed" });
     }
   });
@@ -240,7 +241,7 @@ export async function registerRoutes(
       await storage.setResetToken(customer.id, hashedToken, expiry);
 
       if (!process.env.RESEND_API_KEY) {
-        console.error("RESEND_API_KEY not set — cannot send reset email");
+        logger.error("RESEND_API_KEY not set — cannot send reset email");
         return res.json(successMsg);
       }
 
@@ -268,7 +269,7 @@ export async function registerRoutes(
 
       return res.json(successMsg);
     } catch (err) {
-      console.error("Forgot-password error:", err);
+      logger.error("Forgot-password error", { error: String(err) });
       return res.json({ message: "If that email exists, a reset link has been sent." });
     }
   });
@@ -296,7 +297,7 @@ export async function registerRoutes(
 
       return res.json({ message: "Password reset successful." });
     } catch (err) {
-      console.error("Reset-password error:", err);
+      logger.error("Reset-password error", { error: String(err) });
       return res.status(500).json({ error: "Something went wrong." });
     }
   });
@@ -362,7 +363,7 @@ export async function registerRoutes(
         await storage.updateCustomerStatus(req.session.customerId!, "paid");
         res.json({ message: "Published successfully" });
       } catch (error) {
-        console.error("Publish error:", error);
+        logger.error("Publish error", { error: String(error) });
         res.status(500).json({ message: "Failed to publish" });
       }
     },
@@ -443,7 +444,7 @@ export async function registerRoutes(
         );
         res.json(updated);
       } catch (error) {
-        console.error("Profile update error:", error);
+        logger.error("Profile update error", { error: String(error) });
         res.status(500).json({ message: "Failed to update profile" });
       }
     },
@@ -475,14 +476,14 @@ export async function registerRoutes(
         const pdfBuffer = req.file.buffer;
         const extractedData = await parseResumeWithGemini(pdfBuffer);
 
-        console.log("[Resume Parse] Successfully extracted data:", {
+        logger.debug("[Resume Parse] Successfully extracted data", {
           name: extractedData.name,
           rolesCount: extractedData.roles?.length || 0,
         });
 
         res.json(extractedData);
       } catch (error: any) {
-        console.error("[Resume Parse] Error:", error);
+        logger.error("[Resume Parse] Error", { error: String(error) });
         res.status(500).json({
           error: error.message || "Failed to parse resume. Please try again or fill the form manually.",
         });
@@ -515,7 +516,7 @@ export async function registerRoutes(
         await storage.upsertProfile(updateData);
         res.json({ message: "Saved" });
       } catch (error) {
-        console.error("Save error:", error);
+        logger.error("Save error", { error: String(error) });
         res.status(500).json({ message: "Failed to save" });
       }
     },
@@ -541,11 +542,11 @@ export async function registerRoutes(
         res.json({ message: "Processing started" });
 
         processQuestionnaire(profile.id, req.body).catch((err) => {
-          console.error("AI Processing error:", err);
+          logger.error("AI Processing error", { error: String(err) });
           storage.updateProfileStatus(profile.id, "draft");
         });
       } catch (error) {
-        console.error("Submit error:", error);
+        logger.error("Submit error", { error: String(error) });
         res.status(500).json({ message: "Failed to submit" });
       }
     },
@@ -649,7 +650,7 @@ export async function registerRoutes(
           profile.portfolioSuggestedQuestions || suggestedQuestions,
       });
     } catch (error) {
-      console.error("Portfolio error:", error);
+      logger.error("Portfolio error", { error: String(error) });
       res.status(500).json({ message: "Failed to load portfolio" });
     }
   });
@@ -776,7 +777,7 @@ export async function registerRoutes(
       res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
       res.end();
     } catch (error) {
-      console.error("Chat error:", error);
+      logger.error("Chat error", { error: String(error) });
       if (res.headersSent) {
         res.write(
           `data: ${JSON.stringify({ error: "Failed to respond" })}\n\n`,
@@ -836,7 +837,7 @@ export async function registerRoutes(
 
         res.json({ url: session.url });
       } catch (error) {
-        console.error("[Stripe] Checkout error:", error);
+        logger.error("[Stripe] Checkout error", { error: String(error) });
         res.status(500).json({ message: "Failed to create checkout session" });
       }
     },
@@ -878,7 +879,7 @@ export async function registerRoutes(
 
         res.json({ status: "pending" });
       } catch (error) {
-        console.error("[Stripe] Payment status error:", error);
+        logger.error("[Stripe] Payment status error", { error: String(error) });
         res.status(500).json({ message: "Failed to check payment status" });
       }
     },
@@ -891,7 +892,7 @@ export async function registerRoutes(
       const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
       if (!webhookSecret) {
-        console.error("[Stripe] STRIPE_WEBHOOK_SECRET is not set");
+        logger.error("[Stripe] STRIPE_WEBHOOK_SECRET is not set");
         return res.status(500).json({ error: "Webhook secret not configured" });
       }
 
@@ -904,7 +905,7 @@ export async function registerRoutes(
           webhookSecret,
         );
       } catch (err: any) {
-        console.error("[Stripe] Webhook signature error:", err.message);
+        logger.error("[Stripe] Webhook signature error", { error: err.message });
         return res.status(400).json({ error: `Webhook error: ${err.message}` });
       }
 
@@ -927,9 +928,9 @@ export async function registerRoutes(
               });
               await storage.updateProfileStatus(profileId, "published");
               await storage.updateCustomerStatus(customerId, "paid");
-              console.log(`[Stripe] Webhook: published profile ${profileId} for ${username} (${tier})`);
+              logger.info(`[Stripe] Webhook: published profile ${profileId} for ${username} (${tier})`);
             } catch (dbErr) {
-              console.error("[Stripe] DB update error in webhook:", dbErr);
+              logger.error("[Stripe] DB update error in webhook", { error: String(dbErr) });
             }
           }
         }
@@ -958,11 +959,11 @@ export async function registerRoutes(
         res.json({ message: "Reprocessing started" });
 
         processQuestionnaire(profile.id, profile.questionnaireData as any).catch((err) => {
-          console.error("[Admin Reprocess] AI error:", err);
+          logger.error("[Admin Reprocess] AI error", { error: String(err) });
           storage.updateProfileStatus(profile.id, "ready");
         });
       } catch (error) {
-        console.error("[Admin Reprocess] Error:", error);
+        logger.error("[Admin Reprocess] Error", { error: String(error) });
         res.status(500).json({ message: "Failed to reprocess" });
       }
     },
@@ -983,7 +984,7 @@ export async function registerRoutes(
 
         res.json({ customers: safeCustomers, stats });
       } catch (error) {
-        console.error("Admin error:", error);
+        logger.error("Admin error", { error: String(error) });
         res.status(500).json({ message: "Failed to load admin data" });
       }
     },

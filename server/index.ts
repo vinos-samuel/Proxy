@@ -6,6 +6,7 @@ import { createServer } from "http";
 import { randomBytes } from "crypto";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
+import { logger } from "./logger";
 
 const app = express();
 const httpServer = createServer(app);
@@ -94,14 +95,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 export function log(message: string, source = "express") {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-
-  console.log(`${formattedTime} [${source}] ${message}`);
+  logger.info(message, { source });
 }
 
 app.use((req, res, next) => {
@@ -136,17 +130,26 @@ app.use((req, res, next) => {
   const { seedDatabase } = await import("./seed");
   await seedDatabase();
 
-  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
+  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    console.error("Internal Server Error:", err);
+    logger.error(message, {
+      status,
+      path: req.path,
+      method: req.method,
+      stack: err.stack,
+    });
 
     if (res.headersSent) {
       return next(err);
     }
 
-    return res.status(status).json({ message });
+    const response: any = { message };
+    if (process.env.NODE_ENV !== "production" && err.stack) {
+      response.stack = err.stack;
+    }
+    return res.status(status).json(response);
   });
 
   if (process.env.NODE_ENV === "production") {

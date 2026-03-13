@@ -107,7 +107,13 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <p className="text-center text-sm mt-8">
+          <p className="text-center text-sm mt-6">
+            <Link href="/forgot-password" className="text-black/50 mono text-xs uppercase tracking-wider hover:underline" data-testid="link-forgot-password">
+              Forgot password?
+            </Link>
+          </p>
+
+          <p className="text-center text-sm mt-4">
             <span className="text-black/60 mono uppercase tracking-wider">Don't have an account?</span>{" "}
             <Link href="/register" className="text-black font-bold mono uppercase tracking-wider hover:underline" data-testid="link-register">
               Create one

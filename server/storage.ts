@@ -39,6 +39,12 @@ export interface IStorage {
   getProfileByStripeSessionId(sessionId: string): Promise<TwinProfile | undefined>;
   deleteProfileById(id: string): Promise<void>;
 
+  // Password Reset
+  setResetToken(customerId: string, hashedToken: string, expiry: Date): Promise<void>;
+  getCustomerByResetToken(hashedToken: string): Promise<Customer | undefined>;
+  clearResetToken(customerId: string): Promise<void>;
+  updatePasswordHash(customerId: string, passwordHash: string): Promise<void>;
+
   // Admin
   getAdminStats(): Promise<{ totalCustomers: number; publishedProfiles: number; totalRevenue: number }>;
   getCustomersWithProfiles(): Promise<(Customer & { profile?: TwinProfile | null })[]>;
@@ -144,6 +150,27 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProfileById(id: string): Promise<void> {
     await db.delete(twinProfiles).where(eq(twinProfiles.id, id));
+  }
+
+  async setResetToken(customerId: string, hashedToken: string, expiry: Date): Promise<void> {
+    await db.update(customers)
+      .set({ resetToken: hashedToken, resetTokenExpiry: expiry })
+      .where(eq(customers.id, customerId));
+  }
+
+  async getCustomerByResetToken(hashedToken: string): Promise<Customer | undefined> {
+    const [customer] = await db.select().from(customers).where(eq(customers.resetToken, hashedToken));
+    return customer;
+  }
+
+  async clearResetToken(customerId: string): Promise<void> {
+    await db.update(customers)
+      .set({ resetToken: null, resetTokenExpiry: null })
+      .where(eq(customers.id, customerId));
+  }
+
+  async updatePasswordHash(customerId: string, passwordHash: string): Promise<void> {
+    await db.update(customers).set({ passwordHash }).where(eq(customers.id, customerId));
   }
 
   async getAdminStats() {

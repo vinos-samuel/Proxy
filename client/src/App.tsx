@@ -17,6 +17,8 @@ import PortfolioPage from "@/pages/portfolio";
 import AdminPage from "@/pages/admin";
 import PaymentSuccessPage from "@/pages/payment-success";
 import PaymentCancelledPage from "@/pages/payment-cancelled";
+import ForgotPasswordPage from "@/pages/forgot-password";
+import ResetPasswordPage from "@/pages/reset-password";
 import { Loader2 } from "lucide-react";
 import { Redirect } from "wouter";
 
@@ -70,6 +72,8 @@ function Router() {
       <Route path="/admin">{() => <ProtectedRoute component={AdminPage} />}</Route>
       <Route path="/payment/success" component={PaymentSuccessPage} />
       <Route path="/payment/cancelled" component={PaymentCancelledPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/pricing" component={LandingPage} />
       <Route path="/portfolio/:username" component={PortfolioPage} />
       <Route component={NotFound} />

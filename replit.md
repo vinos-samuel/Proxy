@@ -52,6 +52,9 @@ A SaaS platform ("Proxy") that lets professionals create AI-powered interactive 
 - `POST /api/auth/login` - Login
 - `POST /api/auth/logout` - Logout
 - `GET /api/auth/me` - Current user
+- `POST /api/auth/forgot-password` - Request password reset (sends Resend email)
+- `POST /api/auth/reset-password` - Reset password with token
+- `GET /api/auth/verify-reset-token` - Validate token before showing reset form
 - `GET /api/profile` - Get user's twin profile
 - `PATCH /api/profile` - Edit profile fields (displayName, roleTitle, positioning, persona, tone, achievements)
 - `POST /api/profile/publish` - Publish portfolio

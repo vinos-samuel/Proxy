@@ -13,6 +13,8 @@ export const customers = pgTable("customers", {
   stripeCustomerId: text("stripe_customer_id"),
   customDomain: text("custom_domain"),
   isAdmin: boolean("is_admin").notNull().default(false),
+  resetToken: text("reset_token"),
+  resetTokenExpiry: timestamp("reset_token_expiry"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
@@ -103,6 +105,8 @@ export const insertCustomerSchema = createInsertSchema(customers).omit({
   subscriptionStatus: true,
   stripeCustomerId: true,
   customDomain: true,
+  resetToken: true,
+  resetTokenExpiry: true,
 });
 
 export const insertTwinProfileSchema = createInsertSchema(twinProfiles).omit({

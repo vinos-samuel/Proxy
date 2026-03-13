@@ -1,5 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import crypto from "crypto";
 import { storage } from "./storage";
 import { registerSchema, loginSchema } from "@shared/schema";
 import { z } from "zod";
@@ -219,6 +220,102 @@ export async function registerRoutes(
     }
     const { passwordHash: _, ...safeCustomer } = customer;
     res.json(safeCustomer);
+  });
+
+  // ==================== PASSWORD RESET ====================
+
+  app.post("/api/auth/forgot-password", async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      const successMsg = { message: "If that email exists, a reset link has been sent." };
+      if (!email || typeof email !== "string") return res.json(successMsg);
+
+      const customer = await storage.getCustomerByEmail(email.toLowerCase().trim());
+      if (!customer) return res.json(successMsg);
+
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+      const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      await storage.setResetToken(customer.id, hashedToken, expiry);
+
+      if (!process.env.RESEND_API_KEY) {
+        console.error("RESEND_API_KEY not set — cannot send reset email");
+        return res.json(successMsg);
+      }
+
+      const { Resend } = await import("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+      const resetUrl = `https://myproxy.work/reset-password?token=${rawToken}`;
+
+      await resend.emails.send({
+        from: fromEmail,
+        to: customer.email,
+        subject: "Reset your Proxy password",
+        html: `
+          <div style="font-family: monospace; max-width: 600px; margin: 0 auto; padding: 40px;">
+            <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 16px;">Password Reset</h2>
+            <p style="margin-bottom: 24px; color: #555;">You requested a password reset for your Proxy account. Click the link below to set a new password. This link expires in 1 hour.</p>
+            <a href="${resetUrl}" style="display: inline-block; background: #22C55E; color: black; font-weight: bold; padding: 14px 28px; text-decoration: none; border: 3px solid black; box-shadow: 4px 4px 0 black;">
+              Reset Password
+            </a>
+            <p style="margin-top: 24px; font-size: 12px; color: #888;">If you did not request this, you can safely ignore this email.</p>
+            <p style="font-size: 12px; color: #aaa; margin-top: 8px;">Or copy this link: ${resetUrl}</p>
+          </div>
+        `,
+      });
+
+      return res.json(successMsg);
+    } catch (err) {
+      console.error("Forgot-password error:", err);
+      return res.json({ message: "If that email exists, a reset link has been sent." });
+    }
+  });
+
+  app.post("/api/auth/reset-password", async (req: Request, res: Response) => {
+    try {
+      const { token, newPassword } = req.body;
+      if (!token || typeof token !== "string" || !newPassword || typeof newPassword !== "string") {
+        return res.status(400).json({ error: "Token and new password are required." });
+      }
+      if (newPassword.length < 8) {
+        return res.status(400).json({ error: "Password must be at least 8 characters." });
+      }
+
+      const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+      const customer = await storage.getCustomerByResetToken(hashedToken);
+
+      if (!customer || !customer.resetTokenExpiry || customer.resetTokenExpiry < new Date()) {
+        return res.status(400).json({ error: "Invalid or expired reset token." });
+      }
+
+      const passwordHash = await bcrypt.hash(newPassword, 12);
+      await storage.updatePasswordHash(customer.id, passwordHash);
+      await storage.clearResetToken(customer.id);
+
+      return res.json({ message: "Password reset successful." });
+    } catch (err) {
+      console.error("Reset-password error:", err);
+      return res.status(500).json({ error: "Something went wrong." });
+    }
+  });
+
+  app.get("/api/auth/verify-reset-token", async (req: Request, res: Response) => {
+    try {
+      const { token } = req.query;
+      if (!token || typeof token !== "string") return res.json({ valid: false });
+
+      const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+      const customer = await storage.getCustomerByResetToken(hashedToken);
+
+      if (!customer || !customer.resetTokenExpiry || customer.resetTokenExpiry < new Date()) {
+        return res.json({ valid: false });
+      }
+      return res.json({ valid: true });
+    } catch {
+      return res.json({ valid: false });
+    }
   });
 
   // ==================== PROFILE ====================

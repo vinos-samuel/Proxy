@@ -56,9 +56,11 @@ const chatLimiter = rateLimit({
 // Apply general API limiter to all /api/* routes
 app.use("/api/", generalApiLimiter);
 
-// Apply auth limiter to login and register
+// Apply auth limiter to login, register, and password reset
 app.post("/api/auth/login", authLimiter);
 app.post("/api/auth/register", authLimiter);
+app.post("/api/auth/forgot-password", authLimiter);
+app.post("/api/auth/reset-password", authLimiter);
 
 // Apply chat limiter to the public portfolio chat endpoint
 app.post("/api/chat/:username", chatLimiter);

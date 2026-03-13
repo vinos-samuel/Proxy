@@ -15,8 +15,8 @@ const httpServer = createServer(app);
 const isProd = process.env.NODE_ENV === "production";
 app.use(
   helmet({
-    // Disable X-Frame-Options so Replit's preview iframe can embed the app
-    frameguard: false,
+    // Disable X-Frame-Options in dev so Replit's preview iframe can embed the app
+    frameguard: isProd ? { action: 'sameorigin' } : false,
     contentSecurityPolicy: isProd
       ? {
           directives: {
@@ -27,7 +27,7 @@ app.use(
             fontSrc: ["'self'", "https:", "data:"],
             connectSrc: ["'self'", "https:"],
             frameSrc: ["'self'"],
-            frameAncestors: ["*"],
+            frameAncestors: ["'self'"],
           },
         }
       : false, // Disable CSP entirely in dev — Vite needs unsafe-inline/eval

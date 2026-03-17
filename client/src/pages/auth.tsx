@@ -61,7 +61,7 @@ export function LoginPage() {
                 type="email"
                 placeholder="you@example.com"
                 data-testid="input-email"
-                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black text-black"
                 {...form.register("email")}
               />
               {form.formState.errors.email && (
@@ -76,7 +76,7 @@ export function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   data-testid="input-password"
-                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black text-black"
                   {...form.register("password")}
                 />
                 <button
@@ -172,7 +172,7 @@ export function RegisterPage() {
                 id="name"
                 placeholder="John Doe"
                 data-testid="input-name"
-                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black text-black"
                 {...form.register("name")}
               />
               {form.formState.errors.name && (
@@ -186,7 +186,7 @@ export function RegisterPage() {
                   id="username"
                   placeholder="john-doe"
                   data-testid="input-username"
-                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black text-black"
                   {...form.register("username")}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs mono text-black/40">
@@ -204,7 +204,7 @@ export function RegisterPage() {
                 type="email"
                 placeholder="you@example.com"
                 data-testid="input-reg-email"
-                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black text-black"
                 {...form.register("email")}
               />
               {form.formState.errors.email && (
@@ -219,7 +219,7 @@ export function RegisterPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Min 8 characters"
                   data-testid="input-reg-password"
-                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black text-black"
                   {...form.register("password")}
                 />
                 <button

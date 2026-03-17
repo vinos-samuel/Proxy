@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, getCsrfToken } from "@/lib/queryClient";
 import {
   ArrowRight, ArrowLeft, Plus, Trash2, Loader2, CheckCircle,
   User, Briefcase, BookOpen, MessageSquare, Shield, Palette,
@@ -232,8 +232,10 @@ export default function QuestionnairePage() {
       const formData = new FormData();
       formData.append("resume", file);
 
+      const csrfToken = getCsrfToken();
       const response = await fetch("/api/parse-resume", {
         method: "POST",
+        headers: csrfToken ? { "x-csrf-token": csrfToken } : {},
         body: formData,
         credentials: "include",
       });

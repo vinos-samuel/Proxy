@@ -196,7 +196,10 @@ export default function PortfolioPage() {
         body: JSON.stringify({ message: msgText }),
       });
 
-      if (!res.ok) throw new Error("Chat failed");
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(`[${res.status}] ${errBody.message || errBody.error || "Chat failed"}`);
+      }
 
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
@@ -227,10 +230,11 @@ export default function PortfolioPage() {
           }
         }
       }
-    } catch {
+    } catch (err: any) {
+      const errorDetail = err?.message || "Unknown error";
       setMessages(prev => [
         ...prev.slice(0, -1),
-        { role: "assistant", content: "Sorry, I'm having trouble responding right now. Please try again." },
+        { role: "assistant", content: `Sorry, I'm having trouble responding right now. (${errorDetail}) — Please try again.` },
       ]);
     } finally {
       setIsStreaming(false);

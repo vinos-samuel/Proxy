@@ -678,7 +678,7 @@ export default function QuestionnairePage() {
             <div className="flex-1 min-w-0">
               <p className="font-bold text-sm text-black mb-0.5">✨ AI pre-filled this form from your resume</p>
               <p className="text-xs text-black/70 mono">
-                All sections have been drafted for you. Review each step, personalise the <span className="font-bold text-black">[EDIT]</span> markers, and adjust any details that don't feel right.
+                All sections have been drafted — but AI may have made assumptions. Read through every step carefully, correct anything that's off, and personalise the <span className="font-bold text-black">[EDIT]</span> markers with your own words.
               </p>
             </div>
             <button
@@ -864,21 +864,24 @@ export default function QuestionnairePage() {
                 <div className="space-y-5">
                   <div className="border-[3px] border-black bg-[#E8E8E3] p-4">
                     <p className="mono text-sm text-black/60">
-                      Provide a link to your most recent resume/CV. This helps the AI understand your full career history.
+                      Your career history has been captured in Step 2. You can upload your actual CV/Resume file in Step 10 (Branding &amp; Assets).
+                      Next, we'll collect your professional war stories — the high-stakes moments that define your career.
                     </p>
                   </div>
-                  <div className="space-y-2">
-                    <label className="mono text-xs uppercase tracking-wider text-black/60 block">Resume / CV URL *</label>
-                    <input
-                      value={data.step3.resumeUrl}
-                      onChange={e => updateField("step3", "resumeUrl", e.target.value)}
-                      placeholder="https://drive.google.com/file/d/... or link to your CV"
-                      data-testid="input-resume-url"
-                      className="w-full border-2 border-black bg-white px-4 py-3 mono text-sm focus:outline-none focus:border-[#22C55E]"
-                    />
-                    <p className="mono text-xs text-black/40">
-                      You can use Google Drive, Dropbox, or any file hosting service. Make sure the link is publicly accessible.
-                    </p>
+                  <div className="space-y-3">
+                    <p className="mono text-xs uppercase tracking-wider text-black/50">Career history captured:</p>
+                    {(data.step2.careerHistory || []).filter(r => r.company || r.title).map((role, i) => (
+                      <div key={i} className="border-2 border-black bg-white p-4 flex items-center gap-3">
+                        <Briefcase className="h-4 w-4 text-black/40 flex-shrink-0" />
+                        <div>
+                          <p className="font-bold text-sm">{role.title || "Untitled role"}</p>
+                          <p className="mono text-xs text-black/60">{role.company}{role.years ? ` · ${role.years}` : ""}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {(data.step2.careerHistory || []).filter(r => r.company || r.title).length === 0 && (
+                      <p className="mono text-sm text-black/40">No roles added yet — go back to Step 2 to add your career history.</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -1378,8 +1381,8 @@ export default function QuestionnairePage() {
                         <p className="mono text-sm text-black/60 line-clamp-2">{data.step2.professionalSummary || "Not provided"}</p>
                       </ReviewSection>
 
-                      <ReviewSection title="Career History" complete={!!data.step3.resumeUrl}>
-                        <p className="mono text-sm text-black/60">{data.step3.resumeUrl ? "Resume linked" : "No resume provided"}</p>
+                      <ReviewSection title="Career History" complete={(data.step2.careerHistory || []).filter(r => r.company || r.title).length > 0}>
+                        <p className="mono text-sm text-black/60">{(data.step2.careerHistory || []).filter(r => r.company || r.title).length} role(s) added</p>
                       </ReviewSection>
 
                       <ReviewSection title="War Stories" complete={data.step4.stories.filter(s => s.title).length >= 3}>

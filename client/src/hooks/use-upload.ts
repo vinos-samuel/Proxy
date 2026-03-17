@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import type { UppyFile } from "@uppy/core";
+import { getCsrfToken } from "@/lib/queryClient";
 
 interface UploadMetadata {
   name: string;
@@ -62,10 +63,12 @@ export function useUpload(options: UseUploadOptions = {}) {
    */
   const requestUploadUrl = useCallback(
     async (file: File): Promise<UploadResponse> => {
+      const csrfToken = getCsrfToken();
       const response = await fetch("/api/uploads/request-url", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
         },
         body: JSON.stringify({
           name: file.name,
@@ -162,10 +165,12 @@ export function useUpload(options: UseUploadOptions = {}) {
       headers?: Record<string, string>;
     }> => {
       // Use the actual file properties to request a per-file presigned URL
+      const csrfToken = getCsrfToken();
       const response = await fetch("/api/uploads/request-url", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
         },
         body: JSON.stringify({
           name: file.name,

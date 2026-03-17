@@ -80,9 +80,13 @@ export default function PreviewPage() {
 
   const saveMutation = useMutation({
     mutationFn: async (updates: Record<string, any>) => {
+      const csrfToken = document.cookie
+        .split("; ")
+        .find(row => row.startsWith("csrf-token="))
+        ?.split("=")[1] ?? "";
       const res = await fetch("/api/profile", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
         credentials: "include",
         body: JSON.stringify(updates),
       });

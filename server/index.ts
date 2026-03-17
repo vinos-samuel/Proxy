@@ -99,10 +99,15 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     });
   }
 
-  // Validate CSRF token on state-changing API requests (except Stripe webhook)
-  if (["POST", "PUT", "DELETE", "PATCH"].includes(req.method) && 
-      req.path.startsWith("/api") && 
-      req.path !== "/api/stripe/webhook") {
+  // Validate CSRF token on state-changing API requests
+  // Exempt: Stripe webhook (uses signature auth), chat (public unauthenticated endpoint)
+  const isCsrfExempt =
+    req.path === "/api/stripe/webhook" ||
+    req.path.startsWith("/api/chat/");
+
+  if (["POST", "PUT", "DELETE", "PATCH"].includes(req.method) &&
+      req.path.startsWith("/api") &&
+      !isCsrfExempt) {
     const tokenFromHeader = req.headers["x-csrf-token"] as string;
     const tokenFromCookie = req.cookies["csrf-token"] as string;
 

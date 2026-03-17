@@ -68,19 +68,22 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
   const [publishData, setPublishData] = useState<{ publicDomain?: string; username?: string } | null>(null);
   const [, navigate] = useLocation();
 
-  const handleTestPublish = async () => {
+  const handleCheckout = async () => {
     setLoading(true);
     try {
-      const response = await apiRequest("POST", "/api/test-publish", {
+      const response = await apiRequest("POST", "/api/create-checkout-session", {
         tier: selectedTier,
+        profileId,
       });
       const data = await response.json();
-      if (data.success) {
-        setPublished(true);
-        setPublishData(data);
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL returned");
       }
     } catch (error) {
-      console.error("Publish error:", error);
+      console.error("Checkout error:", error);
+      alert("Failed to start checkout. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -192,7 +195,7 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
 
       <button
         className="w-full bg-[#22C55E] text-black py-4 font-bold mono border-[3px] border-black uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
-        onClick={handleTestPublish}
+        onClick={handleCheckout}
         disabled={loading}
         data-testid="button-checkout"
       >

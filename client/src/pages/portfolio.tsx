@@ -649,13 +649,14 @@ export default function PortfolioPage() {
               if (isGrouped) {
                 return (
                   <div key={i} className="relative">
-                    <div className={`absolute -left-[calc(2rem+5px)] top-1 w-4 h-4 ${theme.dotColor} rounded-full border-4 ${theme.bg}`}></div>
-                    <div className="flex flex-wrap justify-between items-start mb-4 gap-4">
-                      <h3 className={`text-3xl font-bold ${theme.headingClass}`}>{entry.company}</h3>
-                    </div>
-                    <div className="space-y-6">
+                    <div className={`absolute -left-[calc(2rem+5px)] top-4 w-4 h-4 ${theme.dotColor} rounded-full border-4 ${theme.bg}`}></div>
+                    <div className={`${theme.glass} rounded-xl overflow-hidden`}>
+                      <div className={`px-6 py-4 border-b ${theme.timelineLineColor}`}>
+                        <h3 className={`text-2xl font-bold ${theme.headingClass}`}>{entry.company}</h3>
+                      </div>
+                      <div className="p-4 space-y-3">
                       {entry.roles!.map((role, j) => (
-                        <div key={j} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover} w-full overflow-hidden`}>
+                        <div key={j} className={`bg-white/5 border border-white/10 p-5 rounded-lg ${theme.glassHover} w-full overflow-hidden`}>
                           <div className="flex flex-wrap justify-between items-start mb-2 gap-2">
                             <h4 className="text-xl font-bold text-white/90">{role.title}</h4>
                             <span className="text-sm text-white/75 font-medium">{role.years}</span>
@@ -674,6 +675,7 @@ export default function PortfolioPage() {
                           )}
                         </div>
                       ))}
+                      </div>
                     </div>
                   </div>
                 );

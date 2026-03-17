@@ -648,11 +648,17 @@ export default function QuestionnairePage() {
       </nav>
 
       <div className="mx-auto max-w-4xl px-6 py-8">
-        <div className="mb-4 border-[3px] border-black bg-white p-4">
+        <div className="mb-4 border-[3px] border-black bg-white p-4 flex items-center justify-between gap-4 flex-wrap">
           <p className="mono text-sm text-black/60">
-            Please complete this form so we can build a personalised experience that represents you authentically. 
+            Please complete this form so we can build a personalised experience that represents you authentically.
             Your own Digital Twin (AI CV). Do not rush, take your time.
           </p>
+          <button
+            onClick={() => setCurrentStep(0)}
+            className="flex items-center gap-1.5 mono text-xs uppercase tracking-wider text-black/50 hover:text-black border-2 border-black/30 hover:border-black px-3 py-1.5 transition-colors flex-shrink-0"
+          >
+            <Sparkles className="h-3 w-3" /> AI Pre-fill from Resume
+          </button>
         </div>
 
         <div className="mb-8">

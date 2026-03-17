@@ -201,39 +201,12 @@ export default function PortfolioPage() {
         throw new Error(`[${res.status}] ${errBody.message || errBody.error || "Chat failed"}`);
       }
 
-      const reader = res.body?.getReader();
-      const decoder = new TextDecoder();
-      let assistantMsg = "";
-
-      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value);
-          const lines = chunk.split("\n");
-          for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                if (data.content) {
-                  assistantMsg += data.content;
-                  setMessages(prev => {
-                    const updated = [...prev];
-                    updated[updated.length - 1] = { role: "assistant", content: assistantMsg };
-                    return updated;
-                  });
-                }
-              } catch {}
-            }
-          }
-        }
-      }
+      const data = await res.json();
+      setMessages(prev => [...prev, { role: "assistant", content: data.content || "No response." }]);
     } catch (err: any) {
       const errorDetail = err?.message || "Unknown error";
       setMessages(prev => [
-        ...prev.slice(0, -1),
+        ...prev,
         { role: "assistant", content: `Sorry, I'm having trouble responding right now. (${errorDetail}) — Please try again.` },
       ]);
     } finally {

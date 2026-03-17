@@ -778,12 +778,7 @@ export async function registerRoutes(
         portfolioData: questionnaireData?.portfolioData || null,
       });
 
-      // Set up SSE
-      res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("Connection", "keep-alive");
-
-      const stream = await ai.models.generateContentStream({
+      const result = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: [{ role: "user", parts: [{ text: message }] }],
         config: {
@@ -791,25 +786,11 @@ export async function registerRoutes(
         },
       });
 
-      for await (const chunk of stream) {
-        const content = chunk.text || "";
-        if (content) {
-          res.write(`data: ${JSON.stringify({ content })}\n\n`);
-        }
-      }
-
-      res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-      res.end();
+      const responseText = result.text || "I'm not sure how to answer that. Could you rephrase?";
+      res.json({ content: responseText });
     } catch (error) {
       logger.error("Chat error", { error: String(error) });
-      if (res.headersSent) {
-        res.write(
-          `data: ${JSON.stringify({ error: "Failed to respond" })}\n\n`,
-        );
-        res.end();
-      } else {
-        res.status(500).json({ message: "Chat failed" });
-      }
+      res.status(500).json({ message: String(error) });
     }
   });
 

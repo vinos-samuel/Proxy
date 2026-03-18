@@ -473,11 +473,40 @@ export default function PortfolioPage() {
                   </Avatar>
                 )}
                 <div className={
-                  msg.role === 'user' 
+                  msg.role === 'user'
                     ? `inline-block ${theme.chatUserBg} px-4 py-2 rounded-lg max-w-[80%] text-sm`
-                    : `inline-block ${theme.chatBotBg} px-4 py-2 rounded-lg max-w-[80%] text-sm`
+                    : `inline-block ${theme.chatBotBg} px-4 py-3 rounded-lg max-w-[80%] text-sm leading-relaxed`
                 }>
-                  {msg.content}
+                  {msg.role === 'user' ? msg.content : (
+                    <div className="space-y-3">
+                      {msg.content.split(/\n\n+/).map((paragraph, pi) => {
+                        // Check if paragraph is a bullet list
+                        const lines = paragraph.split('\n');
+                        const isBulletList = lines.every(l => /^[\s]*[-•*]\s/.test(l) || l.trim() === '');
+                        if (isBulletList && lines.filter(l => l.trim()).length > 0) {
+                          return (
+                            <ul key={pi} className="list-disc list-inside space-y-1">
+                              {lines.filter(l => l.trim()).map((line, li) => (
+                                <li key={li}>{line.replace(/^[\s]*[-•*]\s*/, '')}</li>
+                              ))}
+                            </ul>
+                          );
+                        }
+                        // Check for bold (**text**)
+                        const parts = paragraph.split(/(\*\*[^*]+\*\*)/g);
+                        return (
+                          <p key={pi}>
+                            {parts.map((part, partI) => {
+                              if (part.startsWith('**') && part.endsWith('**')) {
+                                return <strong key={partI}>{part.slice(2, -2)}</strong>;
+                              }
+                              return <span key={partI}>{part}</span>;
+                            })}
+                          </p>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -648,7 +677,7 @@ export default function PortfolioPage() {
                           {cleanAch(role.achievements).length > 0 && (
                             <details className="mt-4">
                               <summary className={`cursor-pointer text-sm ${theme.accentSolid} font-bold hover:opacity-80 transition-opacity flex items-center gap-1`}>
-                                <span>▸</span> Achievements ({cleanAch(role.achievements).length})
+                                <span>▸</span> Role Context & Achievements ({cleanAch(role.achievements).length})
                               </summary>
                               <ul className="mt-3 space-y-2 pl-5 border-l border-white/10">
                                 {cleanAch(role.achievements).map((a, k) => (
@@ -679,7 +708,7 @@ export default function PortfolioPage() {
                     {cleanAch(entry.achievements).length > 0 && (
                       <details className="mt-6">
                         <summary className={`cursor-pointer text-sm ${theme.accentSolid} font-bold hover:opacity-80 transition-opacity flex items-center gap-1`}>
-                          <span>▸</span> Achievements ({cleanAch(entry.achievements).length})
+                          <span>▸</span> Role Context & Achievements ({cleanAch(entry.achievements).length})
                         </summary>
                         <ul className="mt-4 space-y-3 pl-6 border-l border-white/10">
                           {cleanAch(entry.achievements).map((a, j) => (

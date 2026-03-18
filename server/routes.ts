@@ -252,7 +252,7 @@ export async function registerRoutes(
         `${req.headers["x-forwarded-proto"] || "https"}://${req.headers["x-forwarded-host"] || req.headers.host}`;
       const resetUrl = `${appUrl}/reset-password?token=${rawToken}`;
 
-      await resend.emails.send({
+      const { data: emailData, error: emailError } = await resend.emails.send({
         from: fromEmail,
         to: customer.email,
         subject: "Reset your Proxy password",
@@ -268,6 +268,16 @@ export async function registerRoutes(
           </div>
         `,
       });
+
+      if (emailError) {
+        logger.error("Resend failed to send reset email", {
+          error: JSON.stringify(emailError),
+          to: customer.email,
+          from: fromEmail,
+        });
+      } else {
+        logger.info("Reset email sent", { emailId: emailData?.id, to: customer.email });
+      }
 
       return res.json(successMsg);
     } catch (err) {

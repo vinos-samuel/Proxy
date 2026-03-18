@@ -54,12 +54,27 @@ Cookie `csrf-token` set on every GET to non-API routes. All POST/PUT/DELETE/PATC
 step1: basic info | step2: summary + career history | step3: resume URL (to be removed — duplicate with step10) | step4: war stories (min 3) | step5: achievements | step6: technical skills | step7: voice/personality | step8: Q&A (min 3) | step9: objections (min 2) | step10: branding + headshot/video/CV upload | step11: chatbot setup
 
 ## Known Pending Tasks
-- [ ] Remove duplicate CV field from Step 3 (resumeUrl) — already in Step 10
-- [ ] Sign-in form input text too faint — darken color
-- [ ] Sprint 2: Publish First / Improve Later (completeness score, remove questionnaire-complete gate)
+- [ ] AI banner text — confirm it says "AI may have made assumptions — read through and adjust"
+- [ ] Sprint 2: Publish First / Improve Later (completeness score, remove questionnaire-complete gate, nudge emails)
 - [ ] Sprint 3: LinkedIn enrichment via Proxycurl API (posts, articles, comments, interests)
 - [ ] Sprint 4: Conversational onboarding
 - [ ] Post-launch: Fix @google-cloud/storage vulnerabilities (5 low severity, requires downgrade to v5.18.3)
+
+## Completed
+- [x] Remove duplicate CV field from Step 3 (resumeUrl) — already in Step 10
+- [x] Sign-in form input text too faint — darkened
+- [x] Chat CSRF exemption + switched to non-streaming (Replit proxy doesn't support SSE)
+- [x] PaymentGate wired to Stripe checkout (/api/create-checkout-session)
+- [x] Edit Content save CSRF fix (preview.tsx PATCH)
+- [x] Career Trajectory UI — company name in header, roles nested inside
+- [x] AI pre-fill questionnaire from resume (Sprint 1)
+- [x] Privacy policy + Terms of Service pages
+- [x] Password reset flow (forgot password email via Resend)
+- [x] Structured logging (server/logger.ts)
+- [x] Helmet, rate limiting, CSRF middleware
+- [x] Stripe payment endpoints + webhook
+- [x] Server-side Zod validation on key endpoints
+- [x] Deleted /api/test-publish security bypass
 
 ## File Map (important files)
 - `server/index.ts` — Express app, middleware stack (helmet, rate limiters, CSRF, sessions)

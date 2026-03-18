@@ -320,27 +320,27 @@ export async function registerRoutes(
     try {
       const { token } = req.query;
       if (!token || typeof token !== "string") {
-        logger.warn("[Reset] verify called with no token");
+        logger.info("[Reset] verify called with no token");
         return res.json({ valid: false });
       }
 
       const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-      logger.debug("[Reset] verify-reset-token lookup", { tokenLen: token.length, hashedPrefix: hashedToken.slice(0, 8) });
+      logger.info("[Reset] verify-reset-token lookup", { tokenLen: token.length, hashedPrefix: hashedToken.slice(0, 8) });
 
       const customer = await storage.getCustomerByResetToken(hashedToken);
 
       if (!customer) {
-        logger.warn("[Reset] no customer found for token", { hashedPrefix: hashedToken.slice(0, 8) });
+        logger.info("[Reset] no customer found for token", { hashedPrefix: hashedToken.slice(0, 8) });
         return res.json({ valid: false });
       }
       if (!customer.resetTokenExpiry || customer.resetTokenExpiry < new Date()) {
-        logger.warn("[Reset] token expired", { expiry: customer.resetTokenExpiry });
+        logger.info("[Reset] token expired", { expiry: customer.resetTokenExpiry });
         return res.json({ valid: false });
       }
       logger.info("[Reset] token valid", { customerId: customer.id });
       return res.json({ valid: true });
     } catch (err) {
-      logger.error("[Reset] verify-reset-token error", { error: String(err) });
+      logger.info("[Reset] verify-reset-token error", { error: String(err) });
       return res.json({ valid: false });
     }
   });

@@ -116,6 +116,7 @@ export async function registerRoutes(
       store: new PgStore({
         pool: pool as any,
         createTableIfMissing: true,
+        pruneSessionInterval: false, // Disable auto-prune: table.sql missing from dist/ in Replit
       }),
       secret: process.env.SESSION_SECRET || "digital-twin-secret-key",
       resave: false,
@@ -123,7 +124,7 @@ export async function registerRoutes(
       cookie: {
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
       },
     }),

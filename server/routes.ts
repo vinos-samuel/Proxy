@@ -1083,6 +1083,65 @@ export async function registerRoutes(
 
   // ==================== ADMIN ====================
 
+  app.delete(
+    "/api/admin/customer/:customerId",
+    requireAdmin,
+    async (req: Request, res: Response) => {
+      try {
+        const { customerId } = req.params;
+        if (customerId === req.session.customerId) {
+          return res.status(400).json({ message: "Cannot delete your own account" });
+        }
+        await storage.deleteCustomer(customerId);
+        logger.info("[Admin] Customer deleted", { customerId, by: req.session.customerId });
+        res.json({ success: true });
+      } catch (error) {
+        logger.error("Admin delete customer error", { error: String(error) });
+        res.status(500).json({ message: "Failed to delete customer" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/admin/grant-access/:customerId",
+    requireAdmin,
+    async (req: Request, res: Response) => {
+      try {
+        const { customerId } = req.params;
+        const customer = await storage.getCustomer(customerId);
+        if (!customer) return res.status(404).json({ message: "Customer not found" });
+
+        await storage.updateCustomerStatus(customerId, "paid");
+
+        const profile = await storage.getProfileByCustomerId(customerId);
+        if (profile) {
+          await storage.updateProfileById(profile.id, {
+            paymentStatus: "paid",
+            paidAt: new Date(),
+            isPublic: true,
+            tier: "launch",
+            publicDomain: `${customer.username}.myproxy.work`,
+          });
+          // If profile has questionnaire data, process it; otherwise just mark published
+          if (profile.questionnaireData) {
+            await storage.updateProfileStatus(profile.id, "processing");
+            processQuestionnaire(profile.id, profile.questionnaireData as any).catch((err) =>
+              logger.error("[Admin] Grant access reprocess error", { error: String(err) })
+            );
+          } else {
+            await storage.updateProfileStatus(profile.id, "published");
+          }
+        }
+
+        logger.info("[Admin] Free access granted", { customerId, by: req.session.customerId });
+        res.json({ success: true });
+      } catch (error) {
+        logger.error("Admin grant access error", { error: String(error) });
+        res.status(500).json({ message: "Failed to grant access" });
+      }
+    },
+  );
+
   app.post(
     "/api/admin/reprocess/:customerId",
     requireAdmin,

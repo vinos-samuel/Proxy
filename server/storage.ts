@@ -53,6 +53,7 @@ export interface IStorage {
   // Admin
   getAdminStats(): Promise<{ totalCustomers: number; publishedProfiles: number; totalRevenue: number }>;
   getCustomersWithProfiles(): Promise<(Customer & { profile?: TwinProfile | null })[]>;
+  deleteCustomer(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -221,6 +222,10 @@ export class DatabaseStorage implements IStorage {
       result.push({ ...customer, profile: profile || null });
     }
     return result;
+  }
+
+  async deleteCustomer(id: string): Promise<void> {
+    await db.delete(customers).where(eq(customers.id, id));
   }
 }
 

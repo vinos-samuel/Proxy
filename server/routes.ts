@@ -239,6 +239,7 @@ export async function registerRoutes(
       const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
       await storage.setResetToken(customer.id, hashedToken, expiry);
+      logger.info("[Reset] token stored in DB", { customerId: customer.id, hashedPrefix: hashedToken.slice(0, 8), expiry });
 
       if (!process.env.RESEND_API_KEY) {
         logger.error("RESEND_API_KEY not set — cannot send reset email");
@@ -317,16 +318,28 @@ export async function registerRoutes(
   app.get("/api/auth/verify-reset-token", async (req: Request, res: Response) => {
     try {
       const { token } = req.query;
-      if (!token || typeof token !== "string") return res.json({ valid: false });
-
-      const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-      const customer = await storage.getCustomerByResetToken(hashedToken);
-
-      if (!customer || !customer.resetTokenExpiry || customer.resetTokenExpiry < new Date()) {
+      if (!token || typeof token !== "string") {
+        logger.warn("[Reset] verify called with no token");
         return res.json({ valid: false });
       }
+
+      const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+      logger.debug("[Reset] verify-reset-token lookup", { tokenLen: token.length, hashedPrefix: hashedToken.slice(0, 8) });
+
+      const customer = await storage.getCustomerByResetToken(hashedToken);
+
+      if (!customer) {
+        logger.warn("[Reset] no customer found for token", { hashedPrefix: hashedToken.slice(0, 8) });
+        return res.json({ valid: false });
+      }
+      if (!customer.resetTokenExpiry || customer.resetTokenExpiry < new Date()) {
+        logger.warn("[Reset] token expired", { expiry: customer.resetTokenExpiry });
+        return res.json({ valid: false });
+      }
+      logger.info("[Reset] token valid", { customerId: customer.id });
       return res.json({ valid: true });
-    } catch {
+    } catch (err) {
+      logger.error("[Reset] verify-reset-token error", { error: String(err) });
       return res.json({ valid: false });
     }
   });

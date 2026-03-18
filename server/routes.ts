@@ -331,17 +331,17 @@ export async function registerRoutes(
 
       if (!customer) {
         logger.info("[Reset] no customer found for token", { hashedPrefix: hashedToken.slice(0, 8) });
-        return res.json({ valid: false });
+        return res.json({ valid: false, reason: "not_found" });
       }
       if (!customer.resetTokenExpiry || customer.resetTokenExpiry < new Date()) {
         logger.info("[Reset] token expired", { expiry: customer.resetTokenExpiry });
-        return res.json({ valid: false });
+        return res.json({ valid: false, reason: "expired" });
       }
       logger.info("[Reset] token valid", { customerId: customer.id });
       return res.json({ valid: true });
     } catch (err) {
       logger.info("[Reset] verify-reset-token error", { error: String(err) });
-      return res.json({ valid: false });
+      return res.json({ valid: false, reason: "error", detail: String(err) });
     }
   });
 

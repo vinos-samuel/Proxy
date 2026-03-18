@@ -11,6 +11,9 @@ import { logger } from "./logger";
 const app = express();
 const httpServer = createServer(app);
 
+// Trust Replit's reverse proxy so express-rate-limit and req.ip work correctly
+app.set("trust proxy", 1);
+
 // Security: helmet with relaxed settings for dev iframe + Vite inline scripts
 const isProd = process.env.NODE_ENV === "production";
 app.use(

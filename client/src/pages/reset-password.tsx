@@ -43,7 +43,10 @@ export default function ResetPasswordPage() {
     setToken(t);
     fetch(`/api/auth/verify-reset-token?token=${encodeURIComponent(t)}`)
       .then((r) => r.json())
-      .then((d) => setTokenValid(d.valid))
+      .then((d) => {
+        setTokenValid(d.valid);
+        if (!d.valid) console.error("[Reset] invalid token reason:", d.reason, d.detail || "");
+      })
       .catch(() => setTokenValid(false));
   }, []);
 

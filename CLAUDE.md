@@ -13,6 +13,19 @@ Digital Twin / AI-powered career profile builder. Users upload a resume, fill an
 - Local dev: `npx tsx --env-file=.env server/index.ts` (configured in `.claude/launch.json`)
 - Local DB doesn't work (Postgres is on Replit) — test on Replit after push
 
+## ⚠️ Replit Pull Instructions (IMPORTANT — remind user every time)
+Replit Agent sometimes makes code changes directly on Replit without going through GitHub. This causes "divergent branches" errors on `git pull`.
+
+**Always use this instead of `git pull`:**
+```
+git fetch origin && git reset --hard origin/main
+```
+Then if the DB schema changed (new columns added to shared/schema.ts), also run:
+```
+npm run db:push
+```
+**Plain English:** This makes Replit's code exactly match GitHub. Any changes made directly on Replit (by Replit Agent) will be discarded — GitHub is always the source of truth.
+
 ## Stack
 | Layer | Tech |
 |-------|------|

@@ -248,7 +248,9 @@ export async function registerRoutes(
       const { Resend } = await import("resend");
       const resend = new Resend(process.env.RESEND_API_KEY);
       const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
-      const resetUrl = `https://myproxy.work/reset-password?token=${rawToken}`;
+      const appUrl = process.env.APP_URL ||
+        `${req.headers["x-forwarded-proto"] || "https"}://${req.headers["x-forwarded-host"] || req.headers.host}`;
+      const resetUrl = `${appUrl}/reset-password?token=${rawToken}`;
 
       await resend.emails.send({
         from: fromEmail,

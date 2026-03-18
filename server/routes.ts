@@ -227,6 +227,9 @@ export async function registerRoutes(
       }
 
       req.session.customerId = customer.id;
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => (err ? reject(err) : resolve()));
+      });
       const { passwordHash: _, ...safeCustomer } = customer;
       res.json(safeCustomer);
     } catch (error) {
@@ -259,6 +262,9 @@ export async function registerRoutes(
 
       await storage.markEmailVerified(customer.id);
       req.session.customerId = customer.id;
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => (err ? reject(err) : resolve()));
+      });
       logger.info("Email verified", { customerId: customer.id });
 
       // Send welcome email (fire and forget — don't block the response)

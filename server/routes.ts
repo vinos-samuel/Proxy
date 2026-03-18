@@ -17,6 +17,7 @@ import { buildSystemPrompt } from "./system-prompt-builder";
 import type { KnowledgeEntry } from "@shared/schema";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import Stripe from "stripe";
+import { verifyEmailTemplate, welcomeEmailTemplate, passwordResetTemplate } from "./emails";
 
 // Tier → Stripe Price ID mapping
 const STRIPE_PRICE_IDS: Record<string, string> = {
@@ -182,18 +183,8 @@ export async function registerRoutes(
         const { error: emailError } = await resend.emails.send({
           from: fromEmail,
           to: customer.email,
-          subject: "Verify your Proxy email",
-          html: `
-            <div style="font-family: monospace; max-width: 600px; margin: 0 auto; padding: 40px;">
-              <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 16px;">Welcome to Proxy!</h2>
-              <p style="margin-bottom: 24px; color: #555;">Thanks for signing up, ${customer.name}. Please verify your email address to activate your account.</p>
-              <a href="${verifyUrl}" style="display: inline-block; background: #22C55E; color: black; font-weight: bold; padding: 14px 28px; text-decoration: none; border: 3px solid black; box-shadow: 4px 4px 0 black;">
-                Verify Email →
-              </a>
-              <p style="margin-top: 24px; font-size: 12px; color: #888;">This link expires in 24 hours. If you did not sign up, you can ignore this email.</p>
-              <p style="font-size: 12px; color: #aaa; margin-top: 8px;">Or copy this link: ${verifyUrl}</p>
-            </div>
-          `,
+          subject: "Confirm your email — one click to activate",
+          html: verifyEmailTemplate(customer.name, verifyUrl),
         });
         if (emailError) {
           logger.error("Failed to send verification email", { error: JSON.stringify(emailError), to: customer.email });
@@ -269,6 +260,27 @@ export async function registerRoutes(
       await storage.markEmailVerified(customer.id);
       req.session.customerId = customer.id;
       logger.info("Email verified", { customerId: customer.id });
+
+      // Send welcome email (fire and forget — don't block the response)
+      if (process.env.RESEND_API_KEY) {
+        const { Resend } = await import("resend");
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+        const appUrl = process.env.APP_URL ||
+          `${req.headers["x-forwarded-proto"] || "https"}://${req.headers["x-forwarded-host"] || req.headers.host}`;
+        resend.emails.send({
+          from: fromEmail,
+          to: customer.email,
+          subject: "You're verified — start building your Digital Twin",
+          html: welcomeEmailTemplate(customer.name, `${appUrl}/dashboard`),
+        }).then(({ error }) => {
+          if (error) logger.error("Failed to send welcome email", { error: JSON.stringify(error), to: customer.email });
+          else logger.info("Welcome email sent", { to: customer.email });
+        }).catch((err) => {
+          logger.error("Welcome email exception", { error: String(err) });
+        });
+      }
+
       return res.json({ success: true });
     } catch (err) {
       logger.error("Verify-email error", { error: String(err) });
@@ -302,17 +314,8 @@ export async function registerRoutes(
       await resend.emails.send({
         from: fromEmail,
         to: customer.email,
-        subject: "Verify your Proxy email",
-        html: `
-          <div style="font-family: monospace; max-width: 600px; margin: 0 auto; padding: 40px;">
-            <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 16px;">Verify your email</h2>
-            <p style="margin-bottom: 24px; color: #555;">Click below to verify your Proxy account. This link expires in 24 hours.</p>
-            <a href="${verifyUrl}" style="display: inline-block; background: #22C55E; color: black; font-weight: bold; padding: 14px 28px; text-decoration: none; border: 3px solid black; box-shadow: 4px 4px 0 black;">
-              Verify Email →
-            </a>
-            <p style="font-size: 12px; color: #aaa; margin-top: 16px;">Or copy this link: ${verifyUrl}</p>
-          </div>
-        `,
+        subject: "Confirm your email — one click to activate",
+        html: verifyEmailTemplate(customer.name, verifyUrl),
       });
 
       logger.info("Resent verification email", { to: customer.email });
@@ -369,17 +372,7 @@ export async function registerRoutes(
         from: fromEmail,
         to: customer.email,
         subject: "Reset your Proxy password",
-        html: `
-          <div style="font-family: monospace; max-width: 600px; margin: 0 auto; padding: 40px;">
-            <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 16px;">Password Reset</h2>
-            <p style="margin-bottom: 24px; color: #555;">You requested a password reset for your Proxy account. Click the link below to set a new password. This link expires in 1 hour.</p>
-            <a href="${resetUrl}" style="display: inline-block; background: #22C55E; color: black; font-weight: bold; padding: 14px 28px; text-decoration: none; border: 3px solid black; box-shadow: 4px 4px 0 black;">
-              Reset Password
-            </a>
-            <p style="margin-top: 24px; font-size: 12px; color: #888;">If you did not request this, you can safely ignore this email.</p>
-            <p style="font-size: 12px; color: #aaa; margin-top: 8px;">Or copy this link: ${resetUrl}</p>
-          </div>
-        `,
+        html: passwordResetTemplate(resetUrl),
       });
 
       if (emailError) {

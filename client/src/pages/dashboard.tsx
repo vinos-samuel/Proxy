@@ -287,6 +287,11 @@ export default function DashboardPage() {
                       <div className="mono text-xs text-black/50 uppercase">ENGAGEMENT_METRICS</div>
                     </div>
                   </div>
+                  <div className="bg-[#E8E8E3] border-2 border-black/10 rounded p-3 mb-6">
+                    <p className="mono text-xs text-black/60 leading-relaxed">
+                      Track how people engage with your Digital Twin. Every time someone visits your profile or asks your Twin a question, it shows up here. Share your profile link to start seeing activity.
+                    </p>
+                  </div>
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div className="border-[3px] border-black bg-[#E8E8E3] p-4">
                       <div className="flex items-center gap-2 mb-2">

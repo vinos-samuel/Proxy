@@ -325,19 +325,25 @@ export async function registerRoutes(
       }
 
       const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-      logger.info("[Reset] verify-reset-token lookup", { tokenLen: token.length, hashedPrefix: hashedToken.slice(0, 8) });
+      logger.info("[Reset] verify lookup", { tokenLen: token.length, hashedPrefix: hashedToken.slice(0, 8) });
 
-      const customer = await storage.getCustomerByResetToken(hashedToken);
+      // Use raw SQL to bypass any potential Drizzle schema mapping issue
+      const result = await pool.query(
+        "SELECT id, reset_token_expiry FROM customers WHERE reset_token = $1",
+        [hashedToken]
+      );
+      logger.info("[Reset] raw SQL result", { rowCount: result.rowCount, hashedPrefix: hashedToken.slice(0, 8) });
 
-      if (!customer) {
+      if (result.rowCount === 0) {
         logger.info("[Reset] no customer found for token", { hashedPrefix: hashedToken.slice(0, 8) });
         return res.json({ valid: false, reason: "not_found" });
       }
-      if (!customer.resetTokenExpiry || customer.resetTokenExpiry < new Date()) {
-        logger.info("[Reset] token expired", { expiry: customer.resetTokenExpiry });
+      const expiry = result.rows[0].reset_token_expiry;
+      if (!expiry || new Date(expiry) < new Date()) {
+        logger.info("[Reset] token expired", { expiry });
         return res.json({ valid: false, reason: "expired" });
       }
-      logger.info("[Reset] token valid", { customerId: customer.id });
+      logger.info("[Reset] token valid", { customerId: result.rows[0].id });
       return res.json({ valid: true });
     } catch (err) {
       logger.info("[Reset] verify-reset-token error", { error: String(err) });

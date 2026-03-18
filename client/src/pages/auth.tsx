@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
-import { Terminal, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { Terminal, ArrowRight, Loader2, Eye, EyeOff, Mail, CheckCircle } from "lucide-react";
 import { registerSchema, loginSchema } from "@shared/schema";
 
 export function LoginPage() {
@@ -17,6 +18,9 @@ export function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -28,7 +32,24 @@ export function LoginPage() {
       await login(data.email, data.password);
       navigate("/dashboard");
     } catch (err: any) {
-      toast({ title: "Login failed", description: err.message || "Invalid credentials", variant: "destructive" });
+      if (err.message?.includes("403") && err.message?.includes("unverified")) {
+        setUnverifiedEmail(data.email);
+      } else {
+        toast({ title: "Login failed", description: err.message?.replace(/^\d+: /, "") || "Invalid credentials", variant: "destructive" });
+      }
+    }
+  };
+
+  const handleResend = async () => {
+    if (!unverifiedEmail) return;
+    setResending(true);
+    try {
+      await apiRequest("POST", "/api/auth/resend-verification", { email: unverifiedEmail });
+      setResent(true);
+    } catch {
+      toast({ title: "Error", description: "Could not resend email. Please try again.", variant: "destructive" });
+    } finally {
+      setResending(false);
     }
   };
 
@@ -53,6 +74,30 @@ export function LoginPage() {
         </div>
 
         <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          {unverifiedEmail ? (
+            <div className="text-center py-4">
+              <Mail className="h-12 w-12 text-[#22C55E] mx-auto mb-4" />
+              <p className="font-bold text-black mono uppercase tracking-wider">Email Not Verified</p>
+              <p className="text-sm text-black/60 mono mt-2">Please check <strong>{unverifiedEmail}</strong> and click the verification link before logging in.</p>
+              {resent ? (
+                <div className="flex items-center justify-center gap-2 mt-6 text-sm mono text-[#22C55E]">
+                  <CheckCircle className="h-4 w-4" /> Verification email resent!
+                </div>
+              ) : (
+                <Button
+                  onClick={handleResend}
+                  disabled={resending}
+                  className="mt-6 w-full bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold py-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none"
+                >
+                  {resending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Resend Verification Email"}
+                </Button>
+              )}
+              <button onClick={() => setUnverifiedEmail(null)} className="mt-4 text-xs mono text-black/40 hover:text-black/60 underline">
+                Back to sign in
+              </button>
+            </div>
+          ) : (
+          <>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="mono text-xs uppercase tracking-wider text-black/60">Email</Label>
@@ -118,6 +163,8 @@ export function LoginPage() {
               Forgot password?
             </Link>
           </p>
+          </>
+          )}
         </div>
       </motion.div>
     </div>
@@ -125,10 +172,9 @@ export function LoginPage() {
 }
 
 export function RegisterPage() {
-  const [, navigate] = useLocation();
-  const { register: registerUser } = useAuth();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -137,10 +183,10 @@ export function RegisterPage() {
 
   const onSubmit = async (data: z.infer<typeof registerSchema>) => {
     try {
-      await registerUser(data);
-      navigate("/dashboard");
+      await apiRequest("POST", "/api/auth/register", data);
+      setRegisteredEmail(data.email);
     } catch (err: any) {
-      toast({ title: "Registration failed", description: err.message || "Could not create account", variant: "destructive" });
+      toast({ title: "Registration failed", description: err.message?.replace(/^\d+: /, "") || "Could not create account", variant: "destructive" });
     }
   };
 
@@ -165,6 +211,17 @@ export function RegisterPage() {
         </div>
 
         <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          {registeredEmail ? (
+            <div className="text-center py-4">
+              <Mail className="h-12 w-12 text-[#22C55E] mx-auto mb-4" />
+              <p className="font-bold text-black mono uppercase tracking-wider">Check Your Email</p>
+              <p className="text-sm text-black/60 mono mt-2">We sent a verification link to <strong>{registeredEmail}</strong>. Click it to activate your account.</p>
+              <p className="text-xs text-black/40 mono mt-4">Didn't get it? Check your spam folder or{" "}
+                <Link href="/login" className="underline text-black/60">go to sign in</Link> to resend.
+              </p>
+            </div>
+          ) : (
+          <>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="name" className="mono text-xs uppercase tracking-wider text-black/60">Full Name</Label>
@@ -265,6 +322,8 @@ export function RegisterPage() {
               Sign in
             </Link>
           </p>
+          </>
+          )}
         </div>
       </motion.div>
     </div>

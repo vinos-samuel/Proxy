@@ -19,6 +19,7 @@ import PaymentSuccessPage from "@/pages/payment-success";
 import PaymentCancelledPage from "@/pages/payment-cancelled";
 import ForgotPasswordPage from "@/pages/forgot-password";
 import ResetPasswordPage from "@/pages/reset-password";
+import VerifyEmailPage from "@/pages/verify-email";
 import PrivacyPage from "@/pages/privacy";
 import TermsPage from "@/pages/terms";
 import { Loader2 } from "lucide-react";
@@ -76,6 +77,7 @@ function Router() {
       <Route path="/payment/cancelled" component={PaymentCancelledPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
+      <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/terms" component={TermsPage} />
       <Route path="/pricing" component={LandingPage} />

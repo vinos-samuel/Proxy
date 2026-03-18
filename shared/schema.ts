@@ -15,6 +15,9 @@ export const customers = pgTable("customers", {
   isAdmin: boolean("is_admin").notNull().default(false),
   resetToken: text("reset_token"),
   resetTokenExpiry: timestamp("reset_token_expiry"),
+  emailVerified: boolean("email_verified").notNull().default(true),
+  emailVerificationToken: text("email_verification_token"),
+  emailVerificationTokenExpiry: timestamp("email_verification_token_expiry"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
@@ -107,6 +110,8 @@ export const insertCustomerSchema = createInsertSchema(customers).omit({
   customDomain: true,
   resetToken: true,
   resetTokenExpiry: true,
+  emailVerificationToken: true,
+  emailVerificationTokenExpiry: true,
 });
 
 export const insertTwinProfileSchema = createInsertSchema(twinProfiles).omit({

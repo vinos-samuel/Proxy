@@ -45,6 +45,11 @@ export interface IStorage {
   clearResetToken(customerId: string): Promise<void>;
   updatePasswordHash(customerId: string, passwordHash: string): Promise<void>;
 
+  // Email Verification
+  setEmailVerificationToken(customerId: string, hashedToken: string, expiry: Date): Promise<void>;
+  getCustomerByVerificationToken(hashedToken: string): Promise<Customer | undefined>;
+  markEmailVerified(customerId: string): Promise<void>;
+
   // Admin
   getAdminStats(): Promise<{ totalCustomers: number; publishedProfiles: number; totalRevenue: number }>;
   getCustomersWithProfiles(): Promise<(Customer & { profile?: TwinProfile | null })[]>;
@@ -171,6 +176,23 @@ export class DatabaseStorage implements IStorage {
 
   async updatePasswordHash(customerId: string, passwordHash: string): Promise<void> {
     await db.update(customers).set({ passwordHash }).where(eq(customers.id, customerId));
+  }
+
+  async setEmailVerificationToken(customerId: string, hashedToken: string, expiry: Date): Promise<void> {
+    await db.update(customers)
+      .set({ emailVerificationToken: hashedToken, emailVerificationTokenExpiry: expiry })
+      .where(eq(customers.id, customerId));
+  }
+
+  async getCustomerByVerificationToken(hashedToken: string): Promise<Customer | undefined> {
+    const [customer] = await db.select().from(customers).where(eq(customers.emailVerificationToken, hashedToken));
+    return customer;
+  }
+
+  async markEmailVerified(customerId: string): Promise<void> {
+    await db.update(customers)
+      .set({ emailVerified: true, emailVerificationToken: null, emailVerificationTokenExpiry: null })
+      .where(eq(customers.id, customerId));
   }
 
   async getAdminStats() {

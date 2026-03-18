@@ -162,11 +162,47 @@ export async function registerRoutes(
         passwordHash,
         name,
         username,
+        emailVerified: false,
       });
 
-      req.session.customerId = customer.id;
-      const { passwordHash: _, ...safeCustomer } = customer;
-      res.status(201).json(safeCustomer);
+      // Send verification email
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+      const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      await storage.setEmailVerificationToken(customer.id, hashedToken, expiry);
+
+      if (process.env.RESEND_API_KEY) {
+        const { Resend } = await import("resend");
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+        const appUrl = process.env.APP_URL ||
+          `${req.headers["x-forwarded-proto"] || "https"}://${req.headers["x-forwarded-host"] || req.headers.host}`;
+        const verifyUrl = `${appUrl}/verify-email?token=${rawToken}`;
+
+        const { error: emailError } = await resend.emails.send({
+          from: fromEmail,
+          to: customer.email,
+          subject: "Verify your Proxy email",
+          html: `
+            <div style="font-family: monospace; max-width: 600px; margin: 0 auto; padding: 40px;">
+              <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 16px;">Welcome to Proxy!</h2>
+              <p style="margin-bottom: 24px; color: #555;">Thanks for signing up, ${customer.name}. Please verify your email address to activate your account.</p>
+              <a href="${verifyUrl}" style="display: inline-block; background: #22C55E; color: black; font-weight: bold; padding: 14px 28px; text-decoration: none; border: 3px solid black; box-shadow: 4px 4px 0 black;">
+                Verify Email →
+              </a>
+              <p style="margin-top: 24px; font-size: 12px; color: #888;">This link expires in 24 hours. If you did not sign up, you can ignore this email.</p>
+              <p style="font-size: 12px; color: #aaa; margin-top: 8px;">Or copy this link: ${verifyUrl}</p>
+            </div>
+          `,
+        });
+        if (emailError) {
+          logger.error("Failed to send verification email", { error: JSON.stringify(emailError), to: customer.email });
+        } else {
+          logger.info("Verification email sent", { to: customer.email });
+        }
+      }
+
+      res.status(201).json({ message: "Account created. Please check your email to verify your account." });
     } catch (error: any) {
       logger.error("Register error", { error: String(error) });
       res.status(500).json({ message: "Failed to create account" });
@@ -195,6 +231,10 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
+      if (!customer.emailVerified) {
+        return res.status(403).json({ message: "Please verify your email before logging in.", unverified: true });
+      }
+
       req.session.customerId = customer.id;
       const { passwordHash: _, ...safeCustomer } = customer;
       res.json(safeCustomer);
@@ -210,6 +250,77 @@ export async function registerRoutes(
       res.clearCookie("connect.sid");
       res.json({ message: "Logged out" });
     });
+  });
+
+  app.get("/api/auth/verify-email", async (req: Request, res: Response) => {
+    try {
+      const { token } = req.query;
+      if (!token || typeof token !== "string") {
+        return res.status(400).json({ error: "Invalid token." });
+      }
+
+      const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+      const customer = await storage.getCustomerByVerificationToken(hashedToken);
+
+      if (!customer || !customer.emailVerificationTokenExpiry || customer.emailVerificationTokenExpiry < new Date()) {
+        return res.status(400).json({ error: "This verification link is invalid or has expired." });
+      }
+
+      await storage.markEmailVerified(customer.id);
+      req.session.customerId = customer.id;
+      logger.info("Email verified", { customerId: customer.id });
+      return res.json({ success: true });
+    } catch (err) {
+      logger.error("Verify-email error", { error: String(err) });
+      return res.status(500).json({ error: "Something went wrong." });
+    }
+  });
+
+  app.post("/api/auth/resend-verification", async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      const successMsg = { message: "If that account exists and is unverified, a new verification email has been sent." };
+      if (!email || typeof email !== "string") return res.json(successMsg);
+
+      const customer = await storage.getCustomerByEmail(email.toLowerCase().trim());
+      if (!customer || customer.emailVerified) return res.json(successMsg);
+
+      if (!process.env.RESEND_API_KEY) return res.json(successMsg);
+
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+      const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await storage.setEmailVerificationToken(customer.id, hashedToken, expiry);
+
+      const { Resend } = await import("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+      const appUrl = process.env.APP_URL ||
+        `${req.headers["x-forwarded-proto"] || "https"}://${req.headers["x-forwarded-host"] || req.headers.host}`;
+      const verifyUrl = `${appUrl}/verify-email?token=${rawToken}`;
+
+      await resend.emails.send({
+        from: fromEmail,
+        to: customer.email,
+        subject: "Verify your Proxy email",
+        html: `
+          <div style="font-family: monospace; max-width: 600px; margin: 0 auto; padding: 40px;">
+            <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 16px;">Verify your email</h2>
+            <p style="margin-bottom: 24px; color: #555;">Click below to verify your Proxy account. This link expires in 24 hours.</p>
+            <a href="${verifyUrl}" style="display: inline-block; background: #22C55E; color: black; font-weight: bold; padding: 14px 28px; text-decoration: none; border: 3px solid black; box-shadow: 4px 4px 0 black;">
+              Verify Email →
+            </a>
+            <p style="font-size: 12px; color: #aaa; margin-top: 16px;">Or copy this link: ${verifyUrl}</p>
+          </div>
+        `,
+      });
+
+      logger.info("Resent verification email", { to: customer.email });
+      return res.json(successMsg);
+    } catch (err) {
+      logger.error("Resend-verification error", { error: String(err) });
+      return res.json({ message: "If that account exists and is unverified, a new verification email has been sent." });
+    }
   });
 
   app.get("/api/auth/me", async (req: Request, res: Response) => {

@@ -182,6 +182,13 @@ export default function PortfolioPage() {
     }
   }, [messages]);
 
+  // Fire-and-forget: count this as a profile view
+  useEffect(() => {
+    if (username) {
+      fetch(`/api/analytics/view/${username}`, { method: "POST" }).catch(() => {});
+    }
+  }, [username]);
+
   const handleSendMessage = async (overrideValue?: string) => {
     const msgText = overrideValue || inputValue.trim();
     if (!msgText || isStreaming) return;

@@ -54,6 +54,7 @@ export const twinProfiles = pgTable("twin_profiles", {
   paidAt: timestamp("paid_at"),
   publicDomain: text("public_domain"),
   isPublic: boolean("is_public").default(false),
+  viewCount: integer("view_count").default(0),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
@@ -88,6 +89,13 @@ export const chatUsage = pgTable("chat_usage", {
   tokenCount: integer("token_count").notNull().default(0),
   month: timestamp("month").notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const chatMessages = pgTable("chat_messages", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  profileId: uuid("profile_id").references(() => twinProfiles.id, { onDelete: "cascade" }),
+  question: text("question").notNull(),
+  askedAt: timestamp("asked_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const payments = pgTable("payments", {
@@ -191,6 +199,7 @@ export type InsertFactBank = z.infer<typeof insertFactBankSchema>;
 export type KnowledgeEntry = typeof knowledgeEntries.$inferSelect;
 export type InsertKnowledgeEntry = z.infer<typeof insertKnowledgeEntrySchema>;
 export type ChatUsage = typeof chatUsage.$inferSelect;
+export type ChatMessage = typeof chatMessages.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 
 // Keep old exports for compatibility with integration files

@@ -7,13 +7,23 @@ import { useAuth } from "@/lib/auth";
 import { queryClient } from "@/lib/queryClient";
 import {
   Edit, Eye, Globe, LogOut,
-  FileText, Sparkles, ExternalLink, ArrowRight, Copy
+  FileText, Sparkles, ExternalLink, ArrowRight, Copy, BarChart3, MessageSquare
 } from "lucide-react";
 import type { TwinProfile } from "@shared/schema";
 import PaymentGate from "@/components/PaymentGate";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
+
+  const { data: analytics } = useQuery<{ viewCount: number; recentQuestions: { question: string; askedAt: string }[] }>({
+    queryKey: ["/api/analytics/my"],
+    queryFn: async () => {
+      const res = await fetch("/api/analytics/my", { credentials: "include" });
+      if (!res.ok) return { viewCount: 0, recentQuestions: [] };
+      return res.json();
+    },
+    enabled: !!user,
+  });
 
   const { data: profile, isLoading } = useQuery<TwinProfile | null>({
     queryKey: ["/api/profile"],
@@ -263,6 +273,63 @@ export default function DashboardPage() {
                       COPY
                     </button>
                   </div>
+                </div>
+              )}
+
+              {profile?.status === "published" && (
+                <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-[#22C55E] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                      <BarChart3 className="h-6 w-6 text-black" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg">TWIN ANALYTICS</h3>
+                      <div className="mono text-xs text-black/50 uppercase">ENGAGEMENT_METRICS</div>
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="border-[3px] border-black bg-[#E8E8E3] p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Eye className="h-4 w-4 text-black/60" />
+                        <span className="mono text-xs uppercase tracking-wider text-black/60">Profile Views</span>
+                      </div>
+                      <div className="text-4xl font-bold">{analytics?.viewCount ?? 0}</div>
+                      {(analytics?.viewCount ?? 0) === 0 && (
+                        <p className="mono text-xs text-black/40 mt-2">Share your profile link to start getting visitors</p>
+                      )}
+                    </div>
+                    <div className="border-[3px] border-black bg-[#E8E8E3] p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MessageSquare className="h-4 w-4 text-black/60" />
+                        <span className="mono text-xs uppercase tracking-wider text-black/60">Questions Asked</span>
+                      </div>
+                      <div className="text-4xl font-bold">{analytics?.recentQuestions?.length ?? 0}</div>
+                      <p className="mono text-xs text-black/40 mt-2">Last 10 shown below</p>
+                    </div>
+                  </div>
+                  {(analytics?.recentQuestions?.length ?? 0) > 0 && (
+                    <div className="mt-6">
+                      <div className="mono text-xs uppercase tracking-wider text-black/50 mb-3">Recent Questions from Visitors</div>
+                      <div className="space-y-2">
+                        {analytics!.recentQuestions.map((q, i) => (
+                          <div key={i} className="flex items-start gap-3 border-l-[3px] border-[#22C55E] pl-3 py-1">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-black">{q.question}</p>
+                              <p className="mono text-xs text-black/40 mt-0.5">
+                                {new Date(q.askedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {(analytics?.recentQuestions?.length ?? 0) === 0 && (
+                    <div className="mt-6 border-[3px] border-dashed border-black/20 p-4 text-center">
+                      <MessageSquare className="h-8 w-8 text-black/20 mx-auto mb-2" />
+                      <p className="mono text-xs text-black/40 uppercase tracking-wider">No questions yet — visitors haven't chatted with your Twin</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

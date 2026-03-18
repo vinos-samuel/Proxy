@@ -107,7 +107,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   // Exempt: Stripe webhook (uses signature auth), chat (public unauthenticated endpoint)
   const isCsrfExempt =
     req.path === "/api/stripe/webhook" ||
-    req.path.startsWith("/api/chat/");
+    req.path.startsWith("/api/chat/") ||
+    req.path.startsWith("/api/analytics/view/");
 
   if (["POST", "PUT", "DELETE", "PATCH"].includes(req.method) &&
       req.path.startsWith("/api") &&

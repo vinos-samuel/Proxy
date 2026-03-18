@@ -924,9 +924,42 @@ export async function registerRoutes(
 
       const responseText = result.text || "I'm not sure how to answer that. Could you rephrase?";
       res.json({ content: responseText });
+
+      // Fire-and-forget: save question for analytics
+      storage.saveChatMessage(profile.id, message).catch(() => {});
     } catch (error) {
       logger.error("Chat error", { error: String(error) });
       res.status(500).json({ message: String(error) });
+    }
+  });
+
+  // ==================== ANALYTICS ====================
+
+  // Public: increment view count when portfolio page loads
+  app.post("/api/analytics/view/:username", async (req: Request, res: Response) => {
+    try {
+      const customer = await storage.getCustomerByUsername(req.params.username);
+      if (!customer) return res.json({ ok: true });
+      const profile = await storage.getProfileByCustomerId(customer.id);
+      if (profile?.status === "published") {
+        storage.incrementViewCount(profile.id).catch(() => {});
+      }
+      res.json({ ok: true });
+    } catch {
+      res.json({ ok: true });
+    }
+  });
+
+  // Authenticated: get analytics for logged-in user's profile
+  app.get("/api/analytics/my", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const profile = await storage.getProfileByCustomerId(req.session.customerId!);
+      if (!profile) return res.json({ viewCount: 0, recentQuestions: [] });
+      const analytics = await storage.getAnalytics(profile.id);
+      res.json(analytics);
+    } catch (error) {
+      logger.error("Analytics error", { error: String(error) });
+      res.status(500).json({ message: "Could not load analytics" });
     }
   });
 

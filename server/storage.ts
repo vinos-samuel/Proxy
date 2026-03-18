@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { eq, desc, sql, count } from "drizzle-orm";
 import {
-  customers, twinProfiles, factBanks, knowledgeEntries, chatUsage, payments,
+  customers, twinProfiles, factBanks, knowledgeEntries, chatUsage, payments, chatMessages,
   type Customer, type InsertCustomer, type TwinProfile, type InsertTwinProfile,
   type FactBank, type InsertFactBank, type KnowledgeEntry, type InsertKnowledgeEntry,
   type Payment
@@ -49,6 +49,11 @@ export interface IStorage {
   setEmailVerificationToken(customerId: string, hashedToken: string, expiry: Date): Promise<void>;
   getCustomerByVerificationToken(hashedToken: string): Promise<Customer | undefined>;
   markEmailVerified(customerId: string): Promise<void>;
+
+  // Analytics
+  incrementViewCount(profileId: string): Promise<void>;
+  saveChatMessage(profileId: string, question: string): Promise<void>;
+  getAnalytics(profileId: string): Promise<{ viewCount: number; recentQuestions: { question: string; askedAt: Date }[] }>;
 
   // Admin
   getAdminStats(): Promise<{ totalCustomers: number; publishedProfiles: number; totalRevenue: number }>;
@@ -222,6 +227,29 @@ export class DatabaseStorage implements IStorage {
       result.push({ ...customer, profile: profile || null });
     }
     return result;
+  }
+
+  async incrementViewCount(profileId: string): Promise<void> {
+    await db.update(twinProfiles)
+      .set({ viewCount: sql`view_count + 1` })
+      .where(eq(twinProfiles.id, profileId));
+  }
+
+  async saveChatMessage(profileId: string, question: string): Promise<void> {
+    await db.insert(chatMessages).values({ profileId, question });
+  }
+
+  async getAnalytics(profileId: string): Promise<{ viewCount: number; recentQuestions: { question: string; askedAt: Date }[] }> {
+    const [profile] = await db.select({ viewCount: twinProfiles.viewCount }).from(twinProfiles).where(eq(twinProfiles.id, profileId));
+    const questions = await db.select({ question: chatMessages.question, askedAt: chatMessages.askedAt })
+      .from(chatMessages)
+      .where(eq(chatMessages.profileId, profileId))
+      .orderBy(desc(chatMessages.askedAt))
+      .limit(10);
+    return {
+      viewCount: profile?.viewCount || 0,
+      recentQuestions: questions,
+    };
   }
 
   async deleteCustomer(id: string): Promise<void> {

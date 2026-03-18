@@ -235,17 +235,17 @@ export async function registerRoutes(
       const customer = await storage.getCustomerByEmail(email.toLowerCase().trim());
       if (!customer) return res.json(successMsg);
 
+      if (!process.env.RESEND_API_KEY) {
+        logger.error("RESEND_API_KEY not set — cannot send reset email");
+        return res.json(successMsg);
+      }
+
       const rawToken = crypto.randomBytes(32).toString("hex");
       const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
       const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
       await storage.setResetToken(customer.id, hashedToken, expiry);
       logger.info("[Reset] token stored in DB", { customerId: customer.id, hashedPrefix: hashedToken.slice(0, 8), expiry });
-
-      if (!process.env.RESEND_API_KEY) {
-        logger.error("RESEND_API_KEY not set — cannot send reset email");
-        return res.json(successMsg);
-      }
 
       const { Resend } = await import("resend");
       const resend = new Resend(process.env.RESEND_API_KEY);

@@ -8,23 +8,32 @@ Digital Twin / AI-powered career profile builder. Users upload a resume, fill an
 **Domain:** myproxy.work
 
 ## Workflow
-- I edit files locally on Mac (`/Users/vinos/Documents/Claude Code/proxy/`)
-- User pushes to GitHub → pulls on Replit
+- Claude edits files locally on Mac (`/Users/vinos/Documents/Claude Code/proxy/`)
+- Vinos pushes to GitHub → pulls on Replit → restarts Replit server
 - Local dev: `npx tsx --env-file=.env server/index.ts` (configured in `.claude/launch.json`)
-- Local DB doesn't work (Postgres is on Replit) — test on Replit after push
+- Local DB doesn't work (Postgres is on Replit) — always test on Replit after push
 
-## ⚠️ Replit Pull Instructions (IMPORTANT — remind user every time)
-Replit Agent sometimes makes code changes directly on Replit without going through GitHub. This causes "divergent branches" errors on `git pull`.
+## 🚨 REMIND VINOS EVERY TIME: How to deploy changes
+After Claude writes code, Vinos does these steps (copy-paste into Replit Shell):
 
-**Always use this instead of `git pull`:**
+**Step 1 — Push from Mac terminal (Claude gives this command):**
+```
+git add <files> && git commit -m "description" && git push origin main
+```
+
+**Step 2 — Pull on Replit Shell (ALWAYS use this, never plain `git pull`):**
 ```
 git fetch origin && git reset --hard origin/main
 ```
-Then if the DB schema changed (new columns added to shared/schema.ts), also run:
+
+**Step 3 — Only if shared/schema.ts was changed (new DB columns added):**
 ```
 npm run db:push
 ```
-**Plain English:** This makes Replit's code exactly match GitHub. Any changes made directly on Replit (by Replit Agent) will be discarded — GitHub is always the source of truth.
+
+**Step 4 — Restart Replit server** (click Stop then Run, or use the Run button)
+
+**Why not `git pull`?** Replit Agent sometimes commits code changes directly on Replit. This causes "divergent branches" conflicts. The `reset --hard` command above bypasses that by forcing Replit to match GitHub exactly. GitHub is always the source of truth.
 
 ## Stack
 | Layer | Tech |
@@ -68,7 +77,12 @@ step1: basic info | step2: summary + career history | step3: resume URL (to be r
 
 ## Known Pending Tasks
 - [ ] AI banner text — confirm it says "AI may have made assumptions — read through and adjust"
-- [ ] Sprint 2: Publish First / Improve Later (completeness score, remove questionnaire-complete gate, nudge emails)
+- [ ] Password reset flow — needs live test after db:push (reset_token columns now added)
+- [ ] Welcome email on signup (Resend already configured, just needs trigger in /api/auth/register)
+- [ ] "Your Twin is building" email on questionnaire submit
+- [ ] "Your profile is live" email on Stripe payment success
+- [ ] Nudge emails (48hr after signup if draft, 48hr after ready if not published) — needs cron
+- [ ] Sprint 2: Publish First / Improve Later (completeness score, remove questionnaire-complete gate)
 - [ ] Sprint 3: LinkedIn enrichment via Proxycurl API (posts, articles, comments, interests)
 - [ ] Sprint 4: Conversational onboarding
 - [ ] Post-launch: Fix @google-cloud/storage vulnerabilities (5 low severity, requires downgrade to v5.18.3)
@@ -80,14 +94,16 @@ step1: basic info | step2: summary + career history | step3: resume URL (to be r
 - [x] PaymentGate wired to Stripe checkout (/api/create-checkout-session)
 - [x] Edit Content save CSRF fix (preview.tsx PATCH)
 - [x] Career Trajectory UI — company name in header, roles nested inside
-- [x] AI pre-fill questionnaire from resume (Sprint 1)
+- [x] AI pre-fill questionnaire from resume (Sprint 1) — generateQuestionnaireDraft() added
+- [x] AI pre-fill banner — shows when _aiDraft: true, dismiss button, re-upload button in questionnaire
 - [x] Privacy policy + Terms of Service pages
-- [x] Password reset flow (forgot password email via Resend)
+- [x] Password reset DB columns — reset_token + reset_token_expiry added to schema + db:push run on Replit
 - [x] Structured logging (server/logger.ts)
 - [x] Helmet, rate limiting, CSRF middleware
 - [x] Stripe payment endpoints + webhook
 - [x] Server-side Zod validation on key endpoints
 - [x] Deleted /api/test-publish security bypass
+- [x] All file uploads (headshot, video, CV, resume) — CSRF fixed via cookie helper in use-upload hook
 
 ## File Map (important files)
 - `server/index.ts` — Express app, middleware stack (helmet, rate limiters, CSRF, sessions)

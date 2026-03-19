@@ -495,7 +495,7 @@ export async function registerRoutes(
         }
 
         const customer = await storage.getCustomer(req.session.customerId!);
-        const publicDomain = customer ? `${customer.username}.myproxy.work` : undefined;
+        const publicDomain = customer ? `myproxy.work/portfolio/${customer.username}` : undefined;
 
         await storage.updateProfileById(profile.id, {
           isPublic: true,
@@ -1048,13 +1048,13 @@ export async function registerRoutes(
               paidAt: new Date(),
               isPublic: true,
               tier,
-              publicDomain: `${username}.myproxy.work`,
+              publicDomain: `myproxy.work/portfolio/${username}`,
             });
             await storage.updateProfileStatus(profileId, "published");
             await storage.updateCustomerStatus(customerId, "paid");
           }
 
-          return res.json({ status: "paid", tier, domain: `${username}.myproxy.work` });
+          return res.json({ status: "paid", tier, domain: `myproxy.work/portfolio/${username}` });
         }
 
         res.json({ status: "pending" });
@@ -1104,11 +1104,34 @@ export async function registerRoutes(
                 paidAt: new Date(),
                 isPublic: true,
                 tier,
-                publicDomain: `${username}.myproxy.work`,
+                publicDomain: `myproxy.work/portfolio/${username}`,
               });
               await storage.updateProfileStatus(profileId, "published");
               await storage.updateCustomerStatus(customerId, "paid");
               logger.info(`[Stripe] Webhook: published profile ${profileId} for ${username} (${tier})`);
+
+              // Send "Profile is live" email (fire and forget)
+              if (process.env.RESEND_API_KEY && customerId) {
+                try {
+                  const customer = await storage.getCustomer(customerId);
+                  if (customer?.email) {
+                    const { Resend } = await import("resend");
+                    const { profileLiveTemplate } = await import("./emails");
+                    const resend = new Resend(process.env.RESEND_API_KEY);
+                    const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+                    const profileUrl = `https://myproxy.work/portfolio/${username}`;
+                    await resend.emails.send({
+                      from: fromEmail,
+                      to: customer.email,
+                      subject: "Your Digital Twin is live!",
+                      html: profileLiveTemplate(customer.name, profileUrl),
+                    });
+                    logger.info("[Stripe] Profile live email sent", { to: customer.email });
+                  }
+                } catch (emailErr) {
+                  logger.info("[Stripe] Profile live email failed (non-fatal)", { error: String(emailErr) });
+                }
+              }
             } catch (dbErr) {
               logger.error("[Stripe] DB update error in webhook", { error: String(dbErr) });
             }
@@ -1159,7 +1182,7 @@ export async function registerRoutes(
             paidAt: new Date(),
             isPublic: true,
             tier: "launch",
-            publicDomain: `${customer.username}.myproxy.work`,
+            publicDomain: `myproxy.work/portfolio/${customer.username}`,
           });
           // If profile has questionnaire data, process it; otherwise just mark published
           if (profile.questionnaireData) {
@@ -1170,6 +1193,24 @@ export async function registerRoutes(
           } else {
             await storage.updateProfileStatus(profile.id, "published");
           }
+        }
+
+        // Send "Profile is live" email (fire and forget)
+        if (process.env.RESEND_API_KEY && customer.email) {
+          try {
+            const { Resend } = await import("resend");
+            const { profileLiveTemplate } = await import("./emails");
+            const resend = new Resend(process.env.RESEND_API_KEY);
+            const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+            const profileUrl = `https://myproxy.work/portfolio/${customer.username}`;
+            resend.emails.send({
+              from: fromEmail,
+              to: customer.email,
+              subject: "Your Digital Twin is live!",
+              html: profileLiveTemplate(customer.name, profileUrl),
+            }).catch(() => {});
+            logger.info("[Admin] Profile live email queued", { to: customer.email });
+          } catch {}
         }
 
         logger.info("[Admin] Free access granted", { customerId, by: req.session.customerId });

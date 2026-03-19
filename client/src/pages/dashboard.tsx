@@ -252,6 +252,23 @@ export default function DashboardPage() {
                 <PaymentGate profileId={profile.id} />
               )}
 
+              {profile && profile.status !== "published" && (
+                <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-[#D1D1CC] border-[3px] border-black flex items-center justify-center">
+                      <BarChart3 className="h-5 w-5 text-black/40" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg text-black/40">TWIN ANALYTICS</h3>
+                      <div className="mono text-xs text-black/30 uppercase">COMING_SOON</div>
+                    </div>
+                  </div>
+                  <p className="mono text-xs text-black/50 leading-relaxed">
+                    Once your profile is published, you'll see analytics here — profile views, questions visitors ask your Twin, and engagement trends. Publish your profile to unlock this.
+                  </p>
+                </div>
+              )}
+
               {profile?.status === "published" && (
                 <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                   <div className="flex items-center gap-3 mb-4">
@@ -260,11 +277,11 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center gap-3 flex-wrap">
                     <div className="flex-1 min-w-0 border-[3px] border-black bg-[#D1D1CC] px-4 py-3 mono text-sm text-black overflow-x-auto" data-testid="text-portfolio-url">
-                      <span className="text-black/40">$ </span>{user?.username}.myproxy.work
+                      <span className="text-black/40">$ </span>myproxy.work/portfolio/{user?.username}
                     </div>
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(`https://${user?.username}.myproxy.work`);
+                        navigator.clipboard.writeText(`https://myproxy.work/portfolio/${user?.username}`);
                       }}
                       className="bg-black text-white px-5 py-3 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center gap-2"
                       data-testid="button-copy-url"

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -38,6 +39,29 @@ export default function FAQPage() {
     }
   ];
 
+  // FAQ JSON-LD structured data for AEO
+  useEffect(() => {
+    const faqData = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map((faq) => ({
+        "@type": "Question",
+        "name": faq.q,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.a,
+        },
+      })),
+    };
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.text = JSON.stringify(faqData);
+    document.head.appendChild(script);
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#E8E8E3] text-black selection:bg-[#22C55E]/30" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
       {/* Navigation */}
@@ -53,6 +77,7 @@ export default function FAQPage() {
           </Link>
           <div className="flex gap-8 mono text-xs font-bold uppercase tracking-widest">
             <Link href="/about"><span className="cursor-pointer hover:text-[#22C55E]">About</span></Link>
+            <Link href="/blog"><span className="cursor-pointer hover:text-[#22C55E]">Blog</span></Link>
             <Link href="/faq"><span className="cursor-pointer hover:text-[#22C55E] border-b-2 border-black">FAQ</span></Link>
             <Link href="/pricing"><span className="cursor-pointer hover:text-[#22C55E]">Pricing</span></Link>
           </div>
@@ -106,6 +131,7 @@ export default function FAQPage() {
           </div>
           <div className="flex gap-8 mono text-xs font-bold uppercase tracking-widest text-black/50">
             <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>
+            <Link href="/blog"><span className="cursor-pointer hover:text-black">Blog</span></Link>
             <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
             <Link href="/#pricing"><span className="cursor-pointer hover:text-black">Pricing</span></Link>
             <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-black">myproxy_work@proton.me</a>

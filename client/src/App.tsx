@@ -22,6 +22,8 @@ import ResetPasswordPage from "@/pages/reset-password";
 import VerifyEmailPage from "@/pages/verify-email";
 import PrivacyPage from "@/pages/privacy";
 import TermsPage from "@/pages/terms";
+import BlogPage from "@/pages/blog";
+import BlogPostPage from "@/pages/blog-post";
 import { Loader2 } from "lucide-react";
 import { Redirect } from "wouter";
 
@@ -66,6 +68,8 @@ function Router() {
     <Switch>
       <Route path="/" component={LandingPage} />
       <Route path="/about" component={AboutPage} />
+      <Route path="/blog" component={BlogPage} />
+      <Route path="/blog/:slug" component={BlogPostPage} />
       <Route path="/faq" component={FAQPage} />
       <Route path="/login">{() => <GuestRoute component={LoginPage} />}</Route>
       <Route path="/register">{() => <GuestRoute component={RegisterPage} />}</Route>

@@ -20,6 +20,7 @@ export default function AboutPage() {
           </Link>
           <div className="flex gap-8 mono text-xs font-bold uppercase tracking-widest">
             <Link href="/about"><span className="cursor-pointer hover:text-[#22C55E] border-b-2 border-black">About</span></Link>
+            <Link href="/blog"><span className="cursor-pointer hover:text-[#22C55E]">Blog</span></Link>
             <Link href="/faq"><span className="cursor-pointer hover:text-[#22C55E]">FAQ</span></Link>
             <Link href="/pricing"><span className="cursor-pointer hover:text-[#22C55E]">Pricing</span></Link>
           </div>
@@ -147,6 +148,7 @@ export default function AboutPage() {
           </div>
           <div className="flex gap-8 mono text-xs font-bold uppercase tracking-widest text-black/50">
             <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>
+            <Link href="/blog"><span className="cursor-pointer hover:text-black">Blog</span></Link>
             <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
             <Link href="/#pricing"><span className="cursor-pointer hover:text-black">Pricing</span></Link>
             <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-black">myproxy_work@proton.me</a>

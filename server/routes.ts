@@ -1143,6 +1143,24 @@ export async function registerRoutes(
     },
   );
 
+  // ==================== BLOG ====================
+
+  // GET /api/blog — published posts only
+  app.get("/api/blog", async (req, res) => {
+    const posts = await storage.getPublishedBlogPosts();
+    res.json(posts);
+  });
+
+  // GET /api/blog/:slug — single published post, increment view
+  app.get("/api/blog/:slug", async (req, res) => {
+    const post = await storage.getBlogPostBySlug(req.params.slug);
+    if (!post || post.status !== "published") {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    storage.incrementBlogViewCount(post.id).catch(() => {});
+    res.json(post);
+  });
+
   // ==================== ADMIN ====================
 
   app.delete(
@@ -1269,6 +1287,82 @@ export async function registerRoutes(
       }
     },
   );
+
+  // ==================== ADMIN BLOG ====================
+
+  // GET /api/admin/blog — all posts
+  app.get("/api/admin/blog", requireAdmin, async (req, res) => {
+    const posts = await storage.getAllBlogPosts();
+    res.json(posts);
+  });
+
+  // POST /api/admin/blog — create post
+  app.post("/api/admin/blog", requireAdmin, async (req, res) => {
+    try {
+      const { title, slug, excerpt, content, heroImageUrl, category, metaDescription, status } = req.body;
+      if (!title || !content) return res.status(400).json({ message: "Title and content are required" });
+      const finalSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const post = await storage.createBlogPost({
+        title, slug: finalSlug, excerpt, content, heroImageUrl, category, metaDescription,
+        status: status || "draft",
+        publishedAt: status === "published" ? new Date() : null,
+      });
+      res.json(post);
+    } catch (error: any) {
+      if (error.message?.includes("unique")) {
+        return res.status(400).json({ message: "A post with this slug already exists" });
+      }
+      logger.error("Blog create error", { error: String(error) });
+      res.status(500).json({ message: "Failed to create post" });
+    }
+  });
+
+  // PATCH /api/admin/blog/:id — update post
+  app.patch("/api/admin/blog/:id", requireAdmin, async (req, res) => {
+    try {
+      const existing = await storage.getBlogPostById(req.params.id);
+      if (!existing) return res.status(404).json({ message: "Post not found" });
+      await storage.updateBlogPost(req.params.id, req.body);
+      const updated = await storage.getBlogPostById(req.params.id);
+      res.json(updated);
+    } catch (error) {
+      logger.error("Blog update error", { error: String(error) });
+      res.status(500).json({ message: "Failed to update post" });
+    }
+  });
+
+  // DELETE /api/admin/blog/:id — delete post
+  app.delete("/api/admin/blog/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteBlogPost(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Blog delete error", { error: String(error) });
+      res.status(500).json({ message: "Failed to delete post" });
+    }
+  });
+
+  // POST /api/admin/blog/:id/publish — publish a post
+  app.post("/api/admin/blog/:id/publish", requireAdmin, async (req, res) => {
+    try {
+      await storage.updateBlogPost(req.params.id, { status: "published", publishedAt: new Date() });
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Blog publish error", { error: String(error) });
+      res.status(500).json({ message: "Failed to publish post" });
+    }
+  });
+
+  // POST /api/admin/blog/:id/unpublish — unpublish a post
+  app.post("/api/admin/blog/:id/unpublish", requireAdmin, async (req, res) => {
+    try {
+      await storage.updateBlogPost(req.params.id, { status: "draft" });
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Blog unpublish error", { error: String(error) });
+      res.status(500).json({ message: "Failed to unpublish post" });
+    }
+  });
 
   return httpServer;
 }

@@ -79,6 +79,7 @@ export default function LandingPage() {
           </Link>
           <div className="hidden md:flex items-center gap-8">
             <Link href="/about"><span className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider cursor-pointer">About</span></Link>
+            <Link href="/blog"><span className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider cursor-pointer">Blog</span></Link>
             <Link href="/faq"><span className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider cursor-pointer">FAQ</span></Link>
             <a href="#how" className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider" data-testid="link-how">How</a>
             <a href="#pricing" className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider" data-testid="link-pricing">Pricing</a>
@@ -458,6 +459,7 @@ export default function LandingPage() {
             </div>
             <div className="flex gap-6 mono text-xs font-bold uppercase tracking-widest text-black/50">
               <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>
+              <Link href="/blog"><span className="cursor-pointer hover:text-black">Blog</span></Link>
               <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
               <Link href="/privacy"><span className="cursor-pointer hover:text-black">Privacy</span></Link>
               <Link href="/terms"><span className="cursor-pointer hover:text-black">Terms</span></Link>

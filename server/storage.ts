@@ -1,10 +1,10 @@
 import { db } from "./db";
 import { eq, desc, sql, count } from "drizzle-orm";
 import {
-  customers, twinProfiles, factBanks, knowledgeEntries, chatUsage, payments, chatMessages,
+  customers, twinProfiles, factBanks, knowledgeEntries, chatUsage, payments, chatMessages, blogPosts,
   type Customer, type InsertCustomer, type TwinProfile, type InsertTwinProfile,
   type FactBank, type InsertFactBank, type KnowledgeEntry, type InsertKnowledgeEntry,
-  type Payment
+  type Payment, type BlogPost
 } from "@shared/schema";
 
 export interface IStorage {
@@ -54,6 +54,16 @@ export interface IStorage {
   incrementViewCount(profileId: string): Promise<void>;
   saveChatMessage(profileId: string, question: string): Promise<void>;
   getAnalytics(profileId: string): Promise<{ viewCount: number; recentQuestions: { question: string; askedAt: Date }[] }>;
+
+  // Blog
+  getPublishedBlogPosts(): Promise<BlogPost[]>;
+  getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
+  getBlogPostById(id: string): Promise<BlogPost | undefined>;
+  getAllBlogPosts(): Promise<BlogPost[]>;
+  createBlogPost(data: any): Promise<BlogPost>;
+  updateBlogPost(id: string, data: any): Promise<void>;
+  deleteBlogPost(id: string): Promise<void>;
+  incrementBlogViewCount(id: string): Promise<void>;
 
   // Admin
   getAdminStats(): Promise<{ totalCustomers: number; publishedProfiles: number; totalRevenue: number }>;
@@ -250,6 +260,42 @@ export class DatabaseStorage implements IStorage {
       viewCount: profile?.viewCount || 0,
       recentQuestions: questions,
     };
+  }
+
+  // Blog
+  async getPublishedBlogPosts(): Promise<BlogPost[]> {
+    return db.select().from(blogPosts).where(eq(blogPosts.status, "published")).orderBy(desc(blogPosts.publishedAt));
+  }
+
+  async getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+    return post;
+  }
+
+  async getBlogPostById(id: string): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, id));
+    return post;
+  }
+
+  async getAllBlogPosts(): Promise<BlogPost[]> {
+    return db.select().from(blogPosts).orderBy(desc(blogPosts.createdAt));
+  }
+
+  async createBlogPost(data: any): Promise<BlogPost> {
+    const [post] = await db.insert(blogPosts).values(data).returning();
+    return post;
+  }
+
+  async updateBlogPost(id: string, data: any): Promise<void> {
+    await db.update(blogPosts).set({ ...data, updatedAt: new Date() }).where(eq(blogPosts.id, id));
+  }
+
+  async deleteBlogPost(id: string): Promise<void> {
+    await db.delete(blogPosts).where(eq(blogPosts.id, id));
+  }
+
+  async incrementBlogViewCount(id: string): Promise<void> {
+    await db.update(blogPosts).set({ viewCount: sql`view_count + 1` }).where(eq(blogPosts.id, id));
   }
 
   async deleteCustomer(id: string): Promise<void> {

@@ -108,6 +108,22 @@ export const payments = pgTable("payments", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+export const blogPosts = pgTable("blog_posts", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  excerpt: text("excerpt"),
+  content: text("content").notNull(),
+  heroImageUrl: text("hero_image_url"),
+  category: text("category").default("general"),
+  metaDescription: text("meta_description"),
+  status: text("status").notNull().default("draft"),
+  publishedAt: timestamp("published_at"),
+  viewCount: integer("view_count").default(0),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // Insert schemas
 export const insertCustomerSchema = createInsertSchema(customers).omit({
   id: true,
@@ -201,6 +217,8 @@ export type InsertKnowledgeEntry = z.infer<typeof insertKnowledgeEntrySchema>;
 export type ChatUsage = typeof chatUsage.$inferSelect;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertBlogPost = typeof blogPosts.$inferInsert;
 
 // Keep old exports for compatibility with integration files
 export const users = customers;

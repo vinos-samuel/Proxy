@@ -1364,5 +1364,106 @@ export async function registerRoutes(
     }
   });
 
+  // ─── Sitemap & Robots.txt ──────────────────────────────────────────────────
+
+  app.get("/sitemap.xml", async (_req, res) => {
+    try {
+      const baseUrl = "https://myproxy.work";
+      const now = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
+      // Static pages
+      const staticPages = [
+        { url: "/", priority: "1.0", changefreq: "weekly" },
+        { url: "/about", priority: "0.8", changefreq: "monthly" },
+        { url: "/blog", priority: "0.9", changefreq: "daily" },
+        { url: "/faq", priority: "0.8", changefreq: "monthly" },
+        { url: "/privacy", priority: "0.3", changefreq: "yearly" },
+        { url: "/terms", priority: "0.3", changefreq: "yearly" },
+        { url: "/register", priority: "0.7", changefreq: "monthly" },
+        { url: "/login", priority: "0.5", changefreq: "monthly" },
+      ];
+
+      // Published blog posts
+      const blogPosts = await storage.getPublishedBlogPosts();
+
+      // Published portfolio profiles
+      const usernames = await storage.getPublishedProfileUsernames();
+
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+`;
+
+      // Static pages
+      for (const page of staticPages) {
+        xml += `  <url>
+    <loc>${baseUrl}${page.url}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>
+`;
+      }
+
+      // Blog posts
+      for (const post of blogPosts) {
+        const lastmod = post.updatedAt
+          ? new Date(post.updatedAt).toISOString().split("T")[0]
+          : now;
+        xml += `  <url>
+    <loc>${baseUrl}/blog/${post.slug}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+`;
+      }
+
+      // Published portfolios
+      for (const username of usernames) {
+        xml += `  <url>
+    <loc>${baseUrl}/portfolio/${username}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+`;
+      }
+
+      xml += `</urlset>`;
+
+      res.set("Content-Type", "application/xml");
+      res.send(xml);
+    } catch (error) {
+      logger.error("Sitemap generation error", { error: String(error) });
+      res.status(500).send("Error generating sitemap");
+    }
+  });
+
+  app.get("/robots.txt", (_req, res) => {
+    const robots = `User-agent: *
+Allow: /
+Allow: /about
+Allow: /blog
+Allow: /blog/*
+Allow: /faq
+Allow: /portfolio/*
+Allow: /privacy
+Allow: /terms
+
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /questionnaire
+Disallow: /preview
+Disallow: /payment/
+Disallow: /verify-email
+Disallow: /reset-password
+Disallow: /forgot-password
+
+Sitemap: https://myproxy.work/sitemap.xml
+`;
+    res.set("Content-Type", "text/plain");
+    res.send(robots);
+  });
+
   return httpServer;
 }

@@ -65,6 +65,9 @@ export interface IStorage {
   deleteBlogPost(id: string): Promise<void>;
   incrementBlogViewCount(id: string): Promise<void>;
 
+  // Sitemap
+  getPublishedProfileUsernames(): Promise<string[]>;
+
   // Admin
   getAdminStats(): Promise<{ totalCustomers: number; publishedProfiles: number; totalRevenue: number }>;
   getCustomersWithProfiles(): Promise<(Customer & { profile?: TwinProfile | null })[]>;
@@ -296,6 +299,15 @@ export class DatabaseStorage implements IStorage {
 
   async incrementBlogViewCount(id: string): Promise<void> {
     await db.update(blogPosts).set({ viewCount: sql`view_count + 1` }).where(eq(blogPosts.id, id));
+  }
+
+  async getPublishedProfileUsernames(): Promise<string[]> {
+    const results = await db
+      .select({ username: customers.username })
+      .from(twinProfiles)
+      .innerJoin(customers, eq(twinProfiles.customerId, customers.id))
+      .where(eq(twinProfiles.status, "published"));
+    return results.map((r) => r.username);
   }
 
   async deleteCustomer(id: string): Promise<void> {

@@ -214,7 +214,7 @@ export default function BlogPostPage() {
             <Link href="/blog"><span className="cursor-pointer hover:text-black">Blog</span></Link>
             <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
             <Link href="/#pricing"><span className="cursor-pointer hover:text-black">Pricing</span></Link>
-            <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-black">myproxy_work@proton.me</a>
+            <a href="mailto:vinos@myproxy.work" className="cursor-pointer hover:text-black">vinos@myproxy.work</a>
             <span>&copy; 2026 Digital Twin Studio</span>
           </div>
         </div>

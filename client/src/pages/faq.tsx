@@ -366,7 +366,7 @@ export default function FAQPage() {
       <section className="px-6 py-24 border-b-[3px] border-black">
         <div className="max-w-3xl mx-auto">
           <div className="mb-12 text-center">
-            <p className="mono text-sm text-black/60">Can't find your answer? Contact us at <a href="mailto:myproxy_work@proton.me" className="text-black font-bold hover:text-[#22C55E]">myproxy_work@proton.me</a></p>
+            <p className="mono text-sm text-black/60">Can't find your answer? Contact us at <a href="mailto:vinos@myproxy.work" className="text-black font-bold hover:text-[#22C55E]">vinos@myproxy.work</a></p>
           </div>
           <Accordion type="single" collapsible className="space-y-4">
             {faqs.map((faq, i) => (
@@ -397,7 +397,7 @@ export default function FAQPage() {
               Have a suggestion, feature request, or something that could be better? We read every message and use your input to shape what we build next.
             </p>
             <a
-              href="mailto:myproxy_work@proton.me?subject=Proxy%20Feedback"
+              href="mailto:vinos@myproxy.work?subject=Proxy%20Feedback"
               className="inline-block bg-[#22C55E] text-black px-8 py-4 font-bold text-sm uppercase tracking-widest border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all"
             >
               Send Feedback &rarr;
@@ -434,7 +434,7 @@ export default function FAQPage() {
             <Link href="/blog"><span className="cursor-pointer hover:text-black">Blog</span></Link>
             <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
             <Link href="/#pricing"><span className="cursor-pointer hover:text-black">Pricing</span></Link>
-            <a href="mailto:myproxy_work@proton.me" className="cursor-pointer hover:text-black">myproxy_work@proton.me</a>
+            <a href="mailto:vinos@myproxy.work" className="cursor-pointer hover:text-black">vinos@myproxy.work</a>
             <span>© 2026 Digital Twin Studio</span>
           </div>
         </div>

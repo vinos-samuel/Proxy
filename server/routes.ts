@@ -175,7 +175,7 @@ export async function registerRoutes(
       if (process.env.RESEND_API_KEY) {
         const { Resend } = await import("resend");
         const resend = new Resend(process.env.RESEND_API_KEY);
-        const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+        const fromEmail = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
         const appUrl = process.env.APP_URL ||
           `${req.headers["x-forwarded-proto"] || "https"}://${req.headers["x-forwarded-host"] || req.headers.host}`;
         const verifyUrl = `${appUrl}/verify-email?token=${rawToken}`;
@@ -271,7 +271,7 @@ export async function registerRoutes(
       if (process.env.RESEND_API_KEY) {
         const { Resend } = await import("resend");
         const resend = new Resend(process.env.RESEND_API_KEY);
-        const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+        const fromEmail = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
         const appUrl = process.env.APP_URL ||
           `${req.headers["x-forwarded-proto"] || "https"}://${req.headers["x-forwarded-host"] || req.headers.host}`;
         resend.emails.send({
@@ -312,7 +312,7 @@ export async function registerRoutes(
 
       const { Resend } = await import("resend");
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+      const fromEmail = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
       const appUrl = process.env.APP_URL ||
         `${req.headers["x-forwarded-proto"] || "https"}://${req.headers["x-forwarded-host"] || req.headers.host}`;
       const verifyUrl = `${appUrl}/verify-email?token=${rawToken}`;
@@ -369,7 +369,7 @@ export async function registerRoutes(
 
       const { Resend } = await import("resend");
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+      const fromEmail = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
       const appUrl = process.env.APP_URL ||
         `${req.headers["x-forwarded-proto"] || "https"}://${req.headers["x-forwarded-host"] || req.headers.host}`;
       const resetUrl = `${appUrl}/reset-password?token=${rawToken}`;
@@ -1118,7 +1118,7 @@ export async function registerRoutes(
                     const { Resend } = await import("resend");
                     const { profileLiveTemplate } = await import("./emails");
                     const resend = new Resend(process.env.RESEND_API_KEY);
-                    const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+                    const fromEmail = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
                     const profileUrl = `https://myproxy.work/portfolio/${username}`;
                     await resend.emails.send({
                       from: fromEmail,
@@ -1219,7 +1219,7 @@ export async function registerRoutes(
             const { Resend } = await import("resend");
             const { profileLiveTemplate } = await import("./emails");
             const resend = new Resend(process.env.RESEND_API_KEY);
-            const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+            const fromEmail = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
             const profileUrl = `https://myproxy.work/portfolio/${customer.username}`;
             resend.emails.send({
               from: fromEmail,

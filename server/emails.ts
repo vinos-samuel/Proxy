@@ -41,7 +41,7 @@ function baseTemplate(body: string): string {
             <td style="padding:20px 32px;border-top:2px solid #e5e5e5;background:#fafaf8;">
               <p style="font-size:12px;color:#999999;margin:0;line-height:1.6;">
                 You're receiving this because you signed up at <a href="https://myproxy.work" style="color:#22C55E;text-decoration:none;">myproxy.work</a>.<br>
-                Questions? Email us at <a href="mailto:myproxy_work@proton.me" style="color:#22C55E;text-decoration:none;">myproxy_work@proton.me</a>
+                Questions? Email us at <a href="mailto:vinos@myproxy.work" style="color:#22C55E;text-decoration:none;">vinos@myproxy.work</a>
               </p>
             </td>
           </tr>

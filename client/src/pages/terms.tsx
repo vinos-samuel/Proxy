@@ -60,7 +60,7 @@ export default function TermsPage() {
             <p className="text-black/70 leading-relaxed">
               We handle refund requests on a case-by-case basis.
               If you have an issue, email{" "}
-              <a href="mailto:myproxy_work@proton.me" className="underline">myproxy_work@proton.me</a>{" "}
+              <a href="mailto:vinos@myproxy.work" className="underline">vinos@myproxy.work</a>{" "}
               and we will work with you to find a fair resolution.
             </p>
           </section>
@@ -117,7 +117,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-bold text-black mb-3">12. Contact</h2>
             <p className="text-black/70 leading-relaxed">
-              <a href="mailto:myproxy_work@proton.me" className="underline">myproxy_work@proton.me</a>
+              <a href="mailto:vinos@myproxy.work" className="underline">vinos@myproxy.work</a>
             </p>
           </section>
 

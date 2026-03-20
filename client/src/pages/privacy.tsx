@@ -22,7 +22,7 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-bold text-black mb-3">1. Who we are</h2>
             <p className="text-black/70 leading-relaxed">
               Proxy ("we", "us") operates myproxy.work. Contact us at:{" "}
-              <a href="mailto:myproxy_work@proton.me" className="underline">myproxy_work@proton.me</a>
+              <a href="mailto:vinos@myproxy.work" className="underline">vinos@myproxy.work</a>
             </p>
           </section>
 
@@ -78,7 +78,7 @@ export default function PrivacyPage() {
             </ul>
             <p className="text-black/70 leading-relaxed mt-2">
               Email{" "}
-              <a href="mailto:myproxy_work@proton.me" className="underline">myproxy_work@proton.me</a>{" "}
+              <a href="mailto:vinos@myproxy.work" className="underline">vinos@myproxy.work</a>{" "}
               for any data requests. We will respond within 30 days.
             </p>
           </section>

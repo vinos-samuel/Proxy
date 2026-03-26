@@ -17,6 +17,7 @@ import { buildSystemPrompt } from "./system-prompt-builder";
 import type { KnowledgeEntry } from "@shared/schema";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import Stripe from "stripe";
+import Anthropic from "@anthropic-ai/sdk";
 import { verifyEmailTemplate, welcomeEmailTemplate, passwordResetTemplate } from "./emails";
 
 // Tier → Stripe Price ID mapping
@@ -920,15 +921,18 @@ export async function registerRoutes(
         portfolioData: questionnaireData?.portfolioData || null,
       });
 
-      const result = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: [{ role: "user", parts: [{ text: message }] }],
-        config: {
-          systemInstruction: systemPrompt,
-        },
+      // Use Claude Haiku for chat — better quality, less hallucination
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const result = await anthropic.messages.create({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: [{ role: "user", content: message }],
       });
 
-      const responseText = result.text || "I'm not sure how to answer that. Could you rephrase?";
+      const responseText = result.content[0].type === "text"
+        ? result.content[0].text
+        : "I'm not sure how to answer that. Could you rephrase?";
       res.json({ content: responseText });
 
       // Fire-and-forget: save question for analytics

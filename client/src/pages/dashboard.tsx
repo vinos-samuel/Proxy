@@ -249,7 +249,7 @@ export default function DashboardPage() {
               </div>
 
               {profile?.status === "ready" && profile?.paymentStatus !== "paid" && (
-                <PaymentGate profileId={profile.id} />
+                <PaymentGate profileId={profile.id} username={user?.username} />
               )}
 
               {profile && profile.status !== "published" && (

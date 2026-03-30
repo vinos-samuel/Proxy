@@ -44,11 +44,11 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-xl font-bold text-black mb-3">4. Payments</h2>
-            <p className="text-black/70 leading-relaxed mb-3">Plans are one-time payments:</p>
+            <p className="text-black/70 leading-relaxed mb-3">Plans available:</p>
             <ul className="text-black/70 leading-relaxed space-y-2 list-disc list-inside">
-              <li><strong>Launch:</strong> $99 USD</li>
-              <li><strong>Evolve:</strong> $199 USD</li>
-              <li><strong>Concierge:</strong> $499 USD</li>
+              <li><strong>Free:</strong> $0 — Published profile + chatbot, 1 edit within 48 hours</li>
+              <li><strong>Pro:</strong> $49 USD — Unlimited edits, full analytics</li>
+              <li><strong>Concierge:</strong> $499 USD — Personal discovery call, custom branding, hands-on optimization</li>
             </ul>
             <p className="text-black/70 leading-relaxed mt-3">
               Payments are processed securely by Stripe.

@@ -1,5 +1,29 @@
 # Proxy / BIOSai — Project Context
 
+## Session Protocol
+At the end of every session, update the "Current Sprint" block above with:
+- What was completed
+- Where we stopped
+- What's next
+- Any new decisions made
+
+## Current Sprint — 2026-03-23
+**Status:** LAUNCHED. Product is live at myproxy.work. Preparing for public announcement (LinkedIn, Twitter).
+**Last session completed:**
+- Blog system (admin CRUD + public pages + SEO JSON-LD)
+- FAQ updated with formatted answers, new ATS question, feedback section
+- Sitemap.xml + robots.txt auto-generated endpoints
+- Google Search Console verification added
+- Zoho Mail set up for vinos@myproxy.work (DNS: MX, SPF, DKIM, DMARC)
+- Privacy page updated to vinos@myproxy.work
+- Portfolio URL fixed everywhere (myproxy.work/portfolio/username)
+- Profile analytics on dashboard (view count + questions asked)
+- Grant-access users can edit (removed tier restriction)
+- Chat formatting fixed (paragraphs, bullets, bold)
+**Still needs deploy:** sitemap/robots.txt routes, storage.ts (getPublishedProfileUsernames), FAQ updates, sender display name on transactional emails
+**Don't touch:** server/ai-processor.ts, Stripe webhook flow — both working in production
+**Pending decision:** None — ready to push remaining changes and announce
+
 ## What This Is
 Digital Twin / AI-powered career profile builder. Users upload a resume, fill an 11-step questionnaire, and get a public AI portfolio page with a chatbot that represents them.
 
@@ -7,6 +31,7 @@ Digital Twin / AI-powered career profile builder. Users upload a resume, fill an
 **Dev URL:** worf.replit.dev (Replit workspace — separate DB, do not test auth flows here)
 **GitHub:** https://github.com/vinos-samuel/Proxy (branch: main)
 **Domain:** myproxy.work
+
 
 ## Workflow
 - Claude edits files locally on Mac (`/Users/vinos/Documents/Claude Code/proxy/`)
@@ -52,7 +77,7 @@ npm run build
 | AI | Google Gemini 2.5 Flash via `@google/genai` |
 | Storage | Google Cloud Storage (file uploads) |
 | Payments | Stripe (one-time, Checkout Sessions) |
-| Email | Resend, FROM: noreply@myproxy.work |
+| Email | Resend (transactional, FROM: noreply@myproxy.work), Zoho Mail (vinos@myproxy.work for personal/outreach) |
 | Auth | bcryptjs, express-session + connect-pg-simple (pg store) |
 | Security | helmet, express-rate-limit, double-submit CSRF cookies |
 | Logging | Custom JSON structured logger (`server/logger.ts`) |
@@ -92,9 +117,10 @@ npm run build
 - After adding columns, run `UPDATE customers SET email_verified = true;` etc. to backfill existing rows
 
 ## Stripe Price IDs (live)
-- Launch: `price_1TAQ4QPzBwfwKXghIiFEE6eG` ($99)
-- Evolve: `price_1TAQ4oPzBwfwKXghRBwMw9F0` ($199)
+- Pro: `price_1TGcOtPzBwfwKXgh2Ka7ye3e` ($49)
 - Concierge: `price_1TAQ57PzBwfwKXgh162qiUU2` ($499)
+- Free tier: No Stripe — publishes directly via `/api/publish-free`
+- Old Launch ($99) and Evolve ($199) prices retired
 
 ## Key Architecture Decisions Made
 - **CSRF:** Double-submit cookie pattern. Exempt: `/api/stripe/webhook`, `/api/chat/:username`
@@ -116,12 +142,9 @@ step1: basic info | step2: summary + career history | step3: resume URL (removed
 
 ## Known Pending Tasks
 - [ ] "Your Twin is building" email on questionnaire submit
-- [ ] "Your profile is live" email on Stripe payment success (webhook)
 - [ ] Nudge emails (48hr after signup if draft, 48hr after ready if not published) — needs cron
-- [ ] Profile analytics on user dashboard: visitor count, top questions asked by visitors (needs chat_messages table + profile view counter)
-- [ ] Sprint 2: Publish First / Improve Later (completeness score, remove questionnaire-complete gate)
-- [ ] Sprint 3: LinkedIn enrichment via Proxycurl API (posts, articles, comments, interests)
-- [ ] Sprint 4: Conversational onboarding
+- [ ] Sprint 3: LinkedIn enrichment via Proxycurl API (~1-2 sessions, needs Proxycurl account + API key)
+- [ ] Sprint 4: Conversational onboarding (~3-5 sessions, parallel path to questionnaire)
 - [ ] Post-launch: Fix @google-cloud/storage vulnerabilities (5 low severity, requires downgrade to v5.18.3)
 
 ## Completed
@@ -146,6 +169,24 @@ step1: basic info | step2: summary + career history | step3: resume URL (removed
 - [x] Welcome email — fires after email verification, guides user to start questionnaire
 - [x] File map updated: server/emails.ts — all email templates (verifyEmailTemplate, welcomeEmailTemplate, passwordResetTemplate)
 - [x] Admin dashboard improved — filter tabs, date joined, email verified badge, view profile link, grant free access (bypasses Stripe), delete user with confirmation
+- [x] "Your profile is live" email on Stripe payment + admin grant-access (server/emails.ts: profileLiveTemplate)
+- [x] Profile analytics on dashboard — visitor count, questions asked, explainer text
+- [x] Chat formatting fixed — removed contradicting "NO MARKDOWN" rule, AI now uses paragraphs/bullets/bold
+- [x] Portfolio URL fixed — all references updated from username.myproxy.work to myproxy.work/portfolio/username
+- [x] Grant-access users can edit — removed tier-based "Upgrade to Edit" restriction
+- [x] Blog system — admin CRUD (Blog tab in admin.tsx), public listing (/blog), post pages (/blog/:slug), JSON-LD SEO
+- [x] FAQ updated — formatted answers with spacing/bullets, ATS question added, feedback section with mailto
+- [x] FAQ JSON-LD structured data for AEO (schema.org FAQPage)
+- [x] Sitemap.xml — auto-generated from static pages + published blog posts + published portfolios
+- [x] Robots.txt — allows public pages, blocks admin/dashboard/API
+- [x] Blog nav links added to landing, about, faq pages
+- [x] Google Search Console verification DNS record added
+- [x] Zoho Mail set up for vinos@myproxy.work (MX, SPF, DKIM, DMARC configured)
+- [x] Privacy policy contact email updated to vinos@myproxy.work
+- [x] DMARC softened to p=none for email deliverability during launch
+- [x] Sender display name on transactional emails ("Proxy <noreply@myproxy.work>")
+- [x] Contact email updated to vinos@myproxy.work in terms.tsx, faq.tsx, email templates
+- [x] Sprint 2: No questionnaire-complete gate — users can pay at any point after CV upload + AI pre-fill
 
 ## File Map (important files)
 - `server/index.ts` — Express app, middleware stack (helmet, rate limiters, CSRF)
@@ -165,6 +206,10 @@ step1: basic info | step2: summary + career history | step3: resume URL (removed
 - `client/src/components/PaymentGate.tsx` — Stripe checkout UI
 - `client/src/lib/queryClient.ts` — `apiRequest()` with auto CSRF headers
 - `client/src/lib/auth.tsx` — useAuth hook, AuthProvider, login/register/logout mutations
+- `client/src/pages/blog.tsx` — Public blog listing with category filters
+- `client/src/pages/blog-post.tsx` — Individual blog post page with markdown renderer + JSON-LD
+- `client/src/pages/admin.tsx` — Admin dashboard (Customers + Blog tabs)
+- `server/emails.ts` — All email templates (verify, welcome, passwordReset, profileLive)
 
 ## Legal
 - Privacy Policy: `/privacy` (Singapore PDPA, contact: vinos@myproxy.work)

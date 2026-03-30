@@ -53,6 +53,7 @@ export const twinProfiles = pgTable("twin_profiles", {
   stripeSessionId: text("stripe_session_id"),
   paidAt: timestamp("paid_at"),
   publicDomain: text("public_domain"),
+  freePublishedAt: timestamp("free_published_at"),
   isPublic: boolean("is_public").default(false),
   viewCount: integer("view_count").default(0),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),

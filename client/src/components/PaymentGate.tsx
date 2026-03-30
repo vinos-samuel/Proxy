@@ -1,89 +1,102 @@
 import { useState } from "react";
-import { Check, Loader2, Rocket, Star, Crown } from "lucide-react";
+import { Check, Loader2, Rocket, Star, Crown, Zap } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation, Link } from "wouter";
 
 interface PaymentGateProps {
   profileId: string;
+  username?: string;
 }
 
 const tiers = [
   {
-    key: "launch",
-    name: "LAUNCH",
-    tierLabel: "TIER_01",
-    price: "$99",
-    originalPrice: "$199",
-    icon: Rocket,
+    key: "free",
+    name: "FREE",
+    tierLabel: "STARTER",
+    price: "$0",
+    icon: Zap,
     features: [
       "AI_PORTFOLIO + CHATBOT",
-      "6_MONTH_HOSTING",
-      "DOWNLOADABLE_VERSION",
-      "SUBDOMAIN_INCLUDED",
+      "PERSONAL_PAGE (myproxy.work/you)",
+      "1_EDIT WITHIN 48HRS",
+      "BASIC_VIEW_COUNT",
     ],
-    useCase: "USE_CASE: Testing | Single portfolio",
+    useCase: "USE_CASE: Try it out | See your Twin in action",
   },
   {
-    key: "evolve",
-    name: "EVOLVE",
-    tierLabel: "TIER_02",
-    price: "$199",
-    originalPrice: "$399",
+    key: "pro",
+    name: "PRO",
+    tierLabel: "MOST_POPULAR",
+    price: "$49",
+    originalPrice: "$99",
     icon: Star,
     popular: true,
     features: [
-      "ALL_LAUNCH_FEATURES",
-      "CUSTOM_DOMAIN",
-      "PORTFOLIO_EDITOR",
-      "PROXY_TUNING",
-      "THEME_SWITCHER",
-      "ANALYTICS_DASH (Coming Soon)",
-      "12_MONTH_HOSTING",
+      "EVERYTHING_IN_FREE",
+      "UNLIMITED_EDITS",
+      "FULL_ANALYTICS_DASHBOARD",
+      "VISITOR_QUESTIONS_FEED",
+      "PRIORITY_PROCESSING",
     ],
     useCase: "USE_CASE: Active job search | Career pivot",
   },
   {
     key: "concierge",
     name: "CONCIERGE",
-    tierLabel: "TIER_03",
+    tierLabel: "PREMIUM",
     price: "$499",
     originalPrice: "$999",
     icon: Crown,
     features: [
-      "ALL_EVOLVE_FEATURES",
-      "90MIN_INTERVIEW",
+      "EVERYTHING_IN_PRO",
+      "PERSONAL_DISCOVERY_CALL",
       "PRO_COPYWRITING",
-      "WHITE_GLOVE_BUILD",
-      "ADVANCED_TUNING",
+      "CUSTOM_BRANDING",
+      "HANDS_ON_OPTIMIZATION",
       "PRIORITY_SUPPORT",
     ],
     useCase: "USE_CASE: Executive positioning | Brand building",
   },
 ];
 
-export default function PaymentGate({ profileId }: PaymentGateProps) {
+export default function PaymentGate({ profileId, username }: PaymentGateProps) {
   const [loading, setLoading] = useState(false);
-  const [selectedTier, setSelectedTier] = useState<string>("evolve");
+  const [selectedTier, setSelectedTier] = useState<string>("pro");
   const [published, setPublished] = useState(false);
   const [publishData, setPublishData] = useState<{ publicDomain?: string; username?: string } | null>(null);
+  const [showFreeConfirm, setShowFreeConfirm] = useState(false);
   const [, navigate] = useLocation();
 
-  const handleCheckout = async () => {
+  const handlePublish = async () => {
+    if (selectedTier === "free" && !showFreeConfirm) {
+      setShowFreeConfirm(true);
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await apiRequest("POST", "/api/create-checkout-session", {
-        tier: selectedTier,
-        profileId,
-      });
-      const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
+      if (selectedTier === "free") {
+        const response = await apiRequest("POST", "/api/publish-free");
+        const data = await response.json();
+        if (data.success) {
+          setPublished(true);
+          setPublishData({ username: data.username });
+        }
       } else {
-        throw new Error("No checkout URL returned");
+        const response = await apiRequest("POST", "/api/create-checkout-session", {
+          tier: selectedTier,
+          profileId,
+        });
+        const data = await response.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error("No checkout URL returned");
+        }
       }
     } catch (error) {
-      console.error("Checkout error:", error);
-      alert("Failed to start checkout. Please try again.");
+      console.error("Publish error:", error);
+      alert("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -97,10 +110,10 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
             <Check className="h-8 w-8 text-black" />
           </div>
           <h2 className="text-3xl font-bold text-black" data-testid="text-publish-success">
-            PORTFOLIO_PUBLISHED
+            YOUR TWIN IS LIVE
           </h2>
           <p className="mono text-sm text-black/60 uppercase tracking-wider">
-            Your AI Twin is now live and ready to represent you.
+            Your Digital Twin is now live at <strong>myproxy.work/portfolio/{publishData.username}</strong>
           </p>
           {publishData.username && (
             <button
@@ -108,9 +121,68 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
               className="bg-[#22C55E] text-black px-8 py-4 font-bold border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
               data-testid="button-view-portfolio"
             >
-              VIEW_PORTFOLIO &rarr;
+              VIEW YOUR TWIN &rarr;
             </button>
           )}
+        </div>
+      </div>
+    );
+  }
+
+  // Free tier confirmation screen
+  if (showFreeConfirm) {
+    return (
+      <div className="md:col-span-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+        <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <div className="text-center space-y-6">
+            <div className="w-16 h-16 bg-[#E8A75D] border-[3px] border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+              <Zap className="h-8 w-8 text-black" />
+            </div>
+            <h2 className="text-2xl font-bold text-black">REVIEW BEFORE PUBLISHING</h2>
+            <div className="text-left max-w-lg mx-auto space-y-4">
+              <p className="mono text-sm text-black/70 leading-relaxed">
+                Your profile will go live at <strong>myproxy.work/portfolio/{username}</strong>
+              </p>
+              <div className="bg-[#FEF3C7] border-[3px] border-black p-4">
+                <p className="mono text-sm text-black/80 font-bold mb-2">FREE PLAN — WHAT TO KNOW:</p>
+                <ul className="mono text-sm text-black/70 space-y-1">
+                  <li>&#8226; You'll have <strong>48 hours</strong> to make edits after publishing</li>
+                  <li>&#8226; After that, upgrade to Pro ($49) for unlimited edits</li>
+                  <li>&#8226; Make sure your questionnaire answers are detailed and accurate</li>
+                </ul>
+              </div>
+              <p className="mono text-xs text-black/50">
+                Tip: Go back and review your questionnaire if you want to refine anything before going live.
+              </p>
+            </div>
+            <div className="flex gap-4 justify-center flex-wrap">
+              <button
+                onClick={() => setShowFreeConfirm(false)}
+                className="bg-white text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100"
+              >
+                &larr; GO BACK
+              </button>
+              <button
+                onClick={handlePublish}
+                disabled={loading}
+                className="bg-[#22C55E] text-black px-8 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" /> PUBLISHING...
+                  </span>
+                ) : (
+                  "PUBLISH NOW — FREE"
+                )}
+              </button>
+            </div>
+            <button
+              onClick={() => { setShowFreeConfirm(false); setSelectedTier("pro"); }}
+              className="mono text-xs text-black/50 hover:text-black/80 underline"
+            >
+              Actually, I want Pro with unlimited edits — $49
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -119,18 +191,15 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
   return (
     <div className="md:col-span-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
       <div className="text-center mb-8">
-        <div className="mono text-xs text-black/50 mb-2 uppercase tracking-widest">&#9698; Deployment Ready</div>
+        <div className="mono text-xs text-black/50 mb-2 uppercase tracking-widest">&#9698; Your Twin is Ready</div>
         <h2 className="text-3xl font-bold mb-2 text-black" data-testid="text-payment-title">
-          SELECT_CONFIGURATION
+          PUBLISH YOUR DIGITAL TWIN
         </h2>
         <p className="mono text-sm text-black/60 uppercase tracking-wider">
-          Choose a plan to publish your portfolio and make it public
+          Your personal page at <strong>myproxy.work/portfolio/{username || "yourname"}</strong>
         </p>
         <div className="inline-block mt-3 bg-black text-[#22C55E] px-4 py-2 mono text-xs uppercase tracking-wider border-[3px] border-black font-bold" data-testid="badge-launch-special">
-          &#9733; LAUNCH SPECIAL — FIRST 100 MEMBERS
-        </div>
-        <div className="mt-2 mono text-xs text-black/50 uppercase tracking-wider" data-testid="text-founding-member">
-          Founding member pricing. Full price resumes after 100 members.
+          &#9733; FOUNDING MEMBER PRICING
         </div>
         <Link href="/faq">
           <div className="text-center mt-4 text-black/50 text-sm hover:text-black/80 transition cursor-pointer">
@@ -160,7 +229,7 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
               data-testid={`card-tier-${tier.key}`}
             >
               {tier.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#22C55E] text-black px-4 py-1 font-bold mono text-xs border-[3px] border-black uppercase tracking-wider" data-testid="badge-popular">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1 font-bold mono text-xs border-[3px] border-black uppercase tracking-wider" data-testid="badge-popular">
                   RECOMMENDED
                 </div>
               )}
@@ -172,9 +241,16 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
                 <h3 className="text-2xl font-bold text-black">{tier.name}</h3>
               </div>
               <div className="mb-6">
-                <div className="mono text-base text-black/40 line-through mb-1">{tier.originalPrice}</div>
+                {tier.originalPrice && (
+                  <div className="mono text-base text-black/40 line-through mb-1">{tier.originalPrice}</div>
+                )}
                 <div className="text-5xl font-bold mono text-black" data-testid={`text-price-${tier.key}`}>{tier.price}</div>
-                <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">Launch Special</div>
+                {tier.key !== "free" && (
+                  <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">One-time payment</div>
+                )}
+                {tier.key === "free" && (
+                  <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">No credit card needed</div>
+                )}
               </div>
               <div className="space-y-3 mb-6 text-sm">
                 {tier.features.map((feature, i) => (
@@ -195,17 +271,19 @@ export default function PaymentGate({ profileId }: PaymentGateProps) {
 
       <button
         className="w-full bg-[#22C55E] text-black py-4 font-bold mono border-[3px] border-black uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
-        onClick={handleCheckout}
+        onClick={handlePublish}
         disabled={loading}
         data-testid="button-checkout"
       >
         {loading ? (
           <span className="flex items-center justify-center gap-2">
             <Loader2 className="h-5 w-5 animate-spin" />
-            DEPLOYING...
+            PROCESSING...
           </span>
+        ) : selectedTier === "free" ? (
+          "PUBLISH FREE →"
         ) : (
-          `DEPLOY_WITH_${tiers.find((t) => t.key === selectedTier)?.name}_PLAN →`
+          `GET ${tiers.find((t) => t.key === selectedTier)?.name} — ${tiers.find((t) => t.key === selectedTier)?.price} →`
         )}
       </button>
     </div>

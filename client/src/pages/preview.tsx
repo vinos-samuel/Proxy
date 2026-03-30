@@ -690,8 +690,8 @@ export default function PreviewPage() {
                   </div>
                   <div className="flex-1 mx-4">
                     <div className="bg-muted rounded-md px-3 py-1 text-xs text-muted-foreground font-mono text-center">
-                      {profile?.paymentStatus === 'paid' 
-                        ? `${user?.username}.myproxy.work`
+                      {profile?.paymentStatus === 'paid'
+                        ? `myproxy.work/portfolio/${user?.username}`
                         : "Preview Mode — Publish to get your live URL"}
                     </div>
                   </div>

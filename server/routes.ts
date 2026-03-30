@@ -22,8 +22,7 @@ import { verifyEmailTemplate, welcomeEmailTemplate, passwordResetTemplate } from
 
 // Tier → Stripe Price ID mapping
 const STRIPE_PRICE_IDS: Record<string, string> = {
-  launch: "price_1TAQ4QPzBwfwKXghIiFEE6eG",
-  evolve: "price_1TAQ4oPzBwfwKXghRBwMw9F0",
+  pro: "price_1TGcOtPzBwfwKXgh2Ka7ye3e",
   concierge: "price_1TAQ57PzBwfwKXgh162qiUU2",
 };
 
@@ -541,6 +540,14 @@ export async function registerRoutes(
           return res.status(404).json({ message: "No profile found" });
         }
 
+        // Free tier edit gating — 48hr window
+        if (profile.tier === "free" && profile.freePublishedAt) {
+          const hoursSincePublish = (Date.now() - new Date(profile.freePublishedAt).getTime()) / (1000 * 60 * 60);
+          if (hoursSincePublish > 48) {
+            return res.status(403).json({ message: "Free plan edit window has expired. Upgrade to Pro for unlimited edits." });
+          }
+        }
+
         const textFields = [
           "displayName",
           "roleTitle",
@@ -975,6 +982,66 @@ export async function registerRoutes(
 
   // ==================== PAYMENTS ====================
 
+  // Free tier publish — no payment required
+  app.post("/api/publish-free", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const profile = await storage.getProfileByCustomerId(req.session.customerId!);
+      if (!profile) return res.status(404).json({ message: "No profile found" });
+      if (profile.paymentStatus === "paid" && profile.tier !== "free") {
+        return res.status(400).json({ message: "Already published with a paid plan" });
+      }
+      if (profile.status !== "ready" && profile.status !== "published") {
+        return res.status(400).json({ message: "Profile is not ready to publish" });
+      }
+
+      const customer = await storage.getCustomer(req.session.customerId!);
+      await storage.updateProfileById(profile.id, {
+        paymentStatus: "paid",
+        tier: "free",
+        isPublic: true,
+        freePublishedAt: new Date(),
+        publicDomain: `myproxy.work/portfolio/${customer?.username}`,
+      });
+
+      // Process if has questionnaire data
+      if (profile.questionnaireData && profile.status !== "published") {
+        await storage.updateProfileStatus(profile.id, "processing");
+        processQuestionnaire(profile.id, profile.questionnaireData as any).catch((err) =>
+          logger.error("[Free] Publish processing error", { error: String(err) })
+        );
+      } else if (profile.status !== "published") {
+        await storage.updateProfileStatus(profile.id, "published");
+      }
+
+      // Send profile live email
+      try {
+        const { profileLiveTemplate } = await import("./emails");
+        const resendApiKey = process.env.RESEND_API_KEY;
+        const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+        if (resendApiKey && customer?.email) {
+          const profileUrl = `https://myproxy.work/portfolio/${customer.username}`;
+          await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              from: `Proxy <${fromEmail}>`,
+              to: customer.email,
+              subject: "Your Digital Twin is Live!",
+              html: profileLiveTemplate(customer.name || customer.username, profileUrl),
+            }),
+          });
+        }
+      } catch (emailErr) {
+        logger.info("[Free] Profile live email failed (non-blocking)", { error: String(emailErr) });
+      }
+
+      res.json({ success: true, username: customer?.username });
+    } catch (error) {
+      logger.error("[Free] Publish error", { error: String(error) });
+      res.status(500).json({ message: "Failed to publish" });
+    }
+  });
+
   app.post(
     "/api/create-checkout-session",
     requireAuth,
@@ -982,14 +1049,14 @@ export async function registerRoutes(
       try {
         const { tier } = req.body;
         if (!tier || !Object.keys(STRIPE_PRICE_IDS).includes(tier)) {
-          return res.status(400).json({ message: "Invalid tier. Must be launch, evolve, or concierge." });
+          return res.status(400).json({ message: "Invalid tier. Must be pro or concierge." });
         }
 
         const profile = await storage.getProfileByCustomerId(req.session.customerId!);
         if (!profile) {
           return res.status(404).json({ message: "No profile found" });
         }
-        if (profile.paymentStatus === "paid") {
+        if (profile.paymentStatus === "paid" && profile.tier !== "free") {
           return res.status(400).json({ message: "Already paid" });
         }
         if (profile.status !== "ready" && profile.status !== "published") {
@@ -1042,7 +1109,7 @@ export async function registerRoutes(
 
         if (session.payment_status === "paid") {
           const profileId = session.metadata?.profileId;
-          const tier = session.metadata?.tier || "launch";
+          const tier = session.metadata?.tier || "pro";
           const username = session.metadata?.username || "";
           const customerId = session.metadata?.customerId || "";
 
@@ -1097,7 +1164,7 @@ export async function registerRoutes(
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.payment_status === "paid") {
           const profileId = session.metadata?.profileId;
-          const tier = session.metadata?.tier || "launch";
+          const tier = session.metadata?.tier || "pro";
           const username = session.metadata?.username || "";
           const customerId = session.metadata?.customerId || "";
 
@@ -1203,7 +1270,7 @@ export async function registerRoutes(
             paymentStatus: "paid",
             paidAt: new Date(),
             isPublic: true,
-            tier: "launch",
+            tier: "pro",
             publicDomain: `myproxy.work/portfolio/${customer.username}`,
           });
           // If profile has questionnaire data, process it; otherwise just mark published

@@ -98,25 +98,25 @@ export default function FAQPage() {
     },
     {
       q: "How much does Proxy cost?",
-      plainText: "Proxy offers three tiers during our founding member pricing (available to the first 100 members): Launch at $99 gives you a full AI Digital Twin with interactive chatbot, career timeline, and portfolio page. Evolve at $199 includes everything in Launch plus advanced analytics and priority support. Concierge at $499 includes a personal discovery call for a higher-fidelity result, custom branding, and hands-on optimization. All tiers are a one-time payment - no monthly subscription.",
+      plainText: "Proxy has three plans. Free gives you a published AI Digital Twin with chatbot and a personal page — no credit card needed. You get one edit within 48 hours to fine-tune your profile. Pro at $49 (one-time) gives you unlimited edits and a full analytics dashboard showing who's visiting and what they ask. Concierge at $499 (one-time) includes a personal discovery call, professional copywriting, custom branding, and hands-on optimization.",
       a: (
         <div className="space-y-4">
-          <p>Founding member pricing (available to the <strong className="text-black">first 100 members</strong>):</p>
+          <p>Start free, upgrade when you're ready:</p>
           <div className="space-y-3 ml-1">
             <div className="flex gap-3 items-start">
-              <span className="bg-black text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">$99</span>
-              <span><strong className="text-black">Launch</strong> — Full AI Digital Twin with interactive chatbot, career timeline, and portfolio page</span>
+              <span className="bg-[#22C55E] text-black font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">FREE</span>
+              <span><strong className="text-black">Free</strong> — Published AI portfolio + chatbot + personal page. 1 edit within 48 hours. No credit card needed.</span>
             </div>
             <div className="flex gap-3 items-start">
-              <span className="bg-black text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">$199</span>
-              <span><strong className="text-black">Evolve</strong> — Everything in Launch plus advanced analytics and priority support</span>
+              <span className="bg-black text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">$49</span>
+              <span><strong className="text-black">Pro</strong> — Everything in Free plus unlimited edits, full analytics dashboard, and visitor questions feed</span>
             </div>
             <div className="flex gap-3 items-start">
               <span className="bg-black text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">$499</span>
-              <span><strong className="text-black">Concierge</strong> — Personal discovery call, custom branding, and hands-on optimization</span>
+              <span><strong className="text-black">Concierge</strong> — Everything in Pro plus personal discovery call, custom branding, and hands-on optimization</span>
             </div>
           </div>
-          <p className="border-l-[3px] border-[#22C55E] pl-4">All tiers are a <strong className="text-black">one-time payment</strong> — no monthly subscription.</p>
+          <p className="border-l-[3px] border-[#22C55E] pl-4">Pro and Concierge are <strong className="text-black">one-time payments</strong> — no monthly subscription.</p>
         </div>
       ),
     },

@@ -318,24 +318,23 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mono text-xs text-black/50 mb-4 uppercase tracking-widest">&#9698; Deployment Tiers</div>
           <div className="flex flex-wrap items-center gap-4 mb-6">
-            <h2 className="text-5xl font-bold">SELECT_CONFIGURATION</h2>
+            <h2 className="text-5xl font-bold">CHOOSE YOUR PLAN</h2>
             <div className="bg-black text-[#22C55E] px-4 py-2 font-bold mono text-sm border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(34,197,94,1)] uppercase tracking-wider" data-testid="badge-launch-special">
-              &#9733; LAUNCH SPECIAL — FIRST 100 MEMBERS
+              &#9733; FOUNDING MEMBER PRICING
             </div>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8 mb-8">
 
-            <div className="brutal-card border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-launch">
-              <div className="mono text-xs text-black/50 mb-2 uppercase">TIER_01</div>
-              <h3 className="text-3xl font-bold mb-4">LAUNCH</h3>
+            <div className="brutal-card border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-free">
+              <div className="mono text-xs text-black/50 mb-2 uppercase">STARTER</div>
+              <h3 className="text-3xl font-bold mb-4">FREE</h3>
               <div className="mb-6">
-                <div className="mono text-lg text-black/40 line-through mb-1" data-testid="text-original-price-launch">$199</div>
-                <div className="text-6xl font-bold mono" data-testid="text-price-launch">$99</div>
-                <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">Launch Special</div>
+                <div className="text-6xl font-bold mono" data-testid="text-price-free">$0</div>
+                <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">No credit card needed</div>
               </div>
               <div className="space-y-3 mb-8 text-sm">
-                {["AI_PORTFOLIO + CHATBOT", "6_MONTH_HOSTING", "DOWNLOADABLE_VERSION", "SUBDOMAIN_INCLUDED"].map((f, i) => (
+                {["AI_PORTFOLIO + CHATBOT", "PERSONAL_PAGE (myproxy.work/you)", "1_EDIT WITHIN 48HRS", "BASIC_VIEW_COUNT"].map((f, i) => (
                   <div key={i} className="flex gap-2 mono text-black/70">
                     <span className="text-[#22C55E] font-bold shrink-0">&#10003;</span> {f}
                   </div>
@@ -344,26 +343,26 @@ export default function LandingPage() {
               <button
                 onClick={() => navigate("/register")}
                 className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
-                data-testid="button-deploy-launch"
+                data-testid="button-deploy-free"
               >
-                DEPLOY &rarr;
+                GET STARTED FREE &rarr;
               </button>
-              <div className="mt-4 mono text-xs text-black/50">USE_CASE: Testing | Single portfolio</div>
+              <div className="mt-4 mono text-xs text-black/50">USE_CASE: Try it out | See your Twin in action</div>
             </div>
 
-            <div className="brutal-card border-black bg-[#22C55E] p-8 relative transform lg:scale-105 lg:-mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-evolve">
+            <div className="brutal-card border-black bg-[#22C55E] p-8 relative transform lg:scale-105 lg:-mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-pro">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1 font-bold mono text-xs border-[3px] border-black">
                 RECOMMENDED
               </div>
-              <div className="mono text-xs text-black/60 mb-2 uppercase">TIER_02</div>
-              <h3 className="text-3xl font-bold mb-4">EVOLVE</h3>
+              <div className="mono text-xs text-black/60 mb-2 uppercase">MOST_POPULAR</div>
+              <h3 className="text-3xl font-bold mb-4">PRO</h3>
               <div className="mb-6">
-                <div className="mono text-lg text-black/40 line-through mb-1" data-testid="text-original-price-evolve">$399</div>
-                <div className="text-6xl font-bold mono" data-testid="text-price-evolve">$199</div>
-                <div className="mono text-xs text-black/60 mt-1 uppercase tracking-wider">Launch Special</div>
+                <div className="mono text-lg text-black/40 line-through mb-1" data-testid="text-original-price-pro">$99</div>
+                <div className="text-6xl font-bold mono" data-testid="text-price-pro">$49</div>
+                <div className="mono text-xs text-black/60 mt-1 uppercase tracking-wider">One-time payment</div>
               </div>
               <div className="space-y-3 mb-8 text-sm">
-                {["ALL_LAUNCH_FEATURES", "CUSTOM_DOMAIN", "PORTFOLIO_EDITOR", "PROXY_TUNING", "THEME_SWITCHER", "ANALYTICS_DASH (Coming Soon)", "12_MONTH_HOSTING"].map((f, i) => (
+                {["EVERYTHING_IN_FREE", "UNLIMITED_EDITS", "FULL_ANALYTICS_DASHBOARD", "VISITOR_QUESTIONS_FEED", "PRIORITY_PROCESSING"].map((f, i) => (
                   <div key={i} className="flex gap-2 mono text-black">
                     <span className="text-black font-bold shrink-0">&#10003;</span> {f}
                   </div>
@@ -372,23 +371,23 @@ export default function LandingPage() {
               <button
                 onClick={() => navigate("/register")}
                 className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
-                data-testid="button-deploy-evolve"
+                data-testid="button-deploy-pro"
               >
-                DEPLOY &rarr;
+                GET PRO — $49 &rarr;
               </button>
               <div className="mt-4 mono text-xs text-black/70">USE_CASE: Active job search | Career pivot</div>
             </div>
 
             <div className="brutal-card border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-concierge">
-              <div className="mono text-xs text-black/50 mb-2 uppercase">TIER_03</div>
+              <div className="mono text-xs text-black/50 mb-2 uppercase">PREMIUM</div>
               <h3 className="text-3xl font-bold mb-4">CONCIERGE</h3>
               <div className="mb-6">
                 <div className="mono text-lg text-black/40 line-through mb-1" data-testid="text-original-price-concierge">$999</div>
                 <div className="text-6xl font-bold mono" data-testid="text-price-concierge">$499</div>
-                <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">Launch Special</div>
+                <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">One-time payment</div>
               </div>
               <div className="space-y-3 mb-8 text-sm">
-                {["ALL_EVOLVE_FEATURES", "90MIN_INTERVIEW", "PRO_COPYWRITING", "WHITE_GLOVE_BUILD", "ADVANCED_TUNING", "PRIORITY_SUPPORT"].map((f, i) => (
+                {["EVERYTHING_IN_PRO", "PERSONAL_DISCOVERY_CALL", "PRO_COPYWRITING", "CUSTOM_BRANDING", "HANDS_ON_OPTIMIZATION", "PRIORITY_SUPPORT"].map((f, i) => (
                   <div key={i} className="flex gap-2 mono text-black/70">
                     <span className="text-[#22C55E] font-bold shrink-0">&#10003;</span> {f}
                   </div>
@@ -399,7 +398,7 @@ export default function LandingPage() {
                 className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
                 data-testid="button-deploy-concierge"
               >
-                DEPLOY &rarr;
+                GET CONCIERGE — $499 &rarr;
               </button>
               <div className="mt-4 mono text-xs text-black/50">USE_CASE: Executive positioning | Brand building</div>
             </div>
@@ -408,7 +407,7 @@ export default function LandingPage() {
 
           <div className="text-center py-4 border-t-[2px] border-black/20" data-testid="text-founding-member">
             <p className="mono text-sm text-black/60 uppercase tracking-wider">
-              Founding member pricing &mdash; Full price resumes after 100 members.
+              Founding member pricing &mdash; Start free, upgrade when you're ready.
             </p>
             <Link href="/faq">
               <span className="block mt-4 text-black/50 text-sm hover:text-black/80 transition cursor-pointer">

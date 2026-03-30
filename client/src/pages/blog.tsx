@@ -16,7 +16,7 @@ interface BlogPost {
 }
 
 export default function BlogPage() {
-  const [activeFilter, setActiveFilter] = useState<"all" | "candidates" | "recruiters">("all");
+  const [activeFilter, setActiveFilter] = useState("all");
 
   const { data: posts, isLoading } = useQuery<BlogPost[]>({
     queryKey: ["/api/blog"],
@@ -24,13 +24,16 @@ export default function BlogPage() {
 
   const filteredPosts = posts?.filter((post) => {
     if (activeFilter === "all") return true;
-    return post.category?.toLowerCase() === activeFilter;
+    const postCategories = post.category?.toLowerCase().split(",").map((c) => c.trim()) || [];
+    return postCategories.includes(activeFilter);
   });
 
   const categories = [
-    { key: "all" as const, label: "All" },
-    { key: "candidates" as const, label: "Candidates" },
-    { key: "recruiters" as const, label: "Recruiters" },
+    { key: "all", label: "All" },
+    { key: "candidates", label: "Candidates" },
+    { key: "recruiters", label: "Recruiters" },
+    { key: "market-intelligence", label: "Market Intelligence" },
+    { key: "future-of-employment", label: "Future of Employment" },
   ];
 
   return (
@@ -128,11 +131,11 @@ export default function BlogPage() {
                     )}
                     <div className="p-6">
                       <div className="flex items-center gap-3 mb-4">
-                        {post.category && (
-                          <span className="px-3 py-1 bg-[#22C55E] text-black text-xs font-bold uppercase tracking-widest border-[2px] border-black">
-                            {post.category}
+                        {post.category && post.category.split(",").map((cat) => (
+                          <span key={cat.trim()} className="px-3 py-1 bg-[#22C55E] text-black text-xs font-bold uppercase tracking-widest border-[2px] border-black">
+                            {cat.trim().replace(/-/g, " ")}
                           </span>
-                        )}
+                        ))}
                         <span className="mono text-xs text-black/40">
                           {post.publishedAt
                             ? new Date(post.publishedAt).toLocaleDateString("en-US", {

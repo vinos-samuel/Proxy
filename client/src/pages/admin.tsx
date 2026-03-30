@@ -198,18 +198,37 @@ function BlogEditor({
             </div>
           </div>
 
-          {/* Category */}
+          {/* Category (multi-select) */}
           <div>
-            <label className="text-sm font-medium text-muted-foreground mb-1 block">Category</label>
-            <select
-              value={form.category}
-              onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            >
-              <option value="general">General</option>
-              <option value="candidates">Candidates</option>
-              <option value="recruiters">Recruiters</option>
-            </select>
+            <label className="text-sm font-medium text-muted-foreground mb-1 block">Categories</label>
+            <div className="flex flex-wrap gap-3">
+              {[
+                { value: "general", label: "General" },
+                { value: "candidates", label: "Candidates" },
+                { value: "recruiters", label: "Recruiters" },
+                { value: "market-intelligence", label: "Market Intelligence" },
+                { value: "future-of-employment", label: "Future of Employment" },
+              ].map((cat) => {
+                const selected = form.category.split(",").filter(Boolean).includes(cat.value);
+                return (
+                  <label key={cat.value} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      onChange={(e) => {
+                        const current = form.category.split(",").filter(Boolean);
+                        const updated = e.target.checked
+                          ? [...current, cat.value]
+                          : current.filter((c) => c !== cat.value);
+                        setForm((prev) => ({ ...prev, category: updated.join(",") || "general" }));
+                      }}
+                      className="accent-[#22C55E]"
+                    />
+                    {cat.label}
+                  </label>
+                );
+              })}
+            </div>
           </div>
 
           {/* Excerpt */}

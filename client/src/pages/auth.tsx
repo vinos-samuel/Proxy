@@ -185,6 +185,9 @@ export function RegisterPage() {
     try {
       await apiRequest("POST", "/api/auth/register", data);
       setRegisteredEmail(data.email);
+      if (typeof window.fbq === 'function') {
+        window.fbq('track', 'Lead');
+      }
     } catch (err: any) {
       toast({ title: "Registration failed", description: err.message?.replace(/^\d+: /, "") || "Could not create account", variant: "destructive" });
     }

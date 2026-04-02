@@ -24,11 +24,11 @@ app.use(
       ? {
           directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://connect.facebook.net"],
             styleSrc: ["'self'", "https:", "'unsafe-inline'"],
-            imgSrc: ["'self'", "data:", "https:"],
+            imgSrc: ["'self'", "data:", "https:", "https://www.facebook.com"],
             fontSrc: ["'self'", "https:", "data:"],
-            connectSrc: ["'self'", "https:"],
+            connectSrc: ["'self'", "https:", "https://www.facebook.com"],
             frameSrc: ["'self'"],
             frameAncestors: ["'self'"],
           },

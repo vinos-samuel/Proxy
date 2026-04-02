@@ -37,6 +37,10 @@ export default function PaymentSuccessPage() {
         if (data.status === "paid") {
           setDomain(data.domain || "");
           setTier(data.tier || "");
+          if (typeof window.fbq === 'function') {
+            const amount = data.tier === 'concierge' ? 499.00 : 49.00;
+            window.fbq('track', 'Purchase', { value: amount, currency: 'USD' });
+          }
         } else {
           setError("Payment is still processing. Please check your dashboard in a moment.");
         }

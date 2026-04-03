@@ -603,51 +603,6 @@ export default function PreviewPage() {
                         </div>
                       ))}
 
-                      {renderSection("whyAiCv", "Why an AI CV?", (
-                        <>
-                          <p className="text-xs text-muted-foreground">Edit the paragraphs explaining why this AI portfolio exists.</p>
-                          {editState.whyAiCv.map((para, i) => (
-                            <div key={i} className="relative">
-                              <Textarea
-                                value={para}
-                                onChange={(e) => {
-                                  const updated = [...editState.whyAiCv];
-                                  updated[i] = e.target.value;
-                                  setEditState(prev => ({ ...prev, whyAiCv: updated }));
-                                }}
-                                rows={3}
-                                className="text-sm pr-8"
-                                data-testid={`input-whyaicv-${i}`}
-                              />
-                              {editState.whyAiCv.length > 1 && (
-                                <button
-                                  className="absolute top-1 right-1 text-muted-foreground hover:text-destructive"
-                                  onClick={() => setEditState(prev => ({
-                                    ...prev,
-                                    whyAiCv: prev.whyAiCv.filter((_, j) => j !== i),
-                                  }))}
-                                  data-testid={`button-remove-whyaicv-${i}`}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                            onClick={() => setEditState(prev => ({
-                              ...prev,
-                              whyAiCv: [...prev.whyAiCv, ""],
-                            }))}
-                            data-testid="button-add-whyaicv"
-                          >
-                            <Plus className="h-3 w-3 mr-1" /> Add Paragraph
-                          </Button>
-                        </>
-                      ))}
-
                       <div className="border rounded-md p-3 bg-muted/30">
                         <p className="text-xs text-muted-foreground">
                           To edit Career Timeline, Skills Matrix, or Where I'm Most Useful, update your questionnaire and reprocess your profile.

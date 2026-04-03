@@ -119,7 +119,7 @@ const themes = {
     accentSolid: "text-blue-500",
     glow: "shadow-[0_0_24px_rgba(59,130,246,0.4)]",
     text: "text-white",
-    muted: "text-zinc-500",
+    muted: "text-zinc-300",
     headingClass: "font-['Space_Grotesk',sans-serif] tracking-tight",
     bodyClass: "font-sans",
     chatUserBg: "bg-blue-600 text-white",

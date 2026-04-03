@@ -36,7 +36,7 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    if (profile?.status === 'processing') {
+    if (profile?.status === 'processing' || profile?.status === 'reprocessing') {
       const interval = setInterval(async () => {
         try {
           const res = await fetch('/api/profile/status', { credentials: 'include' });
@@ -56,6 +56,7 @@ export default function DashboardPage() {
   const statusMap: Record<string, { label: string; color: string }> = {
     draft: { label: "DRAFT", color: "bg-[#FDE68A]" },
     processing: { label: "PROCESSING", color: "bg-[#93C5FD]" },
+    reprocessing: { label: "UPDATING", color: "bg-[#93C5FD]" },
     ready: { label: "READY_TO_PUBLISH", color: "bg-[#86EFAC]" },
     published: { label: "PUBLISHED", color: "bg-[#22C55E]" },
   };

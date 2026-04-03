@@ -710,7 +710,7 @@ export async function registerRoutes(
         const profile = await storage.upsertProfile({
           customerId: req.session.customerId!,
           questionnaireData: req.body,
-          status: existingProfile?.status === "published" ? "published" : "processing",
+          status: existingProfile?.status === "published" ? "reprocessing" : "processing",
         });
 
         // Process in background
@@ -743,7 +743,7 @@ export async function registerRoutes(
 
       const isOwner = req.session.customerId === customer.id;
 
-      if (profile.status !== "published" && profile.status !== "ready") {
+      if (profile.status !== "published" && profile.status !== "ready" && profile.status !== "reprocessing") {
         return res.status(404).json({ message: "Portfolio not found" });
       }
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check, Loader2, Rocket, Star, Crown, Zap } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
 
 interface PaymentGateProps {
@@ -66,6 +67,7 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
   const [publishData, setPublishData] = useState<{ publicDomain?: string; username?: string } | null>(null);
   const [showFreeConfirm, setShowFreeConfirm] = useState(false);
   const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
 
   const handlePublish = async () => {
     if (selectedTier === "free" && !showFreeConfirm) {
@@ -81,6 +83,7 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
         if (data.success) {
           setPublished(true);
           setPublishData({ username: data.username });
+          queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
         }
       } else {
         const response = await apiRequest("POST", "/api/create-checkout-session", {

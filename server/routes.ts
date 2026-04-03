@@ -706,10 +706,11 @@ export async function registerRoutes(
           return res.status(400).json({ error: "Invalid questionnaire data" });
         }
 
+        const existingProfile = await storage.getProfileByCustomerId(req.session.customerId!);
         const profile = await storage.upsertProfile({
           customerId: req.session.customerId!,
           questionnaireData: req.body,
-          status: "processing",
+          status: existingProfile?.status === "published" ? "published" : "processing",
         });
 
         // Process in background
@@ -717,7 +718,7 @@ export async function registerRoutes(
 
         processQuestionnaire(profile.id, req.body).catch((err) => {
           logger.error("AI Processing error", { error: String(err) });
-          storage.updateProfileStatus(profile.id, "draft");
+          storage.updateProfileStatus(profile.id, existingProfile?.status === "published" ? "published" : "draft");
         });
       } catch (error) {
         logger.error("Submit error", { error: String(error) });
@@ -1003,13 +1004,16 @@ export async function registerRoutes(
         publicDomain: `myproxy.work/portfolio/${customer?.username}`,
       });
 
-      // Process if has questionnaire data
-      if (profile.questionnaireData && profile.status !== "published") {
+      // Process if has questionnaire data and never been processed before
+      if (profile.questionnaireData && profile.status === "draft") {
         await storage.updateProfileStatus(profile.id, "processing");
-        processQuestionnaire(profile.id, profile.questionnaireData as any).catch((err) =>
-          logger.error("[Free] Publish processing error", { error: String(err) })
-        );
-      } else if (profile.status !== "published") {
+        processQuestionnaire(profile.id, profile.questionnaireData as any)
+          .then(() => storage.updateProfileStatus(profile.id, "published"))
+          .catch((err) => {
+            logger.error("[Free] Publish processing error", { error: String(err) });
+            storage.updateProfileStatus(profile.id, "published");
+          });
+      } else {
         await storage.updateProfileStatus(profile.id, "published");
       }
 

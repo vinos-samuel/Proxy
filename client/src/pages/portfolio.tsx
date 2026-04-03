@@ -787,18 +787,6 @@ export default function PortfolioPage() {
         </section>
       ) : null}
 
-      {/* 8. WHY AI CV */}
-      {profile.whyAiCv && profile.whyAiCv.length > 0 && (
-        <section className="py-16 px-6 max-w-4xl mx-auto border-t border-white/10">
-          <h2 className={`text-4xl font-bold mb-6 ${theme.headingClass}`}>Why an AI CV?</h2>
-          <div className="space-y-4">
-            {profile.whyAiCv.map((para, i) => (
-              <p key={i} className={`text-lg ${theme.muted} leading-relaxed`}>{para}</p>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* 9. FOOTER */}
       <footer className="py-12 px-6 border-t border-white/10">
         <div className="max-w-4xl mx-auto">

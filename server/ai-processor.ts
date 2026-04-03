@@ -824,7 +824,9 @@ Return ONLY the response text.`;
     });
   }
 
-  await storage.updateProfileStatus(profileId, "ready");
+  const currentProfile = await storage.getProfileById(profileId);
+  const finalStatus = currentProfile?.isPublic ? "published" : "ready";
+  await storage.updateProfileStatus(profileId, finalStatus);
 }
 
 export async function parseResumeWithGemini(pdfBuffer: Buffer) {

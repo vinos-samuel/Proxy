@@ -172,6 +172,70 @@ export function profileLiveTemplate(name: string, profileUrl: string): string {
   return baseTemplate(body);
 }
 
+// ─── Nudge: Edit Window Closed ───────────────────────────────────────────────
+
+export function nudgeEditWindowTemplate(name: string, upgradeUrl: string): string {
+  const body = `
+    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your edit window has closed</h1>
+    <p style="font-size:15px;color:#555555;margin:0 0 24px 0;line-height:1.6;">
+      Hi ${name}, your free Proxy profile is live — but your 48-hour edit window has now closed. You can no longer make changes on the free plan.
+    </p>
+
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:24px;">
+      <tr>
+        <td style="background:#f5f5f0;border:2px solid #000000;padding:18px 20px;">
+          <strong style="font-size:12px;color:#888888;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px;">Upgrade to Pro for</strong>
+          <p style="font-size:14px;color:#555555;margin:0;line-height:1.8;">
+            <strong style="color:#22C55E;">→</strong> Unlimited edits, any time<br>
+            <strong style="color:#22C55E;">→</strong> Full visitor questions feed<br>
+            <strong style="color:#22C55E;">→</strong> Priority AI processing
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    ${ctaButton(upgradeUrl, "Upgrade to Pro — $49 →")}
+    <p style="font-size:13px;color:#888888;margin:0;line-height:1.6;">
+      Your profile stays live — it's working for you right now. Upgrade when you're ready to make changes.
+    </p>
+  `;
+  return baseTemplate(body);
+}
+
+// ─── Nudge: Engagement (Day 3) ───────────────────────────────────────────────
+
+export function nudgeEngagementTemplate(name: string, viewCount: number, upgradeUrl: string): string {
+  const visitorText = viewCount > 0
+    ? `Your Twin has already had <strong>${viewCount} visitor${viewCount === 1 ? "" : "s"}</strong>.`
+    : "Your Twin is live and ready to be discovered.";
+
+  const body = `
+    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your Twin is working for you</h1>
+    <p style="font-size:15px;color:#555555;margin:0 0 24px 0;line-height:1.6;">
+      Hi ${name}, it's been 3 days since you published your Proxy profile. ${visitorText}
+    </p>
+
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:24px;">
+      <tr>
+        <td style="background:#f5f5f0;border:2px solid #000000;padding:18px 20px;">
+          <strong style="font-size:12px;color:#888888;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px;">Pro unlocks</strong>
+          <p style="font-size:14px;color:#555555;margin:0;line-height:1.8;">
+            <strong style="color:#22C55E;">→</strong> See every question visitors asked your Twin<br>
+            <strong style="color:#22C55E;">→</strong> Unlimited profile edits<br>
+            <strong style="color:#22C55E;">→</strong> Full analytics dashboard
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    ${ctaButton(upgradeUrl, "See what they asked → Upgrade")}
+    <p style="font-size:13px;color:#888888;margin:0;line-height:1.6;">
+      Know what recruiters and hiring managers are curious about. That context alone is worth the upgrade.
+    </p>
+  `;
+  return baseTemplate(body);
+}
+
 // ─── Password Reset ──────────────────────────────────────────────────────────
 
 export function passwordResetTemplate(resetUrl: string): string {

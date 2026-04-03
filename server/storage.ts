@@ -55,6 +55,10 @@ export interface IStorage {
   saveChatMessage(profileId: string, question: string): Promise<void>;
   getAnalytics(profileId: string): Promise<{ viewCount: number; recentQuestions: { question: string; askedAt: Date }[] }>;
 
+  // Nudge emails
+  getFreeProfilesDueForNudge(): Promise<Array<{ profileId: string; email: string; name: string; username: string; freePublishedAt: Date; viewCount: number; nudge1SentAt: Date | null; nudge2SentAt: Date | null; }>>;
+  markNudgeSent(profileId: string, nudgeNumber: 1 | 2): Promise<void>;
+
   // Blog
   getPublishedBlogPosts(): Promise<BlogPost[]>;
   getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
@@ -263,6 +267,37 @@ export class DatabaseStorage implements IStorage {
       viewCount: profile?.viewCount || 0,
       recentQuestions: questions,
     };
+  }
+
+  async getFreeProfilesDueForNudge(): Promise<Array<{ profileId: string; email: string; name: string; username: string; freePublishedAt: Date; viewCount: number; nudge1SentAt: Date | null; nudge2SentAt: Date | null; }>> {
+    const rows = await db
+      .select({
+        profileId: twinProfiles.id,
+        email: customers.email,
+        name: customers.name,
+        username: customers.username,
+        freePublishedAt: twinProfiles.freePublishedAt,
+        viewCount: twinProfiles.viewCount,
+        nudge1SentAt: twinProfiles.nudge1SentAt,
+        nudge2SentAt: twinProfiles.nudge2SentAt,
+      })
+      .from(twinProfiles)
+      .innerJoin(customers, eq(twinProfiles.customerId, customers.id))
+      .where(
+        sql`${twinProfiles.tier} = 'free' AND ${twinProfiles.freePublishedAt} IS NOT NULL AND ${twinProfiles.isPublic} = true`
+      );
+    return rows.map(r => ({
+      ...r,
+      freePublishedAt: r.freePublishedAt!,
+      viewCount: r.viewCount ?? 0,
+    }));
+  }
+
+  async markNudgeSent(profileId: string, nudgeNumber: 1 | 2): Promise<void> {
+    const update = nudgeNumber === 1
+      ? { nudge1SentAt: new Date() }
+      : { nudge2SentAt: new Date() };
+    await db.update(twinProfiles).set(update).where(eq(twinProfiles.id, profileId));
   }
 
   // Blog

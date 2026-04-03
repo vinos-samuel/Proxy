@@ -56,6 +56,8 @@ export const twinProfiles = pgTable("twin_profiles", {
   freePublishedAt: timestamp("free_published_at"),
   isPublic: boolean("is_public").default(false),
   viewCount: integer("view_count").default(0),
+  nudge1SentAt: timestamp("nudge1_sent_at"),
+  nudge2SentAt: timestamp("nudge2_sent_at"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

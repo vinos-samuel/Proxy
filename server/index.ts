@@ -157,6 +157,11 @@ app.use((req, res, next) => {
 (async () => {
   await registerRoutes(httpServer, app);
 
+  if (process.env.NODE_ENV === "production") {
+    const { startNudgeCron } = await import("./nudge-cron");
+    startNudgeCron();
+  }
+
   const { seedDatabase } = await import("./seed");
   await seedDatabase();
 

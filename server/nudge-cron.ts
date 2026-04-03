@@ -1,0 +1,54 @@
+import cron from "node-cron";
+import { storage } from "./storage";
+import { Resend } from "resend";
+import { nudgeEditWindowTemplate, nudgeEngagementTemplate } from "./emails";
+import { logger } from "./logger";
+
+export function startNudgeCron() {
+  // Run every hour at :00
+  cron.schedule("0 * * * *", async () => {
+    logger.info("[Nudge] Cron tick");
+    try {
+      const profiles = await storage.getFreeProfilesDueForNudge();
+      if (profiles.length === 0) return;
+
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const from = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
+      const now = new Date();
+
+      for (const p of profiles) {
+        const hoursSincePublish = (now.getTime() - p.freePublishedAt.getTime()) / (1000 * 60 * 60);
+        const upgradeUrl = "https://myproxy.work/dashboard";
+
+        // Nudge 1: edit window closed (50hrs after free publish)
+        if (hoursSincePublish >= 50 && !p.nudge1SentAt) {
+          await resend.emails.send({
+            from,
+            to: p.email,
+            subject: "Your Proxy edit window has closed",
+            html: nudgeEditWindowTemplate(p.name, upgradeUrl),
+          }).catch(() => {});
+          await storage.markNudgeSent(p.profileId, 1);
+          logger.info("[Nudge] Nudge 1 sent", { profileId: p.profileId, email: p.email });
+        }
+
+        // Nudge 2: engagement (72hrs after free publish)
+        if (hoursSincePublish >= 72 && !p.nudge2SentAt) {
+          await resend.emails.send({
+            from,
+            to: p.email,
+            subject: p.viewCount > 0
+              ? `Your Twin has had ${p.viewCount} visitor${p.viewCount === 1 ? "" : "s"}`
+              : "Your Digital Twin is live — upgrade to see engagement",
+            html: nudgeEngagementTemplate(p.name, p.viewCount, upgradeUrl),
+          }).catch(() => {});
+          await storage.markNudgeSent(p.profileId, 2);
+          logger.info("[Nudge] Nudge 2 sent", { profileId: p.profileId, email: p.email });
+        }
+      }
+    } catch (err) {
+      logger.error("[Nudge] Cron error", { error: String(err) });
+    }
+  });
+  logger.info("[Nudge] Cron scheduled (hourly)");
+}

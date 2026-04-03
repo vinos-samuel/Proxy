@@ -1439,6 +1439,42 @@ export async function registerRoutes(
     }
   });
 
+  // POST /api/admin/nudge-test/:customerId — send both nudge emails immediately for testing
+  app.post("/api/admin/nudge-test/:customerId", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const customer = await storage.getCustomer(req.params.customerId);
+      if (!customer) return res.status(404).json({ message: "Customer not found" });
+      const profile = await storage.getProfileByCustomerId(customer.id);
+      if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+      const { Resend } = await import("resend");
+      const { nudgeEditWindowTemplate, nudgeEngagementTemplate } = await import("./emails");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const from = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
+      const upgradeUrl = "https://myproxy.work/dashboard";
+      const viewCount = profile.viewCount ?? 0;
+
+      await resend.emails.send({
+        from,
+        to: customer.email,
+        subject: "[TEST] Your Proxy edit window has closed",
+        html: nudgeEditWindowTemplate(customer.name, upgradeUrl),
+      });
+      await resend.emails.send({
+        from,
+        to: customer.email,
+        subject: `[TEST] Your Twin has had ${viewCount} visitors`,
+        html: nudgeEngagementTemplate(customer.name, viewCount, upgradeUrl),
+      });
+
+      logger.info("[Nudge] Test emails sent", { to: customer.email });
+      res.json({ success: true, sentTo: customer.email });
+    } catch (error) {
+      logger.error("[Nudge] Test email error", { error: String(error) });
+      res.status(500).json({ message: "Failed to send test emails" });
+    }
+  });
+
   // ─── Sitemap & Robots.txt ──────────────────────────────────────────────────
 
   app.get("/sitemap.xml", async (_req, res) => {

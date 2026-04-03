@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { queryClient } from "@/lib/queryClient";
 import {
   Edit, Eye, Globe, LogOut,
-  FileText, Sparkles, ExternalLink, ArrowRight, Copy, BarChart3, MessageSquare
+  FileText, Sparkles, ExternalLink, ArrowRight, Copy, BarChart3, MessageSquare, Lock
 } from "lucide-react";
 import type { TwinProfile } from "@shared/schema";
 import PaymentGate from "@/components/PaymentGate";
@@ -62,6 +62,7 @@ export default function DashboardPage() {
   };
 
   const profileStatus = profile ? statusMap[profile.status] || statusMap.draft : statusMap.draft;
+  const isFree = profile?.tier === "free";
 
   return (
     <div className="min-h-screen bg-[#E8E8E3] text-black pb-12" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -327,10 +328,38 @@ export default function DashboardPage() {
                         <span className="mono text-xs uppercase tracking-wider text-black/60">Questions Asked</span>
                       </div>
                       <div className="text-4xl font-bold">{analytics?.recentQuestions?.length ?? 0}</div>
-                      <p className="mono text-xs text-black/40 mt-2">Last 10 shown below</p>
+                      <p className="mono text-xs text-black/40 mt-2">
+                        {isFree ? "Upgrade to Pro to see the questions feed" : "Last 10 shown below"}
+                      </p>
                     </div>
                   </div>
-                  {(analytics?.recentQuestions?.length ?? 0) > 0 && (
+                  {isFree && (analytics?.recentQuestions?.length ?? 0) > 0 ? (
+                    <div className="mt-6 relative">
+                      <div className="filter blur-sm select-none pointer-events-none opacity-50">
+                        <div className="mono text-xs uppercase tracking-wider text-black/50 mb-3">Recent Questions from Visitors</div>
+                        <div className="space-y-2">
+                          {analytics!.recentQuestions.slice(0, 3).map((q, i) => (
+                            <div key={i} className="flex items-start gap-3 border-l-[3px] border-[#22C55E] pl-3 py-1">
+                              <p className="text-sm font-medium text-black">{q.question}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 border-[3px] border-black p-4 text-center">
+                        <Lock className="h-5 w-5 mb-2" />
+                        <p className="font-bold text-sm mb-1 uppercase tracking-wide">PRO FEATURE</p>
+                        <p className="mono text-xs text-black/60 mb-3">See every question visitors asked your Twin</p>
+                        <Link href="/dashboard">
+                          <button
+                            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                            className="bg-black text-white mono text-xs px-4 py-2 uppercase tracking-wider hover:bg-black/80 transition-colors"
+                          >
+                            Upgrade to Pro →
+                          </button>
+                        </Link>
+                      </div>
+                    </div>
+                  ) : !isFree && (analytics?.recentQuestions?.length ?? 0) > 0 ? (
                     <div className="mt-6">
                       <div className="mono text-xs uppercase tracking-wider text-black/50 mb-3">Recent Questions from Visitors</div>
                       <div className="space-y-2">
@@ -346,8 +375,7 @@ export default function DashboardPage() {
                         ))}
                       </div>
                     </div>
-                  )}
-                  {(analytics?.recentQuestions?.length ?? 0) === 0 && (
+                  ) : (
                     <div className="mt-6 border-[3px] border-dashed border-black/20 p-4 text-center">
                       <MessageSquare className="h-8 w-8 text-black/20 mx-auto mb-2" />
                       <p className="mono text-xs text-black/40 uppercase tracking-wider">No questions yet — visitors haven't chatted with your Twin</p>

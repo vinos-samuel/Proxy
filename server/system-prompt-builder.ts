@@ -10,6 +10,7 @@ interface SystemPromptData {
   wordsUsedOften: string;
   wordsAvoided: string;
   portfolioData?: any;
+  mentionedCompany?: string | null;
 }
 
 export async function buildSystemPrompt(
@@ -229,6 +230,9 @@ ${summary?.content || promptData.positioning}
 ${achievements?.content || "Not provided"}
 
 **Career Timeline:**
+${promptData.mentionedCompany ? `
+⚠️ COMPANY FOCUS: The current question is specifically about **${promptData.mentionedCompany}**. When answering, ONLY use facts listed under ${promptData.mentionedCompany} below. Facts from other companies are shown for context — do NOT use them in your response to this question, and do NOT attribute them to ${promptData.mentionedCompany}.
+` : ""}
 ${factBanks
   .map(
     (fb) => `

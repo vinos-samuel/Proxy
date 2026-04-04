@@ -912,6 +912,11 @@ export async function registerRoutes(
       const specialInstructions =
         questionnaireData?.step11?.specialInstructions || "";
 
+      // Detect if the question mentions a specific company from the user's career history
+      const mentionedCompany = factBanksList.find(fb =>
+        message.toLowerCase().includes(fb.companyName.toLowerCase())
+      )?.companyName || null;
+
       const systemPrompt = await buildSystemPrompt(profile.id, {
         displayName: profile.displayName || "Unknown Professional",
         roleTitle: profile.roleTitle || "Professional",
@@ -927,6 +932,7 @@ export async function registerRoutes(
         wordsUsedOften: questionnaireData?.step7?.wordsUsedOften || "",
         wordsAvoided: questionnaireData?.step7?.wordsAvoided || "",
         portfolioData: questionnaireData?.portfolioData || null,
+        mentionedCompany,
       });
 
       // Use Claude Haiku for chat — better quality, less hallucination

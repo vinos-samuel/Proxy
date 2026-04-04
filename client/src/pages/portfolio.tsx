@@ -173,7 +173,7 @@ export default function PortfolioPage() {
   const [demoBannerDismissed, setDemoBannerDismissed] = useState(false);
   const [, navigate] = useLocation();
   const { user } = useAuth();
-  const isDemo = username === "demo" && new URLSearchParams(window.location.search).get("demo") === "true" && !user && !demoBannerDismissed;
+  const isDemo = username === "test2" && new URLSearchParams(window.location.search).get("demo") === "true" && !user && !demoBannerDismissed;
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -244,7 +244,7 @@ export default function PortfolioPage() {
         {isDemo && !demoBannerDismissed && (
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
             <p className="text-white text-sm font-medium flex-1 min-w-0">
-              <span className="text-[#22C55E] font-bold">Build your AI Twin.</span> Create a live profile that answers for you 24/7.
+              <span className="text-[#22C55E] font-bold">This is a real AI Twin.</span> Chat with it, explore the profile — then build yours.
             </p>
             <div className="flex items-center gap-3 shrink-0">
               <button
@@ -922,7 +922,7 @@ export default function PortfolioPage() {
       {isDemo && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
           <p className="text-white text-sm font-medium flex-1 min-w-0">
-            <span className="text-[#22C55E] font-bold">This is a live AI Twin.</span> Chat with Sarah, explore her profile — then build yours.
+            <span className="text-[#22C55E] font-bold">This is a real AI Twin.</span> Chat with it, explore the profile — then build yours.
           </p>
           <div className="flex items-center gap-3 shrink-0">
             <button

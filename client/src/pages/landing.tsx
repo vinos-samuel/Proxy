@@ -91,7 +91,7 @@ export default function LandingPage() {
               Login
             </button>
             <button
-              onClick={() => navigate("/register")}
+              onClick={() => navigate("/portfolio/test2?demo=true")}
               className="bg-[#22C55E] text-black px-6 py-3 font-bold hover:bg-[#16A34A] border-[3px] border-black mono text-sm uppercase tracking-wider"
               data-testid="link-register"
             >
@@ -135,7 +135,7 @@ export default function LandingPage() {
 
               <div className="flex gap-4 flex-wrap">
                 <button
-                  onClick={() => navigate("/portfolio/demo?demo=true")}
+                  onClick={() => navigate("/portfolio/test2?demo=true")}
                   className="bg-[#22C55E] text-black px-8 py-4 font-bold hover:bg-[#16A34A] border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                   data-testid="button-hero-cta"
                 >
@@ -341,7 +341,7 @@ export default function LandingPage() {
                 ))}
               </div>
               <button
-                onClick={() => navigate("/portfolio/demo?demo=true")}
+                onClick={() => navigate("/portfolio/test2?demo=true")}
                 className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
                 data-testid="button-deploy-free"
               >
@@ -369,7 +369,7 @@ export default function LandingPage() {
                 ))}
               </div>
               <button
-                onClick={() => navigate("/portfolio/demo?demo=true")}
+                onClick={() => navigate("/portfolio/test2?demo=true")}
                 className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
                 data-testid="button-deploy-pro"
               >
@@ -394,7 +394,7 @@ export default function LandingPage() {
                 ))}
               </div>
               <button
-                onClick={() => navigate("/portfolio/demo?demo=true")}
+                onClick={() => navigate("/portfolio/test2?demo=true")}
                 className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
                 data-testid="button-deploy-concierge"
               >
@@ -435,7 +435,7 @@ export default function LandingPage() {
           </div>
 
           <button
-            onClick={() => navigate("/portfolio/demo?demo=true")}
+            onClick={() => navigate("/portfolio/test2?demo=true")}
             className="bg-[#22C55E] hover:bg-[#16A34A] text-black px-16 py-5 text-xl font-bold mono border-[3px] border-black uppercase tracking-wider shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
             data-testid="button-final-cta"
           >

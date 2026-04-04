@@ -3,29 +3,31 @@ import bcrypt from "bcryptjs";
 
 export async function seedDatabase() {
   try {
-    // Check if admin already exists
+    // Create admin user if not exists
     const existingAdmin = await storage.getCustomerByEmail("admin@digitaltwin.studio");
-    if (existingAdmin) return;
-
-    console.log("Seeding database...");
-
-    // Create admin user
-    const adminHash = await bcrypt.hash("admin123", 10);
-    await storage.createCustomer({
-      email: "admin@digitaltwin.studio",
-      passwordHash: adminHash,
-      name: "Admin",
-      username: "admin",
-    });
-
-    // Update admin flag directly
-    const admin = await storage.getCustomerByEmail("admin@digitaltwin.studio");
-    if (admin) {
-      const { db } = await import("./db");
-      const { customers } = await import("@shared/schema");
-      const { eq } = await import("drizzle-orm");
-      await db.update(customers).set({ isAdmin: true }).where(eq(customers.id, admin.id));
+    if (!existingAdmin) {
+      console.log("Seeding admin user...");
+      const adminHash = await bcrypt.hash("admin123", 10);
+      await storage.createCustomer({
+        email: "admin@digitaltwin.studio",
+        passwordHash: adminHash,
+        name: "Admin",
+        username: "admin",
+      });
+      const newAdmin = await storage.getCustomerByEmail("admin@digitaltwin.studio");
+      if (newAdmin) {
+        const { db } = await import("./db");
+        const { customers } = await import("@shared/schema");
+        const { eq } = await import("drizzle-orm");
+        await db.update(customers).set({ isAdmin: true }).where(eq(customers.id, newAdmin.id));
+      }
     }
+
+    // Create demo user if not exists (checked independently of admin)
+    const existingDemo = await storage.getCustomerByUsername("demo");
+    if (existingDemo) return;
+
+    console.log("Seeding demo user...");
 
     // Create demo user with published profile
     const demoHash = await bcrypt.hash("demo1234", 10);

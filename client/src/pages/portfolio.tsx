@@ -241,6 +241,28 @@ export default function PortfolioPage() {
           <Globe className="h-12 w-12 text-zinc-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Portfolio Not Found</h2>
         </div>
+        {isDemo && !demoBannerDismissed && (
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+            <p className="text-white text-sm font-medium flex-1 min-w-0">
+              <span className="text-[#22C55E] font-bold">Build your AI Twin.</span> Create a live profile that answers for you 24/7.
+            </p>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={() => navigate("/register")}
+                className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]"
+              >
+                Create Mine Free →
+              </button>
+              <button
+                onClick={() => setDemoBannerDismissed(true)}
+                className="text-white/50 hover:text-white text-lg leading-none font-bold"
+                aria-label="Dismiss"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

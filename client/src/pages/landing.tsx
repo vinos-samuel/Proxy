@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { FileText, Zap, Rocket, Target, X, Check, Play } from "lucide-react";
 import { useState } from "react";
 import aiCv1 from "@assets/Screen_Recording_2025-12-15_at_9.20.20_PM_1771923394821.mov";
-import aiCv2 from "@assets/Screen_Recording_2026-02-24_at_4.39.02_PM_1771922676447.mp4";
+import aiCv2 from "@assets/proxy-demo-final-3.mp4";
 
 export default function LandingPage() {
   const [, navigate] = useLocation();
@@ -42,7 +42,7 @@ export default function LandingPage() {
               <div className="space-y-4 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-[#93C5FD] border-[2px] border-black flex items-center justify-center font-bold text-xs">02</div>
-                  <h3 className="font-bold text-xl uppercase tracking-tight">Digital Twin aka Ai Cv - Demo 2</h3>
+                  <h3 className="font-bold text-xl uppercase tracking-tight">Digital Twin aka Ai Cv - Demo 2 (Latest)</h3>
                 </div>
                 <div className="border-[3px] border-black bg-black aspect-video relative group overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                   <video 
@@ -135,7 +135,7 @@ export default function LandingPage() {
 
               <div className="flex gap-4 flex-wrap">
                 <button
-                  onClick={() => navigate("/register")}
+                  onClick={() => navigate("/portfolio/demo?demo=true")}
                   className="bg-[#22C55E] text-black px-8 py-4 font-bold hover:bg-[#16A34A] border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                   data-testid="button-hero-cta"
                 >
@@ -341,7 +341,7 @@ export default function LandingPage() {
                 ))}
               </div>
               <button
-                onClick={() => navigate("/register")}
+                onClick={() => navigate("/portfolio/demo?demo=true")}
                 className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
                 data-testid="button-deploy-free"
               >
@@ -369,7 +369,7 @@ export default function LandingPage() {
                 ))}
               </div>
               <button
-                onClick={() => navigate("/register")}
+                onClick={() => navigate("/portfolio/demo?demo=true")}
                 className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
                 data-testid="button-deploy-pro"
               >
@@ -394,7 +394,7 @@ export default function LandingPage() {
                 ))}
               </div>
               <button
-                onClick={() => navigate("/register")}
+                onClick={() => navigate("/portfolio/demo?demo=true")}
                 className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
                 data-testid="button-deploy-concierge"
               >
@@ -435,7 +435,7 @@ export default function LandingPage() {
           </div>
 
           <button
-            onClick={() => navigate("/register")}
+            onClick={() => navigate("/portfolio/demo?demo=true")}
             className="bg-[#22C55E] hover:bg-[#16A34A] text-black px-16 py-5 text-xl font-bold mono border-[3px] border-black uppercase tracking-wider shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
             data-testid="button-final-cta"
           >

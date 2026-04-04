@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -169,6 +170,10 @@ export default function PortfolioPage() {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showAllStats, setShowAllStats] = useState(false);
   const [expandedTimeline, setExpandedTimeline] = useState<Set<number>>(new Set());
+  const [demoBannerDismissed, setDemoBannerDismissed] = useState(false);
+  const [, navigate] = useLocation();
+  const { user } = useAuth();
+  const isDemo = username === "demo" && new URLSearchParams(window.location.search).get("demo") === "true" && !user && !demoBannerDismissed;
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -888,6 +893,30 @@ export default function PortfolioPage() {
               </div>
             </div>
           </motion.div>
+        </div>
+      )}
+
+      {/* Demo banner — only visible when arriving from landing page as unauthenticated visitor */}
+      {isDemo && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+          <p className="text-white text-sm font-medium flex-1 min-w-0">
+            <span className="text-[#22C55E] font-bold">This is a live AI Twin.</span> Chat with Sarah, explore her profile — then build yours.
+          </p>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => navigate("/register")}
+              className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]"
+            >
+              Create Mine Free →
+            </button>
+            <button
+              onClick={() => setDemoBannerDismissed(true)}
+              className="text-white/50 hover:text-white text-lg leading-none font-bold"
+              aria-label="Dismiss"
+            >
+              ×
+            </button>
+          </div>
         </div>
       )}
     </div>

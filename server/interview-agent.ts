@@ -1,5 +1,13 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import type { KnowledgeEntry, FactBank, TwinProfile } from "@shared/schema";
+
+const ai = new GoogleGenAI({
+  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY!,
+  httpOptions: {
+    apiVersion: "",
+    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL!,
+  },
+});
 
 // ==================== SESSION STORE ====================
 
@@ -170,18 +178,13 @@ export async function startInterview(
   const gaps = diagnoseGaps(knowledgeEntries, factBanks, profile);
   const systemPrompt = buildInterviewSystemPrompt(displayName, gaps);
 
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const result = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 512,
-    system: systemPrompt,
-    messages: [{ role: "user", content: "Please start the interview." }],
+  const result = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    config: { systemInstruction: systemPrompt },
+    contents: [{ role: "user", parts: [{ text: "Please start the interview." }] }],
   });
 
-  const botMessage =
-    result.content[0].type === "text"
-      ? result.content[0].text
-      : "Hi! Let's get started. Tell me about your most impactful project.";
+  const botMessage = result.text || "Hi! Let's get started. Tell me about your most impactful project.";
 
   interviewSessions.set(customerId, {
     profileId,
@@ -209,19 +212,19 @@ export async function sendInterviewMessage(
   session.messages.push({ role: "user", content: userMessage });
 
   const systemPrompt = buildInterviewSystemPrompt(session.displayName, session.gaps);
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const result = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 512,
-    system: systemPrompt,
-    messages: session.messages,
+  const geminiMessages = session.messages.map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+
+  const result = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    config: { systemInstruction: systemPrompt },
+    contents: geminiMessages,
   });
 
-  const botResponse =
-    result.content[0].type === "text"
-      ? result.content[0].text
-      : "Could you tell me more about that?";
+  const botResponse = result.text || "Could you tell me more about that?";
 
   session.messages.push({ role: "assistant", content: botResponse });
 
@@ -251,15 +254,12 @@ export async function extractAndComplete(customerId: string): Promise<{
 
   const extractionPrompt = buildExtractionPrompt(transcript, session.displayName);
 
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const result = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 2048,
-    messages: [{ role: "user", content: extractionPrompt }],
+  const result = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [{ role: "user", parts: [{ text: extractionPrompt }] }],
   });
 
-  const rawText =
-    result.content[0].type === "text" ? result.content[0].text : "{}";
+  const rawText = result.text || "{}";
 
   let extracted = {
     warStories: [] as any[],

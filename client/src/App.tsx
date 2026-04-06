@@ -24,6 +24,7 @@ import PrivacyPage from "@/pages/privacy";
 import TermsPage from "@/pages/terms";
 import BlogPage from "@/pages/blog";
 import BlogPostPage from "@/pages/blog-post";
+import TwinInterviewPage from "@/pages/twin-interview";
 import { Loader2 } from "lucide-react";
 import { Redirect } from "wouter";
 
@@ -77,6 +78,7 @@ function Router() {
       <Route path="/questionnaire">{() => <ProtectedRoute component={QuestionnairePage} />}</Route>
       <Route path="/preview">{() => <ProtectedRoute component={PreviewPage} />}</Route>
       <Route path="/admin">{() => <ProtectedRoute component={AdminPage} />}</Route>
+      <Route path="/interview">{() => <ProtectedRoute component={TwinInterviewPage} />}</Route>
       <Route path="/payment/success" component={PaymentSuccessPage} />
       <Route path="/payment/cancelled" component={PaymentCancelledPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />

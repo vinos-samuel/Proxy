@@ -6,6 +6,7 @@ import {
   type FactBank, type InsertFactBank, type KnowledgeEntry, type InsertKnowledgeEntry,
   type Payment, type BlogPost
 } from "@shared/schema";
+import { randomUUID } from "crypto";
 
 export interface IStorage {
   // Customers
@@ -74,6 +75,14 @@ export interface IStorage {
 
   // Sitemap
   getPublishedProfileUsernames(): Promise<string[]>;
+
+  // Twin Interview
+  mergeInterviewData(profileId: string, extracted: {
+    warStories: Array<{ title: string; challenge: string; approach: string; result: string; scale: string }>;
+    achievements: Array<{ title: string; content: string }>;
+    additionalFacts: Array<{ companyName: string; fact: string }>;
+  }): Promise<{ warStoriesAdded: number; achievementsAdded: number; factsAdded: number }>;
+  updateLastDeepenedAt(profileId: string): Promise<void>;
 
   // Admin
   getAdminStats(): Promise<{ totalCustomers: number; publishedProfiles: number; totalRevenue: number }>;
@@ -350,6 +359,99 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(customers, eq(twinProfiles.customerId, customers.id))
       .where(eq(twinProfiles.status, "published"));
     return results.map((r) => r.username);
+  }
+
+  async mergeInterviewData(profileId: string, extracted: {
+    warStories: Array<{ title: string; challenge: string; approach: string; result: string; scale: string }>;
+    achievements: Array<{ title: string; content: string }>;
+    additionalFacts: Array<{ companyName: string; fact: string }>;
+  }): Promise<{ warStoriesAdded: number; achievementsAdded: number; factsAdded: number }> {
+    let warStoriesAdded = 0;
+    let achievementsAdded = 0;
+    let factsAdded = 0;
+
+    // Add new war stories
+    for (const story of (extracted.warStories || [])) {
+      if (!story.title || !story.challenge) continue;
+      const entryId = `interview-story-${randomUUID().slice(0, 8)}`;
+      await db.insert(knowledgeEntries).values({
+        twinProfileId: profileId,
+        entryId,
+        type: "experience",
+        title: story.title,
+        challenge: story.challenge || null,
+        approach: story.approach || null,
+        result: story.result || null,
+        scale: story.scale || null,
+        intent: [],
+        keywords: [],
+      });
+      warStoriesAdded++;
+    }
+
+    // Append achievements to existing entry or create new one
+    if (extracted.achievements && extracted.achievements.length > 0) {
+      const existingEntries = await this.getKnowledgeEntriesByProfileId(profileId);
+      const existingAchievements = existingEntries.find(
+        (e) => e.entryId === "key-achievements"
+      );
+      const newText = extracted.achievements
+        .map((a) => `• ${a.title}: ${a.content}`)
+        .join("\n");
+
+      if (existingAchievements) {
+        const updatedContent =
+          (existingAchievements.content || "") +
+          "\n\n[Added from interview]\n" +
+          newText;
+        await db
+          .update(knowledgeEntries)
+          .set({ content: updatedContent })
+          .where(eq(knowledgeEntries.id, existingAchievements.id));
+      } else {
+        await db.insert(knowledgeEntries).values({
+          twinProfileId: profileId,
+          entryId: "key-achievements",
+          type: "achievement",
+          title: "Key Achievements",
+          content: newText,
+          challenge: null,
+          approach: null,
+          result: null,
+          scale: null,
+          intent: [],
+          keywords: [],
+        });
+      }
+      achievementsAdded = extracted.achievements.length;
+    }
+
+    // Append facts to matching existing fact banks
+    const allFactBanks = await this.getFactBanksByProfileId(profileId);
+    for (const factItem of (extracted.additionalFacts || [])) {
+      if (!factItem.companyName || !factItem.fact) continue;
+      const match = allFactBanks.find(
+        (fb) =>
+          fb.companyName.toLowerCase() === factItem.companyName.toLowerCase()
+      );
+      if (match) {
+        const updatedFacts = [...match.facts, factItem.fact];
+        await db
+          .update(factBanks)
+          .set({ facts: updatedFacts })
+          .where(eq(factBanks.id, match.id));
+        factsAdded++;
+      }
+    }
+
+    return { warStoriesAdded, achievementsAdded, factsAdded };
+  }
+
+  async updateLastDeepenedAt(profileId: string): Promise<void> {
+    await db
+      .update(twinProfiles)
+      .set({ lastDeepenedAt: new Date() })
+      .where(eq(twinProfiles.id, profileId));
   }
 
   async deleteCustomer(id: string): Promise<void> {

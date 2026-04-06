@@ -1002,6 +1002,73 @@ export async function registerRoutes(
     }
   });
 
+  // ==================== TWIN INTERVIEW ====================
+
+  app.post("/api/interview/start", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const customerId = req.session.customerId!;
+      const profile = await storage.getProfileByCustomerId(customerId);
+      if (!profile) {
+        return res.status(404).json({ message: "No profile found. Complete the questionnaire first." });
+      }
+      const customer = await storage.getCustomer(customerId);
+      const entries = await storage.getKnowledgeEntriesByProfileId(profile.id);
+      const factBanksList = await storage.getFactBanksByProfileId(profile.id);
+      const displayName = profile.displayName || customer?.name || "You";
+
+      const { startInterview } = await import("./interview-agent");
+      const firstMessage = await startInterview(
+        customerId, profile.id, displayName, entries, factBanksList, profile
+      );
+
+      res.json({ message: firstMessage });
+    } catch (error) {
+      logger.error("Interview start error", { error: String(error) });
+      res.status(500).json({ message: "Failed to start interview" });
+    }
+  });
+
+  app.post("/api/interview/message", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const customerId = req.session.customerId!;
+      const { message } = req.body;
+      if (!message || typeof message !== "string" || message.trim().length === 0) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      const { sendInterviewMessage } = await import("./interview-agent");
+      const { botResponse, readyToComplete } = await sendInterviewMessage(customerId, message.trim());
+      res.json({ message: botResponse, readyToComplete });
+    } catch (error: any) {
+      if (error.message === "No active interview session") {
+        return res.status(400).json({ message: "No active interview. Please start a new one." });
+      }
+      logger.error("Interview message error", { error: String(error) });
+      res.status(500).json({ message: "Failed to process message" });
+    }
+  });
+
+  app.post("/api/interview/complete", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const customerId = req.session.customerId!;
+      const { extractAndComplete, clearInterviewSession } = await import("./interview-agent");
+      const { profileId, extracted } = await extractAndComplete(customerId);
+      const counts = await storage.mergeInterviewData(profileId, extracted);
+      await storage.updateLastDeepenedAt(profileId);
+      clearInterviewSession(customerId);
+      res.json({
+        success: true,
+        ...counts,
+        message: `Your Twin has been updated with ${counts.warStoriesAdded} new stories and ${counts.achievementsAdded} achievements.`,
+      });
+    } catch (error: any) {
+      if (error.message === "No active interview session") {
+        return res.status(400).json({ message: "No active interview to complete." });
+      }
+      logger.error("Interview complete error", { error: String(error) });
+      res.status(500).json({ message: "Failed to complete interview" });
+    }
+  });
+
   // ==================== PAYMENTS ====================
 
   // Free tier publish — no payment required

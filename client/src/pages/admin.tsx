@@ -1015,7 +1015,7 @@ export default function AdminPage() {
                                     )}
 
                                     {/* Send nudge emails */}
-                                    {customer.profile?.tier === "free" && customer.profile?.status === "published" && (
+                                    {customer.subscriptionStatus !== "paid" && customer.profile?.status === "published" && (
                                       <ConfirmButton
                                         onConfirm={() => nudgeMutation.mutate(customer.id)}
                                         isPending={nudgeMutation.isPending}

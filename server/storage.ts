@@ -369,19 +369,19 @@ export class DatabaseStorage implements IStorage {
     let achievementsAdded = 0;
     let factsAdded = 0;
 
-    // Add new war stories
+    // Add new war stories — use createKnowledgeEntry to stay within typed InsertKnowledgeEntry
     for (const story of (extracted.warStories || [])) {
       if (!story.title || !story.challenge) continue;
       const entryId = `interview-story-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
-      await db.insert(knowledgeEntries).values({
+      await this.createKnowledgeEntry({
         twinProfileId: profileId,
         entryId,
         type: "experience",
         title: story.title,
-        challenge: story.challenge || null,
-        approach: story.approach || null,
-        result: story.result || null,
-        scale: story.scale || null,
+        challenge: story.challenge || undefined,
+        approach: story.approach || undefined,
+        result: story.result || undefined,
+        scale: story.scale || undefined,
         intent: [],
         keywords: [],
       });
@@ -408,16 +408,12 @@ export class DatabaseStorage implements IStorage {
           .set({ content: updatedContent })
           .where(eq(knowledgeEntries.id, existingAchievements.id));
       } else {
-        await db.insert(knowledgeEntries).values({
+        await this.createKnowledgeEntry({
           twinProfileId: profileId,
           entryId: "key-achievements",
           type: "achievement",
           title: "Key Achievements",
           content: newText,
-          challenge: null,
-          approach: null,
-          result: null,
-          scale: null,
           intent: [],
           keywords: [],
         });

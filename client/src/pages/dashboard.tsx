@@ -293,8 +293,14 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {profile?.status === "ready" && profile?.paymentStatus !== "paid" && (
-                <PaymentGate profileId={profile.id} username={user?.username} />
+              {/* PaymentGate: show for "ready" unpaid users AND free-tier published users wanting to upgrade */}
+              {profile && (
+                (profile.status === "ready" && profile.paymentStatus !== "paid") ||
+                (profile.status === "published" && profile.tier === "free")
+              ) && (
+                <div id="upgrade-section">
+                  <PaymentGate profileId={profile.id} username={user?.username} />
+                </div>
               )}
 
               {profile && profile.status !== "published" && (
@@ -392,14 +398,12 @@ export default function DashboardPage() {
                         <Lock className="h-5 w-5 mb-2" />
                         <p className="font-bold text-sm mb-1 uppercase tracking-wide">PRO FEATURE</p>
                         <p className="mono text-xs text-black/60 mb-3">See every question visitors asked your Twin</p>
-                        <Link href="/dashboard">
-                          <button
-                            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                            className="bg-black text-white mono text-xs px-4 py-2 uppercase tracking-wider hover:bg-black/80 transition-colors"
-                          >
-                            Upgrade to Pro →
-                          </button>
-                        </Link>
+                        <button
+                          onClick={() => document.getElementById("upgrade-section")?.scrollIntoView({ behavior: "smooth" })}
+                          className="bg-black text-white mono text-xs px-4 py-2 uppercase tracking-wider hover:bg-black/80 transition-colors"
+                        >
+                          Upgrade to Pro →
+                        </button>
                       </div>
                     </div>
                   ) : !isFree && (analytics?.recentQuestions?.length ?? 0) > 0 ? (

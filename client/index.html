@@ -4,21 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>Proxy — AI Career Portfolio for Senior Professionals | Stand Out to Recruiters</title>
-    <!-- Meta Pixel Code -->
-    <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '2190101848483943');
-    fbq('track', 'PageView');
-    </script>
-    <!-- End Meta Pixel Code -->
-    <meta name="description" content="Build an AI-powered career portfolio that speaks for you. Senior professionals use Proxy to turn their experience into an interactive digital CV that impresses recruiters and hiring managers.">
+    <meta name="description" content="Deploy an AI career portfolio that answers recruiters 24/7. Senior professionals use Proxy to turn experience into impact — not just a PDF.">
     <meta name="keywords" content="AI career agent, executive portfolio, digital career proxy, AI resume, interactive CV, career AI assistant, AI job search">
 
     <meta property="og:type" content="website">
@@ -37,10 +23,28 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300;9..144,700&family=Source+Sans+Pro:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Geist+Mono:wght@100..900&family=Open+Sans:wght@300..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+    <!-- Meta Pixel Code — deferred to avoid render blocking -->
+    <script defer>
+    window.addEventListener('load', function() {
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '2190101848483943');
+      fbq('track', 'PageView');
+    });
+    </script>
+    <!-- End Meta Pixel Code -->
   </head>
   <body>
     <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=2190101848483943&ev=PageView&noscript=1" /></noscript>
+    <!-- Hidden semantic H1 for SEO crawlers — not visible in UI -->
+    <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;">Proxy — AI Career Portfolio for Senior Professionals</h1>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

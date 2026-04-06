@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import helmet from "helmet";
+import compression from "compression";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
@@ -13,6 +14,9 @@ const httpServer = createServer(app);
 
 // Trust Replit's reverse proxy so express-rate-limit and req.ip work correctly
 app.set("trust proxy", 1);
+
+// Gzip compression for all responses
+app.use(compression());
 
 // Security: helmet with relaxed settings for dev iframe + Vite inline scripts
 const isProd = process.env.NODE_ENV === "production";

@@ -1533,6 +1533,65 @@ export async function registerRoutes(
   });
 
   // POST /api/admin/nudge-test/:customerId — send both nudge emails immediately for testing
+  // ─── Admin Broadcast Email ───────────────────────────────────────────────────
+
+  app.post("/api/admin/broadcast", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { audience, subject, body } = req.body as {
+        audience: "all" | "free" | "paid";
+        subject: string;
+        body: string;
+      };
+
+      if (!audience || !subject?.trim() || !body?.trim()) {
+        return res.status(400).json({ message: "audience, subject and body are required" });
+      }
+
+      const allCustomers = await storage.getCustomersWithProfiles();
+
+      const targets = allCustomers.filter((c) => {
+        if (!c.emailVerified) return false; // only verified emails
+        if (audience === "free") return c.subscriptionStatus !== "paid";
+        if (audience === "paid") return c.subscriptionStatus === "paid";
+        return true; // "all"
+      });
+
+      if (targets.length === 0) {
+        return res.json({ sent: 0, message: "No matching recipients found." });
+      }
+
+      const { Resend } = await import("resend");
+      const { broadcastTemplate } = await import("./emails");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const from = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
+
+      let sent = 0;
+      const errors: string[] = [];
+
+      for (const c of targets) {
+        try {
+          await resend.emails.send({
+            from,
+            to: c.email,
+            subject,
+            html: broadcastTemplate(c.name, body),
+          });
+          sent++;
+        } catch (err) {
+          errors.push(`${c.email}: ${String(err)}`);
+        }
+      }
+
+      logger.info("[Admin] Broadcast sent", { audience, subject, sent, errors: errors.length, by: req.session.customerId });
+      res.json({ sent, total: targets.length, errors });
+    } catch (error) {
+      logger.error("[Admin] Broadcast error", { error: String(error) });
+      res.status(500).json({ message: "Failed to send broadcast" });
+    }
+  });
+
+  // ─── Admin Nudge Test ────────────────────────────────────────────────────────
+
   app.post("/api/admin/nudge-test/:customerId", requireAdmin, async (req: Request, res: Response) => {
     try {
       const customer = await storage.getCustomer(req.params.customerId);

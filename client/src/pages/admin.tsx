@@ -15,7 +15,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Terminal, LogOut, Users, Globe, DollarSign, ArrowLeft,
   RefreshCw, Loader2, ExternalLink, Trash2, Gift, CheckCircle, XCircle,
-  FileText, Plus, Eye, EyeOff, Pencil, X
+  FileText, Plus, Eye, EyeOff, Pencil, X, Mail, Send
 } from "lucide-react";
 import type { Customer, TwinProfile, BlogPost } from "@shared/schema";
 
@@ -29,7 +29,7 @@ interface AdminData {
 }
 
 type FilterTab = "all" | "free" | "paid" | "published";
-type AdminTab = "customers" | "blog";
+type AdminTab = "customers" | "blog" | "outreach";
 
 function ConfirmButton({
   onConfirm,
@@ -568,6 +568,143 @@ function BlogTab() {
   );
 }
 
+// ─── Outreach Tab ─────────────────────────────────────────────────────────────
+
+function OutreachTab({ customers }: { customers: (Customer & { profile?: TwinProfile | null })[] }) {
+  const { toast } = useToast();
+  const [audience, setAudience] = useState<"all" | "free" | "paid">("free");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [confirming, setConfirming] = useState(false);
+
+  const recipientCount = customers.filter((c) => {
+    if (!c.emailVerified) return false;
+    if (audience === "free") return c.subscriptionStatus !== "paid";
+    if (audience === "paid") return c.subscriptionStatus === "paid";
+    return true;
+  }).length;
+
+  const broadcastMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/admin/broadcast", { audience, subject, body });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({ title: `Sent to ${data.sent} recipient${data.sent !== 1 ? "s" : ""}`, description: data.errors?.length ? `${data.errors.length} failed` : undefined });
+      setConfirming(false);
+    },
+    onError: (err: any) => {
+      toast({ title: "Broadcast failed", description: err.message, variant: "destructive" });
+      setConfirming(false);
+    },
+  });
+
+  const audienceOptions: { value: "all" | "free" | "paid"; label: string; description: string }[] = [
+    { value: "free", label: "Free users", description: "Users who haven't paid — upgrade targets" },
+    { value: "paid", label: "Paid users", description: "Pro / Concierge customers" },
+    { value: "all", label: "All users", description: "Every verified user" },
+  ];
+
+  return (
+    <Card className="border-white/10 bg-white/5 backdrop-blur-xl">
+      <CardContent className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Mail className="h-5 w-5" />
+          <h2 className="text-xl font-semibold">Broadcast Email</h2>
+        </div>
+
+        <div className="space-y-6 max-w-2xl">
+          {/* Audience */}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">Audience</label>
+            <div className="grid grid-cols-3 gap-3">
+              {audienceOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setAudience(opt.value)}
+                  className={`border rounded-lg p-3 text-left transition-colors ${
+                    audience === opt.value
+                      ? "border-primary bg-primary/10"
+                      : "border-white/10 bg-white/5 hover:bg-white/10"
+                  }`}
+                >
+                  <div className="font-medium text-sm">{opt.label}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{opt.description}</div>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              <strong>{recipientCount}</strong> recipient{recipientCount !== 1 ? "s" : ""} will receive this email.
+            </p>
+          </div>
+
+          {/* Subject */}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">Subject</label>
+            <Input
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Your Proxy profile just got more valuable"
+              className="bg-white/5 border-white/10"
+            />
+          </div>
+
+          {/* Body */}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">
+              Body <span className="text-xs opacity-50 ml-1">(plain text — double line break = new paragraph)</span>
+            </label>
+            <Textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder={"A few things changed on Proxy since you signed up...\n\nThe price dropped. Pro is now $49.\n\nWe also launched something new: Deepen Your Twin."}
+              rows={12}
+              className="bg-white/5 border-white/10 font-mono text-sm"
+            />
+          </div>
+
+          {/* Send */}
+          <div className="flex items-center gap-3">
+            {!confirming ? (
+              <Button
+                onClick={() => setConfirming(true)}
+                disabled={!subject.trim() || !body.trim() || recipientCount === 0}
+                className="flex items-center gap-2"
+              >
+                <Send className="h-4 w-4" />
+                Send to {recipientCount} user{recipientCount !== 1 ? "s" : ""}
+              </Button>
+            ) : (
+              <>
+                <Button
+                  onClick={() => broadcastMutation.mutate()}
+                  disabled={broadcastMutation.isPending}
+                  variant="destructive"
+                  className="flex items-center gap-2"
+                >
+                  {broadcastMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  Confirm — send now
+                </Button>
+                <Button variant="ghost" onClick={() => setConfirming(false)} disabled={broadcastMutation.isPending}>
+                  Cancel
+                </Button>
+              </>
+            )}
+          </div>
+
+          {confirming && (
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+              <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                This will send <strong>{recipientCount} real emails</strong> immediately. Double-check your subject and body above.
+              </p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -616,6 +753,19 @@ export default function AdminPage() {
     },
     onError: (err: any) => {
       toast({ title: "Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const nudgeMutation = useMutation({
+    mutationFn: async (customerId: string) => {
+      const res = await apiRequest("POST", `/api/admin/nudge-test/${customerId}`);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({ title: "Nudge emails sent", description: `Sent to ${data.sentTo}` });
+    },
+    onError: (err: any) => {
+      toast({ title: "Nudge failed", description: err.message, variant: "destructive" });
     },
   });
 
@@ -700,6 +850,16 @@ export default function AdminPage() {
                 }`}
               >
                 <FileText className="h-4 w-4" /> Blog
+              </button>
+              <button
+                onClick={() => setActiveTab("outreach")}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                  activeTab === "outreach"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Mail className="h-4 w-4" /> Outreach
               </button>
             </div>
           </div>
@@ -854,6 +1014,18 @@ export default function AdminPage() {
                                       </Button>
                                     )}
 
+                                    {/* Send nudge emails */}
+                                    {customer.profile?.tier === "free" && customer.profile?.status === "published" && (
+                                      <ConfirmButton
+                                        onConfirm={() => nudgeMutation.mutate(customer.id)}
+                                        isPending={nudgeMutation.isPending}
+                                        confirmLabel="Send!"
+                                        icon={<Mail className="h-3 w-3 mr-1" />}
+                                      >
+                                        Nudge
+                                      </ConfirmButton>
+                                    )}
+
                                     {/* Grant free access */}
                                     {customer.subscriptionStatus !== "paid" && (
                                       <ConfirmButton
@@ -893,6 +1065,7 @@ export default function AdminPage() {
           )}
 
           {activeTab === "blog" && <BlogTab />}
+          {activeTab === "outreach" && <OutreachTab customers={allCustomers} />}
         </motion.div>
       </div>
     </div>

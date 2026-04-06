@@ -298,7 +298,7 @@ export default function DashboardPage() {
                 (profile.status === "ready" && profile.paymentStatus !== "paid") ||
                 (profile.status === "published" && profile.tier === "free")
               ) && (
-                <div id="upgrade-section">
+                <div id="upgrade-section" className="md:col-span-2">
                   <PaymentGate profileId={profile.id} username={user?.username} />
                 </div>
               )}

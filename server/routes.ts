@@ -19,6 +19,7 @@ import { registerObjectStorageRoutes } from "./replit_integrations/object_storag
 import Stripe from "stripe";
 import Anthropic from "@anthropic-ai/sdk";
 import { verifyEmailTemplate, welcomeEmailTemplate, passwordResetTemplate } from "./emails";
+import { startInterview, sendInterviewMessage, extractAndComplete, clearInterviewSession } from "./interview-agent";
 
 // Tier → Stripe Price ID mapping
 const STRIPE_PRICE_IDS: Record<string, string> = {
@@ -1022,7 +1023,6 @@ export async function registerRoutes(
 
       const displayName = profile.displayName || customer?.name || "You";
 
-      const { startInterview } = await import("./interview-agent");
       const firstMessage = await startInterview(
         customerId, profile.id, displayName, entries, factBanksList, profile
       );
@@ -1042,7 +1042,6 @@ export async function registerRoutes(
       if (!message || typeof message !== "string" || message.trim().length === 0) {
         return res.status(400).json({ message: "Message is required" });
       }
-      const { sendInterviewMessage } = await import("./interview-agent");
       const { botResponse, readyToComplete } = await sendInterviewMessage(customerId, message.trim());
       res.json({ message: botResponse, readyToComplete });
     } catch (error: any) {
@@ -1057,7 +1056,6 @@ export async function registerRoutes(
   app.post("/api/interview/complete", requireAuth, async (req: Request, res: Response) => {
     try {
       const customerId = req.session.customerId!;
-      const { extractAndComplete, clearInterviewSession } = await import("./interview-agent");
       const { profileId, extracted } = await extractAndComplete(customerId);
       const counts = await storage.mergeInterviewData(profileId, extracted);
       await storage.updateLastDeepenedAt(profileId);

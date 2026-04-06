@@ -6,7 +6,6 @@ import {
   type FactBank, type InsertFactBank, type KnowledgeEntry, type InsertKnowledgeEntry,
   type Payment, type BlogPost
 } from "@shared/schema";
-import { randomUUID } from "crypto";
 
 export interface IStorage {
   // Customers
@@ -373,7 +372,7 @@ export class DatabaseStorage implements IStorage {
     // Add new war stories
     for (const story of (extracted.warStories || [])) {
       if (!story.title || !story.challenge) continue;
-      const entryId = `interview-story-${randomUUID().slice(0, 8)}`;
+      const entryId = `interview-story-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
       await db.insert(knowledgeEntries).values({
         twinProfileId: profileId,
         entryId,

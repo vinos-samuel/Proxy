@@ -79,6 +79,9 @@ export default function DashboardPage() {
 
   const profileStatus = profile ? statusMap[profile.status] || statusMap.draft : statusMap.draft;
   const isFree = profile?.tier === "free";
+  const freeWindowExpired = isFree && profile?.freePublishedAt
+    ? (Date.now() - new Date(profile.freePublishedAt).getTime()) / (1000 * 60 * 60) > 48
+    : false;
 
   return (
     <div className="min-h-screen bg-[#E8E8E3] text-black pb-12" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -292,6 +295,21 @@ export default function DashboardPage() {
                   {profile?.status === "processing" ? "IN_PROGRESS" : profile?.status === "ready" || profile?.status === "published" ? "COMPLETE" : "WAITING_FOR_INPUT"}
                 </div>
               </div>
+
+              {/* 48-hour free edit window expiry notice */}
+              {freeWindowExpired && (
+                <div className="md:col-span-2 bg-[#FDE68A] border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-start gap-3">
+                    <Lock className="h-5 w-5 text-black mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-bold text-sm">Free edit window has expired.</p>
+                      <p className="mono text-xs text-black/70 mt-1">
+                        Your 48-hour edit window ended. Your Twin is still live and working. Upgrade to Pro to make edits, unlock analytics, and remove all limits.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* PaymentGate: show for "ready" unpaid users AND free-tier published users wanting to upgrade */}
               {profile && (

@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
         logout: async () => {
           await logoutMutation.mutateAsync();
-          queryClient.setQueryData(["/api/auth/me"], null);
+          queryClient.clear();
         },
       }}
     >

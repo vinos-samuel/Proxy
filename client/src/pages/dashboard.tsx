@@ -255,8 +255,8 @@ export default function DashboardPage() {
                   </div>
                   <p className="mono text-sm text-black/60 mb-4">
                     {(profile as any).lastDeepenedAt
-                      ? `Last deepened: ${new Date((profile as any).lastDeepenedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}. Go deeper to sharpen your Twin further.`
-                      : "Your Twin is only as good as the stories inside it. A 10-minute interview gives it real depth — specific outcomes, real numbers, your voice."}
+                      ? `Last deepened: ${new Date((profile as any).lastDeepenedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}. Go deeper to sharpen your Twin further — just speak, no typing needed.`
+                      : "Your Twin is only as good as the stories inside it. Just speak naturally — no typing, no prep. A 10-minute voice interview gives your Twin real depth, real numbers, your voice."}
                   </p>
                   <Link href="/interview">
                     <button className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">

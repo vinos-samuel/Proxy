@@ -1007,13 +1007,19 @@ export async function registerRoutes(
   app.post("/api/interview/start", requireAuth, async (req: Request, res: Response) => {
     try {
       const customerId = req.session.customerId!;
+      logger.info("Interview start requested", { customerId });
+
       const profile = await storage.getProfileByCustomerId(customerId);
       if (!profile) {
         return res.status(404).json({ message: "No profile found. Complete the questionnaire first." });
       }
+      logger.info("Interview: profile loaded", { profileId: profile.id, status: profile.status });
+
       const customer = await storage.getCustomer(customerId);
       const entries = await storage.getKnowledgeEntriesByProfileId(profile.id);
       const factBanksList = await storage.getFactBanksByProfileId(profile.id);
+      logger.info("Interview: data loaded", { entries: entries.length, factBanks: factBanksList.length });
+
       const displayName = profile.displayName || customer?.name || "You";
 
       const { startInterview } = await import("./interview-agent");
@@ -1021,10 +1027,11 @@ export async function registerRoutes(
         customerId, profile.id, displayName, entries, factBanksList, profile
       );
 
+      logger.info("Interview started successfully", { customerId });
       res.json({ message: firstMessage });
     } catch (error) {
-      logger.error("Interview start error", { error: String(error) });
-      res.status(500).json({ message: "Failed to start interview" });
+      logger.error("Interview start error", { error: String(error), stack: (error as any)?.stack });
+      res.status(500).json({ message: `Failed to start interview: ${String(error)}` });
     }
   });
 

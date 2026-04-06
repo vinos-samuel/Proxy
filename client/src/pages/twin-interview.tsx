@@ -61,11 +61,12 @@ export default function TwinInterviewPage() {
         const data = await res.json();
         setMessages([{ role: "assistant", content: data.message }]);
       } catch (err: any) {
+        // Show actual error so we can diagnose
+        const errMsg = err?.message || String(err);
         setMessages([
           {
             role: "assistant",
-            content:
-              "I couldn't load your profile data. Please make sure your questionnaire is complete and try again.",
+            content: `Could not start the interview. Error: ${errMsg}\n\nPlease go back to the dashboard and try again.`,
           },
         ]);
       } finally {
@@ -131,29 +132,48 @@ export default function TwinInterviewPage() {
     }
   };
 
+  const recognitionRef = useRef<any>(null);
+
   const startListening = () => {
     const SR =
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
     if (!SR) return;
 
+    // If already listening, stop
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+      return;
+    }
+
     const recognition = new SR();
-    recognition.continuous = false;
+    recognition.continuous = true;        // keep going until user stops
     recognition.interimResults = false;
     recognition.lang = "en-US";
+    recognitionRef.current = recognition;
 
     setIsListening(true);
+    setInput("");
 
     recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setIsListening(false);
-      setInput(transcript);
-      // Auto-submit after short delay so user can see the transcript
-      setTimeout(() => handleSubmit(transcript), 400);
+      // Accumulate all results while listening
+      let fullTranscript = "";
+      for (let i = 0; i < event.results.length; i++) {
+        fullTranscript += event.results[i][0].transcript + " ";
+      }
+      setInput(fullTranscript.trim());
     };
 
-    recognition.onerror = () => setIsListening(false);
-    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+    recognition.onend = () => {
+      // When stopped (by button or browser), don't auto-submit — let user review transcript
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
 
     recognition.start();
   };
@@ -255,10 +275,7 @@ export default function TwinInterviewPage() {
       <div className="max-w-3xl mx-auto px-6 pt-6 w-full">
         <div className="bg-[#22C55E] border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4">
           <p className="mono text-xs text-black leading-relaxed">
-            <strong>How this works:</strong> The interviewer will ask targeted questions based on gaps in your profile. Answer as specifically as possible — real numbers, real outcomes. Your Twin will be updated when you're done.{" "}
-            {speechSupported && (
-              <span>Tap the <strong>mic button</strong> to speak instead of type.</span>
-            )}
+            <strong>No need to type.</strong>{speechSupported ? " Tap the mic, speak like you're explaining something to a colleague, tap again to stop. " : " "}Don't worry about grammar or sentence structure — just talk naturally. The interviewer will ask follow-up questions to pull out the specifics. Your Twin updates when you're done.
           </p>
         </div>
       </div>
@@ -342,21 +359,21 @@ export default function TwinInterviewPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={isListening ? "Listening…" : "Type your answer or tap the mic…"}
+                placeholder={isListening ? "Listening — tap mic to stop…" : "Tap mic to speak, or type here…"}
                 rows={2}
-                disabled={isLoading || isStarting || isListening}
-                className="flex-1 resize-none bg-transparent border-none outline-none mono text-sm text-black placeholder:text-black/30 disabled:opacity-50"
+                disabled={isLoading || isStarting}
+                className="flex-1 resize-none bg-transparent border-none outline-none mono text-sm text-black placeholder:text-black/40 disabled:opacity-50"
               />
               <div className="flex gap-2 flex-shrink-0">
                 {speechSupported && (
                   <button
                     onClick={startListening}
-                    disabled={isLoading || isStarting || isListening}
-                    title="Speak your answer"
-                    className={`w-10 h-10 border-[3px] border-black flex items-center justify-center transition-colors ${
+                    disabled={isLoading || isStarting}
+                    title={isListening ? "Tap to stop listening" : "Tap to speak"}
+                    className={`w-10 h-10 border-[3px] border-black flex items-center justify-center transition-all ${
                       isListening
-                        ? "bg-red-400 text-white animate-pulse"
-                        : "bg-[#E8E8E3] hover:bg-[#D1D1CC]"
+                        ? "bg-red-500 text-white animate-pulse scale-110"
+                        : "bg-black text-white hover:bg-gray-800"
                     } disabled:opacity-40`}
                   >
                     {isListening ? (
@@ -376,8 +393,9 @@ export default function TwinInterviewPage() {
               </div>
             </div>
             <p className="mono text-xs text-black/30 mt-2 text-center">
-              Press Enter to send · Shift+Enter for new line
-              {speechSupported && " · Mic button to speak"}
+              {speechSupported
+                ? "Tap mic to start/stop speaking · Press Enter to send"
+                : "Press Enter to send · Shift+Enter for new line"}
             </p>
           </div>
         )}

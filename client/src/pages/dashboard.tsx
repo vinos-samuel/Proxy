@@ -1,19 +1,35 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import {
   Edit, Eye, Globe, LogOut,
-  FileText, Sparkles, ExternalLink, ArrowRight, Copy, BarChart3, MessageSquare, Lock
+  FileText, Sparkles, ExternalLink, ArrowRight, Copy, BarChart3, MessageSquare, Lock, Trash2
 } from "lucide-react";
 import type { TwinProfile } from "@shared/schema";
 import PaymentGate from "@/components/PaymentGate";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
+  const [, navigate] = useLocation();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    setDeleteError("");
+    try {
+      await apiRequest("DELETE", "/api/account");
+      navigate("/");
+    } catch (err: any) {
+      setDeleteError(err.message || "Failed to delete account. Please try again.");
+      setDeleteLoading(false);
+    }
+  };
 
   const { data: analytics } = useQuery<{ viewCount: number; recentQuestions: { question: string; askedAt: string }[] }>({
     queryKey: ["/api/analytics/my"],
@@ -386,6 +402,49 @@ export default function DashboardPage() {
             </div>
           )}
         </motion.div>
+      </div>
+
+      {/* Danger Zone */}
+      <div className="max-w-6xl mx-auto px-6 mt-16 mb-8">
+        <div className="border-2 border-red-200 rounded-lg p-6">
+          <h3 className="text-sm font-bold uppercase tracking-widest text-red-500 mb-1 flex items-center gap-2">
+            <Trash2 className="h-4 w-4" /> Danger Zone
+          </h3>
+          <p className="text-black/50 text-sm mb-4">
+            Permanently delete your account and all associated data. This cannot be undone.
+          </p>
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="border-2 border-red-400 text-red-500 px-4 py-2 text-sm font-bold hover:bg-red-50 transition-colors"
+            >
+              Delete My Account
+            </button>
+          ) : (
+            <div className="bg-red-50 border-2 border-red-300 p-4 rounded">
+              <p className="text-red-700 font-bold text-sm mb-3">
+                Are you sure? This will permanently delete your profile, all career data, and chat history. You cannot undo this.
+              </p>
+              {deleteError && <p className="text-red-600 text-sm mb-3">{deleteError}</p>}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteLoading}
+                  className="bg-red-500 text-white px-4 py-2 text-sm font-bold hover:bg-red-600 disabled:opacity-50"
+                >
+                  {deleteLoading ? "Deleting..." : "Yes, Delete Everything"}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={deleteLoading}
+                  className="border-2 border-black/20 text-black/60 px-4 py-2 text-sm font-bold hover:bg-black/5"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <footer className="max-w-6xl mx-auto px-6 pt-12 border-t-2 border-black/10 flex flex-col md:flex-row justify-between items-center gap-6">

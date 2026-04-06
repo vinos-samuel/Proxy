@@ -29,6 +29,9 @@ export interface IStorage {
   createFactBank(data: InsertFactBank): Promise<FactBank>;
   deleteFactBanksByProfileId(profileId: string): Promise<void>;
 
+  // Chat Messages
+  deleteChatMessagesByProfileId(profileId: string): Promise<void>;
+
   // Knowledge Entries
   getKnowledgeEntriesByProfileId(profileId: string): Promise<KnowledgeEntry[]>;
   createKnowledgeEntry(data: InsertKnowledgeEntry): Promise<KnowledgeEntry>;
@@ -151,6 +154,10 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFactBanksByProfileId(profileId: string): Promise<void> {
     await db.delete(factBanks).where(eq(factBanks.twinProfileId, profileId));
+  }
+
+  async deleteChatMessagesByProfileId(profileId: string): Promise<void> {
+    await db.delete(chatMessages).where(eq(chatMessages.profileId, profileId));
   }
 
   async getKnowledgeEntriesByProfileId(profileId: string): Promise<KnowledgeEntry[]> {
@@ -346,6 +353,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCustomer(id: string): Promise<void> {
+    // Full cascade delete — remove all user data before deleting the account
+    const profile = await this.getProfileByCustomerId(id);
+    if (profile) {
+      await this.deleteChatMessagesByProfileId(profile.id);
+      await this.deleteKnowledgeEntriesByProfileId(profile.id);
+      await this.deleteFactBanksByProfileId(profile.id);
+      await this.deleteProfileById(profile.id);
+    }
+    // Delete the customer last (payments rows kept for financial record-keeping)
     await db.delete(customers).where(eq(customers.id, id));
   }
 }

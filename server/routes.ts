@@ -238,6 +238,21 @@ export async function registerRoutes(
     }
   });
 
+  // Self-serve account deletion — permanently deletes all user data
+  app.delete("/api/account", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const customerId = req.session.customerId!;
+      await storage.deleteCustomer(customerId);
+      req.session.destroy(() => {
+        res.clearCookie("connect.sid");
+        res.json({ success: true });
+      });
+    } catch (error) {
+      logger.error("Delete account error", { error: String(error) });
+      res.status(500).json({ message: "Failed to delete account. Please try again or contact vinos@myproxy.work" });
+    }
+  });
+
   app.post("/api/auth/logout", (req: Request, res: Response) => {
     req.session.destroy((err) => {
       if (err) return res.status(500).json({ message: "Logout failed" });

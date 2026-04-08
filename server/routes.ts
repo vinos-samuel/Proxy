@@ -20,6 +20,7 @@ import Stripe from "stripe";
 import Anthropic from "@anthropic-ai/sdk";
 import { verifyEmailTemplate, welcomeEmailTemplate, passwordResetTemplate } from "./emails";
 import { startInterview, sendInterviewMessage, extractAndComplete, clearInterviewSession } from "./interview-agent";
+import { startOnboarding, sendOnboardingMessage, extractAndSave, clearOnboardingSession } from "./onboarding-agent";
 
 // Tier → Stripe Price ID mapping
 const STRIPE_PRICE_IDS: Record<string, string> = {
@@ -1071,6 +1072,65 @@ export async function registerRoutes(
       }
       logger.error("Interview complete error", { error: String(error) });
       res.status(500).json({ message: "Failed to complete interview" });
+    }
+  });
+
+  // ==================== CONVERSATIONAL ONBOARDING ====================
+
+  app.post("/api/onboarding/start", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const customerId = req.session.customerId!;
+      const { draft } = req.body;
+      if (!draft) return res.status(400).json({ message: "draft is required" });
+
+      const firstMessage = await startOnboarding(customerId, draft);
+      logger.info("Onboarding started", { customerId });
+      res.json({ message: firstMessage });
+    } catch (error) {
+      logger.error("Onboarding start error", { error: String(error) });
+      res.status(500).json({ message: `Failed to start onboarding: ${String(error)}` });
+    }
+  });
+
+  app.post("/api/onboarding/message", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const customerId = req.session.customerId!;
+      const { message } = req.body;
+      if (!message || typeof message !== "string" || message.trim().length === 0) {
+        return res.status(400).json({ message: "message is required" });
+      }
+      const { botResponse, readyToComplete } = await sendOnboardingMessage(customerId, message.trim());
+      res.json({ message: botResponse, readyToComplete });
+    } catch (error: any) {
+      if (error.message === "No active onboarding session") {
+        return res.status(400).json({ message: "No active session. Please start again." });
+      }
+      logger.error("Onboarding message error", { error: String(error) });
+      res.status(500).json({ message: "Failed to process message" });
+    }
+  });
+
+  app.post("/api/onboarding/complete", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const customerId = req.session.customerId!;
+      const { enrichedDraft } = await extractAndSave(customerId);
+
+      // Save enriched draft back to DB (same as questionnaire save)
+      await storage.upsertProfile({
+        customerId,
+        questionnaireData: enrichedDraft,
+        status: "draft",
+      });
+
+      clearOnboardingSession(customerId);
+      logger.info("Onboarding completed", { customerId });
+      res.json({ success: true, draft: enrichedDraft });
+    } catch (error: any) {
+      if (error.message === "No active onboarding session") {
+        return res.status(400).json({ message: "No active session to complete." });
+      }
+      logger.error("Onboarding complete error", { error: String(error) });
+      res.status(500).json({ message: "Failed to complete onboarding" });
     }
   });
 

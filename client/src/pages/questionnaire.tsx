@@ -151,6 +151,7 @@ export default function QuestionnairePage() {
   const [resumeUploading, setResumeUploading] = useState(false);
   const [resumeFileName, setResumeFileName] = useState("");
   const [showAiDraftBanner, setShowAiDraftBanner] = useState(false);
+  const [showPathChoice, setShowPathChoice] = useState(false);
   const resumeInputRef = useRef<HTMLInputElement>(null);
 
   const headshotInputRef = useRef<HTMLInputElement>(null);
@@ -266,7 +267,8 @@ export default function QuestionnairePage() {
           return merged;
         });
         setShowAiDraftBanner(true);
-        toast({ title: "✨ AI pre-filled your profile", description: `All sections populated from ${file.name}. Review and personalise each step.` });
+        setShowPathChoice(true); // Show path choice instead of advancing to step 1
+        toast({ title: "✨ Draft ready", description: `Profile pre-filled from ${file.name}.` });
       } else {
         // Fallback: basic field pre-fill from extractedData only
         setData(prev => ({
@@ -615,6 +617,65 @@ export default function QuestionnairePage() {
               PDF only &bull; Max size: 5MB
             </p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Path choice screen — shown after CV pre-fill ──────────────────────────
+  if (showPathChoice) {
+    return (
+      <div className="min-h-screen bg-[#E8E8E3] flex flex-col items-center justify-center px-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+        <div className="max-w-2xl w-full">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-[#22C55E] border-[3px] border-black flex items-center justify-center mx-auto mb-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <Sparkles className="h-8 w-8 text-black" />
+            </div>
+            <h1 className="text-3xl font-bold mb-2">Your draft is ready.</h1>
+            <p className="mono text-sm text-black/60">
+              We've read your CV and pre-filled your profile. How do you want to continue?
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Option A — Chat */}
+            <button
+              onClick={() => navigate("/onboarding-chat")}
+              className="bg-[#22C55E] border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-left hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+            >
+              <div className="w-10 h-10 bg-black border-[3px] border-black flex items-center justify-center mb-4">
+                <Mic className="h-5 w-5 text-[#22C55E]" />
+              </div>
+              <h2 className="font-bold text-lg mb-2">Talk to the bot</h2>
+              <p className="mono text-xs text-black/70 leading-relaxed">
+                Have a natural conversation. Just talk about your career — no forms, no structure needed. The bot asks follow-up questions and builds your profile from what you share.
+              </p>
+              <div className="mono text-xs font-bold uppercase tracking-wider mt-4">
+                Recommended →
+              </div>
+            </button>
+
+            {/* Option B — Forms */}
+            <button
+              onClick={() => { setShowPathChoice(false); setCurrentStep(1); }}
+              className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-left hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+            >
+              <div className="w-10 h-10 bg-[#D1D1CC] border-[3px] border-black flex items-center justify-center mb-4">
+                <FileText className="h-5 w-5 text-black" />
+              </div>
+              <h2 className="font-bold text-lg mb-2">Review & edit forms</h2>
+              <p className="mono text-xs text-black/60 leading-relaxed">
+                Go through the 11-step questionnaire. Everything is pre-filled from your CV — review each section, personalise the details, and submit when ready.
+              </p>
+              <div className="mono text-xs text-black/40 uppercase tracking-wider mt-4">
+                ~20 minutes
+              </div>
+            </button>
+          </div>
+
+          <p className="text-center mono text-xs text-black/40 mt-6">
+            You can always switch — both paths lead to the same place.
+          </p>
         </div>
       </div>
     );

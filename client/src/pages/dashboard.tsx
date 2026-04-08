@@ -216,6 +216,11 @@ export default function DashboardPage() {
                       </>
                     )}
                   </div>
+                  {(profile?.status === "ready" || profile?.status === "published") && (
+                    <p className="mono text-xs text-black/40 mt-3">
+                      Use Preview to directly edit your Twin's content and layout.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -272,29 +277,25 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] brutal-card">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-[#93C5FD] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                    <Sparkles className="h-6 w-6 text-black" />
+              {(profile?.status === "processing" || profile?.status === "reprocessing") && (
+                <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] brutal-card">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-[#93C5FD] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                      <Sparkles className="h-6 w-6 text-black" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg">AI PROCESSING</h3>
+                      <div className="mono text-xs text-black/50 uppercase">NEURAL_ENGINE</div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg">AI PROCESSING</h3>
-                    <div className="mono text-xs text-black/50 uppercase">NEURAL_ENGINE</div>
+                  <p className="mono text-sm text-black/60 mb-4">
+                    Your Twin is being built. This takes 1–2 minutes — refresh the page to check progress.
+                  </p>
+                  <div className="inline-block px-3 py-1 bg-[#93C5FD] border-[3px] border-black mono text-xs uppercase tracking-wider font-bold">
+                    IN_PROGRESS
                   </div>
                 </div>
-                <p className="mono text-sm text-black/60 mb-4">
-                  {profile?.status === "ready" || profile?.status === "published"
-                    ? "Your content has been processed by AI."
-                    : "Submit your questionnaire to start AI processing."}
-                </p>
-                <div className={`inline-block px-3 py-1 ${
-                  profile?.status === "processing" ? "bg-[#93C5FD]" :
-                  profile?.status === "ready" || profile?.status === "published" ? "bg-[#86EFAC]" :
-                  "bg-[#D1D1CC]"
-                } border-[3px] border-black mono text-xs uppercase tracking-wider font-bold`}>
-                  {profile?.status === "processing" ? "IN_PROGRESS" : profile?.status === "ready" || profile?.status === "published" ? "COMPLETE" : "WAITING_FOR_INPUT"}
-                </div>
-              </div>
+              )}
 
               {/* 48-hour free edit window expiry notice */}
               {freeWindowExpired && (

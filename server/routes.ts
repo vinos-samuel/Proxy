@@ -1022,6 +1022,10 @@ export async function registerRoutes(
       const factBanksList = await storage.getFactBanksByProfileId(profile.id);
       logger.info("Interview: data loaded", { entries: entries.length, factBanks: factBanksList.length });
 
+      if (entries.length === 0) {
+        return res.status(400).json({ message: "Your profile hasn't been processed yet. Complete and submit your questionnaire first, then come back to deepen your Twin." });
+      }
+
       const displayName = profile.displayName || customer?.name || "You";
 
       const firstMessage = await startInterview(

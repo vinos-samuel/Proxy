@@ -128,6 +128,52 @@ export const blogPosts = pgTable("blog_posts", {
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// Job Search CRM tables
+export const jobCompanies = pgTable("job_companies", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  customerId: uuid("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  website: text("website"),
+  industry: text("industry"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const jobContacts = pgTable("job_contacts", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  customerId: uuid("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+  companyId: uuid("company_id").references(() => jobCompanies.id, { onDelete: "set null" }),
+  name: text("name").notNull(),
+  title: text("title"),
+  email: text("email"),
+  linkedinUrl: text("linkedin_url"),
+  lastOutreachDate: timestamp("last_outreach_date"),
+  responseReceived: boolean("response_received").default(false),
+  responseDate: timestamp("response_date"),
+  responseNotes: text("response_notes"),
+  followUpDate: timestamp("follow_up_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const jobApplications = pgTable("job_applications", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  customerId: uuid("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+  companyId: uuid("company_id").references(() => jobCompanies.id, { onDelete: "set null" }),
+  jobTitle: text("job_title").notNull(),
+  jobUrl: text("job_url"),
+  status: text("status").notNull().default("saved"), // saved | applied | interviewing | offer | rejected
+  salaryMin: integer("salary_min"),
+  salaryMax: integer("salary_max"),
+  salaryCurrency: text("salary_currency").default("USD"),
+  notes: text("notes"),
+  appliedAt: timestamp("applied_at"),
+  followUpDate: timestamp("follow_up_date"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // Insert schemas
 export const insertCustomerSchema = createInsertSchema(customers).omit({
   id: true,
@@ -153,6 +199,23 @@ export const insertFactBankSchema = createInsertSchema(factBanks).omit({
 
 export const insertKnowledgeEntrySchema = createInsertSchema(knowledgeEntries).omit({
   id: true,
+});
+
+export const insertJobCompanySchema = createInsertSchema(jobCompanies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertJobContactSchema = createInsertSchema(jobContacts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertJobApplicationSchema = createInsertSchema(jobApplications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 // Auth schemas
@@ -223,6 +286,12 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type BlogPost = typeof blogPosts.$inferSelect;
 export type InsertBlogPost = typeof blogPosts.$inferInsert;
+export type JobCompany = typeof jobCompanies.$inferSelect;
+export type InsertJobCompany = z.infer<typeof insertJobCompanySchema>;
+export type JobContact = typeof jobContacts.$inferSelect;
+export type InsertJobContact = z.infer<typeof insertJobContactSchema>;
+export type JobApplication = typeof jobApplications.$inferSelect;
+export type InsertJobApplication = z.infer<typeof insertJobApplicationSchema>;
 
 // Keep old exports for compatibility with integration files
 export const users = customers;

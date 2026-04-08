@@ -2,9 +2,13 @@ import { db } from "./db";
 import { eq, desc, sql, count } from "drizzle-orm";
 import {
   customers, twinProfiles, factBanks, knowledgeEntries, chatUsage, payments, chatMessages, blogPosts,
+  jobCompanies, jobContacts, jobApplications,
   type Customer, type InsertCustomer, type TwinProfile, type InsertTwinProfile,
   type FactBank, type InsertFactBank, type KnowledgeEntry, type InsertKnowledgeEntry,
-  type Payment, type BlogPost
+  type Payment, type BlogPost,
+  type JobCompany, type InsertJobCompany,
+  type JobContact, type InsertJobContact,
+  type JobApplication, type InsertJobApplication,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -460,6 +464,115 @@ export class DatabaseStorage implements IStorage {
     }
     // Delete the customer last (payments rows kept for financial record-keeping)
     await db.delete(customers).where(eq(customers.id, id));
+  }
+
+  // ─── Job Search CRM ────────────────────────────────────────────────────────
+
+  // Companies
+  async getJobCompanies(customerId: string): Promise<JobCompany[]> {
+    return db.select().from(jobCompanies).where(eq(jobCompanies.customerId, customerId)).orderBy(desc(jobCompanies.createdAt));
+  }
+
+  async createJobCompany(data: InsertJobCompany): Promise<JobCompany> {
+    const [company] = await db.insert(jobCompanies).values(data).returning();
+    return company;
+  }
+
+  async updateJobCompany(id: string, customerId: string, data: Partial<InsertJobCompany>): Promise<void> {
+    await db.update(jobCompanies)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(jobCompanies.id, id));
+  }
+
+  async deleteJobCompany(id: string, customerId: string): Promise<void> {
+    await db.delete(jobCompanies)
+      .where(eq(jobCompanies.id, id));
+  }
+
+  // Contacts
+  async getJobContacts(customerId: string): Promise<(JobContact & { companyName: string | null })[]> {
+    const rows = await db
+      .select({
+        id: jobContacts.id,
+        customerId: jobContacts.customerId,
+        companyId: jobContacts.companyId,
+        name: jobContacts.name,
+        title: jobContacts.title,
+        email: jobContacts.email,
+        linkedinUrl: jobContacts.linkedinUrl,
+        lastOutreachDate: jobContacts.lastOutreachDate,
+        responseReceived: jobContacts.responseReceived,
+        responseDate: jobContacts.responseDate,
+        responseNotes: jobContacts.responseNotes,
+        followUpDate: jobContacts.followUpDate,
+        notes: jobContacts.notes,
+        createdAt: jobContacts.createdAt,
+        companyName: jobCompanies.name,
+      })
+      .from(jobContacts)
+      .leftJoin(jobCompanies, eq(jobContacts.companyId, jobCompanies.id))
+      .where(eq(jobContacts.customerId, customerId))
+      .orderBy(desc(jobContacts.createdAt));
+    return rows;
+  }
+
+  async createJobContact(data: InsertJobContact): Promise<JobContact> {
+    const [contact] = await db.insert(jobContacts).values(data).returning();
+    return contact;
+  }
+
+  async updateJobContact(id: string, customerId: string, data: Partial<InsertJobContact>): Promise<void> {
+    await db.update(jobContacts)
+      .set(data)
+      .where(eq(jobContacts.id, id));
+  }
+
+  async deleteJobContact(id: string, customerId: string): Promise<void> {
+    await db.delete(jobContacts)
+      .where(eq(jobContacts.id, id));
+  }
+
+  // Applications
+  async getJobApplications(customerId: string): Promise<(JobApplication & { companyName: string | null })[]> {
+    const rows = await db
+      .select({
+        id: jobApplications.id,
+        customerId: jobApplications.customerId,
+        companyId: jobApplications.companyId,
+        jobTitle: jobApplications.jobTitle,
+        jobUrl: jobApplications.jobUrl,
+        status: jobApplications.status,
+        salaryMin: jobApplications.salaryMin,
+        salaryMax: jobApplications.salaryMax,
+        salaryCurrency: jobApplications.salaryCurrency,
+        notes: jobApplications.notes,
+        appliedAt: jobApplications.appliedAt,
+        followUpDate: jobApplications.followUpDate,
+        createdAt: jobApplications.createdAt,
+        updatedAt: jobApplications.updatedAt,
+        companyName: jobCompanies.name,
+      })
+      .from(jobApplications)
+      .leftJoin(jobCompanies, eq(jobApplications.companyId, jobCompanies.id))
+      .where(eq(jobApplications.customerId, customerId))
+      .orderBy(desc(jobApplications.createdAt));
+    return rows;
+  }
+
+  async createJobApplication(data: InsertJobApplication): Promise<JobApplication> {
+    const [application] = await db.insert(jobApplications).values(data).returning();
+    return application;
+  }
+
+  async updateJobApplication(id: string, customerId: string, data: Partial<InsertJobApplication>): Promise<void> {
+    await db.update(jobApplications)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(jobApplications.id, id));
+  }
+
+  async deleteJobApplication(id: string, customerId: string): Promise<void> {
+    await db.delete(jobApplications)
+      .where(eq(jobApplications.id, id));
   }
 }
 

@@ -96,6 +96,9 @@ export default function DashboardPage() {
             </div>
           </Link>
           <div className="flex items-center gap-4">
+            <Link href="/job-search">
+              <span className="mono text-sm font-bold text-black/60 hover:text-black uppercase tracking-wider cursor-pointer hidden sm:inline">Job Search</span>
+            </Link>
             <span className="mono text-sm text-black/60 hidden sm:inline uppercase tracking-wider">{user?.name}</span>
             <button
               onClick={() => logout()}

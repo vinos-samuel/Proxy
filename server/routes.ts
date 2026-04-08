@@ -1785,11 +1785,203 @@ Disallow: /payment/
 Disallow: /verify-email
 Disallow: /reset-password
 Disallow: /forgot-password
+Disallow: /job-search
 
 Sitemap: https://myproxy.work/sitemap.xml
 `;
     res.set("Content-Type", "text/plain");
     res.send(robots);
+  });
+
+  // ─── Job Search CRM Routes ──────────────────────────────────────────────────
+
+  // Companies
+  app.get("/api/crm/companies", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const companies = await storage.getJobCompanies(req.session.customerId!);
+      res.json(companies);
+    } catch (error) {
+      logger.error("Get companies error", { error: String(error) });
+      res.status(500).json({ message: "Failed to fetch companies" });
+    }
+  });
+
+  app.post("/api/crm/companies", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { name, website, industry, notes } = req.body;
+      if (!name?.trim()) return res.status(400).json({ message: "Company name is required" });
+      const company = await storage.createJobCompany({
+        customerId: req.session.customerId!,
+        name: name.trim(),
+        website: website?.trim() || null,
+        industry: industry?.trim() || null,
+        notes: notes?.trim() || null,
+      });
+      res.status(201).json(company);
+    } catch (error) {
+      logger.error("Create company error", { error: String(error) });
+      res.status(500).json({ message: "Failed to create company" });
+    }
+  });
+
+  app.patch("/api/crm/companies/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { name, website, industry, notes } = req.body;
+      const updates: Record<string, any> = {};
+      if (name !== undefined) updates.name = name.trim();
+      if (website !== undefined) updates.website = website?.trim() || null;
+      if (industry !== undefined) updates.industry = industry?.trim() || null;
+      if (notes !== undefined) updates.notes = notes?.trim() || null;
+      await storage.updateJobCompany(req.params.id, req.session.customerId!, updates);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Update company error", { error: String(error) });
+      res.status(500).json({ message: "Failed to update company" });
+    }
+  });
+
+  app.delete("/api/crm/companies/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      await storage.deleteJobCompany(req.params.id, req.session.customerId!);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Delete company error", { error: String(error) });
+      res.status(500).json({ message: "Failed to delete company" });
+    }
+  });
+
+  // Contacts
+  app.get("/api/crm/contacts", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const contacts = await storage.getJobContacts(req.session.customerId!);
+      res.json(contacts);
+    } catch (error) {
+      logger.error("Get contacts error", { error: String(error) });
+      res.status(500).json({ message: "Failed to fetch contacts" });
+    }
+  });
+
+  app.post("/api/crm/contacts", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { name, title, companyId, email, linkedinUrl, lastOutreachDate, responseReceived, responseDate, responseNotes, followUpDate, notes } = req.body;
+      if (!name?.trim()) return res.status(400).json({ message: "Contact name is required" });
+      const contact = await storage.createJobContact({
+        customerId: req.session.customerId!,
+        name: name.trim(),
+        title: title?.trim() || null,
+        companyId: companyId || null,
+        email: email?.trim() || null,
+        linkedinUrl: linkedinUrl?.trim() || null,
+        lastOutreachDate: lastOutreachDate ? new Date(lastOutreachDate) : null,
+        responseReceived: responseReceived ?? false,
+        responseDate: responseDate ? new Date(responseDate) : null,
+        responseNotes: responseNotes?.trim() || null,
+        followUpDate: followUpDate ? new Date(followUpDate) : null,
+        notes: notes?.trim() || null,
+      });
+      res.status(201).json(contact);
+    } catch (error) {
+      logger.error("Create contact error", { error: String(error) });
+      res.status(500).json({ message: "Failed to create contact" });
+    }
+  });
+
+  app.patch("/api/crm/contacts/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const updates: Record<string, any> = {};
+      const fields = ["name", "title", "companyId", "email", "linkedinUrl", "responseReceived", "responseNotes", "notes"];
+      for (const f of fields) {
+        if (req.body[f] !== undefined) updates[f] = req.body[f] || null;
+      }
+      if (req.body.name !== undefined) updates.name = req.body.name.trim();
+      const dateFields = ["lastOutreachDate", "responseDate", "followUpDate"];
+      for (const f of dateFields) {
+        if (req.body[f] !== undefined) updates[f] = req.body[f] ? new Date(req.body[f]) : null;
+      }
+      await storage.updateJobContact(req.params.id, req.session.customerId!, updates);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Update contact error", { error: String(error) });
+      res.status(500).json({ message: "Failed to update contact" });
+    }
+  });
+
+  app.delete("/api/crm/contacts/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      await storage.deleteJobContact(req.params.id, req.session.customerId!);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Delete contact error", { error: String(error) });
+      res.status(500).json({ message: "Failed to delete contact" });
+    }
+  });
+
+  // Applications
+  app.get("/api/crm/applications", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const applications = await storage.getJobApplications(req.session.customerId!);
+      res.json(applications);
+    } catch (error) {
+      logger.error("Get applications error", { error: String(error) });
+      res.status(500).json({ message: "Failed to fetch applications" });
+    }
+  });
+
+  app.post("/api/crm/applications", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { jobTitle, companyId, jobUrl, status, salaryMin, salaryMax, salaryCurrency, notes, appliedAt, followUpDate } = req.body;
+      if (!jobTitle?.trim()) return res.status(400).json({ message: "Job title is required" });
+      const application = await storage.createJobApplication({
+        customerId: req.session.customerId!,
+        jobTitle: jobTitle.trim(),
+        companyId: companyId || null,
+        jobUrl: jobUrl?.trim() || null,
+        status: status || "saved",
+        salaryMin: salaryMin ? Number(salaryMin) : null,
+        salaryMax: salaryMax ? Number(salaryMax) : null,
+        salaryCurrency: salaryCurrency || "USD",
+        notes: notes?.trim() || null,
+        appliedAt: appliedAt ? new Date(appliedAt) : null,
+        followUpDate: followUpDate ? new Date(followUpDate) : null,
+      });
+      res.status(201).json(application);
+    } catch (error) {
+      logger.error("Create application error", { error: String(error) });
+      res.status(500).json({ message: "Failed to create application" });
+    }
+  });
+
+  app.patch("/api/crm/applications/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const updates: Record<string, any> = {};
+      const textFields = ["jobTitle", "companyId", "jobUrl", "status", "salaryCurrency", "notes"];
+      for (const f of textFields) {
+        if (req.body[f] !== undefined) updates[f] = req.body[f] || null;
+      }
+      if (req.body.jobTitle !== undefined) updates.jobTitle = req.body.jobTitle.trim();
+      if (req.body.status !== undefined) updates.status = req.body.status;
+      if (req.body.salaryMin !== undefined) updates.salaryMin = req.body.salaryMin ? Number(req.body.salaryMin) : null;
+      if (req.body.salaryMax !== undefined) updates.salaryMax = req.body.salaryMax ? Number(req.body.salaryMax) : null;
+      const dateFields = ["appliedAt", "followUpDate"];
+      for (const f of dateFields) {
+        if (req.body[f] !== undefined) updates[f] = req.body[f] ? new Date(req.body[f]) : null;
+      }
+      await storage.updateJobApplication(req.params.id, req.session.customerId!, updates);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Update application error", { error: String(error) });
+      res.status(500).json({ message: "Failed to update application" });
+    }
+  });
+
+  app.delete("/api/crm/applications/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      await storage.deleteJobApplication(req.params.id, req.session.customerId!);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Delete application error", { error: String(error) });
+      res.status(500).json({ message: "Failed to delete application" });
+    }
   });
 
   return httpServer;

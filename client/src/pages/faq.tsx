@@ -74,10 +74,10 @@ export default function FAQPage() {
     },
     {
       q: "How long does it take to build my Digital Twin?",
-      plainText: "Most users complete their profile in 15-20 minutes. The process involves three steps: First, upload your CV and let the AI pre-fill most of your data. Second, review and personalize an 11-step questionnaire covering your career history, war stories, achievements, skills, and communication style. Third, add a headshot and optional video introduction. Once you submit, the AI processes your data and generates your portfolio page within minutes. After payment, your Digital Twin goes live instantly.",
+      plainText: "Most users complete their profile in 15-20 minutes. After uploading your CV, you choose your path: fill the guided 11-step questionnaire, or have a conversation with the AI — it's read your CV and interviews you naturally. Either path covers career history, war stories, achievements, skills, and communication style. Then add a headshot and optional video. Once you submit, the AI processes your data and generates your portfolio within minutes. After payment, your Digital Twin goes live instantly.",
       a: (
         <div className="space-y-4">
-          <p>Most users complete their profile in <strong className="text-black">15-20 minutes</strong>. Here's the process:</p>
+          <p>Most users complete their profile in <strong className="text-black">15-20 minutes</strong>. After uploading your CV, you pick your path:</p>
           <div className="space-y-3 ml-1">
             <div className="flex gap-3">
               <span className="bg-[#22C55E] text-black font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">1</span>
@@ -85,7 +85,7 @@ export default function FAQPage() {
             </div>
             <div className="flex gap-3">
               <span className="bg-[#22C55E] text-black font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">2</span>
-              <span><strong className="text-black">Review & personalize</strong> — 11-step questionnaire covering career history, war stories, achievements, skills, and communication style</span>
+              <span><strong className="text-black">Choose your path</strong> — fill the guided questionnaire (11 steps) or chat with the AI. Same result, different experience.</span>
             </div>
             <div className="flex gap-3">
               <span className="bg-[#22C55E] text-black font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">3</span>
@@ -93,6 +93,27 @@ export default function FAQPage() {
             </div>
           </div>
           <p>Once you submit, the AI processes your data and generates your portfolio page within minutes. After payment, your Digital Twin <strong className="text-black">goes live instantly</strong>.</p>
+        </div>
+      ),
+    },
+    {
+      q: "Can I build my Twin through a conversation instead of filling forms?",
+      plainText: "Yes. After uploading your CV, you choose between two paths: fill the guided questionnaire (11 structured steps) or chat with the AI. The conversation path feels like talking to a smart colleague who's already read your CV. It asks about your career, listens to your answers, and builds your profile from what you share naturally. No bullet points, no structured fields — just talk. Most people find it faster and less stressful. You can also start with the conversation and review the filled questionnaire afterwards.",
+      a: (
+        <div className="space-y-4">
+          <p>Yes. After uploading your CV, you choose between two paths:</p>
+          <div className="space-y-3 ml-1">
+            <div className="flex gap-3">
+              <span className="bg-black text-white font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">A</span>
+              <span><strong className="text-black">Guided questionnaire</strong> — 11 structured steps, you fill in the fields</span>
+            </div>
+            <div className="flex gap-3">
+              <span className="bg-[#22C55E] text-black font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">B</span>
+              <span><strong className="text-black">Conversation</strong> — the AI has read your CV and interviews you naturally. You just talk.</span>
+            </div>
+          </div>
+          <p>The conversation path feels like a smart colleague asking about your career — not a form, not a job interview. It asks about the real stuff: the decision you made under pressure, what the team you built actually looked like, what happened after that career move. The more naturally you talk, the better your Twin represents you.</p>
+          <p>Afterwards, you can review and edit the filled questionnaire before submitting.</p>
         </div>
       ),
     },
@@ -278,13 +299,12 @@ export default function FAQPage() {
     },
     {
       q: "What's coming next for Proxy?",
-      plainText: "We're actively building new features including LinkedIn profile enrichment (automatically pulling your posts, articles, and professional activity), conversational onboarding (build your Twin through a guided AI conversation instead of forms), advanced analytics with recruiter engagement insights, and additional AI agents for interview preparation and job search strategy. All existing members get early access to new features as they launch.",
+      plainText: "We're actively building new features including LinkedIn profile enrichment (automatically pulling your posts, articles, and professional activity), advanced analytics with recruiter engagement insights, and additional AI agents for interview preparation and job search strategy. All existing members get early access to new features as they launch.",
       a: (
         <div className="space-y-4">
           <p>We're actively building:</p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">LinkedIn profile enrichment</strong> — automatically pulling your posts, articles, and professional activity</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Conversational onboarding</strong> — build your Twin through a guided AI conversation instead of forms</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Advanced analytics</strong> — recruiter engagement insights</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">AI agents</strong> — for interview preparation and job search strategy</span></li>
           </ul>

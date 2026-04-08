@@ -106,27 +106,27 @@ export default function LandingPage() {
 
           <div className="mb-12 p-4 border-[3px] border-black bg-white mono text-xs text-black/60 flex justify-between items-center flex-wrap gap-4">
             <div className="flex gap-6 flex-wrap">
-              <span>SYS_STATUS: <span className="text-[#22C55E] font-bold">ACTIVE</span></span>
+              <span>STATUS: <span className="text-[#22C55E] font-bold">OPEN</span></span>
               <span className="hidden sm:inline">|</span>
-              <span>DEPLOYED_AGENTS: <span className="text-black font-bold">127</span></span>
+              <span>MEMBERS: <span className="text-black font-bold">127</span></span>
               <span className="hidden sm:inline">|</span>
-              <span>AVG_RESPONSE: <span className="text-black font-bold">0.8s</span></span>
+              <span>AVG_RECRUITER_SESSION: <span className="text-black font-bold">8_MINS</span></span>
             </div>
-            <div>LAST_DEPLOY: 12_FEB_2026</div>
+            <div>EST: 2025 | SINGAPORE</div>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 mb-16">
             <div>
-              <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest" data-testid="text-hero-label">&#9698; Career Conversation System</div>
+              <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest" data-testid="text-hero-label">&#9698; Your career, represented well</div>
               <h1 className="text-5xl lg:text-7xl font-bold leading-none mb-8" data-testid="text-hero-headline">
                 STOP<br />
                 APPLYING.<br />
                 START <span className="text-[#22C55E]">ENGAGING</span>.
               </h1>
               <div className="space-y-4 text-xl text-black/70 mb-8">
-                <p>Professionals with 12+ years of experience</p>
+                <p>You've built something real over 10+ years.</p>
                 <p>200+ applications. 6 interviews. Maybe 1 offer.</p>
-                <p className="text-black font-bold">Your PDF Cv is invisible.</p>
+                <p className="text-black font-bold">A PDF can't show any of it.</p>
               </div>
 
               <div className="terminal-input border-[#E8A75D] text-[#D4941D] mb-8">
@@ -169,27 +169,27 @@ export default function LandingPage() {
               </div>
 
               <div className="brutal-card bg-[#86EFAC] border-black p-6 col-span-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-engagement-model">
-                <div className="mono text-xs text-black/60 mb-2 uppercase">ENGAGEMENT_MODEL</div>
-                <div className="text-3xl font-bold text-black mb-2">ALWAYS-ON REPRESENTATION</div>
+                <div className="mono text-xs text-black/60 mb-2 uppercase">YOUR_TWIN</div>
+                <div className="text-3xl font-bold text-black mb-2">ALWAYS ON. ALWAYS READY.</div>
                 <div className="mono text-sm text-black/70">
-                  Recruiters &rarr; Your Proxy &rarr; Instant Answers &rarr; Interview
+                  Answers every recruiter question. Represents you accurately. Available at midnight, on weekends, across time zones.
                 </div>
               </div>
 
               <div className="brutal-card bg-[#C4B5FD] border-black p-6 col-span-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-operational-status">
-                <div className="mono text-xs text-black/60 mb-2 uppercase">OPERATIONAL_STATUS</div>
+                <div className="mono text-xs text-black/60 mb-2 uppercase">YOUR_PROXY</div>
                 <div className="grid grid-cols-3 gap-4 mt-4">
                   <div>
                     <div className="text-2xl font-bold text-black">24/7</div>
-                    <div className="mono text-xs text-black/60">UPTIME</div>
+                    <div className="mono text-xs text-black/60">AVAILABLE</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-black">0ms</div>
-                    <div className="mono text-xs text-black/60">LATENCY</div>
+                    <div className="text-2xl font-bold text-black">0</div>
+                    <div className="mono text-xs text-black/60">MISSED_CALLS</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-black">&infin;</div>
-                    <div className="mono text-xs text-black/60">SCALE</div>
+                    <div className="mono text-xs text-black/60">PATIENCE</div>
                   </div>
                 </div>
               </div>
@@ -251,8 +251,8 @@ export default function LandingPage() {
 
       <section id="how" className="px-6 py-20">
         <div className="max-w-7xl mx-auto">
-          <div className="mono text-xs text-black/50 mb-4 uppercase tracking-widest">&#9698; Deployment Sequence</div>
-          <h2 className="text-5xl font-bold mb-16">INITIALIZATION_PROTOCOL</h2>
+          <div className="mono text-xs text-black/50 mb-4 uppercase tracking-widest">&#9698; How it works</div>
+          <h2 className="text-5xl font-bold mb-16">HOW_IT_WORKS</h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
@@ -260,26 +260,26 @@ export default function LandingPage() {
                 module: "MODULE_01",
                 icon: <FileText className="h-8 w-8" />,
                 color: "bg-[#E8A75D]",
-                title: "CONTEXT\nINGESTION",
-                desc: "Guided questionnaire extracts: career trajectory | war stories with CAR format | communication patterns | objection responses",
-                footer: "DURATION: ~20_MINUTES",
+                title: "YOUR\nSTORY",
+                desc: "Upload your CV — then choose: fill the guided questionnaire OR let the AI interview you in a natural conversation. Either way captures: career trajectory | real stories | how you communicate | how you handle hard situations",
+                footer: "DURATION: ~20_MINUTES | TWO PATHS",
                 badge: null,
               },
               {
                 module: "MODULE_02",
                 icon: <Zap className="h-8 w-8" />,
                 color: "bg-[#93C5FD]",
-                title: "AI\nPROCESSING",
-                desc: "Our trained AI engine transforms raw input \u2192 structured knowledge base | polished narratives | personality calibration | response patterns",
-                footer: "PROCESSING: AUTOMATED",
+                title: "TWIN\nBUILDS",
+                desc: "Your stories, skills, and voice get structured into a knowledge base. The AI learns how you think, how you communicate, and what makes you different from everyone else in your field.",
+                footer: "PROCESSING: MINUTES_NOT_DAYS",
                 badge: null,
               },
               {
                 module: "MODULE_03",
                 icon: <Rocket className="h-8 w-8" />,
                 color: "bg-[#86EFAC]",
-                title: "DEPLOYMENT",
-                desc: "Live portfolio with intelligent chatbot | yourname.myproxy.work domain | answers recruiter questions in your voice | 24/7 availability",
+                title: "YOU\nGO LIVE",
+                desc: "Your profile goes live at myproxy.work/you — a public page with an AI chatbot that answers recruiter questions in your voice, 24/7, without you having to be there.",
                 footer: "STATUS: PRODUCTION_READY",
                 badge: null,
               },
@@ -287,9 +287,9 @@ export default function LandingPage() {
                 module: "MODULE_04",
                 icon: <Target className="h-8 w-8" />,
                 color: "bg-[#FDE68A]",
-                title: "PERSONAL\nAGENT",
-                desc: "Research companies | Find contacts | Identify roles | Position your Agent proactively | Automated outreach",
-                footer: "STATUS: IN_DEVELOPMENT",
+                title: "YOUR\nAGENT",
+                desc: "Track applications | Research companies | Draft outreach | Prep for interviews — your job search, organised and intelligent. One place for the whole journey.",
+                footer: "STATUS: COMING_SOON",
                 badge: "SOON",
               },
             ].map((item, i) => (
@@ -427,11 +427,11 @@ export default function LandingPage() {
           </h2>
 
           <div className="mono text-xl text-black/60 mb-12">
-            127_DEPLOYED_AGENTS | AVG_SESSION: 8M | RESPONSE_RATE: +3.2X
+            127 PROFESSIONALS ALREADY DEPLOYED
           </div>
 
           <div className="terminal-input border-black text-black mb-8 max-w-2xl mx-auto shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-            <span className="text-black/30">$</span> INITIALIZE_YOUR_PROXY --tier=EVOLVE
+            <span className="text-black/30">$</span> BUILD_YOUR_PROXY --name=YOUR_NAME
           </div>
 
           <button

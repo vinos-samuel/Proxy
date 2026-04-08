@@ -205,18 +205,14 @@ export default function QuestionnairePage() {
         }
         return merged;
       });
-      // Show AI draft banner if this data was pre-filled by AI
+      // Show AI draft banner if pre-filled by AI
       if (saved._aiDraft === true) {
         setShowAiDraftBanner(true);
-        // If they haven't started filling yet, offer the path choice (Bot vs Manual)
-        if (currentStep === 0) {
-          setShowPathChoice(true);
-          return;
-        }
       }
-      // If profile exists, skip the resume upload step (Step 0) and start at Step 1
+      // For all draft users: offer path choice (Bot vs Manual) instead of dropping into forms
       if (currentStep === 0) {
-        setCurrentStep(1);
+        setShowPathChoice(true);
+        return;
       }
     }
   }, [existingProfile, currentStep]);

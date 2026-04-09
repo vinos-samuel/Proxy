@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { eq, desc, sql, count } from "drizzle-orm";
+import { eq, desc, sql, count, and } from "drizzle-orm";
 import {
   customers, twinProfiles, factBanks, knowledgeEntries, chatUsage, payments, chatMessages, blogPosts,
   jobCompanies, jobContacts, jobApplications,
@@ -481,12 +481,12 @@ export class DatabaseStorage implements IStorage {
   async updateJobCompany(id: string, customerId: string, data: Partial<InsertJobCompany>): Promise<void> {
     await db.update(jobCompanies)
       .set({ ...data, updatedAt: new Date() })
-      .where(eq(jobCompanies.id, id));
+      .where(and(eq(jobCompanies.id, id), eq(jobCompanies.customerId, customerId)));
   }
 
   async deleteJobCompany(id: string, customerId: string): Promise<void> {
     await db.delete(jobCompanies)
-      .where(eq(jobCompanies.id, id));
+      .where(and(eq(jobCompanies.id, id), eq(jobCompanies.customerId, customerId)));
   }
 
   // Contacts
@@ -524,12 +524,12 @@ export class DatabaseStorage implements IStorage {
   async updateJobContact(id: string, customerId: string, data: Partial<InsertJobContact>): Promise<void> {
     await db.update(jobContacts)
       .set(data)
-      .where(eq(jobContacts.id, id));
+      .where(and(eq(jobContacts.id, id), eq(jobContacts.customerId, customerId)));
   }
 
   async deleteJobContact(id: string, customerId: string): Promise<void> {
     await db.delete(jobContacts)
-      .where(eq(jobContacts.id, id));
+      .where(and(eq(jobContacts.id, id), eq(jobContacts.customerId, customerId)));
   }
 
   // Applications
@@ -567,12 +567,12 @@ export class DatabaseStorage implements IStorage {
   async updateJobApplication(id: string, customerId: string, data: Partial<InsertJobApplication>): Promise<void> {
     await db.update(jobApplications)
       .set({ ...data, updatedAt: new Date() })
-      .where(eq(jobApplications.id, id));
+      .where(and(eq(jobApplications.id, id), eq(jobApplications.customerId, customerId)));
   }
 
   async deleteJobApplication(id: string, customerId: string): Promise<void> {
     await db.delete(jobApplications)
-      .where(eq(jobApplications.id, id));
+      .where(and(eq(jobApplications.id, id), eq(jobApplications.customerId, customerId)));
   }
 }
 

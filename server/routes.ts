@@ -121,7 +121,10 @@ export async function registerRoutes(
         createTableIfMissing: true,
         pruneSessionInterval: false, // Disable auto-prune: table.sql missing from dist/ in Replit
       }),
-      secret: process.env.SESSION_SECRET || "digital-twin-secret-key",
+      secret: (() => {
+        if (!process.env.SESSION_SECRET) throw new Error("SESSION_SECRET environment variable must be set");
+        return process.env.SESSION_SECRET;
+      })(),
       resave: false,
       saveUninitialized: false,
       cookie: {
@@ -179,7 +182,7 @@ export async function registerRoutes(
         const resend = new Resend(process.env.RESEND_API_KEY);
         const fromEmail = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
         const appUrl = process.env.APP_URL ||
-          `${req.headers["x-forwarded-proto"] || "https"}://${req.headers["x-forwarded-host"] || req.headers.host}`;
+          `https://${req.hostname}`;
         const verifyUrl = `${appUrl}/verify-email?token=${rawToken}`;
 
         const { error: emailError } = await resend.emails.send({
@@ -290,7 +293,7 @@ export async function registerRoutes(
         const resend = new Resend(process.env.RESEND_API_KEY);
         const fromEmail = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
         const appUrl = process.env.APP_URL ||
-          `${req.headers["x-forwarded-proto"] || "https"}://${req.headers["x-forwarded-host"] || req.headers.host}`;
+          `https://${req.hostname}`;
         resend.emails.send({
           from: fromEmail,
           to: customer.email,
@@ -1273,6 +1276,15 @@ export async function registerRoutes(
           const tier = session.metadata?.tier || "pro";
           const username = session.metadata?.username || "";
           const customerId = session.metadata?.customerId || "";
+
+          // Security: verify this Stripe session belongs to the authenticated user
+          if (customerId !== req.session.customerId) {
+            logger.warn("[Stripe] Payment status session mismatch", {
+              sessionCustomerId: customerId,
+              authCustomerId: req.session.customerId,
+            });
+            return res.status(403).json({ message: "Session mismatch" });
+          }
 
           if (profileId) {
             await storage.updateProfileById(profileId, {

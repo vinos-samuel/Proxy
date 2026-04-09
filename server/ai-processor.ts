@@ -10,6 +10,13 @@ const ai = new GoogleGenAI({
   },
 });
 
+// Sanitise user-provided strings before injecting into AI prompts.
+// Strips prompt injection vectors: newlines, backticks, and template-breaking chars.
+function sanitizeForPrompt(s: string | undefined | null, maxLen = 1000): string {
+  if (!s) return "";
+  return s.replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").trim().slice(0, maxLen);
+}
+
 interface QuestionnaireData {
   step1: {
     fullName: string;
@@ -113,31 +120,55 @@ export async function processQuestionnaire(
   // STEP 1: Generate Portfolio Display Data
   // ====================
 
+  // Sanitise all user-controlled fields before injecting into prompts
+  const s1Name     = sanitizeForPrompt(data.step1.fullName, 100);
+  const s1Title    = sanitizeForPrompt(data.step1.currentTitle, 100);
+  const s1Location = sanitizeForPrompt(data.step1.location, 100) || "N/A";
+  const s2Summary  = sanitizeForPrompt(data.step2.professionalSummary, 1000);
+  const s5Achievements = sanitizeForPrompt(data.step5?.achievements, 1000) || "Not provided";
+  const s6Skills   = sanitizeForPrompt(data.step6?.technicalSkills, 500) || "Not provided";
+  const s7WordsUsed   = sanitizeForPrompt(data.step7?.wordsUsedOften, 200) || "N/A";
+  const s7WordsAvoided = sanitizeForPrompt(data.step7?.wordsAvoided, 200) || "N/A";
+
+  const careerHistoryText = (data.step2?.careerHistory || []).map((r: any) => {
+    const rTitle   = sanitizeForPrompt(r.title, 100);
+    const rCompany = sanitizeForPrompt(r.company, 100);
+    const rYears   = sanitizeForPrompt(r.years, 50);
+    const rAch = typeof r.achievements === "string"
+      ? sanitizeForPrompt(r.achievements, 500)
+      : (r.achievements || []).map((a: string) => sanitizeForPrompt(a, 200)).join("; ");
+    return `${rTitle} at ${rCompany} (${rYears})\nAchievements: ${rAch}`;
+  }).join("\n\n");
+
+  const warStoriesText = data.step4.stories.map((s, i) => {
+    return `Story ${i + 1}: ${sanitizeForPrompt(s.title, 100)}\nChallenge: ${sanitizeForPrompt(s.challenge, 500)}\nApproach: ${sanitizeForPrompt(s.approach, 500)}\nResult: ${sanitizeForPrompt(s.result, 500)}`;
+  }).join("\n\n");
+
   const fullInputData = `
 EXECUTIVE PROFILE:
-Name: ${data.step1.fullName}
-Title: ${data.step1.currentTitle}
-Location: ${data.step1.location || "N/A"}
+Name: ${s1Name}
+Title: ${s1Title}
+Location: ${s1Location}
 
 PROFESSIONAL SUMMARY:
-${data.step2.professionalSummary}
+${s2Summary}
 
 CAREER HISTORY:
-${(data.step2?.careerHistory || []).map((r: any) => `${r.title} at ${r.company} (${r.years})\nAchievements: ${typeof r.achievements === 'string' ? r.achievements : (r.achievements || []).join('; ')}`).join('\n\n')}
+${careerHistoryText}
 
 KEY ACHIEVEMENTS:
-${data.step5?.achievements || "Not provided"}
+${s5Achievements}
 
 TECHNICAL SKILLS:
-${data.step6?.technicalSkills || "Not provided"}
+${s6Skills}
 
 WAR STORIES:
-${data.step4.stories.map((s, i) => `Story ${i + 1}: ${s.title}\nChallenge: ${s.challenge}\nApproach: ${s.approach}\nResult: ${s.result}`).join('\n\n')}
+${warStoriesText}
 
 COMMUNICATION STYLE:
 Tone: ${toneMap[tone]}
-Words they use: ${data.step7?.wordsUsedOften || "N/A"}
-Words they avoid: ${data.step7?.wordsAvoided || "N/A"}`;
+Words they use: ${s7WordsUsed}
+Words they avoid: ${s7WordsAvoided}`;
 
   let portfolioData: any = {};
   let skillsMatrixData: any = null;
@@ -305,8 +336,8 @@ Return ONLY valid JSON, no markdown:
   } catch (error) {
     console.error("Error generating portfolio data:", error);
     portfolioData = {
-      heroDescription: `I'm ${data.step1.fullName}. ${data.step2.professionalSummary}`,
-      heroSubtitle: data.step1.currentTitle,
+      heroDescription: `I'm ${s1Name}. ${s2Summary}`,
+      heroSubtitle: s1Title,
       impactMetrics: [],
       stats: [],
       problemFit: [],
@@ -324,7 +355,7 @@ Return ONLY valid JSON, no markdown:
     persona: portfolioData.chatbotPersona || portfolioData.heroDescription || data.step2.professionalSummary,
     tone: tone,
     answerStyle: toneMap[tone] || toneMap.direct,
-    fallbackResponse: `I appreciate the question, but that's outside my area of expertise. I'm ${data.step1.fullName}, and I'm happy to discuss my experience as a ${data.step1.currentTitle}. Feel free to ask about my career history, key projects, or professional philosophy.`,
+    fallbackResponse: `I appreciate the question, but that's outside my area of expertise. I'm ${s1Name}, and I'm happy to discuss my experience as a ${s1Title}. Feel free to ask about my career history, key projects, or professional philosophy.`,
     photoUrl: data.step10?.headshot || null,
     resumeUrl: data.step3?.resumeUrl || null,
     brandingTheme: data.step10?.brandingTheme || "corporate",
@@ -351,24 +382,27 @@ Return ONLY valid JSON, no markdown:
   // ====================
 
   try {
-    const aboutPrompt = `You are writing a professional "Tell Me About Yourself" response for ${data.step1.fullName}, a ${data.step1.currentTitle} based in ${data.step1.location || "N/A"}.
+    const s7WritingSample     = sanitizeForPrompt(data.step7?.writingSample, 500);
+    const s11SpecialInstructions = sanitizeForPrompt(data.step11?.specialInstructions, 300);
+
+    const aboutPrompt = `You are writing a professional "Tell Me About Yourself" response for ${s1Name}, a ${s1Title} based in ${s1Location}.
 
 Their professional summary / positioning:
-${data.step2.professionalSummary}
+${s2Summary}
 
 Key achievements:
-${data.step5?.achievements || "Not provided"}
+${s5Achievements}
 
 Technical skills:
-${data.step6?.technicalSkills || "Not provided"}
+${s6Skills}
 
 Communication style preference: ${toneMap[tone] || "Professional"}
-Words they use often: ${data.step7?.wordsUsedOften || "N/A"}
-Words they avoid: ${data.step7?.wordsAvoided || "N/A"}
+Words they use often: ${s7WordsUsed}
+Words they avoid: ${s7WordsAvoided}
 
-${data.step7?.writingSample ? `Sample of their writing style:\n${data.step7.writingSample}` : ""}
+${s7WritingSample ? `Sample of their writing style:\n${s7WritingSample}` : ""}
 
-${data.step11?.specialInstructions ? `Special instructions: ${data.step11.specialInstructions}` : ""}
+${s11SpecialInstructions ? `Special instructions: ${s11SpecialInstructions}` : ""}
 
 Write a compelling, first-person narrative (2-3 paragraphs) that introduces this person authentically. Mirror their communication style and word choices. Be specific and weave in key achievements.
 
@@ -381,7 +415,7 @@ Return ONLY the narrative text, no headers or labels.`;
 
     const aboutText =
       aboutResponse.text ||
-      `I'm ${data.step1.fullName}, ${data.step2.professionalSummary}`;
+      `I'm ${s1Name}, ${s2Summary}`;
 
     await storage.createKnowledgeEntry({
       twinProfileId: profileId,
@@ -411,7 +445,7 @@ Return ONLY the narrative text, no headers or labels.`;
       entryId: "about-me",
       type: "canonical",
       title: "Tell Me About Yourself",
-      content: `I'm ${data.step1.fullName}. ${data.step2.professionalSummary}`,
+      content: `I'm ${s1Name}. ${s2Summary}`,
       challenge: null,
       approach: null,
       result: null,
@@ -446,17 +480,17 @@ Return ONLY the narrative text, no headers or labels.`;
     let enhancedResult = story.result;
 
     try {
-      const rewritePrompt = `You are a professional career storytelling expert. Rewrite this war story in the voice of ${data.step1.fullName}, a ${data.step1.currentTitle}.
+      const rewritePrompt = `You are a professional career storytelling expert. Rewrite this war story in the voice of ${s1Name}, a ${s1Title}.
 
 Communication style: ${toneMap[tone] || "Professional"}
-Words they use often: ${data.step7?.wordsUsedOften || "N/A"}
-Words they avoid: ${data.step7?.wordsAvoided || "N/A"}
+Words they use often: ${s7WordsUsed}
+Words they avoid: ${s7WordsAvoided}
 
 ORIGINAL STORY:
-Title: ${story.title}
-Challenge (raw input): ${story.challenge}
-Approach (raw input): ${story.approach}
-Result (raw input): ${story.result}
+Title: ${sanitizeForPrompt(story.title, 100)}
+Challenge (raw input): ${sanitizeForPrompt(story.challenge, 500)}
+Approach (raw input): ${sanitizeForPrompt(story.approach, 500)}
+Result (raw input): ${sanitizeForPrompt(story.result, 500)}
 
 INSTRUCTIONS:
 - Rewrite each section to be polished, impactful, and interview-ready
@@ -521,7 +555,7 @@ Return ONLY valid JSON (no markdown, no code fences):
       .join("\n");
 
     try {
-      const achPrompt = `You are a career impact specialist. Rewrite these achievements for ${data.step1.fullName}, a ${data.step1.currentTitle}, to be maximally impressive and interview-ready.
+      const achPrompt = `You are a career impact specialist. Rewrite these achievements for ${s1Name}, a ${s1Title}, to be maximally impressive and interview-ready.
 
 Communication style: ${toneMap[tone] || "Professional"}
 
@@ -574,7 +608,7 @@ Return ONLY the rewritten bullet points, nothing else.`;
     await storage.createFactBank({
       twinProfileId: profileId,
       companyName: "Key Achievements",
-      roleName: data.step1.currentTitle,
+      roleName: s1Title,
       duration: "Career Highlights",
       facts: achievementLines,
     });
@@ -621,14 +655,14 @@ Return ONLY the rewritten bullet points, nothing else.`;
     let aiAnswer = qa.answer;
 
     try {
-      const qaPrompt = `You are ${data.step1.fullName}, a ${data.step1.currentTitle}.
+      const qaPrompt = `You are ${s1Name}, a ${s1Title}.
 Communication style: ${toneMap[tone] || "Professional"}
-Words you use often: ${data.step7?.wordsUsedOften || "N/A"}
-Words you avoid: ${data.step7?.wordsAvoided || "N/A"}
+Words you use often: ${s7WordsUsed}
+Words you avoid: ${s7WordsAvoided}
 
-A visitor asks: "${qa.question}"
+A visitor asks: "${sanitizeForPrompt(qa.question, 300)}"
 
-The key points to cover are: ${qa.answer}
+The key points to cover are: ${sanitizeForPrompt(qa.answer, 500)}
 
 Write a natural first-person response (2-3 paragraphs) that covers these key points while matching the communication style. Be authentic and specific.
 
@@ -681,14 +715,14 @@ Return ONLY the response text.`;
     let aiResponse = obj.response;
 
     try {
-      const objPrompt = `You are ${data.step1.fullName}, a ${data.step1.currentTitle}.
+      const objPrompt = `You are ${s1Name}, a ${s1Title}.
 Communication style: ${toneMap[tone] || "Professional"}
-Words you use often: ${data.step7?.wordsUsedOften || "N/A"}
-Words you avoid: ${data.step7?.wordsAvoided || "N/A"}
+Words you use often: ${s7WordsUsed}
+Words you avoid: ${s7WordsAvoided}
 
-Someone raises this objection/concern: "${obj.objection}"
+Someone raises this objection/concern: "${sanitizeForPrompt(obj.objection, 300)}"
 
-Your key response points: ${obj.response}
+Your key response points: ${sanitizeForPrompt(obj.response, 500)}
 
 Write a natural first-person response (1-2 paragraphs) that addresses this concern confidently while matching the communication style. Turn the objection into a positive.
 
@@ -919,19 +953,19 @@ interface ParsedResume {
 
 export async function generateQuestionnaireDraft(parsedResume: ParsedResume) {
   const rolesText = (parsedResume.roles || [])
-    .map((r) => `- ${r.title} at ${r.company} (${r.years}): ${r.achievements}`)
+    .map((r) => `- ${sanitizeForPrompt(r.title, 100)} at ${sanitizeForPrompt(r.company, 100)} (${sanitizeForPrompt(r.years, 50)}): ${sanitizeForPrompt(r.achievements, 500)}`)
     .join("\n");
 
   const prompt = `You are an expert career profile writer. Based on the resume data below, generate a complete pre-filled questionnaire draft for a Digital Twin AI career profile.
 
 RESUME DATA:
-Name: ${parsedResume.name || ""}
-Title: ${parsedResume.currentTitle || ""}
-Summary: ${parsedResume.summary || ""}
+Name: ${sanitizeForPrompt(parsedResume.name, 100)}
+Title: ${sanitizeForPrompt(parsedResume.currentTitle, 100)}
+Summary: ${sanitizeForPrompt(parsedResume.summary, 500)}
 Roles:
 ${rolesText}
-Skills: ${(parsedResume.skills || []).join(", ")}
-Key Achievements: ${(parsedResume.achievements || []).join(" | ")}
+Skills: ${(parsedResume.skills || []).map((s) => sanitizeForPrompt(s, 80)).join(", ")}
+Key Achievements: ${(parsedResume.achievements || []).map((a) => sanitizeForPrompt(a, 200)).join(" | ")}
 
 TASK: Generate a complete questionnaire draft. Be specific using details from the resume. For war stories, Q&A, and objections, create realistic drafts — add [EDIT] wherever the person should personalise further with their own words/numbers.
 

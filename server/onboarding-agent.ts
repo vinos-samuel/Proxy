@@ -8,6 +8,12 @@ const ai = new GoogleGenAI({
   },
 });
 
+// Sanitise user-provided strings before injecting into AI prompts.
+function sanitizeForPrompt(s: string | undefined | null, maxLen = 1000): string {
+  if (!s) return "";
+  return s.replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").trim().slice(0, maxLen);
+}
+
 // ==================== SESSION STORE ====================
 
 interface OnboardingSession {
@@ -35,15 +41,15 @@ const COVERAGE_AREAS = [
 
 function buildSystemPrompt(draft: any): string {
   // Summarise what we already know from the CV so the bot doesn't repeat it
-  const name = draft?.step1?.fullName || "them";
-  const title = draft?.step1?.currentTitle || "";
-  const summary = draft?.step2?.professionalSummary || "";
+  const name = sanitizeForPrompt(draft?.step1?.fullName || "them", 100);
+  const title = sanitizeForPrompt(draft?.step1?.currentTitle || "", 100);
+  const summary = sanitizeForPrompt(draft?.step2?.professionalSummary || "", 500);
   const careerHistory = draft?.step2?.careerHistory || [];
   const existingStories = draft?.step4?.stories || [];
-  const skills = draft?.step6?.technicalSkills || "";
+  const skills = sanitizeForPrompt(draft?.step6?.technicalSkills || "", 300);
 
   const careerSummary = careerHistory.length > 0
-    ? careerHistory.map((r: any) => `${r.title} at ${r.company} (${r.years})`).join(", ")
+    ? careerHistory.map((r: any) => `${sanitizeForPrompt(r.title, 80)} at ${sanitizeForPrompt(r.company, 80)} (${sanitizeForPrompt(r.years, 20)})`).join(", ")
     : "not yet captured";
 
   const storiesNote = existingStories.length > 0

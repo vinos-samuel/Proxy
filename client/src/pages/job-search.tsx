@@ -751,7 +751,13 @@ export default function JobSearchPage() {
         isLoading: false,
       }));
     } catch (err) {
-      setAgentState(s => ({ ...s, isLoading: false, messages: [{ role: "assistant", content: "Something went wrong starting the agent. Please try again." }] }));
+      // Extract the real server error message for diagnosis
+      let display = "Something went wrong starting the agent.";
+      if (err instanceof Error) {
+        const match = err.message.match(/"message":"([^"]+)"/);
+        display = match ? match[1] : err.message;
+      }
+      setAgentState(s => ({ ...s, isLoading: false, messages: [{ role: "assistant", content: `Error: ${display}` }] }));
     }
   }
 

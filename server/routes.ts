@@ -1103,7 +1103,7 @@ export async function registerRoutes(
       const result = await startAgentSession(customerId, actionType, entityType, entityData);
       res.json(result);
     } catch (error) {
-      logger.error("Job agent start error", { error: String(error) });
+      logger.error("Job agent start error", { error: String(error), stack: error instanceof Error ? error.stack : undefined });
       res.status(500).json({ message: `Failed to start agent: ${String(error)}` });
     }
   });

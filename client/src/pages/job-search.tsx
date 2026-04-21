@@ -96,6 +96,95 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
+// ─── Agent message markdown renderer ─────────────────────────────────────────
+function renderAgentMarkdown(text: string): string {
+  // Process inline formatting
+  function inline(t: string): string {
+    return t
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`(.+?)`/g, '<code class="bg-black/10 px-1 rounded text-xs font-mono">$1</code>');
+  }
+
+  const blocks = text.split(/\n\n+/);
+  const html: string[] = [];
+
+  for (const block of blocks) {
+    const trimmed = block.trim();
+    if (!trimmed) continue;
+
+    // Section headers (ALL CAPS word followed by colon, or ## heading)
+    if (/^#{1,3} /.test(trimmed)) {
+      const t = trimmed.replace(/^#{1,3} /, '');
+      html.push(`<p class="font-bold text-sm uppercase tracking-wide mt-3 mb-1">${inline(t)}</p>`);
+      continue;
+    }
+
+    // Numbered list
+    const lines = trimmed.split('\n');
+    if (lines.every(l => /^\d+[\.\)]\s/.test(l.trim()))) {
+      const items = lines.map(l => {
+        const content = l.trim().replace(/^\d+[\.\)]\s+/, '');
+        return `<li class="mb-2">${inline(content)}</li>`;
+      }).join('');
+      html.push(`<ol class="list-decimal ml-5 space-y-1 my-1">${items}</ol>`);
+      continue;
+    }
+
+    // Bullet list (- or *)
+    if (lines.every(l => /^[-*•]\s/.test(l.trim()))) {
+      const items = lines.map(l => {
+        const content = l.trim().replace(/^[-*•]\s+/, '');
+        return `<li class="mb-1">${inline(content)}</li>`;
+      }).join('');
+      html.push(`<ul class="list-disc ml-5 space-y-1 my-1">${items}</ul>`);
+      continue;
+    }
+
+    // Mixed list (some numbered, some bullets, or mixed content)
+    if (lines.some(l => /^[-*•\d]/.test(l.trim()))) {
+      const items = lines.map(l => {
+        const t2 = l.trim();
+        const content = t2.replace(/^[-*•]\s+/, '').replace(/^\d+[\.\)]\s+/, '');
+        if (!content) return '';
+        return `<li class="mb-1">${inline(content)}</li>`;
+      }).filter(Boolean).join('');
+      if (items) {
+        html.push(`<ul class="list-disc ml-5 space-y-1 my-1">${items}</ul>`);
+        continue;
+      }
+    }
+
+    // Section label line (e.g. "STRONG MATCHES:" or "1. STRONG MATCHES")
+    if (/^[A-Z][A-Z\s]{3,}[:\s]/.test(trimmed) && !trimmed.includes('\n')) {
+      html.push(`<p class="font-bold text-xs uppercase tracking-widest text-black/70 mt-3 mb-1">${inline(trimmed)}</p>`);
+      continue;
+    }
+
+    // Regular paragraph — handle single newlines as line breaks
+    const withBreaks = lines.map(l => inline(l)).join('<br/>');
+    html.push(`<p class="mb-2 leading-relaxed">${withBreaks}</p>`);
+  }
+
+  return html.join('\n');
+}
+
+function AgentMessage({ content, role }: { content: string; role: "user" | "assistant" }) {
+  if (role === "user") {
+    return (
+      <div className="bg-black text-white border-[2px] border-black p-3 text-sm leading-relaxed">
+        {content}
+      </div>
+    );
+  }
+  return (
+    <div
+      className="bg-white border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] p-4 text-sm agent-message"
+      dangerouslySetInnerHTML={{ __html: renderAgentMarkdown(content) }}
+    />
+  );
+}
+
 // ─── Agent Panel ──────────────────────────────────────────────────────────────
 function AgentPanel({
   state,
@@ -154,12 +243,8 @@ function AgentPanel({
 
           {state.messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[88%] p-3 text-sm whitespace-pre-wrap ${
-                msg.role === "user"
-                  ? "bg-black text-white border-[2px] border-black"
-                  : "bg-white border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-              }`}>
-                {msg.content}
+              <div className="max-w-[92%]">
+                <AgentMessage content={msg.content} role={msg.role} />
               </div>
             </div>
           ))}

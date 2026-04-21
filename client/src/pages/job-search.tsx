@@ -1,20 +1,56 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
-import { Building2, Users, Briefcase, Plus, X, ExternalLink, ChevronDown, Check, AlertCircle, ArrowLeft } from "lucide-react";
+import {
+  Building2, Users, Briefcase, Plus, X, ExternalLink,
+  AlertCircle, ArrowLeft, Bot, Send, Loader2,
+} from "lucide-react";
 import type { JobCompany, JobContact, JobApplication } from "@shared/schema";
 
-type JobContactWithCompany = JobContact & { companyName: string | null };
+type JobContactWithCompany     = JobContact     & { companyName: string | null };
 type JobApplicationWithCompany = JobApplication & { companyName: string | null };
 
+type AgentActionType =
+  | "research"
+  | "outreach"
+  | "follow-up"
+  | "cover-letter"
+  | "role-fit"
+  | "interview-prep"
+  | "thank-you"
+  | "negotiate";
+type AgentEntityType = "company" | "contact" | "application";
+
+interface AgentState {
+  open:        boolean;
+  actionType:  AgentActionType;
+  entityType:  AgentEntityType;
+  entityLabel: string;
+  entityData:  Record<string, any>;
+  sessionId:   string | null;
+  messages:    Array<{ role: "user" | "assistant"; content: string }>;
+  isLoading:   boolean;
+}
+
+const ACTION_LABELS: Record<AgentActionType, string> = {
+  "research":       "COMPANY RESEARCH",
+  "outreach":       "OUTREACH DRAFT",
+  "follow-up":      "FOLLOW-UP MESSAGE",
+  "cover-letter":   "COVER LETTER",
+  "role-fit":       "ROLE FIT ANALYSIS",
+  "interview-prep": "INTERVIEW PREP",
+  "thank-you":      "THANK YOU NOTE",
+  "negotiate":      "SALARY NEGOTIATION",
+};
+
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  saved:       { label: "SAVED",        color: "text-blue-800",  bg: "bg-blue-100" },
-  applied:     { label: "APPLIED",      color: "text-yellow-800",bg: "bg-yellow-100" },
-  interviewing:{ label: "INTERVIEWING", color: "text-purple-800",bg: "bg-purple-100" },
-  offer:       { label: "OFFER",        color: "text-green-800", bg: "bg-[#86EFAC]" },
-  rejected:    { label: "REJECTED",     color: "text-red-800",   bg: "bg-red-100" },
+  saved:        { label: "SAVED",        color: "text-blue-800",   bg: "bg-blue-100" },
+  applied:      { label: "APPLIED",      color: "text-yellow-800", bg: "bg-yellow-100" },
+  interviewing: { label: "INTERVIEWING", color: "text-purple-800", bg: "bg-purple-100" },
+  offer:        { label: "OFFER",        color: "text-green-800",  bg: "bg-[#86EFAC]" },
+  rejected:     { label: "REJECTED",     color: "text-red-800",    bg: "bg-red-100" },
 };
 
 function formatDate(d: string | Date | null | undefined) {
@@ -26,6 +62,13 @@ function isPastDue(d: string | Date | null | undefined) {
   if (!d) return false;
   return new Date(d) < new Date();
 }
+
+// ─── Shared styles ────────────────────────────────────────────────────────────
+const inputClass   = "w-full border-[2px] border-black bg-white px-3 py-2 text-sm font-medium focus:outline-none focus:border-[#22C55E]";
+const btnPrimary   = "bg-[#22C55E] text-black px-4 py-2 font-bold mono text-sm border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none";
+const btnSecondary = "bg-white text-black px-4 py-2 font-bold mono text-sm border-[2px] border-black hover:bg-gray-100";
+const btnDanger    = "bg-red-500 text-white px-3 py-1.5 font-bold mono text-xs border-[2px] border-black hover:bg-red-600";
+const btnAgent     = "bg-black text-[#22C55E] px-2 py-1 font-bold mono text-xs border-[2px] border-black hover:bg-zinc-800 flex items-center gap-1";
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
@@ -53,13 +96,199 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-const inputClass = "w-full border-[2px] border-black bg-white px-3 py-2 text-sm font-medium focus:outline-none focus:border-[#22C55E]";
-const btnPrimary = "bg-[#22C55E] text-black px-4 py-2 font-bold mono text-sm border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none";
-const btnSecondary = "bg-white text-black px-4 py-2 font-bold mono text-sm border-[2px] border-black hover:bg-gray-100";
-const btnDanger = "bg-red-500 text-white px-3 py-1.5 font-bold mono text-xs border-[2px] border-black hover:bg-red-600";
+// ─── Agent message markdown renderer ─────────────────────────────────────────
+function renderAgentMarkdown(text: string): string {
+  // Process inline formatting
+  function inline(t: string): string {
+    return t
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`(.+?)`/g, '<code class="bg-black/10 px-1 rounded text-xs font-mono">$1</code>');
+  }
+
+  const blocks = text.split(/\n\n+/);
+  const html: string[] = [];
+
+  for (const block of blocks) {
+    const trimmed = block.trim();
+    if (!trimmed) continue;
+
+    // Section headers (ALL CAPS word followed by colon, or ## heading)
+    if (/^#{1,3} /.test(trimmed)) {
+      const t = trimmed.replace(/^#{1,3} /, '');
+      html.push(`<p class="font-bold text-sm uppercase tracking-wide mt-3 mb-1">${inline(t)}</p>`);
+      continue;
+    }
+
+    // Numbered list
+    const lines = trimmed.split('\n');
+    if (lines.every(l => /^\d+[\.\)]\s/.test(l.trim()))) {
+      const items = lines.map(l => {
+        const content = l.trim().replace(/^\d+[\.\)]\s+/, '');
+        return `<li class="mb-2">${inline(content)}</li>`;
+      }).join('');
+      html.push(`<ol class="list-decimal ml-5 space-y-1 my-1">${items}</ol>`);
+      continue;
+    }
+
+    // Bullet list (- or *)
+    if (lines.every(l => /^[-*•]\s/.test(l.trim()))) {
+      const items = lines.map(l => {
+        const content = l.trim().replace(/^[-*•]\s+/, '');
+        return `<li class="mb-1">${inline(content)}</li>`;
+      }).join('');
+      html.push(`<ul class="list-disc ml-5 space-y-1 my-1">${items}</ul>`);
+      continue;
+    }
+
+    // Mixed list (some numbered, some bullets, or mixed content)
+    if (lines.some(l => /^[-*•\d]/.test(l.trim()))) {
+      const items = lines.map(l => {
+        const t2 = l.trim();
+        const content = t2.replace(/^[-*•]\s+/, '').replace(/^\d+[\.\)]\s+/, '');
+        if (!content) return '';
+        return `<li class="mb-1">${inline(content)}</li>`;
+      }).filter(Boolean).join('');
+      if (items) {
+        html.push(`<ul class="list-disc ml-5 space-y-1 my-1">${items}</ul>`);
+        continue;
+      }
+    }
+
+    // Section label line (e.g. "STRONG MATCHES:" or "1. STRONG MATCHES")
+    if (/^[A-Z][A-Z\s]{3,}[:\s]/.test(trimmed) && !trimmed.includes('\n')) {
+      html.push(`<p class="font-bold text-xs uppercase tracking-widest text-black/70 mt-3 mb-1">${inline(trimmed)}</p>`);
+      continue;
+    }
+
+    // Regular paragraph — handle single newlines as line breaks
+    const withBreaks = lines.map(l => inline(l)).join('<br/>');
+    html.push(`<p class="mb-2 leading-relaxed">${withBreaks}</p>`);
+  }
+
+  return html.join('\n');
+}
+
+function AgentMessage({ content, role }: { content: string; role: "user" | "assistant" }) {
+  if (role === "user") {
+    return (
+      <div className="bg-black text-white border-[2px] border-black p-3 text-sm leading-relaxed">
+        {content}
+      </div>
+    );
+  }
+  return (
+    <div
+      className="bg-white border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] p-4 text-sm agent-message"
+      dangerouslySetInnerHTML={{ __html: renderAgentMarkdown(content) }}
+    />
+  );
+}
+
+// ─── Agent Panel ──────────────────────────────────────────────────────────────
+function AgentPanel({
+  state,
+  onSendMessage,
+  onClose,
+}: {
+  state: AgentState;
+  onSendMessage: (msg: string) => void;
+  onClose: () => void;
+}) {
+  const [input, setInput] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [state.messages, state.isLoading]);
+
+  function handleSend(e: React.FormEvent) {
+    e.preventDefault();
+    if (!input.trim() || state.isLoading) return;
+    onSendMessage(input.trim());
+    setInput("");
+  }
+
+  if (!state.open) return null;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} />
+      <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-[#E8E8E3] border-l-[3px] border-black flex flex-col shadow-[-8px_0_0_0_rgba(0,0,0,1)]">
+
+        {/* Header */}
+        <div className="bg-black text-white p-4 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <Bot className="h-4 w-4 text-[#22C55E] flex-shrink-0" />
+              <span className="mono text-xs font-bold text-[#22C55E] uppercase tracking-widest">
+                {ACTION_LABELS[state.actionType]}
+              </span>
+            </div>
+            <div className="font-bold text-sm truncate">{state.entityLabel}</div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 bg-red-500 border-[2px] border-white flex items-center justify-center hover:bg-red-600 flex-shrink-0">
+            <X className="h-4 w-4 text-white" />
+          </button>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {state.messages.length === 0 && state.isLoading && (
+            <div className="flex items-center gap-2 text-black/50 mono text-sm py-8 justify-center">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Agent is thinking...</span>
+            </div>
+          )}
+
+          {state.messages.map((msg, i) => (
+            <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div className="max-w-[92%]">
+                <AgentMessage content={msg.content} role={msg.role} />
+              </div>
+            </div>
+          ))}
+
+          {state.isLoading && state.messages.length > 0 && (
+            <div className="flex justify-start">
+              <div className="bg-white border-[2px] border-black p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <Loader2 className="h-4 w-4 animate-spin text-black/50" />
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <div className="border-t-[3px] border-black p-4 bg-[#D1D1CC]">
+          <form onSubmit={handleSend} className="flex gap-2">
+            <input
+              className="flex-1 border-[2px] border-black bg-white px-3 py-2 text-sm focus:outline-none focus:border-[#22C55E]"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder="Ask the agent to refine, adjust tone, try again..."
+              disabled={state.isLoading}
+            />
+            <button
+              type="submit"
+              disabled={state.isLoading || !input.trim()}
+              className="bg-[#22C55E] border-[2px] border-black px-3 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] disabled:opacity-40"
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          </form>
+          <div className="mono text-xs text-black/40 mt-2 text-center">
+            Copy agent output directly into LinkedIn, email, or your notes
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
 
 // ─── Companies Tab ─────────────────────────────────────────────────────────────
-function CompaniesTab() {
+function CompaniesTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t: AgentEntityType, l: string, d: Record<string, any>) => void }) {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<JobCompany | null>(null);
   const [form, setForm] = useState({ name: "", website: "", industry: "", notes: "" });
@@ -124,11 +353,20 @@ function CompaniesTab() {
         {companies.map(c => (
           <div key={c.id} className="border-[3px] border-black bg-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <div className="flex items-start justify-between mb-2">
-              <div>
-                <div className="font-bold text-lg">{c.name}</div>
+              <div className="min-w-0 flex-1">
+                <div className="font-bold text-lg truncate">{c.name}</div>
                 {c.industry && <div className="mono text-xs text-black/50 uppercase">{c.industry}</div>}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 ml-3 flex-shrink-0">
+                <button
+                  onClick={() => onOpenAgent("research", "company", c.name, {
+                    name: c.name, website: c.website, industry: c.industry, notes: c.notes,
+                  })}
+                  className={btnAgent}
+                  title="Research company fit, hiring signals, and talking points"
+                >
+                  <Bot className="h-3 w-3" /> RESEARCH
+                </button>
                 <button onClick={() => openEdit(c)} className={btnSecondary} style={{ padding: "4px 10px" }}>EDIT</button>
                 <button onClick={() => deleteMutation.mutate(c.id)} className={btnDanger}>DEL</button>
               </div>
@@ -170,7 +408,7 @@ function CompaniesTab() {
 }
 
 // ─── Contacts Tab ──────────────────────────────────────────────────────────────
-function ContactsTab() {
+function ContactsTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t: AgentEntityType, l: string, d: Record<string, any>) => void }) {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<JobContactWithCompany | null>(null);
   const emptyForm = { name: "", title: "", companyId: "", email: "", linkedinUrl: "", lastOutreachDate: "", responseReceived: false, responseNotes: "", followUpDate: "", notes: "" };
@@ -212,14 +450,10 @@ function ContactsTab() {
   function openEdit(c: JobContactWithCompany) {
     setEditing(c);
     setForm({
-      name: c.name,
-      title: c.title || "",
-      companyId: c.companyId || "",
-      email: c.email || "",
+      name: c.name, title: c.title || "", companyId: c.companyId || "", email: c.email || "",
       linkedinUrl: c.linkedinUrl || "",
       lastOutreachDate: c.lastOutreachDate ? new Date(c.lastOutreachDate).toISOString().split("T")[0] : "",
-      responseReceived: c.responseReceived || false,
-      responseNotes: c.responseNotes || "",
+      responseReceived: c.responseReceived || false, responseNotes: c.responseNotes || "",
       followUpDate: c.followUpDate ? new Date(c.followUpDate).toISOString().split("T")[0] : "",
       notes: c.notes || "",
     });
@@ -256,16 +490,14 @@ function ContactsTab() {
         {contacts.map(c => (
           <div key={c.id} className="border-[3px] border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <div className="flex items-start justify-between">
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 flex-wrap">
                   <span className="font-bold">{c.name}</span>
                   {c.title && <span className="mono text-xs text-black/50">{c.title}</span>}
                   {c.companyName && <span className="mono text-xs bg-black text-white px-2 py-0.5">{c.companyName}</span>}
                 </div>
                 <div className="flex flex-wrap gap-4 mt-2 mono text-xs text-black/50">
-                  {c.lastOutreachDate && (
-                    <span>REACHED OUT: {formatDate(c.lastOutreachDate)}</span>
-                  )}
+                  {c.lastOutreachDate && <span>REACHED OUT: {formatDate(c.lastOutreachDate)}</span>}
                   {c.lastOutreachDate && (
                     <span className={c.responseReceived ? "text-green-700 font-bold" : "text-orange-600 font-bold"}>
                       {c.responseReceived ? "✓ RESPONDED" : "NO RESPONSE"}
@@ -279,7 +511,32 @@ function ContactsTab() {
                 </div>
                 {c.notes && <div className="text-sm text-black/60 mt-1">{c.notes}</div>}
               </div>
-              <div className="flex gap-2 ml-4">
+              <div className="flex gap-2 ml-4 flex-shrink-0 flex-wrap justify-end">
+                <button
+                  onClick={() => onOpenAgent("outreach", "contact", `${c.name}${c.companyName ? ` @ ${c.companyName}` : ""}`, {
+                    name: c.name, title: c.title, companyName: c.companyName,
+                    email: c.email, linkedinUrl: c.linkedinUrl, notes: c.notes,
+                    lastOutreachDate: c.lastOutreachDate, responseReceived: c.responseReceived,
+                    responseNotes: c.responseNotes, followUpDate: c.followUpDate,
+                  })}
+                  className={btnAgent}
+                  title="Draft an outreach message tailored to this contact"
+                >
+                  <Bot className="h-3 w-3" /> OUTREACH
+                </button>
+                {c.lastOutreachDate && !c.responseReceived && (
+                  <button
+                    onClick={() => onOpenAgent("follow-up", "contact", `${c.name}${c.companyName ? ` @ ${c.companyName}` : ""}`, {
+                      name: c.name, title: c.title, companyName: c.companyName,
+                      email: c.email, linkedinUrl: c.linkedinUrl, notes: c.notes,
+                      lastOutreachDate: c.lastOutreachDate, responseNotes: c.responseNotes,
+                    })}
+                    className={btnAgent}
+                    title="Write a follow-up — they haven't responded yet"
+                  >
+                    <Bot className="h-3 w-3" /> FOLLOW UP
+                  </button>
+                )}
                 {c.linkedinUrl && (
                   <a href={c.linkedinUrl.startsWith("http") ? c.linkedinUrl : `https://${c.linkedinUrl}`} target="_blank" rel="noreferrer" className={btnSecondary} style={{ padding: "4px 10px" }}>LI</a>
                 )}
@@ -350,7 +607,7 @@ function ContactsTab() {
 }
 
 // ─── Applications Tab ──────────────────────────────────────────────────────────
-function ApplicationsTab() {
+function ApplicationsTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t: AgentEntityType, l: string, d: Record<string, any>) => void }) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<JobApplicationWithCompany | null>(null);
@@ -393,14 +650,9 @@ function ApplicationsTab() {
   function openEdit(a: JobApplicationWithCompany) {
     setEditing(a);
     setForm({
-      jobTitle: a.jobTitle,
-      companyId: a.companyId || "",
-      jobUrl: a.jobUrl || "",
-      status: a.status,
-      salaryMin: a.salaryMin?.toString() || "",
-      salaryMax: a.salaryMax?.toString() || "",
-      salaryCurrency: a.salaryCurrency || "USD",
-      notes: a.notes || "",
+      jobTitle: a.jobTitle, companyId: a.companyId || "", jobUrl: a.jobUrl || "", status: a.status,
+      salaryMin: a.salaryMin?.toString() || "", salaryMax: a.salaryMax?.toString() || "",
+      salaryCurrency: a.salaryCurrency || "USD", notes: a.notes || "",
       appliedAt: a.appliedAt ? new Date(a.appliedAt).toISOString().split("T")[0] : "",
       followUpDate: a.followUpDate ? new Date(a.followUpDate).toISOString().split("T")[0] : "",
     });
@@ -413,13 +665,8 @@ function ApplicationsTab() {
   }
 
   const isPending = createMutation.isPending || updateMutation.isPending;
-
   const filtered = statusFilter === "all" ? applications : applications.filter(a => a.status === statusFilter);
-
-  const statusCounts = applications.reduce((acc, a) => {
-    acc[a.status] = (acc[a.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const statusCounts = applications.reduce((acc, a) => { acc[a.status] = (acc[a.status] || 0) + 1; return acc; }, {} as Record<string, number>);
 
   return (
     <div>
@@ -434,7 +681,6 @@ function ApplicationsTab() {
       </div>
 
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        {/* Filter tabs */}
         <div className="flex gap-1 flex-wrap">
           {["all", ...Object.keys(STATUS_CONFIG)].map(s => (
             <button key={s} onClick={() => setStatusFilter(s)}
@@ -461,11 +707,18 @@ function ApplicationsTab() {
       <div className="space-y-3">
         {filtered.map(a => {
           const cfg = STATUS_CONFIG[a.status] || STATUS_CONFIG.saved;
+          const entityLabel = `${a.jobTitle}${a.companyName ? ` @ ${a.companyName}` : ""}`;
+          const entityData  = {
+            jobTitle: a.jobTitle, companyName: a.companyName, jobUrl: a.jobUrl,
+            status: a.status, notes: a.notes,
+            salaryMin: a.salaryMin, salaryMax: a.salaryMax, salaryCurrency: a.salaryCurrency,
+            appliedAt: a.appliedAt, followUpDate: a.followUpDate,
+          };
           return (
             <div key={a.id} className="border-[3px] border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <div className="p-4">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 flex-wrap mb-1">
                       <span className="font-bold text-lg">{a.jobTitle}</span>
                       {a.companyName && <span className="mono text-xs bg-black text-white px-2 py-0.5">{a.companyName}</span>}
@@ -489,11 +742,54 @@ function ApplicationsTab() {
                     </div>
                     {a.notes && <div className="text-sm text-black/60 mt-2">{a.notes}</div>}
                   </div>
-                  <div className="flex gap-2 ml-2">
+                  <div className="flex gap-2 ml-2 flex-shrink-0 flex-wrap justify-end">
+                    {/* Agent action buttons — context-sensitive by status */}
+                    <button
+                      onClick={() => onOpenAgent("cover-letter", "application", entityLabel, entityData)}
+                      className={btnAgent}
+                      title="Generate a tailored cover letter"
+                    >
+                      <Bot className="h-3 w-3" /> COVER LTR
+                    </button>
+                    <button
+                      onClick={() => onOpenAgent("role-fit", "application", entityLabel, entityData)}
+                      className={btnAgent}
+                      title="Analyse JD fit gaps vs your profile"
+                    >
+                      <Bot className="h-3 w-3" /> ROLE FIT
+                    </button>
+                    {a.status === "interviewing" && (
+                      <>
+                        <button
+                          onClick={() => onOpenAgent("interview-prep", "application", entityLabel, entityData)}
+                          className={btnAgent}
+                          title="Interview prep using your Twin profile"
+                        >
+                          <Bot className="h-3 w-3" /> INTERVIEW
+                        </button>
+                        <button
+                          onClick={() => onOpenAgent("thank-you", "application", entityLabel, entityData)}
+                          className={btnAgent}
+                          title="Draft a post-interview thank you note"
+                        >
+                          <Bot className="h-3 w-3" /> THANK YOU
+                        </button>
+                      </>
+                    )}
+                    {a.status === "offer" && (
+                      <button
+                        onClick={() => onOpenAgent("negotiate", "application", entityLabel, entityData)}
+                        className={btnAgent}
+                        title="Build a salary counter-offer strategy"
+                      >
+                        <Bot className="h-3 w-3" /> NEGOTIATE
+                      </button>
+                    )}
                     <button onClick={() => openEdit(a)} className={btnSecondary} style={{ padding: "4px 10px" }}>EDIT</button>
                     <button onClick={() => deleteMutation.mutate(a.id)} className={btnDanger}>DEL</button>
                   </div>
                 </div>
+
                 {/* Quick status update */}
                 <div className="flex gap-1 mt-3 pt-3 border-t border-black/10 flex-wrap">
                   <span className="mono text-xs text-black/40 self-center mr-1">MOVE TO →</span>
@@ -553,8 +849,8 @@ function ApplicationsTab() {
                 <input className={inputClass} type="date" value={form.followUpDate} onChange={e => setForm(f => ({ ...f, followUpDate: e.target.value }))} />
               </FormField>
             </div>
-            <FormField label="Notes">
-              <textarea className={inputClass} rows={3} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Recruiter name, interview stage, what you know about the role..." />
+            <FormField label="Notes / Job Description">
+              <textarea className={inputClass} rows={4} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Paste the job description here — the AI agent will use it to write tailored cover letters and role fit analysis. Or add notes: recruiter name, interview stage, etc." />
             </FormField>
             <div className="flex gap-3 pt-2">
               <button type="submit" className={btnPrimary} disabled={isPending}>{isPending ? "SAVING..." : editing ? "SAVE CHANGES" : "ADD APPLICATION"}</button>
@@ -573,6 +869,11 @@ export default function JobSearchPage() {
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<"applications" | "companies" | "contacts">("applications");
 
+  const [agentState, setAgentState] = useState<AgentState>({
+    open: false, actionType: "research", entityType: "company",
+    entityLabel: "", entityData: {}, sessionId: null, messages: [], isLoading: false,
+  });
+
   const { data: profile } = useQuery({
     queryKey: ["/api/profile"],
     queryFn: async () => {
@@ -584,6 +885,45 @@ export default function JobSearchPage() {
   });
 
   const isPro = profile?.tier === "pro" || profile?.paymentStatus === "paid";
+
+  async function openAgent(
+    actionType: AgentActionType,
+    entityType: AgentEntityType,
+    entityLabel: string,
+    entityData: Record<string, any>
+  ) {
+    setAgentState({ open: true, actionType, entityType, entityLabel, entityData, sessionId: null, messages: [], isLoading: true });
+    try {
+      const res  = await apiRequest("POST", "/api/job-agent/start", { actionType, entityType, entityData });
+      const body = await res.json();
+      setAgentState(s => ({
+        ...s,
+        sessionId: body.sessionId,
+        messages: [{ role: "assistant", content: body.message }],
+        isLoading: false,
+      }));
+    } catch (err) {
+      // Extract the real server error message for diagnosis
+      let display = "Something went wrong starting the agent.";
+      if (err instanceof Error) {
+        const match = err.message.match(/"message":"([^"]+)"/);
+        display = match ? match[1] : err.message;
+      }
+      setAgentState(s => ({ ...s, isLoading: false, messages: [{ role: "assistant", content: `Error: ${display}` }] }));
+    }
+  }
+
+  async function sendAgentMessage(message: string) {
+    if (!agentState.sessionId) return;
+    setAgentState(s => ({ ...s, messages: [...s.messages, { role: "user", content: message }], isLoading: true }));
+    try {
+      const res  = await apiRequest("POST", "/api/job-agent/message", { sessionId: agentState.sessionId, message });
+      const body = await res.json();
+      setAgentState(s => ({ ...s, messages: [...s.messages, { role: "assistant", content: body.message }], isLoading: false }));
+    } catch (err) {
+      setAgentState(s => ({ ...s, isLoading: false }));
+    }
+  }
 
   const tabs = [
     { key: "applications", label: "Applications", icon: Briefcase },
@@ -607,8 +947,11 @@ export default function JobSearchPage() {
               <span className="font-bold text-xl tracking-tight">JOB SEARCH</span>
             </div>
           </div>
-          <div className="mono text-xs text-black/50 uppercase tracking-widest">
-            {user?.name}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 mono text-xs font-bold text-[#22C55E] bg-black px-3 py-1.5 border-[2px] border-black">
+              <Bot className="h-3 w-3" /> AGENT ACTIVE
+            </div>
+            <div className="mono text-xs text-black/50 uppercase tracking-widest">{user?.name}</div>
           </div>
         </div>
       </nav>
@@ -647,12 +990,19 @@ export default function JobSearchPage() {
               })}
             </div>
 
-            {activeTab === "applications" && <ApplicationsTab />}
-            {activeTab === "companies" && <CompaniesTab />}
-            {activeTab === "contacts" && <ContactsTab />}
+            {activeTab === "applications" && <ApplicationsTab onOpenAgent={openAgent} />}
+            {activeTab === "companies"    && <CompaniesTab    onOpenAgent={openAgent} />}
+            {activeTab === "contacts"     && <ContactsTab     onOpenAgent={openAgent} />}
           </>
         )}
       </div>
+
+      {/* Agent Panel */}
+      <AgentPanel
+        state={agentState}
+        onSendMessage={sendAgentMessage}
+        onClose={() => setAgentState(s => ({ ...s, open: false }))}
+      />
     </div>
   );
 }

@@ -21,6 +21,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { verifyEmailTemplate, welcomeEmailTemplate, passwordResetTemplate } from "./emails";
 import { startInterview, sendInterviewMessage, extractAndComplete, clearInterviewSession } from "./interview-agent";
 import { startOnboarding, sendOnboardingMessage, extractAndSave, clearOnboardingSession } from "./onboarding-agent";
+import { startAgentSession, sendAgentMessage } from "./job-search-agent";
 
 // Tier → Stripe Price ID mapping
 const STRIPE_PRICE_IDS: Record<string, string> = {
@@ -1079,6 +1080,54 @@ export async function registerRoutes(
       }
       logger.error("Interview complete error", { error: String(error) });
       res.status(500).json({ message: "Failed to complete interview" });
+    }
+  });
+
+  // ==================== JOB SEARCH AGENT ====================
+
+  app.post("/api/job-agent/start", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const customerId = req.session.customerId!;
+      const { actionType, entityType, entityData } = req.body;
+
+      if (!actionType || !entityType || !entityData) {
+        return res.status(400).json({ message: "actionType, entityType, and entityData are required" });
+      }
+      if (!["research", "outreach", "follow-up", "cover-letter", "role-fit", "interview-prep", "thank-you", "negotiate"].includes(actionType)) {
+        return res.status(400).json({ message: "Invalid actionType" });
+      }
+      if (!["company", "contact", "application"].includes(entityType)) {
+        return res.status(400).json({ message: "Invalid entityType" });
+      }
+
+      const result = await startAgentSession(customerId, actionType, entityType, entityData);
+      res.json(result);
+    } catch (error) {
+      logger.error("Job agent start error", { error: String(error), stack: error instanceof Error ? error.stack : undefined });
+      res.status(500).json({ message: `Failed to start agent: ${String(error)}` });
+    }
+  });
+
+  app.post("/api/job-agent/message", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const customerId = req.session.customerId!;
+      const { sessionId, message } = req.body;
+
+      if (!sessionId || !message) {
+        return res.status(400).json({ message: "sessionId and message are required" });
+      }
+
+      const reply = await sendAgentMessage(sessionId, customerId, message);
+      res.json({ message: reply });
+    } catch (error: any) {
+      if (error.message === "No active agent session") {
+        return res.status(400).json({ message: "No active agent session. Please start a new one." });
+      }
+      if (error.message === "Session ownership mismatch") {
+        return res.status(403).json({ message: "Session ownership mismatch" });
+      }
+      logger.error("Job agent message error", { error: String(error) });
+      res.status(500).json({ message: "Failed to process message" });
     }
   });
 

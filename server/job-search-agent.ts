@@ -373,7 +373,6 @@ Hi [interviewer name],
 
 Under 100 words total. After writing, ask: "Email or LinkedIn message? Want me to adjust the tone or the opening?"`;
 }
-}
 
 function promptNegotiate(ctx: string, entityData: Record<string, any>): string {
   const jobTitle    = sanitizeForPrompt(entityData.jobTitle, 100);

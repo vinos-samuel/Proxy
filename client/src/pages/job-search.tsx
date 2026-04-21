@@ -274,7 +274,9 @@ function CompaniesTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t: Ag
               </div>
               <div className="flex gap-2 ml-3 flex-shrink-0">
                 <button
-                  onClick={() => onOpenAgent("research", "company", c.name, { name: c.name, industry: c.industry, notes: c.notes, website: c.website })}
+                  onClick={() => onOpenAgent("research", "company", c.name, {
+                    name: c.name, website: c.website, industry: c.industry, notes: c.notes,
+                  })}
                   className={btnAgent}
                   title="Research company fit, hiring signals, and talking points"
                 >
@@ -426,7 +428,12 @@ function ContactsTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t: Age
               </div>
               <div className="flex gap-2 ml-4 flex-shrink-0 flex-wrap justify-end">
                 <button
-                  onClick={() => onOpenAgent("outreach", "contact", `${c.name}${c.companyName ? ` @ ${c.companyName}` : ""}`, { name: c.name, title: c.title, companyName: c.companyName, notes: c.notes, lastOutreachDate: c.lastOutreachDate, responseReceived: c.responseReceived })}
+                  onClick={() => onOpenAgent("outreach", "contact", `${c.name}${c.companyName ? ` @ ${c.companyName}` : ""}`, {
+                    name: c.name, title: c.title, companyName: c.companyName,
+                    email: c.email, linkedinUrl: c.linkedinUrl, notes: c.notes,
+                    lastOutreachDate: c.lastOutreachDate, responseReceived: c.responseReceived,
+                    responseNotes: c.responseNotes, followUpDate: c.followUpDate,
+                  })}
                   className={btnAgent}
                   title="Draft an outreach message tailored to this contact"
                 >
@@ -434,7 +441,11 @@ function ContactsTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t: Age
                 </button>
                 {c.lastOutreachDate && !c.responseReceived && (
                   <button
-                    onClick={() => onOpenAgent("follow-up", "contact", `${c.name}${c.companyName ? ` @ ${c.companyName}` : ""}`, { name: c.name, title: c.title, companyName: c.companyName, notes: c.notes, lastOutreachDate: c.lastOutreachDate })}
+                    onClick={() => onOpenAgent("follow-up", "contact", `${c.name}${c.companyName ? ` @ ${c.companyName}` : ""}`, {
+                      name: c.name, title: c.title, companyName: c.companyName,
+                      email: c.email, linkedinUrl: c.linkedinUrl, notes: c.notes,
+                      lastOutreachDate: c.lastOutreachDate, responseNotes: c.responseNotes,
+                    })}
                     className={btnAgent}
                     title="Write a follow-up — they haven't responded yet"
                   >
@@ -612,7 +623,12 @@ function ApplicationsTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t:
         {filtered.map(a => {
           const cfg = STATUS_CONFIG[a.status] || STATUS_CONFIG.saved;
           const entityLabel = `${a.jobTitle}${a.companyName ? ` @ ${a.companyName}` : ""}`;
-          const entityData  = { jobTitle: a.jobTitle, companyName: a.companyName, notes: a.notes, status: a.status, jobUrl: a.jobUrl };
+          const entityData  = {
+            jobTitle: a.jobTitle, companyName: a.companyName, jobUrl: a.jobUrl,
+            status: a.status, notes: a.notes,
+            salaryMin: a.salaryMin, salaryMax: a.salaryMax, salaryCurrency: a.salaryCurrency,
+            appliedAt: a.appliedAt, followUpDate: a.followUpDate,
+          };
           return (
             <div key={a.id} className="border-[3px] border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <div className="p-4">
@@ -748,8 +764,8 @@ function ApplicationsTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t:
                 <input className={inputClass} type="date" value={form.followUpDate} onChange={e => setForm(f => ({ ...f, followUpDate: e.target.value }))} />
               </FormField>
             </div>
-            <FormField label="Notes">
-              <textarea className={inputClass} rows={3} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Recruiter name, interview stage, what you know about the role..." />
+            <FormField label="Notes / Job Description">
+              <textarea className={inputClass} rows={4} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Paste the job description here — the AI agent will use it to write tailored cover letters and role fit analysis. Or add notes: recruiter name, interview stage, etc." />
             </FormField>
             <div className="flex gap-3 pt-2">
               <button type="submit" className={btnPrimary} disabled={isPending}>{isPending ? "SAVING..." : editing ? "SAVE CHANGES" : "ADD APPLICATION"}</button>

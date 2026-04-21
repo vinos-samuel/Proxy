@@ -34,7 +34,7 @@ Digital Twin / AI-powered career profile builder. Users upload a resume, fill an
 
 
 ## Workflow
-- Claude edits files locally on Mac (`/Users/vinos/Documents/Claude Code/proxy/`)
+- Claude edits files locally on Mac (`/Users/vinos/Documents - Vinos's MacBook Air/Claude Code/proxy/`)
 - Vinos pushes to GitHub → pulls on Replit → restarts Replit server
 - Local dev: `npx tsx --env-file=.env server/index.ts` (configured in `.claude/launch.json`)
 - Local DB doesn't work (Postgres is on Replit) — always test on Replit after push
@@ -45,7 +45,7 @@ After Claude writes code, Vinos does these steps:
 
 **Step 1 — Push from Mac terminal (always include the cd command):**
 ```
-cd "/Users/vinos/Documents/Claude Code/proxy" && git add <files> && git commit -m "description" && git push origin main
+cd "/Users/vinos/Documents - Vinos's MacBook Air/Claude Code/proxy" && git add <files> && git commit -m "description" && git push origin main
 ```
 
 **Step 2 — Pull on Replit Shell (ALWAYS use this, never plain `git pull`):**

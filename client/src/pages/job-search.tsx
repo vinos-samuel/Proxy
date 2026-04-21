@@ -12,7 +12,15 @@ import type { JobCompany, JobContact, JobApplication } from "@shared/schema";
 type JobContactWithCompany     = JobContact     & { companyName: string | null };
 type JobApplicationWithCompany = JobApplication & { companyName: string | null };
 
-type AgentActionType = "outreach" | "interview-prep" | "cover-letter";
+type AgentActionType =
+  | "research"
+  | "outreach"
+  | "follow-up"
+  | "cover-letter"
+  | "role-fit"
+  | "interview-prep"
+  | "thank-you"
+  | "negotiate";
 type AgentEntityType = "company" | "contact" | "application";
 
 interface AgentState {
@@ -27,9 +35,14 @@ interface AgentState {
 }
 
 const ACTION_LABELS: Record<AgentActionType, string> = {
+  "research":       "COMPANY RESEARCH",
   "outreach":       "OUTREACH DRAFT",
-  "interview-prep": "INTERVIEW PREP",
+  "follow-up":      "FOLLOW-UP MESSAGE",
   "cover-letter":   "COVER LETTER",
+  "role-fit":       "ROLE FIT ANALYSIS",
+  "interview-prep": "INTERVIEW PREP",
+  "thank-you":      "THANK YOU NOTE",
+  "negotiate":      "SALARY NEGOTIATION",
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
@@ -261,10 +274,11 @@ function CompaniesTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t: Ag
               </div>
               <div className="flex gap-2 ml-3 flex-shrink-0">
                 <button
-                  onClick={() => onOpenAgent("outreach", "company", c.name, { name: c.name, industry: c.industry, notes: c.notes, website: c.website })}
+                  onClick={() => onOpenAgent("research", "company", c.name, { name: c.name, industry: c.industry, notes: c.notes, website: c.website })}
                   className={btnAgent}
+                  title="Research company fit, hiring signals, and talking points"
                 >
-                  <Bot className="h-3 w-3" /> AGENT
+                  <Bot className="h-3 w-3" /> RESEARCH
                 </button>
                 <button onClick={() => openEdit(c)} className={btnSecondary} style={{ padding: "4px 10px" }}>EDIT</button>
                 <button onClick={() => deleteMutation.mutate(c.id)} className={btnDanger}>DEL</button>
@@ -412,11 +426,21 @@ function ContactsTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t: Age
               </div>
               <div className="flex gap-2 ml-4 flex-shrink-0 flex-wrap justify-end">
                 <button
-                  onClick={() => onOpenAgent("outreach", "contact", `${c.name}${c.companyName ? ` @ ${c.companyName}` : ""}`, { name: c.name, title: c.title, companyName: c.companyName, notes: c.notes })}
+                  onClick={() => onOpenAgent("outreach", "contact", `${c.name}${c.companyName ? ` @ ${c.companyName}` : ""}`, { name: c.name, title: c.title, companyName: c.companyName, notes: c.notes, lastOutreachDate: c.lastOutreachDate, responseReceived: c.responseReceived })}
                   className={btnAgent}
+                  title="Draft an outreach message tailored to this contact"
                 >
-                  <Bot className="h-3 w-3" /> AGENT
+                  <Bot className="h-3 w-3" /> OUTREACH
                 </button>
+                {c.lastOutreachDate && !c.responseReceived && (
+                  <button
+                    onClick={() => onOpenAgent("follow-up", "contact", `${c.name}${c.companyName ? ` @ ${c.companyName}` : ""}`, { name: c.name, title: c.title, companyName: c.companyName, notes: c.notes, lastOutreachDate: c.lastOutreachDate })}
+                    className={btnAgent}
+                    title="Write a follow-up — they haven't responded yet"
+                  >
+                    <Bot className="h-3 w-3" /> FOLLOW UP
+                  </button>
+                )}
                 {c.linkedinUrl && (
                   <a href={c.linkedinUrl.startsWith("http") ? c.linkedinUrl : `https://${c.linkedinUrl}`} target="_blank" rel="noreferrer" className={btnSecondary} style={{ padding: "4px 10px" }}>LI</a>
                 )}
@@ -618,14 +642,7 @@ function ApplicationsTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t:
                     {a.notes && <div className="text-sm text-black/60 mt-2">{a.notes}</div>}
                   </div>
                   <div className="flex gap-2 ml-2 flex-shrink-0 flex-wrap justify-end">
-                    {/* Agent action buttons */}
-                    <button
-                      onClick={() => onOpenAgent("interview-prep", "application", entityLabel, entityData)}
-                      className={btnAgent}
-                      title="Interview prep using your Twin profile"
-                    >
-                      <Bot className="h-3 w-3" /> INTERVIEW
-                    </button>
+                    {/* Agent action buttons — context-sensitive by status */}
                     <button
                       onClick={() => onOpenAgent("cover-letter", "application", entityLabel, entityData)}
                       className={btnAgent}
@@ -633,6 +650,40 @@ function ApplicationsTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t:
                     >
                       <Bot className="h-3 w-3" /> COVER LTR
                     </button>
+                    <button
+                      onClick={() => onOpenAgent("role-fit", "application", entityLabel, entityData)}
+                      className={btnAgent}
+                      title="Analyse JD fit gaps vs your profile"
+                    >
+                      <Bot className="h-3 w-3" /> ROLE FIT
+                    </button>
+                    {a.status === "interviewing" && (
+                      <>
+                        <button
+                          onClick={() => onOpenAgent("interview-prep", "application", entityLabel, entityData)}
+                          className={btnAgent}
+                          title="Interview prep using your Twin profile"
+                        >
+                          <Bot className="h-3 w-3" /> INTERVIEW
+                        </button>
+                        <button
+                          onClick={() => onOpenAgent("thank-you", "application", entityLabel, entityData)}
+                          className={btnAgent}
+                          title="Draft a post-interview thank you note"
+                        >
+                          <Bot className="h-3 w-3" /> THANK YOU
+                        </button>
+                      </>
+                    )}
+                    {a.status === "offer" && (
+                      <button
+                        onClick={() => onOpenAgent("negotiate", "application", entityLabel, entityData)}
+                        className={btnAgent}
+                        title="Build a salary counter-offer strategy"
+                      >
+                        <Bot className="h-3 w-3" /> NEGOTIATE
+                      </button>
+                    )}
                     <button onClick={() => openEdit(a)} className={btnSecondary} style={{ padding: "4px 10px" }}>EDIT</button>
                     <button onClick={() => deleteMutation.mutate(a.id)} className={btnDanger}>DEL</button>
                   </div>
@@ -718,7 +769,7 @@ export default function JobSearchPage() {
   const [activeTab, setActiveTab] = useState<"applications" | "companies" | "contacts">("applications");
 
   const [agentState, setAgentState] = useState<AgentState>({
-    open: false, actionType: "outreach", entityType: "company",
+    open: false, actionType: "research", entityType: "company",
     entityLabel: "", entityData: {}, sessionId: null, messages: [], isLoading: false,
   });
 

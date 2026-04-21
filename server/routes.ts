@@ -1093,7 +1093,7 @@ export async function registerRoutes(
       if (!actionType || !entityType || !entityData) {
         return res.status(400).json({ message: "actionType, entityType, and entityData are required" });
       }
-      if (!["outreach", "interview-prep", "cover-letter"].includes(actionType)) {
+      if (!["research", "outreach", "follow-up", "cover-letter", "role-fit", "interview-prep", "thank-you", "negotiate"].includes(actionType)) {
         return res.status(400).json({ message: "Invalid actionType" });
       }
       if (!["company", "contact", "application"].includes(entityType)) {

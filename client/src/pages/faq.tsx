@@ -40,10 +40,10 @@ export default function FAQPage() {
     },
     {
       q: "Who is Proxy designed for?",
-      plainText: "Proxy is built for senior professionals - Team Leads, Managers, Directors, VPs, and C-suite executives - who have deep, complex experience that doesn't fit neatly on a two-page resume. It's particularly valuable if you're actively job searching, exploring new opportunities, positioning yourself for a career transition, or want to stand out from other candidates in competitive hiring processes.",
+      plainText: "Proxy is built for mid to senior professionals — Managers, Team Leads, Directors, VPs, and experienced executives — who have deep experience that doesn't fit neatly on a two-page resume. It's particularly valuable if you're actively job searching, exploring new opportunities, positioning yourself for a career transition, or want to stand out from other candidates in competitive hiring processes.",
       a: (
         <div className="space-y-4">
-          <p>Proxy is built for <strong className="text-black">senior professionals</strong> — Team Leads, Managers, Directors, VPs, and C-suite executives — who have deep, complex experience that doesn't fit neatly on a two-page resume.</p>
+          <p>Proxy is built for <strong className="text-black">mid to senior professionals</strong> — Managers, Team Leads, Directors, VPs, and experienced executives — who have deep experience that doesn't fit neatly on a two-page resume.</p>
           <p>It's particularly valuable if you're:</p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Actively job searching</span></li>
@@ -57,7 +57,7 @@ export default function FAQPage() {
     },
     {
       q: "How does the AI resume upload work?",
-      plainText: "When you sign up, you can upload your CV or resume in PDF format. Proxy's AI reads your entire document and automatically pre-fills your 11-step questionnaire with your career history, key achievements, skills, and professional summary. Instead of typing everything from scratch, you simply review what the AI extracted, make corrections, and add your personal stories and voice. Most users complete the entire setup in 15-20 minutes thanks to AI pre-fill.",
+      plainText: "When you sign up, you can upload your CV or resume in PDF format. Proxy's AI reads your entire document and automatically pre-fills your 11-step questionnaire with your career history, key achievements, skills, and professional summary. Instead of typing everything from scratch, you simply review what the AI extracted, make corrections, and add your personal stories and voice. Most users complete the entire setup in around 10 minutes thanks to AI pre-fill.",
       a: (
         <div className="space-y-4">
           <p>When you sign up, you can upload your CV or resume <strong className="text-black">(PDF format)</strong>. Proxy's AI reads your entire document and automatically pre-fills your 11-step questionnaire with:</p>
@@ -68,7 +68,7 @@ export default function FAQPage() {
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Professional summary</span></li>
           </ul>
           <p>Instead of typing everything from scratch, you simply <strong className="text-black">review what the AI extracted</strong>, make corrections, and add your personal stories and voice.</p>
-          <p>Most users complete the entire setup in <strong className="text-black">15-20 minutes</strong> thanks to AI pre-fill.</p>
+          <p>Most users complete the entire setup in <strong className="text-black">around 10 minutes</strong> thanks to AI pre-fill.</p>
         </div>
       ),
     },

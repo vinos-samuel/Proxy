@@ -74,10 +74,10 @@ export default function FAQPage() {
     },
     {
       q: "How long does it take to build my Digital Twin?",
-      plainText: "Most users complete their profile in 15-20 minutes. After uploading your CV, you choose your path: fill the guided 11-step questionnaire, or have a conversation with the AI — it's read your CV and interviews you naturally. Either path covers career history, war stories, achievements, skills, and communication style. Then add a headshot and optional video. Once you submit, the AI processes your data and generates your portfolio within minutes. After payment, your Digital Twin goes live instantly.",
+      plainText: "Most users complete their profile in around 10 minutes. After uploading your CV, you choose your path: fill the guided 11-step questionnaire, or have a conversation with the AI — it's read your CV and interviews you naturally. Either path covers career history, war stories, achievements, skills, and communication style. Then add a headshot and optional video. Once you submit, the AI processes your data and generates your portfolio within minutes. After payment, your Digital Twin goes live instantly.",
       a: (
         <div className="space-y-4">
-          <p>Most users complete their profile in <strong className="text-black">15-20 minutes</strong>. After uploading your CV, you pick your path:</p>
+          <p>Most users complete their profile in <strong className="text-black">around 10 minutes</strong>. After uploading your CV, you pick your path:</p>
           <div className="space-y-3 ml-1">
             <div className="flex gap-3">
               <span className="bg-[#22C55E] text-black font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">1</span>
@@ -142,6 +142,24 @@ export default function FAQPage() {
       ),
     },
     {
+      q: "What is the Job Search Agent?",
+      plainText: "The Job Search Agent is a built-in CRM and AI assistant that actively helps you with your job search — not just your profile. Once your profile is live, the agent can write cover letters in your voice, research companies before you apply, draft cold outreach messages, coach your interview preparation, help you think through offer negotiation, and write thank you notes after interviews. Everything is grounded in your actual background, so nothing sounds generic. The Job Search Agent is included with the Pro plan.",
+      a: (
+        <div className="space-y-4">
+          <p>The Job Search Agent is a built-in CRM and AI assistant included with Pro — it actively works on your job search, not just your profile.</p>
+          <ul className="space-y-2 ml-1">
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Write cover letters in your voice</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Research companies before you apply</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Draft cold outreach messages</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Coach your interview preparation</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Help you think through offer negotiation</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Write thank you notes after interviews</span></li>
+          </ul>
+          <p>Everything is grounded in your actual background, so nothing sounds generic.</p>
+        </div>
+      ),
+    },
+    {
       q: "How does the AI chatbot on my profile work?",
       plainText: "Your Digital Twin includes an AI chatbot powered by advanced language models, trained specifically on your career data. When someone visits your profile and asks a question, the AI responds in your voice, using your real examples, metrics, and stories. It handles general exploratory questions, specific project deep-dives, transferable skills queries, and gracefully redirects off-topic questions. The chatbot uses your chosen communication style and your actual vocabulary.",
       a: (
@@ -172,10 +190,10 @@ export default function FAQPage() {
     },
     {
       q: "What do I need to provide to get started?",
-      plainText: "At minimum, you need your CV/resume and about 15-20 minutes to complete the intake questionnaire. The questionnaire covers: professional summary and positioning, career history with key facts per role, 3 or more detailed war stories with challenge approach and result, key achievements with metrics, technical skills, communication style and vocabulary preferences, and chatbot personality settings. For best results, we also recommend a professional headshot and a 60-90 second video introduction.",
+      plainText: "At minimum, you need your CV/resume and around 10 minutes to complete the intake questionnaire. The questionnaire covers: professional summary and positioning, career history with key facts per role, 3 or more detailed war stories with challenge approach and result, key achievements with metrics, technical skills, communication style and vocabulary preferences, and chatbot personality settings. For best results, we also recommend a professional headshot and a 60-90 second video introduction.",
       a: (
         <div className="space-y-4">
-          <p>At minimum: your <strong className="text-black">CV/resume</strong> and about <strong className="text-black">15-20 minutes</strong> to complete the intake questionnaire.</p>
+          <p>At minimum: your <strong className="text-black">CV/resume</strong> and around <strong className="text-black">10 minutes</strong> to complete the intake questionnaire.</p>
           <p>The questionnaire covers:</p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Professional summary and positioning</span></li>
@@ -299,14 +317,14 @@ export default function FAQPage() {
     },
     {
       q: "What's coming next for Proxy?",
-      plainText: "We're actively building new features including LinkedIn profile enrichment (automatically pulling your posts, articles, and professional activity), advanced analytics with recruiter engagement insights, and additional AI agents for interview preparation and job search strategy. All existing members get early access to new features as they launch.",
+      plainText: "We're actively building new features including LinkedIn enrichment (automatically pulling your professional activity to enrich your profile), conversational onboarding (build your profile through a natural AI conversation instead of a questionnaire), and advanced recruiter analytics. All existing members get early access to new features as they launch.",
       a: (
         <div className="space-y-4">
           <p>We're actively building:</p>
           <ul className="space-y-2 ml-1">
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">LinkedIn profile enrichment</strong> — automatically pulling your posts, articles, and professional activity</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Advanced analytics</strong> — recruiter engagement insights</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">AI agents</strong> — for interview preparation and job search strategy</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">LinkedIn enrichment</strong> — automatically pulling your professional activity to enrich your profile</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Conversational onboarding</strong> — build your profile through a natural AI conversation instead of a questionnaire</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Advanced recruiter analytics</strong></span></li>
           </ul>
           <p>All existing members get <strong className="text-black">early access</strong> to new features as they launch.</p>
         </div>
@@ -431,7 +449,7 @@ export default function FAQPage() {
       <section className="px-6 py-16 border-b-[3px] border-black bg-[#E8E8E3]">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4 uppercase tracking-tight">Ready to build your Digital Twin?</h2>
-          <p className="mono text-base text-black/60 mb-8">Join senior professionals who are already using AI to represent their careers 24/7.</p>
+          <p className="mono text-base text-black/60 mb-8">Join mid to senior professionals who are already using AI to represent their careers 24/7.</p>
           <Link href="/register">
             <button className="bg-black text-white px-8 py-4 font-bold text-sm uppercase tracking-widest border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)] hover:bg-[#22C55E] hover:text-black hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all">
               Get Started &rarr;

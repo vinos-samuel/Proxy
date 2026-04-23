@@ -1295,7 +1295,14 @@ export default function QuestionnairePage() {
                     />
                     {data.step10.headshot ? (
                       <div className="flex items-center gap-3">
-                        <img src={`/api/uploads/${data.step10.headshot}`} alt="Headshot preview" className="h-16 w-16 border-2 border-black object-cover" />
+                        <img src={data.step10.headshot} alt="Headshot preview" className="h-16 w-16 border-2 border-black object-cover" />
+                        <button
+                          onClick={() => headshotInputRef.current?.click()}
+                          disabled={isUploadingHeadshot}
+                          className="mono text-xs text-black/60 hover:text-black underline"
+                        >
+                          Change
+                        </button>
                         <button onClick={() => updateField("step10", "headshot", "")} className="text-black/40 hover:text-red-600" data-testid="button-remove-headshot">
                           <X className="h-4 w-4" />
                         </button>

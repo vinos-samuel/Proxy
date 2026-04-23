@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import {
   Edit, Eye, Globe, LogOut,
-  FileText, Sparkles, ExternalLink, ArrowRight, Copy, BarChart3, MessageSquare, Lock, Trash2, Mic
+  FileText, Sparkles, ExternalLink, ArrowRight, Copy, BarChart3, MessageSquare, Lock, Trash2, Mic, Loader2
 } from "lucide-react";
 import type { TwinProfile } from "@shared/schema";
 import PaymentGate from "@/components/PaymentGate";
@@ -311,18 +311,19 @@ export default function DashboardPage() {
                 <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] brutal-card">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 bg-[#93C5FD] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                      <Sparkles className="h-6 w-6 text-black" />
+                      <Loader2 className="h-6 w-6 text-black animate-spin" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg">AI PROCESSING</h3>
-                      <div className="mono text-xs text-black/50 uppercase">NEURAL_ENGINE</div>
+                      <h3 className="font-bold text-lg">BUILDING YOUR TWIN</h3>
+                      <div className="mono text-xs text-black/50 uppercase">AI is processing your profile</div>
                     </div>
                   </div>
                   <p className="mono text-sm text-black/60 mb-4">
-                    Your Twin is being built. This takes 1–2 minutes — refresh the page to check progress.
+                    This usually takes 1–2 minutes. This page will update automatically when it's ready — no need to refresh.
                   </p>
-                  <div className="inline-block px-3 py-1 bg-[#93C5FD] border-[3px] border-black mono text-xs uppercase tracking-wider font-bold">
-                    IN_PROGRESS
+                  <div className="flex items-center gap-2 px-3 py-1 bg-[#93C5FD] border-[3px] border-black mono text-xs uppercase tracking-wider font-bold w-fit">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    IN PROGRESS
                   </div>
                 </div>
               )}

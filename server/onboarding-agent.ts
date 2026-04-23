@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { storage } from "./storage";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY!,
@@ -14,17 +15,22 @@ function sanitizeForPrompt(s: string | undefined | null, maxLen = 1000): string 
   return s.replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").trim().slice(0, maxLen);
 }
 
-// ==================== SESSION STORE ====================
+// ==================== SESSION STORE (DB-backed) ====================
 
 interface OnboardingSession {
   customerId: string;
-  draft: any; // questionnaire draft from CV parse
+  draft: any;
   messages: Array<{ role: "user" | "assistant"; content: string }>;
-  coveredAreas: Set<string>;
-  transcript: string;
+  coveredAreas: string[]; // serialised as array for JSON storage
 }
 
-const onboardingSessions = new Map<string, OnboardingSession>();
+async function loadSession(customerId: string): Promise<OnboardingSession | null> {
+  return storage.getOnboardingSession(customerId);
+}
+
+async function persistSession(session: OnboardingSession): Promise<void> {
+  await storage.saveOnboardingSession(session.customerId, session);
+}
 
 // ==================== COVERAGE AREAS ====================
 
@@ -177,12 +183,8 @@ Rules:
 
 // ==================== PUBLIC API ====================
 
-export function getOnboardingSession(customerId: string): OnboardingSession | undefined {
-  return onboardingSessions.get(customerId);
-}
-
-export function clearOnboardingSession(customerId: string): void {
-  onboardingSessions.delete(customerId);
+export async function clearOnboardingSession(customerId: string): Promise<void> {
+  await storage.clearOnboardingSession(customerId);
 }
 
 export async function startOnboarding(
@@ -199,16 +201,16 @@ export async function startOnboarding(
 
   const botMessage = result.text || "Hey! I've had a look at your CV. Let's talk through your career — I want to get a real sense of who you are and what you've done. Where do you want to start?";
 
-  onboardingSessions.set(customerId, {
+  const session: OnboardingSession = {
     customerId,
     draft,
     messages: [
       { role: "user", content: "I'm ready to get started." },
       { role: "assistant", content: botMessage },
     ],
-    coveredAreas: new Set(),
-    transcript: "",
-  });
+    coveredAreas: [],
+  };
+  await persistSession(session);
 
   return botMessage;
 }
@@ -217,7 +219,7 @@ export async function sendOnboardingMessage(
   customerId: string,
   userMessage: string
 ): Promise<{ botResponse: string; readyToComplete: boolean }> {
-  const session = onboardingSessions.get(customerId);
+  const session = await loadSession(customerId);
   if (!session) throw new Error("No active onboarding session");
 
   session.messages.push({ role: "user", content: userMessage });
@@ -237,6 +239,8 @@ export async function sendOnboardingMessage(
   const botResponse = result.text || "Tell me more about that.";
   session.messages.push({ role: "assistant", content: botResponse });
 
+  await persistSession(session);
+
   const readyToComplete = botResponse.includes("I think I've got a really good picture of you now");
 
   return { botResponse, readyToComplete };
@@ -245,7 +249,7 @@ export async function sendOnboardingMessage(
 export async function extractAndSave(customerId: string): Promise<{
   enrichedDraft: any;
 }> {
-  const session = onboardingSessions.get(customerId);
+  const session = await loadSession(customerId);
   if (!session) throw new Error("No active onboarding session");
 
   const transcript = session.messages

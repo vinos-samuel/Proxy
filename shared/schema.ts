@@ -18,6 +18,7 @@ export const customers = pgTable("customers", {
   emailVerified: boolean("email_verified").notNull().default(true),
   emailVerificationToken: text("email_verification_token"),
   emailVerificationTokenExpiry: timestamp("email_verification_token_expiry"),
+  onboardingSession: jsonb("onboarding_session"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

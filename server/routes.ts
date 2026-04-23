@@ -20,7 +20,7 @@ import Stripe from "stripe";
 import Anthropic from "@anthropic-ai/sdk";
 import { verifyEmailTemplate, welcomeEmailTemplate, passwordResetTemplate } from "./emails";
 import { startInterview, sendInterviewMessage, extractAndComplete, clearInterviewSession } from "./interview-agent";
-import { startOnboarding, sendOnboardingMessage, extractAndSave, clearOnboardingSession } from "./onboarding-agent";
+import { startOnboarding, sendOnboardingMessage, extractAndSave, clearOnboardingSession } from "./onboarding-agent"; // session is now DB-backed
 import { startAgentSession, sendAgentMessage } from "./job-search-agent";
 
 // Tier → Stripe Price ID mapping
@@ -1178,7 +1178,7 @@ export async function registerRoutes(
         status: "draft",
       });
 
-      clearOnboardingSession(customerId);
+      await clearOnboardingSession(customerId);
       logger.info("Onboarding completed", { customerId });
       res.json({ success: true, draft: enrichedDraft });
     } catch (error: any) {

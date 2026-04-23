@@ -7,22 +7,17 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-03-23
-**Status:** LAUNCHED. Product is live at myproxy.work. Preparing for public announcement (LinkedIn, Twitter).
+## Current Sprint — 2026-04-23
+**Status:** LAUNCHED. Code pushed to GitHub main. Needs Replit pull + build + redeploy to go live.
 **Last session completed:**
-- Blog system (admin CRUD + public pages + SEO JSON-LD)
-- FAQ updated with formatted answers, new ATS question, feedback section
-- Sitemap.xml + robots.txt auto-generated endpoints
-- Google Search Console verification added
-- Zoho Mail set up for vinos@myproxy.work (DNS: MX, SPF, DKIM, DMARC)
-- Privacy page updated to vinos@myproxy.work
-- Portfolio URL fixed everywhere (myproxy.work/portfolio/username)
-- Profile analytics on dashboard (view count + questions asked)
-- Grant-access users can edit (removed tier restriction)
-- Chat formatting fixed (paragraphs, bullets, bold)
-**Still needs deploy:** sitemap/robots.txt routes, storage.ts (getPublishedProfileUsernames), FAQ updates, sender display name on transactional emails
-**Don't touch:** server/ai-processor.ts, Stripe webhook flow — both working in production
-**Pending decision:** None — ready to push remaining changes and announce
+- Landing page full redesign (client/src/pages/landing.tsx): new hero with two-column layout + JSX chatbot mockup, new headline ("You've done the work. A PDF shouldn't be how you're judged for it."), grounded subheadline (no "AI version of you"), removed status bar + terminal CTAs + 4-card grid, added How It Works (3 plain steps), new Job Search Agent feature section, condensed problem comparison (3 rows), "who it's for" updated to mid-to-senior, pricing cleaned up (strikethrough removed), simplified final CTA
+- FAQ updated (client/src/pages/faq.tsx): "Who is Proxy for?" updated to mid to senior, time estimates changed to "around 10 minutes", new Q&A "What is the Job Search Agent?", updated "What's coming next?" list, CTA copy updated
+- Merged feature/job-search-agent branch into main
+- Merged claude/fix-build-hanging-7MnVR branch into main
+- Pushed all to GitHub main
+**Still needs deploy:** Pull on Replit (`git fetch origin && git reset --hard origin/main`), then `npm run build`, then redeploy from Deployments tab
+**Don't touch:** server/ai-processor.ts, Stripe webhook flow, server/job-search-agent.ts — all working in production
+**Pending decision:** None
 
 ## What This Is
 Digital Twin / AI-powered career profile builder. Users upload a resume, fill an 11-step questionnaire, and get a public AI portfolio page with a chatbot that represents them.

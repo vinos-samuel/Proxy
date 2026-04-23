@@ -122,6 +122,19 @@ export class DatabaseStorage implements IStorage {
     await db.update(customers).set({ subscriptionStatus: status }).where(eq(customers.id, id));
   }
 
+  async getOnboardingSession(customerId: string): Promise<any | null> {
+    const [row] = await db.select({ onboardingSession: customers.onboardingSession }).from(customers).where(eq(customers.id, customerId));
+    return row?.onboardingSession ?? null;
+  }
+
+  async saveOnboardingSession(customerId: string, session: any): Promise<void> {
+    await db.update(customers).set({ onboardingSession: session }).where(eq(customers.id, customerId));
+  }
+
+  async clearOnboardingSession(customerId: string): Promise<void> {
+    await db.update(customers).set({ onboardingSession: null }).where(eq(customers.id, customerId));
+  }
+
   async getProfileByCustomerId(customerId: string): Promise<TwinProfile | undefined> {
     const [profile] = await db.select().from(twinProfiles).where(eq(twinProfiles.customerId, customerId));
     return profile;

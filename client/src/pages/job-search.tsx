@@ -885,6 +885,10 @@ export default function JobSearchPage() {
   });
 
   const isPro = profile?.tier === "pro" || profile?.paymentStatus === "paid";
+  const isWithin48Hours = user?.createdAt
+    ? Date.now() - new Date(user.createdAt).getTime() < 48 * 60 * 60 * 1000
+    : false;
+  const hasAccess = isPro || isWithin48Hours;
 
   async function openAgent(
     actionType: AgentActionType,
@@ -958,7 +962,7 @@ export default function JobSearchPage() {
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Pro gate */}
-        {!isPro && (
+        {!hasAccess && (
           <div className="border-[4px] border-black bg-[#FDE68A] p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center max-w-xl mx-auto mt-12">
             <AlertCircle className="h-10 w-10 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-3">PRO FEATURE</h2>
@@ -969,8 +973,18 @@ export default function JobSearchPage() {
           </div>
         )}
 
-        {isPro && (
+        {hasAccess && (
           <>
+            {/* Trial banner for free users in 48h window */}
+            {isWithin48Hours && !isPro && (
+              <div className="border-[3px] border-black bg-[#FDE68A] px-6 py-4 mb-6 flex items-center justify-between gap-4 flex-wrap shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <p className="font-bold text-sm">You're on a 48-hour free trial of the Job Search Agent. Upgrade to Pro to keep access.</p>
+                <button onClick={() => navigate("/dashboard")} className={btnPrimary + " text-sm px-4 py-2"}>
+                  UPGRADE → $49
+                </button>
+              </div>
+            )}
+
             {/* Tab navigation */}
             <div className="flex gap-0 mb-8 border-[3px] border-black w-fit">
               {tabs.map(tab => {

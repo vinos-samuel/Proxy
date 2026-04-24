@@ -38,9 +38,11 @@ Digital Twin / AI-powered career profile builder. Users upload a resume, fill an
 ## REMIND VINOS EVERY TIME: How to deploy changes
 After Claude writes code, Vinos does these steps:
 
-**Step 1 — Push from Mac terminal (always include the cd command):**
+**⚠️ CRITICAL — Claude's rule:** Every session, ALL commits go to the dev branch (`claude/fix-build-hanging-7MnVR`). Claude MUST end every session by telling Vinos to merge the dev branch into main. Work is NOT done until it is on main. Never leave commits only on the dev branch.
+
+**Step 1 — Merge dev branch and push from Mac terminal (from proxy folder):**
 ```
-cd "/Users/vinos/Documents/Claude Code/proxy" && git add <files> && git commit -m "description" && git push origin main
+git fetch origin && git merge origin/claude/fix-build-hanging-7MnVR && git push origin main
 ```
 
 **Step 2 — Pull on Replit Shell (ALWAYS use this, never plain `git pull`):**

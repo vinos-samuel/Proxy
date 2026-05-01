@@ -336,6 +336,39 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Referral edge */}
+      <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
+        <div className="max-w-7xl mx-auto">
+          <div className="mono text-sm text-black/50 mb-6 uppercase tracking-widest">// the_referral_edge</div>
+          <div className="flex flex-col lg:flex-row gap-4 items-start mb-10">
+            <div className="text-8xl lg:text-9xl font-bold leading-none text-black">5–10x</div>
+            <div className="lg:pt-4 max-w-xl">
+              <p className="text-xl font-bold text-black mb-1">Referred candidates get hired 5 to 10 times more often than cold applications.</p>
+              <p className="mono text-sm text-black/50">— Laszlo Bock, former SVP People Operations, Google</p>
+            </div>
+          </div>
+          <div className="grid lg:grid-cols-2 gap-6">
+            <div className="border-[3px] border-black p-8 bg-[#D1D1CC] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <h3 className="text-2xl font-bold mb-4 text-black/50">THE PROBLEM</h3>
+              <div className="space-y-4 text-black/70 mono text-sm leading-relaxed">
+                <p>Your network wants to help. But "let me send over their CV" isn't enough to stake a professional reputation on.</p>
+                <p>To make a real referral, someone needs to understand your work — what you've built, how you think, what makes you different. A PDF doesn't give them that.</p>
+                <p className="font-bold text-black">Most referrals don't happen because the goodwill is there, but the context isn't.</p>
+              </div>
+            </div>
+            <div className="border-[3px] border-black p-8 bg-[#22C55E] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <h3 className="text-2xl font-bold mb-4">THE PROXY EDGE</h3>
+              <div className="space-y-4 mono text-sm leading-relaxed">
+                <p>Share your Proxy link with anyone who's offered to help. They chat with your AI, ask real questions, and get a genuine picture of what you've done.</p>
+                <p>They go from "I vaguely know this person" to "I can genuinely vouch for this person" — in minutes, not months.</p>
+                <p className="font-bold">The referral happens because they actually understood you.</p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-6 mono text-xs text-black/40 text-right">// send a link, not a file</div>
+        </div>
+      </section>
+
       {/* Pricing */}
       <section id="pricing" className="px-6 py-20 border-t-[3px] border-black bg-[#D1D1CC]">
         <div className="max-w-7xl mx-auto">

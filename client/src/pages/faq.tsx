@@ -329,14 +329,13 @@ export default function FAQPage() {
     },
     {
       q: "What's coming next for Proxy?",
-      plainText: "We're actively building new features including LinkedIn enrichment (automatically pulling your professional activity to enrich your profile), conversational onboarding (build your profile through a natural AI conversation instead of a questionnaire), and advanced recruiter analytics. All existing members get early access to new features as they launch.",
+      plainText: "We're actively building new features including LinkedIn enrichment (automatically pulling your professional activity to enrich your profile) and recruiter session tracking (see individual visit sessions, what each visitor asked your AI, and get notified when someone new engages with your profile). All existing members get early access to new features as they launch.",
       a: (
         <div className="space-y-4">
           <p>We're actively building:</p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">LinkedIn enrichment</strong> — automatically pulling your professional activity to enrich your profile</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Conversational onboarding</strong> — build your profile through a natural AI conversation instead of a questionnaire</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Advanced recruiter analytics</strong></span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Recruiter session tracking</strong> — see individual visit sessions, what each visitor asked your AI, and get notified when someone new engages with your profile</span></li>
           </ul>
           <p>All existing members get <strong className="text-black">early access</strong> to new features as they launch.</p>
         </div>

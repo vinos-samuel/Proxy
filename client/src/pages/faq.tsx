@@ -56,6 +56,18 @@ export default function FAQPage() {
       ),
     },
     {
+      q: "How does Proxy help me get referrals?",
+      plainText: "Referred candidates get hired 5 to 10 times more often than cold applications. But getting referred requires someone who understands your work well enough to vouch for you — and most connections don't. They want to help, but they don't know enough to make a credible referral. Proxy fixes this. When someone offers to help, share your Proxy link instead of your CV. They can ask your AI anything — what you've built, how you work, what kind of problems you solve. They get a real picture of your capabilities in minutes, and can refer you with genuine confidence instead of a vague endorsement.",
+      a: (
+        <div className="space-y-4">
+          <p><strong className="text-black">Referred candidates get hired 5–10x more often</strong> than cold applications. But a referral only works if your connection understands your work well enough to stake their reputation on it.</p>
+          <p>Most people want to help — they just don't have the context to make a credible introduction. Sending a CV doesn't solve that. A two-page document can't answer follow-up questions or explain the nuance of what you've actually built.</p>
+          <p>Share your Proxy link instead. Your connection can chat with your AI, ask about specific projects, understand how you think, and get a genuine sense of what you'd bring to a role. They go from "I vaguely know this person" to "I can genuinely vouch for this person" — and the referral actually happens.</p>
+          <p className="border-l-[3px] border-[#22C55E] pl-4"><strong className="text-black">The ask:</strong> <em>"Here's my Proxy link — it'll give you a real sense of what I do. If it resonates, I'd love your thoughts on who I should be talking to."</em></p>
+        </div>
+      ),
+    },
+    {
       q: "How does the AI resume upload work?",
       plainText: "When you sign up, you can upload your CV or resume in PDF format. Proxy's AI reads your entire document and automatically pre-fills your 11-step questionnaire with your career history, key achievements, skills, and professional summary. Instead of typing everything from scratch, you simply review what the AI extracted, make corrections, and add your personal stories and voice. Most users complete the entire setup in around 10 minutes thanks to AI pre-fill.",
       a: (

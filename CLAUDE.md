@@ -138,11 +138,20 @@ Cookie `csrf-token` set on every GET to non-API routes. All POST/PUT/DELETE/PATC
 step1: basic info | step2: summary + career history | step3: resume URL (removed — was duplicate with step10) | step4: war stories (min 3) | step5: achievements | step6: technical skills | step7: voice/personality | step8: Q&A (min 3) | step9: objections (min 2) | step10: branding + headshot/video/CV upload | step11: chatbot setup
 
 ## Known Pending Tasks
+- [ ] Run 3 CREATE TABLE migrations in Replit Production SQL console (job_companies, job_contacts, job_applications) if not yet done
+- [ ] Test Job Search CRM on production end-to-end
+- [ ] Blog PATCH Zod validation — `server/routes.ts` `/api/admin/blog/:id` PATCH passes raw `req.body` to storage (OWASP medium)
+- [ ] CRM routes max-length validation — add length limits to CRM POST/PATCH endpoints (OWASP medium)
+- [ ] Standardise bcrypt rounds to 12 — registration uses 10, password reset uses 12 (OWASP low)
+- [ ] npm audit + @google-cloud/storage — 5 low-severity CVEs, downgrade to v5.18.3 (OWASP medium)
 - [ ] "Your Twin is building" email on questionnaire submit
 - [ ] Nudge emails (48hr after signup if draft, 48hr after ready if not published) — needs cron
-- [ ] Sprint 3: LinkedIn enrichment via Proxycurl API (~1-2 sessions, needs Proxycurl account + API key)
-- [ ] Sprint 4: Conversational onboarding (~3-5 sessions, parallel path to questionnaire)
+- [ ] CRM Phase 2: AI agent features (company research, outreach drafting, interview prep using Twin profile)
+- [ ] CRM Phase 3: Contact discovery (Apollo/people search integration)
+- [ ] Subscription model — introduce after CRM Phase 3 ships; CRM currently for all Pro users
+- [ ] Sprint 3: LinkedIn enrichment via Proxycurl API
 - [ ] Post-launch: Fix @google-cloud/storage vulnerabilities (5 low severity, requires downgrade to v5.18.3)
+- [ ] Scale: Add auth-gated signed URL proxy for CV/resume downloads — currently UUID-obscured but no auth on direct URL (PDPA concern at scale)
 
 ## Completed
 - [x] Remove duplicate CV field from Step 3 (resumeUrl) — already in Step 10
@@ -184,6 +193,16 @@ step1: basic info | step2: summary + career history | step3: resume URL (removed
 - [x] Sender display name on transactional emails ("Proxy <noreply@myproxy.work>")
 - [x] Contact email updated to vinos@myproxy.work in terms.tsx, faq.tsx, email templates
 - [x] Sprint 2: No questionnaire-complete gate — users can pay at any point after CV upload + AI pre-fill
+- [x] Conversational onboarding — two-path choice (Bot vs Forms), warm layered bot prompt, extraction on complete
+- [x] Landing page copy rewrite — north star language, jargon removed, human-first tone
+- [x] FAQ — conversational onboarding live (removed from coming-soon, new entry added)
+- [x] Job Search CRM Phase 1 — companies, contacts, applications; 3 tables, 12 routes, new /job-search page
+- [x] OWASP security audit — full Top 10 scored; 5 critical/high fixes applied
+- [x] Security: CRM IDOR fixed — customerId enforced in all 6 mutating WHERE clauses
+- [x] Security: Payment session fixation fixed — ownership check on /api/payment/status
+- [x] Security: Host header injection fixed — req.hostname replaces x-forwarded-host in all email links
+- [x] Security: Session secret hardcoded fallback removed — throws on startup if SESSION_SECRET missing
+- [x] Security: Prompt injection — sanitizeForPrompt() applied across all AI prompt builders in both ai-processor.ts and onboarding-agent.ts
 
 ## File Map (important files)
 - `server/index.ts` — Express app, middleware stack (helmet, rate limiters, CSRF)
@@ -207,6 +226,9 @@ step1: basic info | step2: summary + career history | step3: resume URL (removed
 - `client/src/pages/blog-post.tsx` — Individual blog post page with markdown renderer + JSON-LD
 - `client/src/pages/admin.tsx` — Admin dashboard (Customers + Blog tabs)
 - `server/emails.ts` — All email templates (verify, welcome, passwordReset, profileLive)
+- `server/onboarding-agent.ts` — Conversational onboarding: Gemini-powered, in-memory sessions, sanitizeForPrompt applied
+- `client/src/pages/onboarding-chat.tsx` — Onboarding chat UI with voice input
+- `client/src/pages/job-search.tsx` — Job Search CRM (3 tabs: Applications, Companies, Contacts), Pro-gated
 
 ## Legal
 - Privacy Policy: `/privacy` (Singapore PDPA, contact: vinos@myproxy.work)

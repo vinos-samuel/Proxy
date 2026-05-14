@@ -70,11 +70,8 @@ export default function LandingPage() {
       <nav className="border-b-[3px] border-black bg-[#D1D1CC] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/">
-            <div className="flex flex-col cursor-pointer leading-none">
-              <div className="overflow-hidden" style={{ height: "52px" }}>
-                <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ marginTop: "-4px" }} data-testid="text-brand-name" />
-              </div>
-              <span className="mono text-[10px] text-black/50 tracking-widest uppercase mt-0.5">Your resume is not working. Proxy is.</span>
+            <div className="cursor-pointer">
+              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" data-testid="text-brand-name" />
             </div>
           </Link>
           <div className="hidden md:flex items-center gap-8">
@@ -577,7 +574,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
-              <img src="/proxy-logo.png" alt="Proxy" className="h-14 w-auto" />
+              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" />
               <div className="mono text-xs text-black/50">24/7 Career Representative</div>
             </div>
             <div className="flex gap-6 mono text-xs font-bold uppercase tracking-widest text-black/50">

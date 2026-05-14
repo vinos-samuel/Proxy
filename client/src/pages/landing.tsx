@@ -576,7 +576,6 @@ export default function LandingPage() {
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
               <ProxyLogo />
-              <div className="mono text-xs text-black/50">24/7 Career Representative</div>
             </div>
             <div className="flex gap-6 mono text-xs font-bold uppercase tracking-widest text-black/50">
               <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>

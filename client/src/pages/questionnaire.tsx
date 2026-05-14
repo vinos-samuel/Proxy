@@ -572,7 +572,7 @@ export default function QuestionnairePage() {
           <div className="mx-auto max-w-4xl px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
             <Link href="/dashboard">
               <div className="flex items-center gap-3 cursor-pointer">
-                <img src="/proxy-logo.png" alt="Proxy" className="h-10 w-auto" /><span className="text-xl font-bold tracking-tight">Context Ingestion</span>
+                <img src="/proxy-logo.png" alt="Proxy" className="h-14 w-auto" /><span className="text-xl font-bold tracking-tight">Context Ingestion</span>
               </div>
             </Link>
             <Link href="/dashboard">
@@ -690,7 +690,7 @@ export default function QuestionnairePage() {
         <div className="mx-auto max-w-4xl px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/dashboard">
             <div className="flex items-center gap-3 cursor-pointer">
-              <img src="/proxy-logo.png" alt="Proxy" className="h-10 w-auto" /><span className="text-xl font-bold tracking-tight" data-testid="text-context-ingestion">Context Ingestion</span>
+              <img src="/proxy-logo.png" alt="Proxy" className="h-14 w-auto" /><span className="text-xl font-bold tracking-tight" data-testid="text-context-ingestion">Context Ingestion</span>
             </div>
           </Link>
           <div className="flex items-center gap-4">

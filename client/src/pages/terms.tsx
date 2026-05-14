@@ -6,7 +6,7 @@ export default function TermsPage() {
       <div className="max-w-4xl mx-auto px-6 py-12 flex-1">
         <Link href="/">
           <div className="inline-flex items-center gap-2 cursor-pointer mb-8">
-            <img src="/proxy-logo.png" alt="Proxy" className="h-10 w-auto" /><span className="text-2xl font-bold tracking-tight text-black">PROXY</span>
+            <img src="/proxy-logo.png" alt="Proxy" className="h-14 w-auto" />
           </div>
         </Link>
 

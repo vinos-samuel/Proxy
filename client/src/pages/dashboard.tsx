@@ -87,9 +87,9 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-[#E8E8E3] text-black pb-12" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
       <nav className="border-b-[3px] border-black bg-[#D1D1CC] sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
-          <Link href="/dashboard">
+          <Link href="/">
             <div className="flex items-center cursor-pointer">
-              <img src="/proxy-logo.png" alt="Proxy" className="h-10 w-auto" data-testid="text-brand-name" />
+              <img src="/proxy-logo.png" alt="Proxy" className="h-14 w-auto" data-testid="text-brand-name" />
             </div>
           </Link>
           <div className="flex items-center gap-4">

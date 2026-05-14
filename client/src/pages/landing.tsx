@@ -71,7 +71,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/">
             <div className="cursor-pointer">
-              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" data-testid="text-brand-name" />
+              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ mixBlendMode: "multiply" }} data-testid="text-brand-name" />
             </div>
           </Link>
           <div className="hidden md:flex items-center gap-8">
@@ -574,7 +574,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
-              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" />
+              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ mixBlendMode: "multiply" }} />
               <div className="mono text-xs text-black/50">24/7 Career Representative</div>
             </div>
             <div className="flex gap-6 mono text-xs font-bold uppercase tracking-widest text-black/50">

@@ -6,7 +6,7 @@ export default function TermsPage() {
       <div className="max-w-4xl mx-auto px-6 py-12 flex-1">
         <Link href="/">
           <div className="inline-flex items-center gap-2 cursor-pointer mb-8">
-            <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" />
+            <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ mixBlendMode: "multiply" }} />
           </div>
         </Link>
 

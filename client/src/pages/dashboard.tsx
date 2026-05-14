@@ -89,7 +89,7 @@ export default function DashboardPage() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/">
             <div className="cursor-pointer">
-              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" data-testid="text-brand-name" />
+              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ mixBlendMode: "multiply" }} data-testid="text-brand-name" />
             </div>
           </Link>
           <div className="flex items-center gap-4">

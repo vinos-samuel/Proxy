@@ -70,11 +70,8 @@ export default function LandingPage() {
       <nav className="border-b-[3px] border-black bg-[#D1D1CC] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/">
-            <div className="flex items-center gap-3 cursor-pointer">
-              <div className="w-10 h-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
-                P
-              </div>
-              <span className="text-2xl font-bold tracking-tight" data-testid="text-brand-name">PROXY</span>
+            <div className="flex items-center cursor-pointer">
+              <img src="/proxy-logo.png" alt="Proxy" className="h-10 w-auto" data-testid="text-brand-name" />
             </div>
           </Link>
           <div className="hidden md:flex items-center gap-8">
@@ -577,13 +574,8 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
-                P
-              </div>
-              <div>
-                <div className="font-bold text-xl">PROXY</div>
-                <div className="mono text-xs text-black/50">24/7 Career Representative</div>
-              </div>
+              <img src="/proxy-logo.png" alt="Proxy" className="h-10 w-auto" />
+              <div className="mono text-xs text-black/50">24/7 Career Representative</div>
             </div>
             <div className="flex gap-6 mono text-xs font-bold uppercase tracking-widest text-black/50">
               <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>

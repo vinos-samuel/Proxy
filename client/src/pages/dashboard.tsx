@@ -88,11 +88,8 @@ export default function DashboardPage() {
       <nav className="border-b-[3px] border-black bg-[#D1D1CC] sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/dashboard">
-            <div className="flex items-center gap-3 cursor-pointer">
-              <div className="w-10 h-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
-                P
-              </div>
-              <span className="text-2xl font-bold tracking-tight" data-testid="text-brand-name">PROXY</span>
+            <div className="flex items-center cursor-pointer">
+              <img src="/proxy-logo.png" alt="Proxy" className="h-10 w-auto" data-testid="text-brand-name" />
             </div>
           </Link>
           <div className="flex items-center gap-4">

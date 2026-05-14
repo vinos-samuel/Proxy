@@ -185,10 +185,7 @@ export default function ResetPasswordPage() {
         <div className="text-center mb-8">
           <Link href="/">
             <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <div className="h-10 w-10 bg-[#22C55E] border-[3px] border-black flex items-center justify-center font-bold text-black text-xl">
-                P
-              </div>
-              <span className="text-2xl font-bold tracking-tight text-black">PROXY</span>
+              <img src="/proxy-logo.png" alt="Proxy" className="h-10 w-auto" /><span className="text-2xl font-bold tracking-tight text-black">PROXY</span>
             </div>
           </Link>
           <h1 className="text-4xl font-bold mb-2 text-black/60">New Password</h1>

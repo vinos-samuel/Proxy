@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import ProxyLogo from "@/components/ProxyLogo";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -88,8 +89,8 @@ export default function DashboardPage() {
       <nav className="border-b-[3px] border-black bg-[#D1D1CC] sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/">
-            <div className="cursor-pointer">
-              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ mixBlendMode: "multiply" }} data-testid="text-brand-name" />
+            <div className="cursor-pointer" data-testid="text-brand-name">
+              <ProxyLogo />
             </div>
           </Link>
           <div className="flex items-center gap-4">

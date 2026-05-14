@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
+import ProxyLogo from "@/components/ProxyLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -63,7 +64,7 @@ export function LoginPage() {
         <div className="text-center mb-8">
           <Link href="/">
             <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ mixBlendMode: "multiply" }} />
+              <ProxyLogo />
             </div>
           </Link>
           <h1 className="text-4xl font-bold mb-2 text-black/60">Welcome back</h1>
@@ -200,7 +201,7 @@ export function RegisterPage() {
         <div className="text-center mb-8">
           <Link href="/">
             <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ mixBlendMode: "multiply" }} />
+              <ProxyLogo />
             </div>
           </Link>
           <h1 className="text-4xl font-bold mb-2 text-black/60">Initialize Your Twin</h1>

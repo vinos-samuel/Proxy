@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
+import ProxyLogo from "@/components/ProxyLogo";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient, getCsrfToken } from "@/lib/queryClient";
@@ -572,7 +573,7 @@ export default function QuestionnairePage() {
           <div className="mx-auto max-w-4xl px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
             <Link href="/dashboard">
               <div className="flex items-center gap-3 cursor-pointer">
-                <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ mixBlendMode: "multiply" }} /><span className="text-xl font-bold tracking-tight">Context Ingestion</span>
+                <ProxyLogo /><span className="text-xl font-bold tracking-tight ml-4">Context Ingestion</span>
               </div>
             </Link>
             <Link href="/dashboard">

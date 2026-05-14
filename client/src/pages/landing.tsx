@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { FileText, Zap, Rocket, Target, X, Check, Play } from "lucide-react";
+import ProxyLogo from "@/components/ProxyLogo";
 import { useState } from "react";
 import aiCv1 from "@assets/Screen_Recording_2025-12-15_at_9.20.20_PM_1771923394821.mov";
 import aiCv2 from "@assets/proxy-demo-final-3.mp4";
@@ -70,8 +71,8 @@ export default function LandingPage() {
       <nav className="border-b-[3px] border-black bg-[#D1D1CC] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/">
-            <div className="cursor-pointer">
-              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ mixBlendMode: "multiply" }} data-testid="text-brand-name" />
+            <div className="cursor-pointer" data-testid="text-brand-name">
+              <ProxyLogo />
             </div>
           </Link>
           <div className="hidden md:flex items-center gap-8">
@@ -574,7 +575,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
-              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ mixBlendMode: "multiply" }} />
+              <ProxyLogo />
               <div className="mono text-xs text-black/50">24/7 Career Representative</div>
             </div>
             <div className="flex gap-6 mono text-xs font-bold uppercase tracking-widest text-black/50">

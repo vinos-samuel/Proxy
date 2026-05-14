@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
+import ProxyLogo from "@/components/ProxyLogo";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { queryClient } from "@/lib/queryClient";
@@ -47,7 +48,7 @@ export default function VerifyEmailPage() {
         <div className="text-center mb-8">
           <Link href="/">
             <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ mixBlendMode: "multiply" }} />
+              <ProxyLogo />
             </div>
           </Link>
           <h1 className="text-4xl font-bold mb-2 text-black/60">Email Verification</h1>

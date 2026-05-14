@@ -194,6 +194,43 @@ export default function PortfolioPage() {
     }
   }, [username]);
 
+  // JSON-LD structured data for AEO — Person schema on every public profile
+  useEffect(() => {
+    if (!portfolio) return;
+    const p = portfolio.profile;
+    const c = portfolio.contact;
+    const skills = p.technicalSkills?.split(/[,\n]/).map((s: string) => s.trim()).filter(Boolean) || [];
+    const currentRole = p.careerTimeline?.[0];
+
+    const schema: Record<string, any> = {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: p.displayName,
+      jobTitle: p.roleTitle,
+      description: p.positioning,
+      url: `https://myproxy.work/portfolio/${username}`,
+    };
+
+    if (p.photoUrl) schema.image = p.photoUrl;
+    if (c?.location) schema.address = { "@type": "PostalAddress", addressLocality: c.location };
+    if (c?.linkedin) schema.sameAs = [c.linkedin];
+    if (skills.length > 0) schema.knowsAbout = skills;
+    if (currentRole?.company) {
+      schema.worksFor = { "@type": "Organization", name: currentRole.company };
+    }
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = "proxy-person-schema";
+    script.text = JSON.stringify(schema);
+    document.head.appendChild(script);
+
+    return () => {
+      const existing = document.getElementById("proxy-person-schema");
+      if (existing) document.head.removeChild(existing);
+    };
+  }, [portfolio, username]);
+
   const handleSendMessage = async (overrideValue?: string) => {
     const msgText = overrideValue || inputValue.trim();
     if (!msgText || isStreaming) return;

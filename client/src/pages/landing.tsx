@@ -336,6 +336,70 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* AEO — Built for humans. Found by AI. */}
+      <section className="px-6 py-20 border-t-[3px] border-black bg-black text-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="mono text-sm text-[#22C55E] mb-4 uppercase tracking-widest">// agent_discovery</div>
+          <h2 className="text-5xl font-bold mb-6">Built for humans.<br />Found by AI.</h2>
+          <p className="text-xl text-white/70 mb-12 max-w-2xl">
+            Recruiters used to search LinkedIn. Their AI agents now search the web. The candidates who get surfaced will be the ones whose profiles are structured, public, and machine-readable. That's what Proxy builds.
+          </p>
+
+          <div className="grid lg:grid-cols-2 gap-8 items-start">
+
+            {/* Left — what this means */}
+            <div className="space-y-4">
+              {[
+                { label: "SEO-optimised", desc: "Every profile is a public web page — indexed by Google and Bing the moment it goes live." },
+                { label: "Schema.org markup", desc: "Structured data tells AI agents exactly who you are, what you do, where you've worked, and what you're known for." },
+                { label: "AI agent-readable", desc: "When a recruiter asks ChatGPT, Perplexity, or Gemini to find candidates, structured profiles get surfaced. PDFs don't." },
+                { label: "Network-distributed", desc: "Every time you share your link, you add more indexed surface area. More surface area = more chances an AI surfaces your profile." },
+              ].map((item, i) => (
+                <div key={i} className="border border-white/20 p-5 bg-white/5 flex items-start gap-4">
+                  <div className="w-2 h-2 bg-[#22C55E] mt-2 shrink-0"></div>
+                  <div>
+                    <div className="font-bold mb-1">{item.label}</div>
+                    <div className="mono text-sm text-white/60 leading-relaxed">{item.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Right — AI search mockup */}
+            <div className="border-[3px] border-white/20 bg-white/5">
+              <div className="border-b border-white/20 p-4 flex items-center gap-3">
+                <div className="w-6 h-6 bg-[#22C55E] border border-[#22C55E] flex items-center justify-center">
+                  <Target className="h-3 w-3 text-black" />
+                </div>
+                <span className="mono text-xs text-white/50 uppercase tracking-wider">AI Sourcing Agent — recruiter query</span>
+              </div>
+              <div className="p-5 border-b border-white/10">
+                <div className="mono text-xs text-white/40 mb-2">// query</div>
+                <p className="text-white/80 text-sm italic">"Find me a senior HR ops leader with APAC experience and contingent workforce expertise"</p>
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="mono text-xs text-[#22C55E] mb-3 uppercase tracking-wider">// results</div>
+                <div className="border border-[#22C55E]/40 p-4 bg-[#22C55E]/5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 bg-[#22C55E] flex items-center justify-center">
+                      <span className="text-black font-bold text-xs">P</span>
+                    </div>
+                    <span className="text-[#22C55E] text-sm font-bold">myproxy.work/sarah-chen</span>
+                  </div>
+                  <p className="mono text-xs text-white/70 leading-relaxed">VP HR Operations · 14 years APAC · Contingent workforce, MSP, talent ops · Available for new opportunities</p>
+                  <div className="mt-2 mono text-xs text-white/40">Structured profile · schema.org/Person · AI-readable ✓</div>
+                </div>
+                <div className="border border-white/10 p-4 bg-white/5 opacity-40">
+                  <div className="mono text-xs text-white/50 mb-1">linkedin.com/in/...</div>
+                  <p className="mono text-xs text-white/40">Static profile — no structured data, not AI-parseable</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* Referral edge */}
       <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
         <div className="max-w-7xl mx-auto">

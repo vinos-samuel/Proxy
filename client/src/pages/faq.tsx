@@ -172,6 +172,41 @@ export default function FAQPage() {
       ),
     },
     {
+      q: "What is AEO (Agent Engine Optimisation) and how does it benefit my job search?",
+      plainText: "SEO (Search Engine Optimisation) is how websites get found by Google. AEO — Agent Engine Optimisation — is the emerging equivalent for AI agents like ChatGPT, Perplexity, Gemini, and Claude. As AI tools become part of how recruiters source candidates, the professionals who get surfaced will be the ones whose profiles are structured, machine-readable, and publicly accessible. A PDF resume is invisible to these agents. A Proxy profile is not. Every Proxy profile includes schema.org Person structured data — a technical standard that tells AI agents exactly who you are, what you've done, where you've worked, and what you're known for. When a recruiter or their AI asks 'find me a senior finance leader with APAC experience', structured profiles like yours get parsed and surfaced. This is a real shift happening now. Proxy profiles are built for it from day one.",
+      a: (
+        <div className="space-y-4">
+          <p><strong className="text-black">SEO</strong> (Search Engine Optimisation) is how websites get found by Google. <strong className="text-black">AEO — Agent Engine Optimisation</strong> — is the emerging equivalent for AI agents like ChatGPT, Perplexity, Gemini, and recruiter-specific AI tools.</p>
+          <p>As AI becomes part of how recruiters source candidates, the professionals who get surfaced will be the ones whose profiles are <strong className="text-black">structured, machine-readable, and publicly accessible.</strong></p>
+          <p>A PDF resume is invisible to these agents. A Proxy profile is not.</p>
+          <p><strong className="text-black">What Proxy does technically:</strong></p>
+          <ul className="space-y-2 ml-1">
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">schema.org Person markup</strong> — embedded structured data that tells AI agents your name, title, skills, career history, and location in a format they can parse</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Public, indexable URL</strong> — your profile lives on the open web at myproxy.work/you, crawlable by all major search engines and AI tools</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Distribution surface area</strong> — every time you share your link, you increase the chances an AI agent retrieves it in a relevant search</span></li>
+          </ul>
+          <p>This is a real shift happening now. Proxy profiles are built for it from day one.</p>
+        </div>
+      ),
+    },
+    {
+      q: "Will AI tools and recruiting agents find my Proxy profile automatically?",
+      plainText: "Not automatically from day one — but structured and distributed Proxy profiles are far more likely to be surfaced than a LinkedIn page or a PDF. Here is how it works: search engines like Google index your profile as soon as it is live. AI tools like Perplexity and ChatGPT that draw from the web can parse your structured data. Recruiter-specific AI sourcing tools look for machine-readable candidate profiles. The more you share your profile link — in your email signature, LinkedIn, direct outreach — the more indexed surface area it builds. The combination of structured data plus public distribution is what makes Proxy profiles agent-discoverable. LinkedIn profiles have structured data too, but they sit behind a login wall and are not fully parseable by external AI agents. Your Proxy profile is fully public and structured from the ground up.",
+      a: (
+        <div className="space-y-4">
+          <p>Not automatically from day one — but a structured, distributed Proxy profile is far more likely to be surfaced than a LinkedIn page or a PDF.</p>
+          <p><strong className="text-black">Here is how it works:</strong></p>
+          <ul className="space-y-2 ml-1">
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Search engines like Google index your profile as soon as it is live</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>AI tools like Perplexity and ChatGPT that draw from the web can parse your structured data</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Recruiter-specific AI sourcing tools look for machine-readable candidate profiles</span></li>
+          </ul>
+          <p>The more you share your profile link — in your email signature, LinkedIn, direct outreach — the more indexed surface area it builds. More surface area means more chances an AI surfaces your profile when a recruiter asks it to find someone like you.</p>
+          <p><strong className="text-black">Why not just use LinkedIn?</strong> LinkedIn profiles have structured data too, but they sit behind a login wall and are not fully parseable by external AI agents. Your Proxy profile is fully public and structured from the ground up.</p>
+        </div>
+      ),
+    },
+    {
       q: "How does the AI chatbot on my profile work?",
       plainText: "Your Digital Twin includes an AI chatbot powered by advanced language models, trained specifically on your career data. When someone visits your profile and asks a question, the AI responds in your voice, using your real examples, metrics, and stories. It handles general exploratory questions, specific project deep-dives, transferable skills queries, and gracefully redirects off-topic questions. The chatbot uses your chosen communication style and your actual vocabulary.",
       a: (

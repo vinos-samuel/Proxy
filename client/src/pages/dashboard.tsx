@@ -236,7 +236,11 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <p className="mono text-sm text-black/60 mb-4">
-                  {profile ? "Update your career information and stories." : "Tell us about your career to build your Digital Twin."}
+                  {profile?.status === "draft"
+                    ? "This is how you get your profile live. Fill it in and submit — AI builds your Twin."
+                    : profile
+                    ? "Update your career information and stories."
+                    : "Tell us about your career to build your Digital Twin."}
                 </p>
                 <Link href="/questionnaire">
                   <button
@@ -251,26 +255,32 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              {/* Draft: prompt to complete setup via bot or forms */}
+              {/* Draft: clear numbered progress — questionnaire is the path to publish */}
               {profile && profile.status === "draft" && (
-                <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] brutal-card">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-[#A78BFA] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                      <Mic className="h-6 w-6 text-black" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg">COMPLETE YOUR SETUP</h3>
-                      <div className="mono text-xs text-black/50 uppercase">PROFILE_INCOMPLETE</div>
-                    </div>
+                <div className="md:col-span-2 bg-[#FDE68A] border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="mono text-xs text-black/60 uppercase tracking-widest mb-4">// how_to_publish</div>
+                  <div className="grid grid-cols-3 gap-3 mb-5">
+                    {[
+                      { step: "1", label: "Fill Questionnaire", done: true },
+                      { step: "2", label: "Submit → AI Builds Twin", done: false },
+                      { step: "3", label: "Publish Your Profile", done: false },
+                    ].map(({ step, label, done }) => (
+                      <div key={step} className={`border-[3px] border-black p-3 flex items-center gap-3 ${done ? "bg-white" : "bg-white/50"}`}>
+                        <div className={`w-8 h-8 border-[2px] border-black flex items-center justify-center font-bold text-sm shrink-0 ${done ? "bg-[#22C55E]" : "bg-white"}`}>
+                          {step}
+                        </div>
+                        <span className="mono text-xs font-bold uppercase tracking-wide">{label}</span>
+                      </div>
+                    ))}
                   </div>
-                  <p className="mono text-sm text-black/60 mb-4">
-                    Your profile isn't ready yet. Continue building it — talk to the bot or fill in the forms. Either way gets your Twin live.
+                  <p className="mono text-sm text-black/70 mb-4">
+                    You're in step 1. Complete the questionnaire — it takes about 10 minutes. When you submit, AI builds your Twin. Then you can publish.
                   </p>
                   <Link href="/questionnaire">
-                    <button className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">
+                    <button className="bg-black text-white px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-800 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
                       <span className="flex items-center gap-2">
-                        CONTINUE SETUP
-                        <ArrowRight className="h-3 w-3" />
+                        Continue Questionnaire
+                        <ArrowRight className="h-4 w-4" />
                       </span>
                     </button>
                   </Link>

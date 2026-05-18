@@ -109,7 +109,10 @@ export function serveStatic(app: Express) {
           if (profile.positioning)      jsonLd.description  = profile.positioning;
           if (qd.step1?.location)       jsonLd.address      = { "@type": "PostalAddress", addressLocality: qd.step1.location };
           if (qd.step1?.linkedinUrl)    jsonLd.sameAs       = [qd.step1.linkedinUrl];
-          if (qd.step10?.headshot)      jsonLd.image        = qd.step10.headshot;
+          if (qd.step10?.headshot) {
+            const headshot = qd.step10.headshot as string;
+            jsonLd.image = headshot.startsWith("http") ? headshot : `https://myproxy.work${headshot}`;
+          }
 
           // Skills as knowsAbout array (split on commas/newlines, cap at 15)
           if (qd.step6?.technicalSkills) {

@@ -40,9 +40,9 @@ function injectMeta(html: string, meta: {
   }
 
   // Inject server-rendered body content for crawlers — prevents soft 404
-  // Hidden from UI (React renders over #root), but visible to Googlebot
+  // Visually hidden from users but NOT aria-hidden — Googlebot must read this
   if (meta.bodyContent) {
-    const crawlerDiv = `<div id="ssr-content" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;" aria-hidden="true">${meta.bodyContent}</div>`;
+    const crawlerDiv = `<div id="ssr-content" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;">${meta.bodyContent}</div>`;
     result = result.replace('<div id="root">', `${crawlerDiv}\n<div id="root">`);
   }
 

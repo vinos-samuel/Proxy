@@ -68,9 +68,14 @@ function inlineMarkdown(text: string): string {
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
 
+  // Use server-preloaded data if available (prevents loading state for crawlers)
+  const preloaded = typeof window !== "undefined" ? (window as any).__BLOG_POST__ : null;
+  const initialData = preloaded?.slug === slug ? preloaded as BlogPost : undefined;
+
   const { data: post, isLoading, error } = useQuery<BlogPost>({
     queryKey: [`/api/blog/${slug}`],
     enabled: !!slug,
+    initialData,
   });
 
   // JSON-LD structured data

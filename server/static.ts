@@ -14,7 +14,6 @@ function injectMeta(html: string, meta: {
   ogUrl?: string;
   ogType?: string;
   jsonLd?: object;
-  bodyContent?: string; // server-rendered text for crawlers (hidden from UI)
 }): string {
   const t    = sanitize(meta.title);
   const d    = sanitize(meta.description);
@@ -37,13 +36,6 @@ function injectMeta(html: string, meta: {
   if (meta.jsonLd) {
     const ldScript = `<script type="application/ld+json">${JSON.stringify(meta.jsonLd)}</script>`;
     result = result.replace("</head>", `${ldScript}\n</head>`);
-  }
-
-  // Inject server-rendered body content for crawlers — prevents soft 404
-  // Visually hidden from users but NOT aria-hidden — Googlebot must read this
-  if (meta.bodyContent) {
-    const crawlerDiv = `<div id="ssr-content" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;">${meta.bodyContent}</div>`;
-    result = result.replace('<div id="root">', `${crawlerDiv}\n<div id="root">`);
   }
 
   return result;
@@ -127,26 +119,32 @@ export function serveStatic(app: Express) {
 
           if (post.heroImageUrl) jsonLd.image = post.heroImageUrl;
 
-          // Strip markdown symbols for crawler-readable plain text
-          const plainContent = post.content
-            .replace(/#{1,6}\s+/g, "")
-            .replace(/\*\*([^*]+)\*\*/g, "$1")
-            .replace(/\*([^*]+)\*/g, "$1")
-            .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-            .replace(/`[^`]+`/g, "")
-            .replace(/\n{3,}/g, "\n\n")
-            .slice(0, 5000);
+          // Preload post data so React renders immediately — no API wait, no loading state
+          // This prevents Google from capturing a "Loading..." soft 404
+          const preloadData = {
+            id: post.id,
+            slug: post.slug,
+            title: post.title,
+            excerpt: post.excerpt,
+            content: post.content,
+            category: post.category,
+            heroImageUrl: post.heroImageUrl,
+            publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
+            metaDescription: post.metaDescription,
+          };
 
-          const bodyContent = `<h1>${post.title}</h1><p>${description}</p><article>${plainContent}</article>`;
-
-          const html = injectMeta(indexHtml, {
+          let html = injectMeta(indexHtml, {
             title: `${post.title} — Proxy Blog`,
             description,
             ogUrl: url,
             ogType: "article",
             jsonLd,
-            bodyContent,
           });
+
+          // Inject preload script before </head>
+          const preloadScript = `<script>window.__BLOG_POST__ = ${JSON.stringify(preloadData)};</script>`;
+          html = html.replace("</head>", `${preloadScript}\n</head>`);
+
           return res.send(html);
         }
       } catch { /* fall through */ }

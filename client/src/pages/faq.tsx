@@ -57,13 +57,14 @@ export default function FAQPage() {
     },
     {
       q: "How does Proxy help me get referrals?",
-      plainText: "Referred candidates get hired 5 to 10 times more often than cold applications. But getting referred requires someone who understands your work well enough to vouch for you — and most connections don't. They want to help, but they don't know enough to make a credible referral. Proxy fixes this. When someone offers to help, share your Proxy link instead of your CV. They can ask your AI anything — what you've built, how you work, what kind of problems you solve. They get a real picture of your capabilities in minutes, and can refer you with genuine confidence instead of a vague endorsement.",
+      plainText: "Referred candidates get hired 5 to 10 times more often than cold applications. But getting referred requires someone who understands your work well enough to vouch for you — and most connections don't. They want to help, but they don't know enough to make a credible referral. Proxy fixes this. When someone offers to help, share your Proxy link instead of your CV. They can ask your AI anything — what you've built, how you work, what kind of problems you solve. They get a real picture of your capabilities in minutes, and can refer you with genuine confidence instead of a vague endorsement. Every published profile also gets a personal referral link on the dashboard — share it with your network and track how many people sign up from your recommendation.",
       a: (
         <div className="space-y-4">
           <p><strong className="text-black">Referred candidates get hired 5–10x more often</strong> than cold applications. But a referral only works if your connection understands your work well enough to stake their reputation on it.</p>
           <p>Most people want to help — they just don't have the context to make a credible introduction. Sending a CV doesn't solve that. A two-page document can't answer follow-up questions or explain the nuance of what you've actually built.</p>
           <p>Share your Proxy link instead. Your connection can chat with your AI, ask about specific projects, understand how you think, and get a genuine sense of what you'd bring to a role. They go from "I vaguely know this person" to "I can genuinely vouch for this person" — and the referral actually happens.</p>
           <p className="border-l-[3px] border-[#22C55E] pl-4"><strong className="text-black">The ask:</strong> <em>"Here's my Proxy link — it'll give you a real sense of what I do. If it resonates, I'd love your thoughts on who I should be talking to."</em></p>
+          <p>Every published profile also gets a <strong className="text-black">personal referral link</strong> on the dashboard. Share it with your network — you can see exactly how many people signed up from your recommendation.</p>
         </div>
       ),
     },
@@ -363,14 +364,37 @@ export default function FAQPage() {
       ),
     },
     {
-      q: "What's coming next for Proxy?",
-      plainText: "We're actively building new features including LinkedIn enrichment (automatically pulling your professional activity to enrich your profile) and recruiter session tracking (see individual visit sessions, what each visitor asked your AI, and get notified when someone new engages with your profile). All existing members get early access to new features as they launch.",
+      q: "How accurate is the AI? Can it make things up about me?",
+      plainText: "This is the right question to ask. Proxy uses strict grounding rules: the AI can only answer from your actual profile data — your war stories, career timeline, and achievements. If a question requires information not in your profile, the AI says so and redirects the recruiter to contact you directly. It will not invent numbers, fabricate company experience, or present general knowledge as personal experience. The system also prevents cross-company contamination — facts from one employer cannot be attributed to another. If someone provides incorrect information in a question (for example, assuming you worked somewhere you didn't), the AI corrects the premise before answering. No system is perfect, but Proxy's guardrails are designed to fail safely: when in doubt, redirect — never fabricate.",
       a: (
         <div className="space-y-4">
-          <p>We're actively building:</p>
+          <p>This is the right question to ask. Proxy uses strict grounding rules so the AI <strong className="text-black">can only answer from your actual profile data</strong> — your war stories, career timeline, and achievements.</p>
+          <ul className="space-y-2 ml-1">
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">No fabrication</strong> — numbers, metrics, company names, and project details must exist in your profile. The AI will not invent specifics to fill a gap.</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">No cross-company contamination</strong> — facts from one employer cannot be attributed to another, even if the number exists elsewhere in your profile.</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Honest redirects</strong> — when the AI reaches the edge of your data, it says so and directs the recruiter to contact you directly. A clean "I don't have that detail" is more credible than a confident fabrication.</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">False premise correction</strong> — if someone assumes something incorrect about your background, the AI corrects it immediately.</span></li>
+          </ul>
+          <p>No AI system is perfect. But Proxy is designed to fail safely: when in doubt, redirect — never fabricate.</p>
+        </div>
+      ),
+    },
+    {
+      q: "What's coming next for Proxy?",
+      plainText: "Recently shipped: referral attribution (track signups from your personal referral link), session analytics via PostHog (real recruiter engagement data), tightened AI accuracy guardrails, and full blog SEO with structured data so articles rank on Google and get parsed by AI agents. Coming next: LinkedIn enrichment (automatically pulling your professional activity to enrich your profile), recruiter session tracking (see individual visit sessions and what each visitor asked your AI), and suggested question chips on portfolio pages to remove cold-start friction for recruiters. All existing members get early access to new features as they launch.",
+      a: (
+        <div className="space-y-4">
+          <p><strong className="text-black">Recently shipped:</strong></p>
+          <ul className="space-y-2 ml-1">
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Referral attribution</strong> — every published profile gets a personal referral link; track how many people sign up from your recommendation</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Session analytics</strong> — real engagement data showing time spent on your profile and chat interactions</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Tightened AI accuracy</strong> — stricter grounding rules, false premise correction, and explicit no-fabrication enforcement</span></li>
+          </ul>
+          <p><strong className="text-black">Coming next:</strong></p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">LinkedIn enrichment</strong> — automatically pulling your professional activity to enrich your profile</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Recruiter session tracking</strong> — see individual visit sessions, what each visitor asked your AI, and get notified when someone new engages with your profile</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Recruiter session tracking</strong> — see individual visit sessions and what each visitor asked your AI</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Suggested question chips</strong> — prompt cards on your profile that help recruiters start the conversation</span></li>
           </ul>
           <p>All existing members get <strong className="text-black">early access</strong> to new features as they launch.</p>
         </div>

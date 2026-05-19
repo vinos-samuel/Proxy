@@ -28,11 +28,11 @@ app.use(
       ? {
           directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://connect.facebook.net", "https://www.googletagmanager.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://connect.facebook.net", "https://www.googletagmanager.com", "https://us.posthog.com", "https://us-assets.i.posthog.com"],
             styleSrc: ["'self'", "https:", "'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https:", "https://www.facebook.com"],
             fontSrc: ["'self'", "https:", "data:"],
-            connectSrc: ["'self'", "https:", "https://www.facebook.com", "https://www.google-analytics.com", "https://analytics.google.com", "https://www.googletagmanager.com"],
+            connectSrc: ["'self'", "https:", "https://www.facebook.com", "https://www.google-analytics.com", "https://analytics.google.com", "https://www.googletagmanager.com", "https://us.posthog.com", "https://us-assets.i.posthog.com"],
             frameSrc: ["'self'"],
             frameAncestors: ["'self'"],
           },

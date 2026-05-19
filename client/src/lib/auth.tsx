@@ -66,7 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
         },
         register: async (data) => {
-          await registerMutation.mutateAsync(data);
+          const referredBy = localStorage.getItem("proxy_ref") || undefined;
+          await registerMutation.mutateAsync({ ...data, referredBy });
+          localStorage.removeItem("proxy_ref");
           await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
           if (typeof window.gtag === "function") {
             window.gtag("event", "sign_up", { method: "email" });

@@ -19,6 +19,7 @@ export interface IStorage {
   createCustomer(data: InsertCustomer): Promise<Customer>;
   getAllCustomers(): Promise<Customer[]>;
   updateCustomerStatus(id: string, status: string): Promise<void>;
+  getReferralCount(username: string): Promise<number>;
 
   // Twin Profiles
   getProfileByCustomerId(customerId: string): Promise<TwinProfile | undefined>;
@@ -116,6 +117,14 @@ export class DatabaseStorage implements IStorage {
 
   async getAllCustomers(): Promise<Customer[]> {
     return db.select().from(customers).orderBy(desc(customers.createdAt));
+  }
+
+  async getReferralCount(username: string): Promise<number> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(customers)
+      .where(eq(customers.referredBy, username));
+    return result?.count ?? 0;
   }
 
   async updateCustomerStatus(id: string, status: string): Promise<void> {

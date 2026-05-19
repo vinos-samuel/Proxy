@@ -151,7 +151,7 @@ export async function registerRoutes(
         });
       }
 
-      const { email, password, name, username } = parsed.data;
+      const { email, password, name, username, referredBy } = parsed.data;
 
       const existingEmail = await storage.getCustomerByEmail(email);
       if (existingEmail) {
@@ -170,6 +170,7 @@ export async function registerRoutes(
         name,
         username,
         emailVerified: false,
+        ...(referredBy ? { referredBy } : {}),
       });
 
       // Send verification email
@@ -1005,6 +1006,20 @@ export async function registerRoutes(
     } catch (error) {
       logger.error("Analytics error", { error: String(error) });
       res.status(500).json({ message: "Could not load analytics" });
+    }
+  });
+
+  // ==================== REFERRAL ====================
+
+  app.get("/api/referral/count", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const customer = await storage.getCustomer(req.session.customerId!);
+      if (!customer) return res.status(404).json({ message: "Not found" });
+      const count = await storage.getReferralCount(customer.username);
+      res.json({ count, referralUrl: `https://myproxy.work/register?ref=${customer.username}` });
+    } catch (error) {
+      logger.error("Referral count error", { error: String(error) });
+      res.status(500).json({ message: "Could not load referral count" });
     }
   });
 

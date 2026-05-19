@@ -191,6 +191,10 @@ export default function PortfolioPage() {
   useEffect(() => {
     if (username) {
       fetch(`/api/analytics/view/${username}`, { method: "POST" }).catch(() => {});
+      // PostHog: track portfolio view with username for per-profile analytics
+      if (typeof (window as any).posthog !== "undefined") {
+        (window as any).posthog.capture("portfolio_viewed", { username });
+      }
     }
   }, [username]);
 
@@ -237,6 +241,13 @@ export default function PortfolioPage() {
     setInputValue("");
     setMessages(prev => [...prev, { role: "user", content: msgText }]);
     setIsStreaming(true);
+    // PostHog: track chat engagement per portfolio
+    if (typeof (window as any).posthog !== "undefined") {
+      (window as any).posthog.capture("chat_message_sent", {
+        username,
+        message_count: messages.length + 1,
+      });
+    }
 
     try {
       const res = await fetch(`/api/chat/${username}`, {

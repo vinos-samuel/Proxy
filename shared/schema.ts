@@ -19,6 +19,7 @@ export const customers = pgTable("customers", {
   emailVerificationToken: text("email_verification_token"),
   emailVerificationTokenExpiry: timestamp("email_verification_token_expiry"),
   onboardingSession: jsonb("onboarding_session"),
+  referredBy: text("referred_by"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
@@ -225,6 +226,7 @@ export const registerSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
   name: z.string().min(2, "Name is required"),
   username: z.string().min(3, "Username must be at least 3 characters").regex(/^[a-z0-9-]+$/, "Username must be lowercase letters, numbers, and hyphens only"),
+  referredBy: z.string().optional(),
 });
 
 export const loginSchema = z.object({

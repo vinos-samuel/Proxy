@@ -1,4 +1,5 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
+import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -66,8 +67,19 @@ function GuestRoute({ component: Component }: { component: () => JSX.Element }) 
   return <Component />;
 }
 
+function ReferralCapture() {
+  const [location] = useLocation();
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref) localStorage.setItem("proxy_ref", ref);
+  }, [location]);
+  return null;
+}
+
 function Router() {
   return (
+    <>
+      <ReferralCapture />
     <Switch>
       <Route path="/" component={LandingPage} />
       <Route path="/about" component={AboutPage} />
@@ -94,6 +106,7 @@ function Router() {
       <Route path="/portfolio/:username" component={PortfolioPage} />
       <Route component={NotFound} />
     </Switch>
+    </>
   );
 }
 

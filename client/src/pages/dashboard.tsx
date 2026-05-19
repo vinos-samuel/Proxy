@@ -32,6 +32,10 @@ export default function DashboardPage() {
     }
   };
 
+  const { data: referral } = useQuery<{ count: number; referralUrl: string }>({
+    queryKey: ["/api/referral/count"],
+  });
+
   const { data: analytics } = useQuery<{ viewCount: number; recentQuestions: { question: string; askedAt: string }[] }>({
     queryKey: ["/api/analytics/my"],
     queryFn: async () => {
@@ -334,6 +338,38 @@ Explore it here: https://myproxy.work/portfolio/${user?.username}
                       Copy Profile URL
                     </button>
                   </div>
+                </div>
+              )}
+
+              {/* Referral card — published users only */}
+              {profile && profile.status === "published" && referral && (
+                <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-[#FDE68A] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                      <span className="text-xl">🔗</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg">YOUR REFERRAL LINK</h3>
+                      <div className="mono text-xs text-black/50 uppercase">// share_proxy</div>
+                    </div>
+                  </div>
+                  <p className="mono text-sm text-black/60 mb-4">
+                    Share this link with professionals who'd benefit from Proxy. When they sign up, they're attributed to you.
+                  </p>
+                  <div className="bg-[#E8E8E3] border-[2px] border-black p-3 mb-4 mono text-xs text-black/70 break-all">
+                    {referral.referralUrl}
+                  </div>
+                  {referral.count > 0 && (
+                    <div className="bg-[#22C55E] border-[2px] border-black px-4 py-2 inline-block mono text-xs font-bold uppercase mb-4">
+                      🎉 {referral.count} {referral.count === 1 ? "person" : "people"} signed up from your link
+                    </div>
+                  )}
+                  <button
+                    onClick={() => navigator.clipboard.writeText(referral.referralUrl)}
+                    className="flex items-center gap-2 bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                  >
+                    Copy Referral Link
+                  </button>
                 </div>
               )}
 

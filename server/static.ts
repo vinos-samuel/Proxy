@@ -12,15 +12,18 @@ function injectMeta(html: string, meta: {
   title: string;
   description: string;
   ogUrl?: string;
+  ogType?: string;
   jsonLd?: object;
 }): string {
-  const t   = sanitize(meta.title);
-  const d   = sanitize(meta.description);
-  const url = sanitize(meta.ogUrl || "");
+  const t    = sanitize(meta.title);
+  const d    = sanitize(meta.description);
+  const url  = sanitize(meta.ogUrl || "");
+  const type = sanitize(meta.ogType || "website");
 
   let result = html
     .replace(/<title>.*?<\/title>/,                                     `<title>${t}</title>`)
     .replace(/(<meta name="description" content=")[^"]*(")/,            `$1${d}$2`)
+    .replace(/(<meta property="og:type" content=")[^"]*(")/,            `$1${type}$2`)
     .replace(/(<meta property="og:title" content=")[^"]*(")/,           `$1${t}$2`)
     .replace(/(<meta property="og:description" content=")[^"]*(")/,     `$1${d}$2`)
     .replace(/(<meta property="og:url" content=")[^"]*(")/,             `$1${url}$2`)
@@ -54,17 +57,74 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
-  // Blog post — per-post title/description for crawlers and social sharing
+  // Blog listing page — custom meta for the index
+  app.get("/blog", (_req, res) => {
+    if (indexHtml) {
+      const html = injectMeta(indexHtml, {
+        title: "Career Advice for Senior Professionals — Proxy Blog",
+        description: "Practical articles on job search, AI sourcing, career positioning, and what it actually takes to land senior roles in 2026.",
+        ogUrl: "https://myproxy.work/blog",
+        jsonLd: {
+          "@context": "https://schema.org",
+          "@type": "Blog",
+          name: "Proxy Blog",
+          url: "https://myproxy.work/blog",
+          description: "Career advice for mid to senior professionals — job search strategy, AI sourcing, and how to stand out in 2026.",
+          publisher: {
+            "@type": "Organization",
+            name: "Proxy",
+            url: "https://myproxy.work",
+          },
+        },
+      });
+      return res.send(html);
+    }
+    res.sendFile(indexHtmlPath);
+  });
+
+  // Blog post — per-post title/description + BlogPosting JSON-LD for crawlers
   app.get("/blog/:slug", async (req, res) => {
     if (indexHtml) {
       try {
         const post = await storage.getBlogPostBySlug(req.params.slug);
         if (post && post.status === "published") {
-          const url = `https://myproxy.work/blog/${post.slug}`;
+          const url         = `https://myproxy.work/blog/${post.slug}`;
+          const description = post.metaDescription || post.excerpt || post.title;
+          const datePublished = (post.publishedAt || post.createdAt).toISOString();
+          const dateModified  = post.updatedAt.toISOString();
+
+          const jsonLd: Record<string, any> = {
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            headline: post.title,
+            description,
+            url,
+            datePublished,
+            dateModified,
+            author: {
+              "@type": "Organization",
+              name: "Proxy",
+              url: "https://myproxy.work",
+            },
+            publisher: {
+              "@type": "Organization",
+              name: "Proxy",
+              url: "https://myproxy.work",
+            },
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": url,
+            },
+          };
+
+          if (post.heroImageUrl) jsonLd.image = post.heroImageUrl;
+
           const html = injectMeta(indexHtml, {
             title: `${post.title} — Proxy Blog`,
-            description: post.excerpt || post.title,
+            description,
             ogUrl: url,
+            ogType: "article",
+            jsonLd,
           });
           return res.send(html);
         }

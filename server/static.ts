@@ -14,6 +14,7 @@ function injectMeta(html: string, meta: {
   ogUrl?: string;
   ogType?: string;
   jsonLd?: object;
+  bodyContent?: string; // server-rendered text for crawlers (hidden from UI)
 }): string {
   const t    = sanitize(meta.title);
   const d    = sanitize(meta.description);
@@ -36,6 +37,13 @@ function injectMeta(html: string, meta: {
   if (meta.jsonLd) {
     const ldScript = `<script type="application/ld+json">${JSON.stringify(meta.jsonLd)}</script>`;
     result = result.replace("</head>", `${ldScript}\n</head>`);
+  }
+
+  // Inject server-rendered body content for crawlers — prevents soft 404
+  // Hidden from UI (React renders over #root), but visible to Googlebot
+  if (meta.bodyContent) {
+    const crawlerDiv = `<div id="ssr-content" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;" aria-hidden="true">${meta.bodyContent}</div>`;
+    result = result.replace('<div id="root">', `${crawlerDiv}\n<div id="root">`);
   }
 
   return result;
@@ -119,12 +127,25 @@ export function serveStatic(app: Express) {
 
           if (post.heroImageUrl) jsonLd.image = post.heroImageUrl;
 
+          // Strip markdown symbols for crawler-readable plain text
+          const plainContent = post.content
+            .replace(/#{1,6}\s+/g, "")
+            .replace(/\*\*([^*]+)\*\*/g, "$1")
+            .replace(/\*([^*]+)\*/g, "$1")
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+            .replace(/`[^`]+`/g, "")
+            .replace(/\n{3,}/g, "\n\n")
+            .slice(0, 5000);
+
+          const bodyContent = `<h1>${post.title}</h1><p>${description}</p><article>${plainContent}</article>`;
+
           const html = injectMeta(indexHtml, {
             title: `${post.title} — Proxy Blog`,
             description,
             ogUrl: url,
             ogType: "article",
             jsonLd,
+            bodyContent,
           });
           return res.send(html);
         }

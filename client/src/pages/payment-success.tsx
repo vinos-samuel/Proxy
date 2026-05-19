@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 declare global {
   interface Window {
     fbq?: (...args: any[]) => void;
+    gtag?: (...args: any[]) => void;
   }
 }
 
@@ -56,9 +57,17 @@ ${profileUrl}`;
         if (data.status === "paid") {
           setDomain(data.domain || "");
           setTier(data.tier || "");
+          const amount = data.tier === "concierge" ? 499.00 : 49.00;
           if (typeof window.fbq === "function") {
-            const amount = data.tier === "concierge" ? 499.00 : 49.00;
             window.fbq("track", "Purchase", { value: amount, currency: "USD" });
+          }
+          if (typeof window.gtag === "function") {
+            window.gtag("event", "purchase", {
+              transaction_id: sessionId,
+              value: amount,
+              currency: "USD",
+              items: [{ item_name: data.tier === "concierge" ? "Proxy Concierge" : "Proxy Pro" }],
+            });
           }
         } else {
           setError("Payment is still processing. Please check your dashboard in a moment.");

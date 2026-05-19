@@ -3,6 +3,12 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "./queryClient";
 import type { Customer } from "@shared/schema";
 
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 type AuthUser = Omit<Customer, "passwordHash"> | null;
 
 interface AuthContextType {
@@ -62,6 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register: async (data) => {
           await registerMutation.mutateAsync(data);
           await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
+          if (typeof window.gtag === "function") {
+            window.gtag("event", "sign_up", { method: "email" });
+          }
         },
         logout: async () => {
           await logoutMutation.mutateAsync();

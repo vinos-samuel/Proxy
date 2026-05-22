@@ -7,17 +7,32 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-04-23
-**Status:** LAUNCHED. Code pushed to GitHub main. Needs Replit pull + build + redeploy to go live.
+## Current Sprint — 2026-05-19
+**Status:** LIVE. All changes deployed and confirmed working on myproxy.work.
 **Last session completed:**
-- Landing page full redesign (client/src/pages/landing.tsx): new hero with two-column layout + JSX chatbot mockup, new headline ("You've done the work. A PDF shouldn't be how you're judged for it."), grounded subheadline (no "AI version of you"), removed status bar + terminal CTAs + 4-card grid, added How It Works (3 plain steps), new Job Search Agent feature section, condensed problem comparison (3 rows), "who it's for" updated to mid-to-senior, pricing cleaned up (strikethrough removed), simplified final CTA
-- FAQ updated (client/src/pages/faq.tsx): "Who is Proxy for?" updated to mid to senior, time estimates changed to "around 10 minutes", new Q&A "What is the Job Search Agent?", updated "What's coming next?" list, CTA copy updated
-- Merged feature/job-search-agent branch into main
-- Merged claude/fix-build-hanging-7MnVR branch into main
-- Pushed all to GitHub main
-**Still needs deploy:** Pull on Replit (`git fetch origin && git reset --hard origin/main`), then `npm run build`, then redeploy from Deployments tab
-**Don't touch:** server/ai-processor.ts, Stripe webhook flow, server/job-search-agent.ts — all working in production
-**Pending decision:** None
+- GA4 installed (Measurement ID: G-750EWDCJL2) — gtag.js added to client/index.html
+- `sign_up` event fires on successful registration (client/src/lib/auth.tsx)
+- `purchase` event fires on payment success with value + tier (client/src/pages/payment-success.tsx)
+- Helmet CSP updated to allow googletagmanager.com + google-analytics.com (server/index.ts) — was blocking GA4 silently
+- GA4 Realtime confirmed working — live user visible in Singapore
+- `purchase` starred as key event in GA4; `sign_up` pending first real signup
+- 6 pitch deck content ideas mapped to post formats — parked for next 2 weeks
+**Still needs action:**
+- Star `sign_up` as key event in GA4 once next real signup fires
+- Content ideas to draft and schedule (next 2 weeks):
+  1. The 6-second stat — Monday plain text post
+  2. Two failure modes — Tuesday carousel
+  3. "Your resume isn't the problem. Your resume writer is." — Thursday teaser
+  4. The 7/7 hallucination finding — carousel (trust/differentiation)
+  5. 3 forces converging in 2026 — LinkedIn article / long-form
+  6. "Not a resume builder. A career platform." — positioning post
+  7. The moat/compounding loop — short thread (X/LinkedIn)
+  8. Is Proxy for you? — 3 signals carousel (Instagram)
+**Don't touch:** server/ai-processor.ts, Stripe webhook flow, server/job-search-agent.ts
+**Pending decisions:**
+- Test $19/mo pricing alongside $49 (Anthony's suggestion — not actioned yet)
+- PostHog session tracking for drop-off analysis (Anthony's suggestion — not actioned yet)
+- Suggested question chips on portfolio pages (removes recruiter cold-start friction — ~3 days)
 
 ## What This Is
 Digital Twin / AI-powered career profile builder. Users upload a resume, fill an 11-step questionnaire, and get a public AI portfolio page with a chatbot that represents them.

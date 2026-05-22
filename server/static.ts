@@ -13,6 +13,7 @@ function injectMeta(html: string, meta: {
   description: string;
   ogUrl?: string;
   ogType?: string;
+  ogImage?: string;
   jsonLd?: object;
 }): string {
   const t    = sanitize(meta.title);
@@ -31,6 +32,14 @@ function injectMeta(html: string, meta: {
     .replace(/(<meta property="twitter:description" content=")[^"]*(")/,`$1${d}$2`)
     .replace(/(<meta property="twitter:url" content=")[^"]*(")/,        `$1${url}$2`)
     .replace(/(<link rel="canonical" href=")[^"]*(")/,                  `$1${url}$2`);
+
+  // Override og:image if provided
+  if (meta.ogImage) {
+    const img = sanitize(meta.ogImage);
+    result = result
+      .replace(/(<meta property="og:image" content=")[^"]*(")/,         `$1${img}$2`)
+      .replace(/(<meta property="twitter:image" content=")[^"]*(")/,    `$1${img}$2`);
+  }
 
   // Inject JSON-LD before </head> — this is what AI agents and Google parse
   if (meta.jsonLd) {
@@ -119,6 +128,11 @@ export function serveStatic(app: Express) {
 
           if (post.heroImageUrl) jsonLd.image = post.heroImageUrl;
 
+          // Use hero image as OG image if available, otherwise use blog-specific fallback
+          const ogImage = (post.heroImageUrl && post.heroImageUrl.startsWith("http"))
+            ? post.heroImageUrl
+            : "https://myproxy.work/og-blog.png";
+
           // Preload post data so React renders immediately — no API wait, no loading state
           // This prevents Google from capturing a "Loading..." soft 404
           const preloadData = {
@@ -138,6 +152,7 @@ export function serveStatic(app: Express) {
             description,
             ogUrl: url,
             ogType: "article",
+            ogImage,
             jsonLd,
           });
 

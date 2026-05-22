@@ -267,3 +267,38 @@
 
 **Blockers**
 - None — blog indexing submitted, Google will crawl within days
+
+---
+
+## 2026-05-22
+
+**Tasks Completed**
+- Added PostHog analytics (portfolio_viewed, chat_message_sent events)
+- Built referral attribution system end-to-end (ReferralCapture, localStorage, referred_by DB column, /api/referral/count, dashboard referral card)
+- Tightened hallucination guardrails in system-prompt-builder.ts
+- Fixed blog OG image: hero image used per post, og-blog.png fallback created
+- Created og-blog.png social card (gray, correct tagline "Your resume is not working. Proxy is.")
+- Fixed Stripe secret key exposed in .env commit — removed from git history, rotated key, updated Replit secrets
+- Fixed preview page: "Publish Now" now opens PaymentGate modal directly instead of redirecting to dashboard dead-end
+- FAQ updated: accuracy/hallucination Q&A, referral link mention, corrected "what's coming next"
+- All changes deployed to production ✅
+
+**Files Modified**
+- `client/index.html` — PostHog snippet added
+- `client/src/App.tsx` — ReferralCapture component
+- `client/src/lib/auth.tsx` — referredBy passed on register, sign_up gtag event
+- `client/src/pages/portfolio.tsx` — PostHog events
+- `client/src/pages/dashboard.tsx` — referral card
+- `client/src/pages/payment-success.tsx` — purchase gtag event
+- `client/src/pages/preview.tsx` — PaymentGate modal on Publish click
+- `client/src/pages/faq.tsx` — accuracy Q&A, referral update, coming next fix
+- `server/static.ts` — ogImage override, og-blog.png fallback
+- `server/system-prompt-builder.ts` — hallucination guardrails tightened
+- `server/routes.ts` — referredBy on register, /api/referral/count endpoint
+- `server/storage.ts` — getReferralCount method
+- `shared/schema.ts` — referred_by column
+- `client/public/og-blog.png` — new social card image
+- `.gitignore` — added .env, .claude/worktrees/
+
+**Blockers**
+- None

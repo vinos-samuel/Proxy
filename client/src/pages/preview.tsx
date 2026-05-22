@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import PaymentGate from "@/components/PaymentGate";
 import {
   ArrowLeft, Globe, Eye, Loader2, CheckCircle,
   Pencil, Save, X, ChevronDown, ChevronUp, Lock, Plus, Trash2
@@ -49,6 +50,7 @@ export default function PreviewPage() {
   });
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [iframeKey, setIframeKey] = useState(0);
+  const [showPaymentGate, setShowPaymentGate] = useState(false);
 
   const { data: profile, isLoading } = useQuery<TwinProfile | null>({
     queryKey: ["/api/profile"],
@@ -70,8 +72,7 @@ export default function PreviewPage() {
     },
     onError: (err: any) => {
       if (err.message?.includes("payment required") || err.message?.includes("Payment required")) {
-        toast({ title: "Payment Required", description: "Please complete payment on the dashboard first.", variant: "destructive" });
-        navigate("/dashboard");
+        setShowPaymentGate(true);
         return;
       }
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -206,6 +207,20 @@ export default function PreviewPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Payment modal — shown when user clicks Publish without a paid plan */}
+      {showPaymentGate && profile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 overflow-y-auto">
+          <div className="relative w-full max-w-5xl">
+            <button
+              onClick={() => setShowPaymentGate(false)}
+              className="absolute -top-10 right-0 text-white/70 hover:text-white text-sm"
+            >
+              ✕ Close
+            </button>
+            <PaymentGate profileId={String((profile as any).id)} username={(profile as any).username} />
+          </div>
+        </div>
+      )}
       <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/dashboard">
@@ -255,10 +270,7 @@ export default function PreviewPage() {
             )}
             {profile.status === "ready" && !editMode && profile.paymentStatus !== 'paid' && (
               <Button
-                onClick={() => {
-                  toast({ title: "Payment Required", description: "Please select a plan on the dashboard to publish." });
-                  navigate("/dashboard");
-                }}
+                onClick={() => setShowPaymentGate(true)}
                 data-testid="button-publish"
               >
                 <Lock className="mr-2 h-4 w-4" /> Publish Now
@@ -305,9 +317,9 @@ export default function PreviewPage() {
                 <CheckCircle className="h-8 w-8 text-primary mx-auto mb-3" />
                 <h3 className="font-semibold mb-2">Your Digital Twin is Ready</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  {profile.paymentStatus === 'paid' 
+                  {profile.paymentStatus === 'paid'
                     ? 'Review the preview below. Click "Edit Content" to tweak any AI-generated text, or "Publish Now" to go live.'
-                    : 'Review the preview below. Click "Edit Content" to tweak text, or go to Dashboard to select a plan and publish.'}
+                    : 'Review the preview below. Click "Edit Content" to tweak text, or "Select Plan to Publish" to choose a plan and go live.'}
                 </p>
                 <div className="flex items-center justify-center gap-3">
                   <Button
@@ -334,7 +346,7 @@ export default function PreviewPage() {
                     </Button>
                   ) : (
                     <Button
-                      onClick={() => navigate("/dashboard")}
+                      onClick={() => setShowPaymentGate(true)}
                       className="px-8"
                       data-testid="button-goto-payment"
                     >

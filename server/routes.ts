@@ -973,6 +973,39 @@ export async function registerRoutes(
 
       // Fire-and-forget: save question for analytics
       storage.saveChatMessage(profile.id, message).catch(() => {});
+
+      // Fire-and-forget: grounding verification (log-only mode — detects hallucinations without blocking)
+      const profileDataForVerification = knowledgeContext + factContext;
+      (async () => {
+        try {
+          const verifyResult = await anthropic.messages.create({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 50,
+            system: `You are a grounding verifier. Check if the response contains specific claims not supported by the profile data.
+
+Profile data:
+${profileDataForVerification}
+
+Reply with only one word: PASS or FAIL
+FAIL only if the response states a specific fact, name, project, outcome, or detail that cannot be found in the profile data above.
+PASS if every specific claim traces back to the profile data, or if the response is a general redirect or offer.`,
+            messages: [{ role: "user", content: `Response to verify:\n${responseText}` }],
+          });
+          const verdict = verifyResult.content[0].type === "text"
+            ? verifyResult.content[0].text.trim().toUpperCase()
+            : "UNKNOWN";
+          if (verdict.startsWith("FAIL")) {
+            logger.info("[Grounding] FAIL — possible hallucination", {
+              profileId: profile.id,
+              username: customer.username,
+              question: message,
+              response: responseText,
+            });
+          }
+        } catch (err) {
+          // Verification errors must never affect the user — silently swallow
+        }
+      })();
     } catch (error) {
       logger.error("Chat error", { error: String(error) });
       res.status(500).json({ message: String(error) });
@@ -1764,6 +1797,74 @@ export async function registerRoutes(
     } catch (error) {
       logger.error("[Nudge] Test email error", { error: String(error) });
       res.status(500).json({ message: "Failed to send test emails" });
+    }
+  });
+
+  // ─── Admin: Send email to individual user ────────────────────────────────────
+
+  app.post("/api/admin/send-email/:customerId", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { customerId } = req.params;
+      const { subject, body } = req.body;
+
+      if (!subject?.trim() || !body?.trim()) {
+        return res.status(400).json({ message: "Subject and body are required" });
+      }
+
+      const customer = await storage.getCustomer(customerId);
+      if (!customer) return res.status(404).json({ message: "Customer not found" });
+      if (!customer.email) return res.status(400).json({ message: "Customer has no email address" });
+
+      const { Resend } = await import("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const from = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
+
+      await resend.emails.send({
+        from,
+        to: customer.email,
+        subject: subject.trim(),
+        html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#111;">${body.trim().replace(/\n/g, "<br>")}</div>`,
+      });
+
+      logger.info("[Admin] Individual email sent", { to: customer.email, subject, by: req.session.customerId });
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("[Admin] Send email error", { error: String(error) });
+      res.status(500).json({ message: "Failed to send email" });
+    }
+  });
+
+  // ─── Admin: Export customers as CSV ──────────────────────────────────────────
+
+  app.get("/api/admin/export-csv", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const customersData = await storage.getCustomersWithProfiles();
+
+      const headers = ["Name", "Email", "Username", "Joined", "Email Verified", "Status", "Profile Status", "Visitor Count"];
+
+      const escape = (val: any) => `"${String(val ?? "").replace(/"/g, '""')}"`;
+
+      const rows = customersData.map((c) => [
+        escape(c.name),
+        escape(c.email),
+        escape(c.username),
+        escape(c.createdAt ? new Date(c.createdAt).toISOString().split("T")[0] : ""),
+        escape(c.emailVerified ? "Yes" : "No"),
+        escape(c.subscriptionStatus || "free"),
+        escape((c as any).profile?.status || "none"),
+        escape((c as any).profile?.viewCount ?? 0),
+      ]);
+
+      const csv = [headers.map(escape).join(","), ...rows.map((r) => r.join(","))].join("\n");
+      const filename = `proxy-customers-${new Date().toISOString().split("T")[0]}.csv`;
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      logger.info("[Admin] CSV exported", { rows: rows.length, by: req.session.customerId });
+      res.send(csv);
+    } catch (error) {
+      logger.error("[Admin] CSV export error", { error: String(error) });
+      res.status(500).json({ message: "Failed to export" });
     }
   });
 

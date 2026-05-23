@@ -705,6 +705,82 @@ function OutreachTab({ customers }: { customers: (Customer & { profile?: TwinPro
   );
 }
 
+// ─── Email Modal ──────────────────────────────────────────────────────────────
+
+function EmailModal({
+  customer,
+  onClose,
+}: {
+  customer: Customer & { profile?: TwinProfile | null };
+  onClose: () => void;
+}) {
+  const { toast } = useToast();
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+
+  const sendMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/admin/send-email/${customer.id}`, { subject, body });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to send");
+      }
+    },
+    onSuccess: () => {
+      toast({ title: "Email sent", description: `Sent to ${customer.email}` });
+      onClose();
+    },
+    onError: (err: any) => {
+      toast({ title: "Send failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-background border border-white/10 rounded-xl w-full max-w-lg shadow-2xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <div>
+            <p className="font-semibold">Email {customer.name}</p>
+            <p className="text-xs text-muted-foreground">{customer.email}</p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="px-6 py-4 space-y-3">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Subject</label>
+            <Input
+              placeholder="Subject line"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Body</label>
+            <Textarea
+              placeholder="Write your message..."
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={6}
+            />
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-white/10">
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button
+            onClick={() => sendMutation.mutate()}
+            disabled={sendMutation.isPending || !subject.trim() || !body.trim()}
+          >
+            {sendMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+            Send
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -712,6 +788,7 @@ export default function AdminPage() {
   const { toast } = useToast();
   const [filter, setFilter] = useState<FilterTab>("all");
   const [activeTab, setActiveTab] = useState<AdminTab>("customers");
+  const [emailTarget, setEmailTarget] = useState<(Customer & { profile?: TwinProfile | null }) | null>(null);
 
   const { data, isLoading } = useQuery<AdminData>({
     queryKey: ["/api/admin/overview"],
@@ -911,7 +988,14 @@ export default function AdminPage() {
               <Card className="border-white/10 bg-white/5 backdrop-blur-xl">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-                    <h2 className="text-xl font-semibold">Customers</h2>
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-xl font-semibold">Customers</h2>
+                      <a href="/api/admin/export-csv" download>
+                        <Button variant="outline" size="sm" className="h-7 text-xs px-3 gap-1">
+                          <FileText className="h-3 w-3" /> Export CSV
+                        </Button>
+                      </a>
+                    </div>
                     {/* Filter tabs */}
                     <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
                       {customerTabs.map(tab => (
@@ -984,6 +1068,16 @@ export default function AdminPage() {
                                 </TableCell>
                                 <TableCell>
                                   <div className="flex items-center gap-1 flex-wrap">
+                                    {/* Email */}
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 text-xs px-2"
+                                      onClick={() => setEmailTarget(customer)}
+                                    >
+                                      <Mail className="h-3 w-3 mr-1" /> Email
+                                    </Button>
+
                                     {/* View profile */}
                                     {customer.profile?.status === "published" && (
                                       <a
@@ -1068,6 +1162,14 @@ export default function AdminPage() {
           {activeTab === "outreach" && <OutreachTab customers={allCustomers} />}
         </motion.div>
       </div>
+
+      {/* Email modal */}
+      {emailTarget && (
+        <EmailModal
+          customer={emailTarget}
+          onClose={() => setEmailTarget(null)}
+        />
+      )}
     </div>
   );
 }

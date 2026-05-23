@@ -99,6 +99,35 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+// ─── Strip recruiter-facing questions from chat responses ────────────────────
+// Safety net: if the model ends with a question directed at the recruiter
+// (not an offer from the twin), strip it and replace with a safe closing.
+function stripRecruiterQuestion(text: string): string {
+  const trimmed = text.trim();
+  const parts = trimmed.split(/(?<=[.!?])\s+(?=[A-Z"'])/);
+  if (parts.length <= 1) return trimmed; // Single sentence — don't strip
+
+  const last = parts[parts.length - 1].trim();
+  if (!last.endsWith('?')) return trimmed; // No question at end — leave as-is
+
+  // These patterns are the twin offering to expand on its own data — allowed
+  const twinOffers = [
+    /^want me\b/i,
+    /^shall i\b/i,
+    /^would you like me\b/i,
+    /^i can (go|walk|take|give|share|break|run)\b/i,
+    /^happy to\b/i,
+    /^want to (hear|know|see)\b/i,
+  ];
+  if (twinOffers.some((p) => p.test(last))) return trimmed; // Allowed — keep
+
+  // Anything else ending with ? is recruiter-facing — strip and add safe close
+  const withoutQuestion = parts.slice(0, -1).join(' ').trim();
+  return withoutQuestion
+    ? withoutQuestion + '\n\nHappy to go deeper on any of this.'
+    : trimmed; // Edge case: nothing left — return original
+}
+
 async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   if (!req.session.customerId) {
     return res.status(401).json({ message: "Authentication required" });
@@ -966,9 +995,10 @@ export async function registerRoutes(
         messages: [{ role: "user", content: message }],
       });
 
-      const responseText = result.content[0].type === "text"
+      const rawResponse = result.content[0].type === "text"
         ? result.content[0].text
         : "I'm not sure how to answer that. Could you rephrase?";
+      const responseText = stripRecruiterQuestion(rawResponse);
       res.json({ content: responseText });
 
       // Fire-and-forget: save question for analytics

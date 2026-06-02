@@ -1522,13 +1522,13 @@ PASS if every specific claim traces back to the profile data, or if the response
     res.json(posts);
   });
 
-  // GET /api/blog/:slug — single published post, increment view
+  // GET /api/blog/:slug — single published post
+  // Note: view count is incremented server-side in static.ts on page serve
   app.get("/api/blog/:slug", async (req, res) => {
     const post = await storage.getBlogPostBySlug(req.params.slug);
     if (!post || post.status !== "published") {
       return res.status(404).json({ message: "Post not found" });
     }
-    storage.incrementBlogViewCount(post.id).catch(() => {});
     res.json(post);
   });
 

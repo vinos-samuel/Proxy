@@ -147,6 +147,9 @@ export function serveStatic(app: Express) {
             metaDescription: post.metaDescription,
           };
 
+          // Increment view count server-side — fires on every real page visit
+          storage.incrementBlogViewCount(post.id).catch(() => {});
+
           let html = injectMeta(indexHtml, {
             title: `${post.title} — Proxy Blog`,
             description,

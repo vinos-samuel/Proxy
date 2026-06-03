@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { storage } from "./storage";
 import { Resend } from "resend";
-import { nudgeEditWindowTemplate, nudgeEngagementTemplate } from "./emails";
+import { nudgeEditWindowTemplate, nudgeEngagementTemplate, feedbackEmailTemplate } from "./emails";
 import { logger } from "./logger";
 
 export function startNudgeCron() {
@@ -45,6 +45,18 @@ export function startNudgeCron() {
           await storage.markNudgeSent(p.profileId, 2);
           logger.info("[Nudge] Nudge 2 sent", { profileId: p.profileId, email: p.email });
         }
+      }
+      // Feedback email: 24hrs after profile becomes ready (all users, free + paid)
+      const feedbackProfiles = await storage.getProfilesDueForFeedback();
+      for (const p of feedbackProfiles) {
+        await resend.emails.send({
+          from,
+          to: p.email,
+          subject: "Quick question about your Proxy profile",
+          html: feedbackEmailTemplate(p.name),
+        }).catch(() => {});
+        await storage.markFeedbackEmailSent(p.profileId);
+        logger.info("[Nudge] Feedback email sent", { profileId: p.profileId, email: p.email });
       }
     } catch (err) {
       logger.error("[Nudge] Cron error", { error: String(err) });

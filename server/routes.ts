@@ -278,6 +278,14 @@ export async function registerRoutes(
   app.delete("/api/account", requireAuth, async (req: Request, res: Response) => {
     try {
       const customerId = req.session.customerId!;
+      const customer = await storage.getCustomer(customerId);
+      const reason = req.body?.reason || "Not provided";
+      // Log exit reason — visible in production logs for product insight
+      logger.info("Account deleted", {
+        email: customer?.email,
+        name: customer?.name,
+        reason,
+      });
       await storage.deleteCustomer(customerId);
       req.session.destroy(() => {
         res.clearCookie("connect.sid");

@@ -135,6 +135,45 @@ export class DatabaseStorage implements IStorage {
     await db.update(customers).set({ lastActiveAt: new Date() }).where(eq(customers.id, id));
   }
 
+  async setProfileReadyAt(profileId: string): Promise<void> {
+    // Only set once — don't overwrite on reprocessing
+    await db.update(twinProfiles)
+      .set({ profileReadyAt: new Date() })
+      .where(and(eq(twinProfiles.id, profileId), sql`profile_ready_at IS NULL`));
+  }
+
+  async getProfilesDueForFeedback(): Promise<Array<{ profileId: string; email: string; name: string; profileReadyAt: Date }>> {
+    const now = new Date();
+    const twentyHoursAgo = new Date(now.getTime() - 20 * 60 * 60 * 1000);
+    const twentyEightHoursAgo = new Date(now.getTime() - 28 * 60 * 60 * 1000);
+    const rows = await db
+      .select({
+        profileId: twinProfiles.id,
+        email: customers.email,
+        name: customers.name,
+        profileReadyAt: twinProfiles.profileReadyAt,
+      })
+      .from(twinProfiles)
+      .innerJoin(customers, eq(twinProfiles.customerId, customers.id))
+      .where(
+        and(
+          sql`twin_profiles.profile_ready_at BETWEEN ${twentyEightHoursAgo} AND ${twentyHoursAgo}`,
+          sql`twin_profiles.feedback_email_sent_at IS NULL`,
+          eq(customers.emailVerified, true)
+        )
+      );
+    return rows.map(r => ({
+      profileId: r.profileId,
+      email: r.email,
+      name: r.name,
+      profileReadyAt: r.profileReadyAt!,
+    }));
+  }
+
+  async markFeedbackEmailSent(profileId: string): Promise<void> {
+    await db.update(twinProfiles).set({ feedbackEmailSentAt: new Date() }).where(eq(twinProfiles.id, profileId));
+  }
+
   async getOnboardingSession(customerId: string): Promise<any | null> {
     const [row] = await db.select({ onboardingSession: customers.onboardingSession }).from(customers).where(eq(customers.id, customerId));
     return row?.onboardingSession ?? null;

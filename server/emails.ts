@@ -262,6 +262,28 @@ export function broadcastTemplate(name: string, bodyText: string): string {
 
 // ─── Password Reset ───────────────────────────────────────────────────────────
 
+export function feedbackEmailTemplate(name: string): string {
+  const firstName = name.split(" ")[0];
+  const body = `
+    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Quick question, ${firstName}</h1>
+    <p style="font-size:15px;color:#333333;margin:0 0 16px 0;line-height:1.6;">
+      I'm Vinos — I built Proxy. Your profile was generated yesterday and I wanted to check in personally.
+    </p>
+    <p style="font-size:15px;color:#333333;margin:0 0 16px 0;line-height:1.6;">
+      One question: <strong>what was the hardest part of getting your profile set up?</strong>
+    </p>
+    <p style="font-size:15px;color:#333333;margin:0 0 16px 0;line-height:1.6;">
+      Just reply to this email. A few words is enough. I read every reply and it directly shapes what I fix next.
+    </p>
+    <p style="font-size:15px;color:#333333;margin:0 0 24px 0;line-height:1.6;">
+      Also — if your profile is still sitting at "Ready" and you haven't gone live yet, I'm happy to help you push it live. Takes 5 minutes.
+    </p>
+    <p style="font-size:15px;color:#333333;margin:0 0 4px 0;line-height:1.6;">Vinos</p>
+    <p style="font-size:13px;color:#888888;margin:0;line-height:1.6;">Founder, Proxy — myproxy.work</p>
+  `;
+  return baseTemplate(body);
+}
+
 export function passwordResetTemplate(resetUrl: string): string {
   const body = `
     <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Reset your password</h1>

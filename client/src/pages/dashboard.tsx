@@ -19,12 +19,21 @@ export default function DashboardPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [deleteReason, setDeleteReason] = useState("");
+
+  const DELETE_REASONS = [
+    "I found a job",
+    "The profile didn't represent me well",
+    "Too complicated to set up",
+    "Just exploring — not ready to use it",
+    "Other",
+  ];
 
   const handleDeleteAccount = async () => {
     setDeleteLoading(true);
     setDeleteError("");
     try {
-      await apiRequest("DELETE", "/api/account");
+      await apiRequest("DELETE", "/api/account", { reason: deleteReason || "Not provided" });
       navigate("/");
     } catch (err: any) {
       setDeleteError(err.message || "Failed to delete account. Please try again.");
@@ -600,6 +609,22 @@ Explore it here: https://myproxy.work/portfolio/${user?.username}
               <p className="text-red-700 font-bold text-sm mb-3">
                 Are you sure? This will permanently delete your profile, all career data, and chat history. You cannot undo this.
               </p>
+              <p className="text-sm font-semibold text-black/70 mb-2">Before you go — what's the main reason? (optional)</p>
+              <div className="flex flex-col gap-2 mb-4">
+                {DELETE_REASONS.map((reason) => (
+                  <label key={reason} className="flex items-center gap-2 cursor-pointer text-sm text-black/70">
+                    <input
+                      type="radio"
+                      name="deleteReason"
+                      value={reason}
+                      checked={deleteReason === reason}
+                      onChange={() => setDeleteReason(reason)}
+                      className="accent-red-500"
+                    />
+                    {reason}
+                  </label>
+                ))}
+              </div>
               {deleteError && <p className="text-red-600 text-sm mb-3">{deleteError}</p>}
               <div className="flex gap-3">
                 <button
@@ -610,7 +635,7 @@ Explore it here: https://myproxy.work/portfolio/${user?.username}
                   {deleteLoading ? "Deleting..." : "Yes, Delete Everything"}
                 </button>
                 <button
-                  onClick={() => setShowDeleteConfirm(false)}
+                  onClick={() => { setShowDeleteConfirm(false); setDeleteReason(""); }}
                   disabled={deleteLoading}
                   className="border-2 border-black/20 text-black/60 px-4 py-2 text-sm font-bold hover:bg-black/5"
                 >

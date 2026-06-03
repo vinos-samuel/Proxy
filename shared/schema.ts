@@ -62,6 +62,8 @@ export const twinProfiles = pgTable("twin_profiles", {
   nudge1SentAt: timestamp("nudge1_sent_at"),
   nudge2SentAt: timestamp("nudge2_sent_at"),
   lastDeepenedAt: timestamp("last_deepened_at"),
+  profileReadyAt: timestamp("profile_ready_at"),
+  feedbackEmailSentAt: timestamp("feedback_email_sent_at"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

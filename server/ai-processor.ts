@@ -861,6 +861,10 @@ Return ONLY the response text.`;
   const currentProfile = await storage.getProfileById(profileId);
   const finalStatus = currentProfile?.isPublic ? "published" : "ready";
   await storage.updateProfileStatus(profileId, finalStatus);
+  // Record when profile first becomes ready — used to trigger 24hr feedback email
+  if (finalStatus === "ready") {
+    await storage.setProfileReadyAt(profileId);
+  }
 }
 
 export async function parseResumeWithGemini(pdfBuffer: Buffer) {

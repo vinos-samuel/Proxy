@@ -25,6 +25,7 @@ export function startNudgeCron() {
           await resend.emails.send({
             from,
             to: p.email,
+            reply_to: "vinos@myproxy.work",
             subject: "Your Proxy edit window has closed",
             html: nudgeEditWindowTemplate(p.name, upgradeUrl),
           }).catch(() => {});
@@ -37,6 +38,7 @@ export function startNudgeCron() {
           await resend.emails.send({
             from,
             to: p.email,
+            reply_to: "vinos@myproxy.work",
             subject: p.viewCount > 0
               ? `Your Twin has had ${p.viewCount} visitor${p.viewCount === 1 ? "" : "s"}`
               : "Your Digital Twin is live — upgrade to see engagement",
@@ -51,6 +53,7 @@ export function startNudgeCron() {
       for (const p of feedbackProfiles) {
         await resend.emails.send({
           from,
+          replyTo: "vinos@myproxy.work",
           to: p.email,
           subject: "Quick question about your Proxy profile",
           html: feedbackEmailTemplate(p.name),

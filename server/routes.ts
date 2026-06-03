@@ -1804,6 +1804,7 @@ PASS if every specific claim traces back to the profile data, or if the response
           await resend.emails.send({
             from,
             to: c.email,
+            reply_to: "vinos@myproxy.work",
             subject,
             html: broadcastTemplate(c.name, body),
           });
@@ -1840,12 +1841,14 @@ PASS if every specific claim traces back to the profile data, or if the response
       await resend.emails.send({
         from,
         to: customer.email,
+        reply_to: "vinos@myproxy.work",
         subject: "[TEST] Your Proxy edit window has closed",
         html: nudgeEditWindowTemplate(customer.name, upgradeUrl),
       });
       await resend.emails.send({
         from,
         to: customer.email,
+        reply_to: "vinos@myproxy.work",
         subject: `[TEST] Your Twin has had ${viewCount} visitors`,
         html: nudgeEngagementTemplate(customer.name, viewCount, upgradeUrl),
       });
@@ -1880,6 +1883,7 @@ PASS if every specific claim traces back to the profile data, or if the response
       await resend.emails.send({
         from,
         to: customer.email,
+        reply_to: "vinos@myproxy.work",
         subject: subject.trim(),
         html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#111;">${body.trim().replace(/\n/g, "<br>")}</div>`,
       });

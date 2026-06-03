@@ -1877,6 +1877,7 @@ PASS if every specific claim traces back to the profile data, or if the response
       if (!customer.email) return res.status(400).json({ message: "Customer has no email address" });
 
       const { Resend } = await import("resend");
+      const { broadcastTemplate } = await import("./emails");
       const resend = new Resend(process.env.RESEND_API_KEY);
       const from = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
 
@@ -1885,7 +1886,7 @@ PASS if every specific claim traces back to the profile data, or if the response
         to: customer.email,
         reply_to: "vinos@myproxy.work",
         subject: subject.trim(),
-        html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#111;">${body.trim().replace(/\n/g, "<br>")}</div>`,
+        html: broadcastTemplate(customer.name, body.trim()),
       });
 
       logger.info("[Admin] Individual email sent", { to: customer.email, subject, by: req.session.customerId });

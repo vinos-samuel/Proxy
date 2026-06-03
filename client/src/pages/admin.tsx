@@ -20,7 +20,7 @@ import {
 import type { Customer, TwinProfile, BlogPost } from "@shared/schema";
 
 interface AdminData {
-  customers: (Customer & { profile?: TwinProfile | null })[];
+  customers: (Customer & { profile?: TwinProfile | null; questionCount: number })[];
   stats: {
     totalCustomers: number;
     publishedProfiles: number;

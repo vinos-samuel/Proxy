@@ -131,6 +131,10 @@ export class DatabaseStorage implements IStorage {
     await db.update(customers).set({ subscriptionStatus: status }).where(eq(customers.id, id));
   }
 
+  async updateLastActiveAt(id: string): Promise<void> {
+    await db.update(customers).set({ lastActiveAt: new Date() }).where(eq(customers.id, id));
+  }
+
   async getOnboardingSession(customerId: string): Promise<any | null> {
     const [row] = await db.select({ onboardingSession: customers.onboardingSession }).from(customers).where(eq(customers.id, customerId));
     return row?.onboardingSession ?? null;
@@ -277,12 +281,20 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getCustomersWithProfiles(): Promise<(Customer & { profile?: TwinProfile | null })[]> {
+  async getCustomersWithProfiles(): Promise<(Customer & { profile?: TwinProfile | null; questionCount: number })[]> {
     const allCustomers = await this.getAllCustomers();
+    // Batch fetch question counts for all profiles in one query
+    const questionCounts = await db
+      .select({ profileId: chatMessages.profileId, count: count() })
+      .from(chatMessages)
+      .groupBy(chatMessages.profileId);
+    const questionCountMap = new Map(questionCounts.map(r => [r.profileId, r.count]));
+
     const result = [];
     for (const customer of allCustomers) {
       const profile = await this.getProfileByCustomerId(customer.id);
-      result.push({ ...customer, profile: profile || null });
+      const questionCount = profile ? (questionCountMap.get(profile.id) ?? 0) : 0;
+      result.push({ ...customer, profile: profile || null, questionCount });
     }
     return result;
   }

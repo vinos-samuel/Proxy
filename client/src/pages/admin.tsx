@@ -28,7 +28,7 @@ interface AdminData {
   };
 }
 
-type FilterTab = "all" | "free" | "paid" | "published";
+type FilterTab = "all" | "none" | "draft" | "ready" | "published" | "paid";
 type AdminTab = "customers" | "blog" | "outreach";
 
 function ConfirmButton({
@@ -572,16 +572,24 @@ function BlogTab() {
 
 function OutreachTab({ customers }: { customers: (Customer & { profile?: TwinProfile | null })[] }) {
   const { toast } = useToast();
-  const [audience, setAudience] = useState<"all" | "free" | "paid">("free");
+  const [audience, setAudience] = useState<"all" | "free" | "paid" | "none" | "draft" | "ready" | "published_free" | "published_paid">("free");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [confirming, setConfirming] = useState(false);
 
   const recipientCount = customers.filter((c) => {
     if (!c.emailVerified) return false;
-    if (audience === "free") return c.subscriptionStatus !== "paid";
-    if (audience === "paid") return c.subscriptionStatus === "paid";
-    return true;
+    const ps = c.profile?.status;
+    const isPaid = c.subscriptionStatus === "paid";
+    if (audience === "all")            return true;
+    if (audience === "free")           return !isPaid;
+    if (audience === "paid")           return isPaid;
+    if (audience === "none")           return !ps || ps === "none";
+    if (audience === "draft")          return ps === "draft";
+    if (audience === "ready")          return ps === "ready";
+    if (audience === "published_free") return ps === "published" && !isPaid;
+    if (audience === "published_paid") return ps === "published" && isPaid;
+    return false;
   }).length;
 
   const broadcastMutation = useMutation({
@@ -599,10 +607,15 @@ function OutreachTab({ customers }: { customers: (Customer & { profile?: TwinPro
     },
   });
 
-  const audienceOptions: { value: "all" | "free" | "paid"; label: string; description: string }[] = [
-    { value: "free", label: "Free users", description: "Users who haven't paid — upgrade targets" },
-    { value: "paid", label: "Paid users", description: "Pro / Concierge customers" },
-    { value: "all", label: "All users", description: "Every verified user" },
+  const audienceOptions: { value: typeof audience; label: string; description: string }[] = [
+    { value: "none",           label: "Never started",     description: "Signed up but never touched questionnaire" },
+    { value: "draft",          label: "Draft",             description: "Started questionnaire, didn't finish" },
+    { value: "ready",          label: "Ready (unpublished)", description: "Profile built, haven't gone live" },
+    { value: "published_free", label: "Published (free)",  description: "Live on free tier — upgrade targets" },
+    { value: "published_paid", label: "Published (paid)",  description: "Paying customers who are live" },
+    { value: "free",           label: "All free",          description: "Everyone who hasn't paid" },
+    { value: "paid",           label: "All paid",          description: "All paying customers" },
+    { value: "all",            label: "Everyone",          description: "All verified users" },
   ];
 
   return (
@@ -617,7 +630,7 @@ function OutreachTab({ customers }: { customers: (Customer & { profile?: TwinPro
           {/* Audience */}
           <div>
             <label className="text-sm font-medium text-muted-foreground mb-2 block">Audience</label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-4 gap-2">
               {audienceOptions.map((opt) => (
                 <button
                   key={opt.value}
@@ -865,18 +878,33 @@ export default function AdminPage() {
   const allCustomers = data?.customers ?? [];
 
   const filteredCustomers = allCustomers.filter((c) => {
-    if (filter === "free") return c.subscriptionStatus !== "paid";
-    if (filter === "paid") return c.subscriptionStatus === "paid" && c.profile?.status !== "published";
-    if (filter === "published") return c.profile?.status === "published";
-    return true;
+    const ps = c.profile?.status;
+    const isPaid = c.subscriptionStatus === "paid";
+    if (filter === "none")      return !ps || ps === "none";
+    if (filter === "draft")     return ps === "draft";
+    if (filter === "ready")     return ps === "ready";
+    if (filter === "published") return ps === "published";
+    if (filter === "paid")      return isPaid;
+    return true; // "all"
   });
 
   const customerTabs: { key: FilterTab; label: string; count: number }[] = [
-    { key: "all", label: "All", count: allCustomers.length },
-    { key: "free", label: "Free", count: allCustomers.filter(c => c.subscriptionStatus !== "paid").length },
-    { key: "paid", label: "Paid", count: allCustomers.filter(c => c.subscriptionStatus === "paid" && c.profile?.status !== "published").length },
+    { key: "all",       label: "All",       count: allCustomers.length },
+    { key: "none",      label: "Never started", count: allCustomers.filter(c => !c.profile?.status || c.profile?.status === "none").length },
+    { key: "draft",     label: "Draft",     count: allCustomers.filter(c => c.profile?.status === "draft").length },
+    { key: "ready",     label: "Ready",     count: allCustomers.filter(c => c.profile?.status === "ready").length },
     { key: "published", label: "Published", count: allCustomers.filter(c => c.profile?.status === "published").length },
+    { key: "paid",      label: "Paid",      count: allCustomers.filter(c => c.subscriptionStatus === "paid").length },
   ];
+
+  // Funnel metrics
+  const funnel = {
+    signedUp:   allCustomers.length,
+    verified:   allCustomers.filter(c => c.emailVerified).length,
+    hasProfile: allCustomers.filter(c => c.profile?.status && c.profile.status !== "none").length,
+    published:  allCustomers.filter(c => c.profile?.status === "published").length,
+    paid:       allCustomers.filter(c => c.subscriptionStatus === "paid").length,
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -984,6 +1012,32 @@ export default function AdminPage() {
                 )}
               </div>
 
+              {/* Funnel Metrics */}
+              <Card className="border-white/10 bg-white/5 backdrop-blur-xl">
+                <CardContent className="p-4">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Conversion Funnel</p>
+                  <div className="grid grid-cols-5 gap-2 text-center">
+                    {[
+                      { label: "Signed up",   value: funnel.signedUp },
+                      { label: "Verified",    value: funnel.verified },
+                      { label: "Has profile", value: funnel.hasProfile },
+                      { label: "Published",   value: funnel.published },
+                      { label: "Paid",        value: funnel.paid },
+                    ].map((item, i, arr) => (
+                      <div key={item.label} className="flex flex-col items-center gap-1">
+                        <div className="text-2xl font-bold">{item.value}</div>
+                        <div className="text-xs text-muted-foreground">{item.label}</div>
+                        {i > 0 && (
+                          <div className="text-xs text-muted-foreground/60">
+                            {arr[i - 1].value > 0 ? Math.round((item.value / arr[i - 1].value) * 100) : 0}%
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Customers Table */}
               <Card className="border-white/10 bg-white/5 backdrop-blur-xl">
                 <CardContent className="p-6">
@@ -1027,9 +1081,12 @@ export default function AdminPage() {
                             <TableHead className="whitespace-nowrap">Email</TableHead>
                             <TableHead className="whitespace-nowrap">Username</TableHead>
                             <TableHead className="whitespace-nowrap">Joined</TableHead>
-                            <TableHead className="whitespace-nowrap">Email</TableHead>
+                            <TableHead className="whitespace-nowrap">Last Active</TableHead>
+                            <TableHead className="whitespace-nowrap">✓</TableHead>
                             <TableHead className="whitespace-nowrap">Status</TableHead>
                             <TableHead className="whitespace-nowrap">Profile</TableHead>
+                            <TableHead className="whitespace-nowrap">Visitors</TableHead>
+                            <TableHead className="whitespace-nowrap">Questions</TableHead>
                             <TableHead className="whitespace-nowrap">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -1051,6 +1108,14 @@ export default function AdminPage() {
                                     ? new Date(customer.createdAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })
                                     : "---"}
                                 </TableCell>
+                                <TableCell className="text-xs whitespace-nowrap">
+                                  {(() => {
+                                    if (!(customer as any).lastActiveAt) return <span className="text-muted-foreground/40">Never</span>;
+                                    const days = Math.floor((Date.now() - new Date((customer as any).lastActiveAt).getTime()) / 86400000);
+                                    const color = days === 0 ? "text-green-400" : days <= 3 ? "text-yellow-400" : "text-muted-foreground/60";
+                                    return <span className={color}>{days === 0 ? "Today" : `${days}d ago`}</span>;
+                                  })()}
+                                </TableCell>
                                 <TableCell>
                                   {customer.emailVerified
                                     ? <CheckCircle className="h-4 w-4 text-green-500" />
@@ -1065,6 +1130,16 @@ export default function AdminPage() {
                                   <Badge variant="secondary" className="text-xs">
                                     {customer.profile?.status || "none"}
                                   </Badge>
+                                </TableCell>
+                                <TableCell className="text-xs text-center">
+                                  {customer.profile?.status === "published"
+                                    ? <span className={(customer.profile as any)?.viewCount > 0 ? "text-green-400 font-medium" : "text-muted-foreground/40"}>{(customer.profile as any)?.viewCount ?? 0}</span>
+                                    : <span className="text-muted-foreground/20">—</span>}
+                                </TableCell>
+                                <TableCell className="text-xs text-center">
+                                  {customer.profile
+                                    ? <span className={(customer as any).questionCount > 0 ? "text-blue-400 font-medium" : "text-muted-foreground/40"}>{(customer as any).questionCount ?? 0}</span>
+                                    : <span className="text-muted-foreground/20">—</span>}
                                 </TableCell>
                                 <TableCell>
                                   <div className="flex items-center gap-1 flex-wrap">

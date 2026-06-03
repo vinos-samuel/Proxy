@@ -20,6 +20,7 @@ export const customers = pgTable("customers", {
   emailVerificationTokenExpiry: timestamp("email_verification_token_expiry"),
   onboardingSession: jsonb("onboarding_session"),
   referredBy: text("referred_by"),
+  lastActiveAt: timestamp("last_active_at"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

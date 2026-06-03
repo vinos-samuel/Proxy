@@ -391,6 +391,8 @@ export async function registerRoutes(
     if (!customer) {
       return res.status(401).json({ message: "Not authenticated" });
     }
+    // Track last active — fire and forget, don't block the response
+    storage.updateLastActiveAt(req.session.customerId).catch(() => {});
     const { passwordHash: _, ...safeCustomer } = customer;
     res.json(safeCustomer);
   });
@@ -1754,9 +1756,17 @@ PASS if every specific claim traces back to the profile data, or if the response
 
       const targets = allCustomers.filter((c) => {
         if (!c.emailVerified) return false; // only verified emails
-        if (audience === "free") return c.subscriptionStatus !== "paid";
-        if (audience === "paid") return c.subscriptionStatus === "paid";
-        return true; // "all"
+        const profileStatus = c.profile?.status;
+        const isPaid = c.subscriptionStatus === "paid";
+        if (audience === "all")             return true;
+        if (audience === "free")            return !isPaid;
+        if (audience === "paid")            return isPaid;
+        if (audience === "none")            return !profileStatus || profileStatus === "none";
+        if (audience === "draft")           return profileStatus === "draft";
+        if (audience === "ready")           return profileStatus === "ready";
+        if (audience === "published_free")  return profileStatus === "published" && !isPaid;
+        if (audience === "published_paid")  return profileStatus === "published" && isPaid;
+        return false;
       });
 
       if (targets.length === 0) {

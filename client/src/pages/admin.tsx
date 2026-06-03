@@ -25,6 +25,7 @@ interface AdminData {
     totalCustomers: number;
     publishedProfiles: number;
     totalRevenue: number;
+    paidCustomers: number;
   };
 }
 
@@ -579,6 +580,7 @@ function OutreachTab({ customers }: { customers: (Customer & { profile?: TwinPro
 
   const recipientCount = customers.filter((c) => {
     if (!c.emailVerified) return false;
+    if (c.isAdmin) return false;
     const ps = c.profile?.status;
     const isPaid = c.subscriptionStatus === "paid";
     if (audience === "all")            return true;
@@ -607,6 +609,23 @@ function OutreachTab({ customers }: { customers: (Customer & { profile?: TwinPro
     },
   });
 
+  // Count verified recipients per segment
+  const countFor = (seg: typeof audience) => customers.filter((c) => {
+    if (!c.emailVerified) return false;
+    if (c.isAdmin) return false;
+    const ps = c.profile?.status;
+    const isPaid = c.subscriptionStatus === "paid";
+    if (seg === "all")            return true;
+    if (seg === "free")           return !isPaid;
+    if (seg === "paid")           return isPaid;
+    if (seg === "none")           return !ps || ps === "none";
+    if (seg === "draft")          return ps === "draft";
+    if (seg === "ready")          return ps === "ready";
+    if (seg === "published_free") return ps === "published" && !isPaid;
+    if (seg === "published_paid") return ps === "published" && isPaid;
+    return false;
+  }).length;
+
   const audienceOptions: { value: typeof audience; label: string; description: string }[] = [
     { value: "none",           label: "Never started",     description: "Signed up but never touched questionnaire" },
     { value: "draft",          label: "Draft",             description: "Started questionnaire, didn't finish" },
@@ -631,23 +650,30 @@ function OutreachTab({ customers }: { customers: (Customer & { profile?: TwinPro
           <div>
             <label className="text-sm font-medium text-muted-foreground mb-2 block">Audience</label>
             <div className="grid grid-cols-4 gap-2">
-              {audienceOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setAudience(opt.value)}
-                  className={`border rounded-lg p-3 text-left transition-colors ${
-                    audience === opt.value
-                      ? "border-primary bg-primary/10"
-                      : "border-white/10 bg-white/5 hover:bg-white/10"
-                  }`}
-                >
-                  <div className="font-medium text-sm">{opt.label}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{opt.description}</div>
-                </button>
-              ))}
+              {audienceOptions.map((opt) => {
+                const n = countFor(opt.value);
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setAudience(opt.value)}
+                    className={`border rounded-lg p-3 text-left transition-colors ${
+                      audience === opt.value
+                        ? "border-primary bg-primary/10"
+                        : "border-white/10 bg-white/5 hover:bg-white/10"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="font-medium text-sm">{opt.label}</div>
+                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${n > 0 ? "bg-primary/20 text-primary" : "bg-white/10 text-muted-foreground"}`}>{n}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{opt.description}</div>
+                  </button>
+                );
+              })}
             </div>
             <p className="text-xs text-muted-foreground mt-2">
               <strong>{recipientCount}</strong> recipient{recipientCount !== 1 ? "s" : ""} will receive this email.
+              {" "}<span className="opacity-60">Numbers above show verified accounts only — unverified signups are excluded.</span>
             </p>
           </div>
 
@@ -1003,9 +1029,15 @@ export default function AdminPage() {
                     <Card className="border-white/10 bg-white/5 backdrop-blur-xl">
                       <CardContent className="p-6">
                         <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                          <DollarSign className="h-4 w-4" /> Total Revenue
+                          <DollarSign className="h-4 w-4" /> Stripe Revenue
                         </div>
                         <p className="text-3xl font-bold" data-testid="text-total-revenue">${data?.stats.totalRevenue || 0}</p>
+                        {(data?.stats.paidCustomers ?? 0) > 0 && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {data!.stats.paidCustomers} paid user{data!.stats.paidCustomers !== 1 ? "s" : ""}
+                            {data!.stats.totalRevenue === 0 ? " — grant access (no Stripe)" : ""}
+                          </p>
+                        )}
                       </CardContent>
                     </Card>
                   </>

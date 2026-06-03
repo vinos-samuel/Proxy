@@ -312,16 +312,27 @@ export class DatabaseStorage implements IStorage {
       .select({ total: sql<number>`COALESCE(SUM(amount), 0)` })
       .from(payments)
       .where(eq(payments.status, "completed"));
+    const [paidCount] = await db
+      .select({ count: count() })
+      .from(customers)
+      .where(eq(customers.subscriptionStatus, "paid"));
 
     return {
       totalCustomers: customerCount?.count || 0,
       publishedProfiles: publishedCount?.count || 0,
       totalRevenue: Number(revenueResult?.total || 0) / 100,
+      paidCustomers: paidCount?.count || 0,
     };
   }
 
   async getCustomersWithProfiles(): Promise<(Customer & { profile?: TwinProfile | null; questionCount: number })[]> {
-    const allCustomers = await this.getAllCustomers();
+    // Single JOIN query — avoids N+1 sequential DB calls that cause partial results under load
+    const rows = await db
+      .select()
+      .from(customers)
+      .leftJoin(twinProfiles, eq(twinProfiles.customerId, customers.id))
+      .orderBy(desc(customers.createdAt));
+
     // Batch fetch question counts for all profiles in one query
     const questionCounts = await db
       .select({ profileId: chatMessages.profileId, count: count() })
@@ -329,13 +340,11 @@ export class DatabaseStorage implements IStorage {
       .groupBy(chatMessages.profileId);
     const questionCountMap = new Map(questionCounts.map(r => [r.profileId, r.count]));
 
-    const result = [];
-    for (const customer of allCustomers) {
-      const profile = await this.getProfileByCustomerId(customer.id);
+    return rows.map(row => {
+      const profile = row.twin_profiles ?? null;
       const questionCount = profile ? (questionCountMap.get(profile.id) ?? 0) : 0;
-      result.push({ ...customer, profile: profile || null, questionCount });
-    }
-    return result;
+      return { ...row.customers, profile, questionCount };
+    });
   }
 
   async incrementViewCount(profileId: string): Promise<void> {

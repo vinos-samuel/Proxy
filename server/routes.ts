@@ -280,12 +280,18 @@ export async function registerRoutes(
       const customerId = req.session.customerId!;
       const customer = await storage.getCustomer(customerId);
       const reason = req.body?.reason || "Not provided";
-      // Log exit reason — visible in production logs for product insight
-      logger.info("Account deleted", {
-        email: customer?.email,
-        name: customer?.name,
-        reason,
-      });
+      logger.info("Account deleted", { email: customer?.email, name: customer?.name, reason });
+      // Email Vinos with the exit reason
+      try {
+        const { Resend } = await import("resend");
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        await resend.emails.send({
+          from: `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`,
+          to: "vinos@myproxy.work",
+          subject: `Account deleted: ${customer?.name || "Unknown"}`,
+          html: `<p><strong>${customer?.name}</strong> (${customer?.email}) just deleted their account.</p><p><strong>Reason:</strong> ${reason}</p>`,
+        });
+      } catch { /* don't block deletion if email fails */ }
       await storage.deleteCustomer(customerId);
       req.session.destroy(() => {
         res.clearCookie("connect.sid");
@@ -1761,9 +1767,11 @@ PASS if every specific claim traces back to the profile data, or if the response
       }
 
       const allCustomers = await storage.getCustomersWithProfiles();
+      logger.info("[Admin] Broadcast customers loaded", { total: allCustomers.length, audience });
 
       const targets = allCustomers.filter((c) => {
         if (!c.emailVerified) return false; // only verified emails
+        if (c.isAdmin) return false; // never email admin accounts
         const profileStatus = c.profile?.status;
         const isPaid = c.subscriptionStatus === "paid";
         if (audience === "all")             return true;
@@ -1776,6 +1784,8 @@ PASS if every specific claim traces back to the profile data, or if the response
         if (audience === "published_paid")  return profileStatus === "published" && isPaid;
         return false;
       });
+
+      logger.info("[Admin] Broadcast targets", { count: targets.length, emails: targets.map(t => t.email) });
 
       if (targets.length === 0) {
         return res.json({ sent: 0, message: "No matching recipients found." });

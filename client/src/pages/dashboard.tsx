@@ -225,7 +225,50 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* 2. Analytics — published users, shown early */}
+              {/* 2. Questionnaire + Deepen Your Twin — side by side */}
+              <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-[#E8A75D] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    <FileText className="h-6 w-6 text-black" />
+                  </div>
+                  <h3 className="font-bold text-lg">QUESTIONNAIRE</h3>
+                </div>
+                <p className="mono text-sm text-black/60 mb-4">
+                  {profile?.status === "draft"
+                    ? "Fill this in to build your Twin. It takes about 10 minutes — AI does the heavy lifting."
+                    : profile
+                    ? "Update your career information, stories, and answers."
+                    : "Tell us about your career to build your Digital Twin."}
+                </p>
+                <Link href="/questionnaire">
+                  <button className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none" data-testid="button-goto-questionnaire">
+                    <span className="flex items-center gap-2">{profile ? "EDIT ANSWERS" : "GET STARTED"}<ArrowRight className="h-3 w-3" /></span>
+                  </button>
+                </Link>
+              </div>
+
+              {(profile?.status === "ready" || profile?.status === "published") && (
+                <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-[#A78BFA] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                      <Mic className="h-6 w-6 text-black" />
+                    </div>
+                    <h3 className="font-bold text-lg">DEEPEN YOUR TWIN</h3>
+                  </div>
+                  <p className="mono text-sm text-black/60 mb-4">
+                    {(profile as any).lastDeepenedAt
+                      ? `Last deepened: ${new Date((profile as any).lastDeepenedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}. Go deeper to sharpen your Twin further — just speak, no typing needed.`
+                      : "Your Twin is only as good as the stories inside it. Speak naturally — no typing, no prep. A voice interview gives your Twin real depth and your actual voice."}
+                  </p>
+                  <Link href="/interview">
+                    <button className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">
+                      <span className="flex items-center gap-2">{(profile as any).lastDeepenedAt ? "GO DEEPER" : "START INTERVIEW"}<ArrowRight className="h-3 w-3" /></span>
+                    </button>
+                  </Link>
+                </div>
+              )}
+
+              {/* 3. Analytics — published users */}
               {profile?.status === "published" && (
                 <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                   <div className="flex items-center gap-3 mb-5">
@@ -435,49 +478,6 @@ Explore it here: https://myproxy.work/portfolio/${user?.username}
                       Copy Profile URL
                     </button>
                   </div>
-                </div>
-              )}
-
-              {/* 6. Questionnaire + Deepen Your Twin — side by side */}
-              <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-[#E8A75D] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                    <FileText className="h-6 w-6 text-black" />
-                  </div>
-                  <h3 className="font-bold text-lg">QUESTIONNAIRE</h3>
-                </div>
-                <p className="mono text-sm text-black/60 mb-4">
-                  {profile?.status === "draft"
-                    ? "Fill this in to build your Twin. It takes about 10 minutes — AI does the heavy lifting."
-                    : profile
-                    ? "Update your career information, stories, and answers."
-                    : "Tell us about your career to build your Digital Twin."}
-                </p>
-                <Link href="/questionnaire">
-                  <button className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none" data-testid="button-goto-questionnaire">
-                    <span className="flex items-center gap-2">{profile ? "EDIT ANSWERS" : "GET STARTED"}<ArrowRight className="h-3 w-3" /></span>
-                  </button>
-                </Link>
-              </div>
-
-              {(profile?.status === "ready" || profile?.status === "published") && (
-                <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-[#A78BFA] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                      <Mic className="h-6 w-6 text-black" />
-                    </div>
-                    <h3 className="font-bold text-lg">DEEPEN YOUR TWIN</h3>
-                  </div>
-                  <p className="mono text-sm text-black/60 mb-4">
-                    {(profile as any).lastDeepenedAt
-                      ? `Last deepened: ${new Date((profile as any).lastDeepenedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}. Go deeper to sharpen your Twin further — just speak, no typing needed.`
-                      : "Your Twin is only as good as the stories inside it. Speak naturally — no typing, no prep. A voice interview gives your Twin real depth and your actual voice."}
-                  </p>
-                  <Link href="/interview">
-                    <button className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">
-                      <span className="flex items-center gap-2">{(profile as any).lastDeepenedAt ? "GO DEEPER" : "START INTERVIEW"}<ArrowRight className="h-3 w-3" /></span>
-                    </button>
-                  </Link>
                 </div>
               )}
 

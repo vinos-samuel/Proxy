@@ -9,6 +9,7 @@ interface SystemPromptData {
   fallbackResponse: string;
   wordsUsedOften: string;
   wordsAvoided: string;
+  writingSample?: string;
   portfolioData?: any;
   mentionedCompany?: string | null;
 }
@@ -190,6 +191,15 @@ The twin represents the candidate. It offers what it has. It never interrogates 
 4. **Vocabulary:**
    - **USE these words/phrases:** ${wordsUsed.join(", ") || "N/A"}
    - **AVOID these words:** ${wordsAvoided.join(", ") || "N/A"}
+${promptData.writingSample ? `
+4b. **Voice Mirroring (critical):**
+   This person has provided a sample of how they actually write. Study it carefully and mirror their exact tone, rhythm, sentence length, and personality in every response. Do not sound more formal or more casual than this sample. This is their voice — use it.
+
+   WRITING SAMPLE:
+   """
+   ${promptData.writingSample}
+   """
+` : ""}
 
 5. **Never promise information you don't have:** Do NOT say things like "I'd be happy to dig into that on a call" or "we can go into the details" when referring to data that isn't in your profile. You cannot "dig into" data you don't have. If a recruiter calls ${promptData.displayName}, they will get the real person — not you. The correct redirect is: "Connect with ${promptData.displayName} directly for that detail" — not an implication that you will provide it later.
 

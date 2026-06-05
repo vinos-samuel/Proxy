@@ -287,6 +287,36 @@ export function feedbackEmailTemplate(name: string): string {
   return baseTemplate(body);
 }
 
+export function tipsEmailTemplate(name: string, dashboardUrl: string): string {
+  const firstName = name.split(" ")[0];
+  const body = `
+    <h1 style="font-size:24px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">3 ways to get more from your Proxy, ${firstName}</h1>
+    <p style="font-size:15px;color:#333333;margin:0 0 20px 0;line-height:1.6;">Your profile is live. Here's how to make it work harder for you.</p>
+
+    <div style="border-left:4px solid #22C55E;padding:12px 16px;margin:0 0 20px 0;background:#f9fafb;">
+      <p style="font-size:14px;font-weight:700;color:#000;margin:0 0 4px 0;">1. Make your Twin sound like you</p>
+      <p style="font-size:14px;color:#555;margin:0;line-height:1.6;">Go to your profile → Edit → Voice & Style. Paste a few sentences you've written — a LinkedIn post, a message to a colleague, anything in your own words. Your Twin will mirror your tone instead of sounding generic.</p>
+    </div>
+
+    <div style="border-left:4px solid #22C55E;padding:12px 16px;margin:0 0 20px 0;background:#f9fafb;">
+      <p style="font-size:14px;font-weight:700;color:#000;margin:0 0 4px 0;">2. Your profile is private until you publish it</p>
+      <p style="font-size:14px;color:#555;margin:0;line-height:1.6;">Nothing is visible to anyone until you choose to publish. You control when it goes live. We don't share or sell your data — ever.</p>
+    </div>
+
+    <div style="border-left:4px solid #22C55E;padding:12px 16px;margin:0 0 24px 0;background:#f9fafb;">
+      <p style="font-size:14px;font-weight:700;color:#000;margin:0 0 4px 0;">3. How to use your Proxy link</p>
+      <p style="font-size:14px;color:#555;margin:0;line-height:1.6;">Add it to your LinkedIn About section. Put it in your email signature. When someone asks for your CV, send your Proxy link instead. Every time someone clicks it, your AI answers their questions — even while you sleep.</p>
+    </div>
+
+    <a href="${dashboardUrl}" style="display:inline-block;background:#22C55E;color:#000;font-weight:700;padding:12px 24px;text-decoration:none;border:3px solid #000;font-family:monospace;text-transform:uppercase;letter-spacing:0.5px;">Go to your profile →</a>
+
+    <p style="font-size:12px;color:#aaaaaa;margin:28px 0 0 0;border-top:1px solid #e5e5e5;padding-top:16px;">
+      — Vinos, Proxy
+    </p>
+  `;
+  return baseTemplate(body);
+}
+
 export function passwordResetTemplate(resetUrl: string): string {
   const body = `
     <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Reset your password</h1>

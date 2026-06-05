@@ -174,6 +174,32 @@ export class DatabaseStorage implements IStorage {
     await db.update(twinProfiles).set({ feedbackEmailSentAt: new Date() }).where(eq(twinProfiles.id, profileId));
   }
 
+  async getProfilesDueForTipsEmail(): Promise<Array<{ profileId: string; email: string; name: string }>> {
+    const now = new Date();
+    const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+    const fourDaysAgo = new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000);
+    const rows = await db
+      .select({
+        profileId: twinProfiles.id,
+        email: customers.email,
+        name: customers.name,
+      })
+      .from(twinProfiles)
+      .innerJoin(customers, eq(twinProfiles.customerId, customers.id))
+      .where(
+        and(
+          sql`twin_profiles.profile_ready_at BETWEEN ${fourDaysAgo} AND ${threeDaysAgo}`,
+          sql`twin_profiles.tips_email_sent_at IS NULL`,
+          eq(customers.emailVerified, true)
+        )
+      );
+    return rows.map(r => ({ profileId: r.profileId, email: r.email, name: r.name }));
+  }
+
+  async markTipsEmailSent(profileId: string): Promise<void> {
+    await db.update(twinProfiles).set({ tipsEmailSentAt: new Date() }).where(eq(twinProfiles.id, profileId));
+  }
+
   async getOnboardingSession(customerId: string): Promise<any | null> {
     const [row] = await db.select({ onboardingSession: customers.onboardingSession }).from(customers).where(eq(customers.id, customerId));
     return row?.onboardingSession ?? null;

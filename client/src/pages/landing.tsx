@@ -1,73 +1,14 @@
 import { Link, useLocation } from "wouter";
-import { FileText, Zap, Rocket, Target, X, Check, Play } from "lucide-react";
+import { FileText, Zap, Rocket, X, Check } from "lucide-react";
 import ProxyLogo from "@/components/ProxyLogo";
-import { useState } from "react";
-import aiCv1 from "@assets/Screen_Recording_2025-12-15_at_9.20.20_PM_1771923394821.mov";
-import aiCv2 from "@assets/proxy-demo-final-3.mp4";
 
 export default function LandingPage() {
   const [, navigate] = useLocation();
-  const [showDemo, setShowDemo] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#E8E8E3] text-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-      {showDemo && (
-        <div className="fixed inset-0 z-[100] bg-black/80 flex items-start justify-center p-4 md:p-8 overflow-y-auto">
-          <div className="bg-[#E8E8E3] border-[4px] border-black w-full max-w-4xl p-6 md:p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] relative my-8">
-            <button
-              onClick={() => setShowDemo(false)}
-              className="absolute -top-4 -right-4 bg-red-500 text-white w-10 h-10 border-[3px] border-black flex items-center justify-center font-bold hover:bg-red-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-            >
-              <X className="h-6 w-6" />
-            </button>
+    <div className="min-h-screen bg-white text-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
 
-            <div className="mono text-xs text-black/50 mb-6 uppercase tracking-widest text-center">&#9698; Demo Environment</div>
-            <h2 className="text-3xl font-bold mb-8 text-center border-b-[3px] border-black pb-4">DIGITAL TWIN_SESSIONS</h2>
-
-            <div className="space-y-12">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#22C55E] border-[2px] border-black flex items-center justify-center font-bold text-xs">01</div>
-                  <h3 className="font-bold text-xl uppercase tracking-tight">Digital Twin aka Ai Cv - Demo 1</h3>
-                </div>
-                <div className="border-[3px] border-black bg-black aspect-video relative group overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                  <video
-                    src={aiCv1}
-                    controls
-                    className="w-full h-full object-contain"
-                    poster="/demo-placeholder-1.png"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#93C5FD] border-[2px] border-black flex items-center justify-center font-bold text-xs">02</div>
-                  <h3 className="font-bold text-xl uppercase tracking-tight">Digital Twin aka Ai Cv - Demo 2 (Latest)</h3>
-                </div>
-                <div className="border-[3px] border-black bg-black aspect-video relative group overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                  <video
-                    src={aiCv2}
-                    controls
-                    className="w-full h-full object-contain"
-                    poster="/demo-placeholder-2.png"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8 pt-6 border-t-[3px] border-black flex justify-center">
-              <button
-                onClick={() => navigate("/register")}
-                className="bg-[#22C55E] text-black px-8 py-4 font-bold hover:bg-[#16A34A] border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-              >
-                INITIALIZE YOUR AGENT &rarr;
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Nav */}
       <nav className="border-b-[3px] border-black bg-[#D1D1CC] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/">
@@ -79,8 +20,8 @@ export default function LandingPage() {
             <Link href="/about"><span className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider cursor-pointer">About</span></Link>
             <Link href="/blog"><span className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider cursor-pointer">Blog</span></Link>
             <Link href="/faq"><span className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider cursor-pointer">FAQ</span></Link>
-            <a href="#how" className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider" data-testid="link-how">How</a>
-            <a href="#pricing" className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider" data-testid="link-pricing">Pricing</a>
+            <a href="#how" className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider">How</a>
+            <a href="#pricing" className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider">Pricing</a>
             <button
               onClick={() => navigate("/login")}
               className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider"
@@ -89,7 +30,7 @@ export default function LandingPage() {
               Login
             </button>
             <button
-              onClick={() => navigate("/portfolio/test2?demo=true")}
+              onClick={() => navigate("/portfolio/priya?demo=true")}
               className="bg-[#22C55E] text-black px-6 py-3 font-bold hover:bg-[#16A34A] border-[3px] border-black mono text-sm uppercase tracking-wider"
               data-testid="link-register"
             >
@@ -99,21 +40,22 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="px-6 py-20">
+      {/* 1. Hero */}
+      <section className="px-6 py-20 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
 
             {/* Left column */}
             <div>
-              <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// career_portfolio</div>
-              <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-6" data-testid="text-hero-headline">
-                You've done the work.<br />
-                A PDF shouldn't be<br />
-                how you're <span className="text-[#22C55E]">judged for it.</span>
+              <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-4" data-testid="text-hero-headline">
+                Don't send a PDF.<br />
+                <span className="text-[#22C55E]">Send a link.</span>
               </h1>
-              <p className="text-xl text-black/70 mt-6 mb-8 max-w-xl">
-                Proxy is a digital portfolio that goes deeper than a resume — it lets recruiters and hiring leaders explore your career, ask questions, and understand what makes you the right fit. Before you even get on a call.
+              <p className="text-xl text-black/70 mt-2 mb-4">
+                "Think of it as your LinkedIn — but it actually talks back."
+              </p>
+              <p className="text-lg text-black/60 mb-8">
+                Built for mid to senior professionals whose careers don't fit on two pages.
               </p>
               <div className="flex gap-4 flex-wrap">
                 <button
@@ -123,62 +65,53 @@ export default function LandingPage() {
                 >
                   Build Your Profile Free &rarr;
                 </button>
-                <button
-                  onClick={() => setShowDemo(true)}
+                <a
+                  href="https://myproxy.work/portfolio/priya"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="bg-white text-black px-8 py-4 font-bold border-[3px] border-black hover:bg-gray-100 mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
                   data-testid="button-view-demo"
                 >
-                  <span className="flex items-center gap-2">
-                    <Play className="h-4 w-4 fill-current" />
-                    See a live example
-                  </span>
-                </button>
+                  See a live example &rarr;
+                </a>
               </div>
-              <div className="flex gap-8 mt-8 mono text-sm text-black/60">
-                <span><strong className="text-black">8 min avg session</strong> · vs 6 sec for a PDF</span>
-                <span><strong className="text-black">127 professionals</strong> live</span>
-              </div>
+              <p className="mono text-xs text-black/40 mt-4">
+                See a real profile — try asking the AI a question
+              </p>
+              <p className="mono text-sm text-black/50 mt-6 border-l-[3px] border-[#22C55E] pl-4">
+                Your profile is private until you publish it. We don't sell your data or use it to train AI models.
+              </p>
             </div>
 
             {/* Right column — chatbot mockup */}
             <div className="border-[3px] border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              {/* Top bar */}
               <div className="bg-black text-white p-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-[#22C55E] border-[2px] border-black flex items-center justify-center font-bold text-black text-sm">P</div>
-                  <span className="font-bold text-sm">Alex Rivera — VP of Product</span>
+                  <span className="font-bold text-sm">Priya — VP, Talent Acquisition & Workforce Strategy</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-[#22C55E] rounded-full"></div>
                   <span className="mono text-xs">LIVE</span>
                 </div>
               </div>
-
-              {/* Chat area */}
               <div className="p-4 space-y-3">
-                {/* Recruiter bubble */}
                 <div className="bg-[#E8E8E3] border border-black/20 p-3 rounded-sm max-w-[80%]">
                   <div className="mono text-xs text-black/40 mb-1">Recruiter</div>
-                  <p className="text-sm">What's your approach to cross-functional alignment?</p>
+                  <p className="text-sm">How did you reduce contingent workforce spend?</p>
                 </div>
-
-                {/* Reply bubble */}
                 <div className="bg-[#22C55E] border border-black/20 p-3 rounded-sm max-w-[80%] ml-auto">
-                  <div className="mono text-xs text-black/60 mb-1 text-right">Alex's Proxy</div>
-                  <p className="text-sm">At my last role, I ran a weekly ritual between eng, design and GTM — 30 mins, no slides, just blockers and decisions...</p>
+                  <div className="mono text-xs text-black/60 mb-1 text-right">Priya's Proxy</div>
+                  <p className="text-sm">We redesigned the supplier tier model — consolidated from 22 vendors to 8, tied SLA bonuses to fill rate. That's where the 38% came from...</p>
                 </div>
-
-                {/* Typing indicator */}
                 <div className="flex items-center gap-1 mt-2">
                   <div className="w-2 h-2 bg-black/30 rounded-full animate-pulse"></div>
                   <div className="w-2 h-2 bg-black/30 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
                   <div className="w-2 h-2 bg-black/30 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
                 </div>
               </div>
-
-              {/* Bottom bar */}
               <div className="border-t border-black/10 p-3 mono text-xs text-black/40 text-center">
-                // responding in real time · myproxy.work/alexrivera
+                // responding in real time · myproxy.work/priya
               </div>
             </div>
 
@@ -186,99 +119,25 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* One-line strip */}
-      <div className="bg-black text-white py-6 text-center border-t-[3px] border-b-[3px] border-black">
-        <p className="text-xl font-bold">"Think of it as your LinkedIn — but it actually talks back."</p>
-      </div>
-
-      {/* How It Works */}
-      <section id="how" className="px-6 py-20">
+      {/* 2. Who it's for */}
+      <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
         <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// how_it_works</div>
-          <h2 className="text-5xl font-bold mb-16">How It Works</h2>
-
-          <div className="grid md:grid-cols-3 gap-8">
-
-            {/* Step 1 */}
-            <div className="border-[3px] border-black bg-[#E8A75D] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <div className="mono text-xs text-black/60 mb-2 uppercase tracking-widest">// step_01</div>
-              <div className="text-6xl font-bold">01</div>
-              <div className="w-12 h-12 bg-white border-[2px] border-black flex items-center justify-center mb-4 mt-4">
-                <FileText className="h-6 w-6" />
-              </div>
-              <h3 className="text-2xl font-bold mt-4 mb-3">Upload your CV</h3>
-              <p className="mono text-sm text-black/80 leading-relaxed">AI reads it and pre-fills your profile in minutes. You review, refine, and add your voice.</p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="border-[3px] border-black bg-[#93C5FD] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <div className="mono text-xs text-black/60 mb-2 uppercase tracking-widest">// step_02</div>
-              <div className="text-6xl font-bold">02</div>
-              <div className="w-12 h-12 bg-white border-[2px] border-black flex items-center justify-center mb-4 mt-4">
-                <Rocket className="h-6 w-6" />
-              </div>
-              <h3 className="text-2xl font-bold mt-4 mb-3">Your profile goes live</h3>
-              <p className="mono text-sm text-black/80 leading-relaxed">A personal page at myproxy.work/you — with an AI chatbot trained on your exact background, available 24/7.</p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="border-[3px] border-black bg-[#86EFAC] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <div className="mono text-xs text-black/60 mb-2 uppercase tracking-widest">// step_03</div>
-              <div className="text-6xl font-bold">03</div>
-              <div className="w-12 h-12 bg-white border-[2px] border-black flex items-center justify-center mb-4 mt-4">
-                <Zap className="h-6 w-6" />
-              </div>
-              <h3 className="text-2xl font-bold mt-4 mb-3">Recruiters engage</h3>
-              <p className="mono text-sm text-black/80 leading-relaxed">They ask questions, get real answers from your AI, and reach out already knowing why you're a fit.</p>
-            </div>
-
+          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// who_its_for</div>
+          <h2 className="text-5xl font-bold mb-8">Built for people with more to say.</h2>
+          <div className="space-y-4 max-w-3xl">
+            <p className="text-xl text-black/70">Mid to senior professionals who have built real careers that don't fit neatly on two pages. Managers, directors, and VPs who know their resume undersells them.</p>
+            <p className="text-xl text-black/70">If you've ever been passed over not because you weren't qualified — but because your story didn't land — Proxy is for you.</p>
           </div>
         </div>
       </section>
 
-      {/* Job Search Agent */}
-      <section className="px-6 py-20 bg-black text-white border-t-[3px] border-black">
-        <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-[#22C55E] mb-4 uppercase tracking-widest">// agent_suite</div>
-          <h2 className="text-5xl font-bold mb-4">Your AI doesn't just sit there waiting.</h2>
-          <p className="text-xl text-white/70 mb-12 max-w-2xl">The Job Search Agent actively works for you — inside a CRM built around your job hunt.</p>
-
-          <div className="grid md:grid-cols-2 gap-4 mb-10">
-            {[
-              "Write cover letters in your voice",
-              "Research companies before you apply",
-              "Draft cold outreach messages",
-              "Coach your interview prep",
-              "Help you negotiate the offer",
-              "Write thank you notes after interviews",
-            ].map((item, i) => (
-              <div key={i} className="border border-white/20 p-5 bg-white/5 flex items-start gap-3">
-                <Check className="text-[#22C55E] h-5 w-5 mt-0.5 shrink-0" />
-                <span className="font-bold">{item}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center">
-            <button
-              onClick={() => navigate("/register")}
-              className="bg-[#22C55E] text-black px-10 py-4 font-bold hover:bg-[#16A34A] border-[3px] border-[#22C55E] mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(34,197,94,0.4)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-            >
-              Included with Pro &rarr;
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Problem comparison */}
-      <section className="px-6 py-20 border-t-[3px] border-black">
+      {/* 3. Problem / Solution */}
+      <section className="px-6 py-20 border-t-[3px] border-black bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// the_problem</div>
           <h2 className="text-5xl font-bold mb-16">The resume had a good run.</h2>
 
           <div className="grid lg:grid-cols-2 gap-8">
-
-            {/* Resume card */}
             <div className="bg-[#D1D1CC] border-[3px] border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
               <h3 className="text-3xl font-bold mb-6 text-black/50">THE RESUME</h3>
               <div className="space-y-5">
@@ -298,7 +157,6 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Proxy card */}
             <div className="bg-[#22C55E] border-[3px] border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
               <h3 className="text-3xl font-bold mb-6">YOUR PROXY</h3>
               <div className="space-y-5">
@@ -317,88 +175,127 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
-
           </div>
         </div>
       </section>
 
-      {/* Who it's for */}
-      <section className="px-6 py-20 border-t-[3px] border-black bg-white">
+      {/* 4. See it live */}
+      <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// see_it_live</div>
+          <h2 className="text-5xl font-bold mb-4">Don't take our word for it.</h2>
+          <p className="text-xl text-black/60 mb-10 max-w-2xl mx-auto">
+            Priya is a real Proxy user — VP of Talent Acquisition with 15+ years across APAC. Her AI Twin is live and answers real questions.
+          </p>
+          <a
+            href="https://myproxy.work/portfolio/priya"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-[#22C55E] text-black px-10 py-4 font-bold hover:bg-[#16A34A] border-[3px] border-black mono uppercase tracking-wider shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+          >
+            Visit Priya's Profile &rarr;
+          </a>
+          <p className="mono text-xs text-black/40 mt-4">Try asking the AI a question — "How did you build the MSP program?"</p>
+        </div>
+      </section>
+
+      {/* 5. How It Works */}
+      <section id="how" className="px-6 py-20 border-t-[3px] border-black bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// who_its_for</div>
-          <h2 className="text-5xl font-bold mb-8">Built for people with more to say.</h2>
-          <div className="space-y-4 max-w-3xl">
-            <p className="text-xl text-black/70">Mid to senior professionals who have built real careers that don't fit neatly on two pages. Managers, directors, and VPs who know their resume undersells them.</p>
-            <p className="text-xl text-black/70">If you've ever been passed over not because you weren't qualified — but because your story didn't land — Proxy is for you.</p>
+          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// how_it_works</div>
+          <h2 className="text-5xl font-bold mb-16">How It Works</h2>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <div className="mono text-xs text-black/60 mb-2 uppercase tracking-widest">// step_01</div>
+              <div className="text-6xl font-bold text-[#22C55E]">01</div>
+              <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center mb-4 mt-4">
+                <FileText className="h-6 w-6" />
+              </div>
+              <h3 className="text-2xl font-bold mt-4 mb-3">Upload your CV</h3>
+              <p className="mono text-sm text-black/70 leading-relaxed">AI reads it and pre-fills your profile in minutes. You review, refine, and add your voice.</p>
+            </div>
+
+            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <div className="mono text-xs text-black/60 mb-2 uppercase tracking-widest">// step_02</div>
+              <div className="text-6xl font-bold text-[#22C55E]">02</div>
+              <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center mb-4 mt-4">
+                <Rocket className="h-6 w-6" />
+              </div>
+              <h3 className="text-2xl font-bold mt-4 mb-3">Your profile goes live</h3>
+              <p className="mono text-sm text-black/70 leading-relaxed">A personal page at myproxy.work/you — with an AI chatbot trained on your exact background, available 24/7.</p>
+            </div>
+
+            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <div className="mono text-xs text-black/60 mb-2 uppercase tracking-widest">// step_03</div>
+              <div className="text-6xl font-bold text-[#22C55E]">03</div>
+              <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center mb-4 mt-4">
+                <Zap className="h-6 w-6" />
+              </div>
+              <h3 className="text-2xl font-bold mt-4 mb-3">Recruiters engage</h3>
+              <p className="mono text-sm text-black/70 leading-relaxed">They ask questions, get real answers from your AI, and reach out already knowing why you're a fit.</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* AEO — Built for humans. Found by AI. */}
+      {/* 6. How to use it — NEW */}
+      <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
+        <div className="max-w-7xl mx-auto">
+          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// how_to_use_it</div>
+          <h2 className="text-5xl font-bold mb-16">Three ways to put it to work.</h2>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <div className="text-4xl mb-4">✉️</div>
+              <h3 className="text-xl font-bold mb-3">Add it to your email signature</h3>
+              <p className="mono text-sm text-black/70 leading-relaxed">Every email you send becomes a door to your full career story. One click and they're talking to your AI.</p>
+            </div>
+
+            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <div className="text-4xl mb-4">🔗</div>
+              <h3 className="text-xl font-bold mb-3">Put it on your LinkedIn</h3>
+              <p className="mono text-sm text-black/70 leading-relaxed">Add the link to your About section. Let recruiters explore before they reach out — they arrive already informed.</p>
+            </div>
+
+            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <div className="text-4xl mb-4">📎</div>
+              <h3 className="text-xl font-bold mb-3">Share it instead of a CV</h3>
+              <p className="mono text-sm text-black/70 leading-relaxed">When someone asks for your resume, send your Proxy link instead. Give them context, not a document.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. AEO — reframed */}
       <section className="px-6 py-20 border-t-[3px] border-black bg-black text-white">
         <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-[#22C55E] mb-4 uppercase tracking-widest">// agent_discovery</div>
-          <h2 className="text-5xl font-bold mb-6">Built for humans.<br />Found by AI.</h2>
-          <p className="text-xl text-white/70 mb-12 max-w-2xl">
-            Recruiters used to search LinkedIn. Their AI agents now search the web. The candidates who get surfaced will be the ones whose profiles are structured, public, and machine-readable. That's what Proxy builds.
+          <div className="mono text-sm text-[#22C55E] mb-4 uppercase tracking-widest">// ai_discovery</div>
+          <h2 className="text-5xl font-bold mb-6">Recruiters search for talent.<br />Their AI does too.</h2>
+          <p className="text-xl text-white/70 mb-12 max-w-3xl">
+            A recruiter searches "Senior HR Director APAC open to work." Their AI sourcing tool does the same scan. A PDF never shows up in those results. A Proxy profile does — indexed, structured, and readable by both humans and AI.
           </p>
 
-          <div className="grid lg:grid-cols-2 gap-8 items-start">
-
-            {/* Left — what this means */}
-            <div className="space-y-4">
-              {[
-                { label: "SEO-optimised", desc: "Every profile is a public web page — indexed by Google and Bing the moment it goes live." },
-                { label: "Schema.org markup", desc: "Structured data tells AI agents exactly who you are, what you do, where you've worked, and what you're known for." },
-                { label: "AI agent-readable", desc: "When a recruiter asks ChatGPT, Perplexity, or Gemini to find candidates, structured profiles get surfaced. PDFs don't." },
-                { label: "Network-distributed", desc: "Every time you share your link, you add more indexed surface area. More surface area = more chances an AI surfaces your profile." },
-              ].map((item, i) => (
-                <div key={i} className="border border-white/20 p-5 bg-white/5 flex items-start gap-4">
-                  <div className="w-2 h-2 bg-[#22C55E] mt-2 shrink-0"></div>
-                  <div>
-                    <div className="font-bold mb-1">{item.label}</div>
-                    <div className="mono text-sm text-white/60 leading-relaxed">{item.desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Right — AI search mockup */}
-            <div className="border-[3px] border-white/20 bg-white/5">
-              <div className="border-b border-white/20 p-4 flex items-center gap-3">
-                <div className="w-6 h-6 bg-[#22C55E] border border-[#22C55E] flex items-center justify-center">
-                  <Target className="h-3 w-3 text-black" />
-                </div>
-                <span className="mono text-xs text-white/50 uppercase tracking-wider">AI Sourcing Agent — recruiter query</span>
-              </div>
-              <div className="p-5 border-b border-white/10">
-                <div className="mono text-xs text-white/40 mb-2">// query</div>
-                <p className="text-white/80 text-sm italic">"Find me a senior HR ops leader with APAC experience and contingent workforce expertise"</p>
-              </div>
-              <div className="p-5 space-y-4">
-                <div className="mono text-xs text-[#22C55E] mb-3 uppercase tracking-wider">// results</div>
-                <div className="border border-[#22C55E]/40 p-4 bg-[#22C55E]/5">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-5 h-5 bg-[#22C55E] flex items-center justify-center">
-                      <span className="text-black font-bold text-xs">P</span>
-                    </div>
-                    <span className="text-[#22C55E] text-sm font-bold">myproxy.work/sarah-chen</span>
-                  </div>
-                  <p className="mono text-xs text-white/70 leading-relaxed">VP HR Operations · 14 years APAC · Contingent workforce, MSP, talent ops · Available for new opportunities</p>
-                  <div className="mt-2 mono text-xs text-white/40">Structured profile · schema.org/Person · AI-readable ✓</div>
-                </div>
-                <div className="border border-white/10 p-4 bg-white/5 opacity-40">
-                  <div className="mono text-xs text-white/50 mb-1">linkedin.com/in/...</div>
-                  <p className="mono text-xs text-white/40">Static profile — no structured data, not AI-parseable</p>
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl">
+            {[
+              { label: "Indexed by Google", desc: "Your profile is a live web page — searchable the moment it goes live." },
+              { label: "Readable by AI sourcing tools", desc: "When AI agents scan for candidates, structured profiles get surfaced. PDFs don't." },
+              { label: "Shareable as a link", desc: "Every share adds more indexed surface area. More surface area means more chances to be found." },
+              { label: "Always available", desc: "A recruiter looks at your profile at 11pm on a Sunday. Your AI answers. You don't have to." },
+            ].map((item, i) => (
+              <div key={i} className="border border-white/20 p-5 bg-white/5 flex items-start gap-4">
+                <div className="w-2 h-2 bg-[#22C55E] mt-2 shrink-0"></div>
+                <div>
+                  <div className="font-bold mb-1">{item.label}</div>
+                  <div className="mono text-sm text-white/60 leading-relaxed">{item.desc}</div>
                 </div>
               </div>
-            </div>
-
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Referral edge */}
+      {/* 8. Referral edge */}
       <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
         <div className="max-w-7xl mx-auto">
           <div className="mono text-sm text-black/50 mb-6 uppercase tracking-widest">// the_referral_edge</div>
@@ -431,7 +328,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing */}
+      {/* 9. Pricing */}
       <section id="pricing" className="px-6 py-20 border-t-[3px] border-black bg-[#D1D1CC]">
         <div className="max-w-7xl mx-auto">
           <div className="mono text-xs text-black/50 mb-4 uppercase tracking-widest">// pricing</div>
@@ -553,8 +450,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="px-6 py-32">
+      {/* 10. Final CTA */}
+      <section className="px-6 py-32 bg-white">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight" data-testid="text-final-cta">
             Your career deserves<br />

@@ -153,6 +153,7 @@ export default function QuestionnairePage() {
   const [resumeFileName, setResumeFileName] = useState("");
   const [showAiDraftBanner, setShowAiDraftBanner] = useState(false);
   const [showPathChoice, setShowPathChoice] = useState(false);
+  const [showVoiceReminder, setShowVoiceReminder] = useState(false);
   const resumeInputRef = useRef<HTMLInputElement>(null);
 
   const headshotInputRef = useRef<HTMLInputElement>(null);
@@ -1512,8 +1513,37 @@ export default function QuestionnairePage() {
                     </ol>
                   </div>
 
+                  {/* Voice sample reminder — shown when writing sample is empty */}
+                  {showVoiceReminder && (
+                    <div className="mb-4 border-[3px] border-black bg-[#FEF9C3] p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                      <p className="font-bold text-sm mb-1">Your Twin will sound more like you with a writing sample.</p>
+                      <p className="mono text-xs text-black/70 mb-3">Go to Step 7 and paste a few sentences you've written — a LinkedIn post, a message, anything in your own words. It takes 2 minutes and makes a big difference.</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => { setCurrentStep(7); setShowVoiceReminder(false); }}
+                          className="bg-black text-white px-4 py-2 text-xs font-bold mono uppercase border-[2px] border-black hover:bg-gray-800"
+                        >
+                          Add Writing Sample →
+                        </button>
+                        <button
+                          onClick={() => { setShowVoiceReminder(false); submitMutation.mutate(data); }}
+                          className="bg-white text-black px-4 py-2 text-xs font-bold mono uppercase border-[2px] border-black hover:bg-gray-100"
+                        >
+                          Skip & Submit
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <button
-                    onClick={() => submitMutation.mutate(data)}
+                    onClick={() => {
+                      if (!data.step7.writingSample?.trim() && !showVoiceReminder) {
+                        setShowVoiceReminder(true);
+                      } else {
+                        setShowVoiceReminder(false);
+                        submitMutation.mutate(data);
+                      }
+                    }}
                     disabled={submitMutation.isPending || !data.step1.fullName || !data.step1.currentTitle}
                     className="w-full bg-[#22C55E] text-black py-4 font-bold mono uppercase tracking-wider border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] disabled:opacity-50 disabled:cursor-not-allowed transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none flex items-center justify-center gap-2"
                     data-testid="button-submit-questionnaire"

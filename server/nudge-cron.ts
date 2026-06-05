@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { storage } from "./storage";
 import { Resend } from "resend";
-import { nudgeEditWindowTemplate, nudgeEngagementTemplate, feedbackEmailTemplate } from "./emails";
+import { nudgeEditWindowTemplate, nudgeEngagementTemplate, feedbackEmailTemplate, tipsEmailTemplate } from "./emails";
 import { logger } from "./logger";
 
 export function startNudgeCron() {
@@ -60,6 +60,21 @@ export function startNudgeCron() {
         }).catch(() => {});
         await storage.markFeedbackEmailSent(p.profileId);
         logger.info("[Nudge] Feedback email sent", { profileId: p.profileId, email: p.email });
+      }
+
+      // Tips email: 3 days after profile becomes ready (all users)
+      const tipsProfiles = await storage.getProfilesDueForTipsEmail();
+      const dashboardUrl = "https://myproxy.work/dashboard";
+      for (const p of tipsProfiles) {
+        await resend.emails.send({
+          from,
+          reply_to: "vinos@myproxy.work",
+          to: p.email,
+          subject: `3 ways to get more from your Proxy, ${p.name.split(" ")[0]}`,
+          html: tipsEmailTemplate(p.name, dashboardUrl),
+        }).catch(() => {});
+        await storage.markTipsEmailSent(p.profileId);
+        logger.info("[Nudge] Tips email sent", { profileId: p.profileId, email: p.email });
       }
     } catch (err) {
       logger.error("[Nudge] Cron error", { error: String(err) });

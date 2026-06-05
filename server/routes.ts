@@ -998,6 +998,7 @@ export async function registerRoutes(
           "That's outside my expertise, but I'm happy to discuss my background in detail.",
         wordsUsedOften: questionnaireData?.step7?.wordsUsedOften || "",
         wordsAvoided: questionnaireData?.step7?.wordsAvoided || "",
+        writingSample: questionnaireData?.step7?.writingSample || "",
         portfolioData: questionnaireData?.portfolioData || null,
         mentionedCompany,
       });

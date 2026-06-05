@@ -48,11 +48,11 @@ export default function LandingPage() {
             {/* Left column */}
             <div>
               <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-4" data-testid="text-hero-headline">
-                Mid to senior professionals don't lose roles to being underqualified.<br />
-                <span className="text-[#22C55E]">They lose them to being misunderstood.</span>
+                Every candidate at your level has the same CV.<br />
+                <span className="text-[#22C55E]">Proxy is how you stop looking like the other 200 applicants.</span>
               </h1>
               <p className="text-lg text-black/60 mb-8">
-                Proxy gives recruiters something that actually explains your career — in your voice, on your terms.
+                They've all led teams. Cut costs. Hit targets. Proxy builds a career profile that answers recruiter questions in your voice — so the right people actually understand what makes you different.
               </p>
               <div className="flex gap-4 flex-wrap">
                 <button
@@ -66,16 +66,17 @@ export default function LandingPage() {
                   href="https://myproxy.work/portfolio/priya"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-white text-black px-8 py-4 font-bold border-[3px] border-black hover:bg-gray-100 mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+                  className="bg-white text-black px-8 py-4 font-bold border-[3px] border-black hover:bg-gray-100 mono shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex flex-col items-center"
                   data-testid="button-view-demo"
                 >
-                  See a live example &rarr;
+                  <span className="uppercase tracking-wider text-sm">See a live example &rarr;</span>
+                  <span className="text-xs text-black/50 font-normal normal-case tracking-normal mt-0.5">Try asking the AI a question</span>
                 </a>
               </div>
-              <p className="mono text-xs text-black/40 mt-4">
-                See a real profile — try asking the AI a question
+              <p className="text-sm text-black/60 mt-4 italic">
+                Professional enough to send to a headhunter. Personal enough to actually represent you.
               </p>
-              <p className="mono text-sm text-black/50 mt-6 border-l-[3px] border-[#22C55E] pl-4">
+              <p className="text-sm text-black/70 mt-6 border-l-[3px] border-[#22C55E] pl-4">
                 Your profile is private until you publish it. We don't sell your data or use it to train AI models.
               </p>
             </div>

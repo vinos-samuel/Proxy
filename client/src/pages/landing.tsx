@@ -47,11 +47,13 @@ export default function LandingPage() {
 
             {/* Left column */}
             <div>
-              <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-4" data-testid="text-hero-headline">
-                Every candidate at your level has the same CV.<br />
-                <span className="text-[#22C55E]">Proxy is how you stop looking like the other 200 applicants.</span>
+              <h1 className="text-4xl lg:text-6xl font-bold leading-tight mb-3" data-testid="text-hero-headline">
+                Every candidate at your level has the same CV.
               </h1>
-              <p className="text-lg text-black/60 mb-8">
+              <p className="text-2xl lg:text-3xl font-bold text-[#22C55E] mb-6">
+                Proxy is how you stop being one of them.
+              </p>
+              <p className="text-xl text-black/70 mb-8">
                 They've all led teams. Cut costs. Hit targets. Proxy builds a career profile that answers recruiter questions in your voice — so the right people actually understand what makes you different.
               </p>
               <div className="flex gap-4 flex-wrap">
@@ -73,12 +75,14 @@ export default function LandingPage() {
                   <span className="text-xs text-black/50 font-normal normal-case tracking-normal mt-0.5">Try asking the AI a question</span>
                 </a>
               </div>
-              <p className="text-sm text-black/60 mt-4 italic">
+              <p className="text-base font-semibold text-black mt-5">
                 Professional enough to send to a headhunter. Personal enough to actually represent you.
               </p>
-              <p className="text-sm text-black/70 mt-6 border-l-[3px] border-[#22C55E] pl-4">
-                Your profile is private until you publish it. We don't sell your data or use it to train AI models.
-              </p>
+              <div className="mt-4 bg-[#F0FDF4] border-[2px] border-[#22C55E] px-4 py-3">
+                <p className="text-sm text-black/80">
+                  🔒 <strong>Your data stays yours.</strong> Your profile is private until you publish it. We don't sell your data or use it to train AI models.
+                </p>
+              </div>
             </div>
 
             {/* Right column — demo video */}

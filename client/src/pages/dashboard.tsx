@@ -87,7 +87,7 @@ export default function DashboardPage() {
     draft: { label: "DRAFT", color: "bg-[#FDE68A]" },
     processing: { label: "PROCESSING", color: "bg-[#93C5FD]" },
     reprocessing: { label: "UPDATING", color: "bg-[#93C5FD]" },
-    ready: { label: "READY_TO_PUBLISH", color: "bg-[#86EFAC]" },
+    ready: { label: "READY TO PUBLISH", color: "bg-[#86EFAC]" },
     published: { label: "PUBLISHED", color: "bg-[#22C55E]" },
   };
 
@@ -96,6 +96,14 @@ export default function DashboardPage() {
   const freeWindowExpired = isFree && profile?.freePublishedAt
     ? (Date.now() - new Date(profile.freePublishedAt).getTime()) / (1000 * 60 * 60) > 48
     : false;
+
+  const questionCount = analytics?.recentQuestions?.length ?? 0;
+  const viewCount = analytics?.viewCount ?? 0;
+
+  const showUpgrade = profile && (
+    (profile.status === "ready" && profile.paymentStatus !== "paid") ||
+    (profile.status === "published" && profile.tier === "free")
+  );
 
   return (
     <div className="min-h-screen bg-[#E8E8E3] text-black pb-12" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -123,15 +131,12 @@ export default function DashboardPage() {
       </nav>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+
           <div className="mb-8">
-            <div className="mono text-xs text-black/50 mb-2 uppercase tracking-widest">&#9698; Control Panel</div>
-            <h1 className="text-4xl font-bold mb-2">DASHBOARD</h1>
+            <h1 className="text-4xl font-bold mb-1">DASHBOARD</h1>
             <p className="mono text-sm text-black/60">
-              Welcome back, {user?.name}. Manage your Digital Twin below.
+              Welcome back, {user?.name?.split(" ")[0]}.
             </p>
           </div>
 
@@ -147,10 +152,12 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 gap-6">
+
+              {/* 1. Profile card */}
               <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div>
-                    <div className="flex items-center gap-4 mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4 mb-3">
                       <div className="w-14 h-14 bg-[#22C55E] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                         <span className="text-2xl font-bold text-black">
                           {(profile?.displayName || user?.name || "?")[0].toUpperCase()}
@@ -158,120 +165,189 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <h2 className="text-2xl font-bold">
-                          {profile?.displayName || "Your Digital Twin"}
+                          {profile?.displayName || user?.name || "Your Digital Twin"}
                         </h2>
                         <p className="mono text-sm text-black/60">
                           {profile?.roleTitle || "No role set yet"}
                         </p>
                       </div>
                     </div>
-                    <div className={`inline-block px-3 py-1 ${profileStatus.color} border-[3px] border-black mono text-xs uppercase tracking-wider font-bold`} data-testid="badge-profile-status">
-                      {profileStatus.label}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <div className={`inline-block px-3 py-1 ${profileStatus.color} border-[3px] border-black mono text-xs uppercase tracking-wider font-bold`} data-testid="badge-profile-status">
+                        {profileStatus.label}
+                      </div>
+                      {profile?.status === "published" && (
+                        <a
+                          href={`/portfolio/${user?.username}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-1.5 mono text-xs text-black/60 hover:text-black underline underline-offset-2"
+                          data-testid="text-portfolio-url"
+                        >
+                          myproxy.work/portfolio/{user?.username}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3 flex-wrap">
                     {!profile && (
                       <Link href="/questionnaire">
-                        <button
-                          className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-                          data-testid="button-start-questionnaire"
-                        >
-                          <span className="flex items-center gap-2">
-                            <FileText className="h-4 w-4" />
-                            START QUESTIONNAIRE
-                          </span>
+                        <button className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-start-questionnaire">
+                          <span className="flex items-center gap-2"><FileText className="h-4 w-4" />START QUESTIONNAIRE</span>
                         </button>
                       </Link>
                     )}
                     {profile?.status === "draft" && (
                       <Link href="/questionnaire">
-                        <button
-                          className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-                          data-testid="button-continue-questionnaire"
-                        >
-                          <span className="flex items-center gap-2">
-                            <Edit className="h-4 w-4" />
-                            CONTINUE SETUP
-                          </span>
+                        <button className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-continue-questionnaire">
+                          <span className="flex items-center gap-2"><Edit className="h-4 w-4" />CONTINUE SETUP</span>
                         </button>
                       </Link>
                     )}
                     {(profile?.status === "ready" || profile?.status === "published") && (
                       <>
                         <Link href="/preview">
-                          <button
-                            className="bg-white text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-                            data-testid="button-preview"
-                          >
-                            <span className="flex items-center gap-2">
-                              <Eye className="h-4 w-4" />
-                              PREVIEW
-                            </span>
+                          <button className="bg-white text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-preview">
+                            <span className="flex items-center gap-2"><Eye className="h-4 w-4" />PREVIEW</span>
                           </button>
                         </Link>
                         {profile.status === "published" && (
-                          <a
-                            href={`/portfolio/${user?.username}`}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            <button
-                              className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-                              data-testid="button-view-live"
-                            >
-                              <span className="flex items-center gap-2">
-                                <Globe className="h-4 w-4" />
-                                VIEW LIVE
-                                <ExternalLink className="h-3 w-3" />
-                              </span>
+                          <a href={`/portfolio/${user?.username}`} target="_blank" rel="noreferrer">
+                            <button className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-view-live">
+                              <span className="flex items-center gap-2"><Globe className="h-4 w-4" />VIEW LIVE<ExternalLink className="h-3 w-3" /></span>
                             </button>
                           </a>
                         )}
                       </>
                     )}
                   </div>
-                  {(profile?.status === "ready" || profile?.status === "published") && (
-                    <p className="mono text-xs text-black/40 mt-3">
-                      Use Preview to directly edit your Twin's content and layout.
-                    </p>
+                </div>
+              </div>
+
+              {/* 2. Analytics — published users, shown early */}
+              {profile?.status === "published" && (
+                <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-12 h-12 bg-[#22C55E] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                      <BarChart3 className="h-6 w-6 text-black" />
+                    </div>
+                    <h3 className="font-bold text-lg">YOUR TWIN'S ACTIVITY</h3>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4 mb-5">
+                    <div className="border-[3px] border-black bg-[#E8E8E3] p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Eye className="h-4 w-4 text-black/60" />
+                        <span className="mono text-xs uppercase tracking-wider text-black/60">Profile Views</span>
+                      </div>
+                      <div className="text-4xl font-bold">{viewCount}</div>
+                      {viewCount === 0 && (
+                        <p className="mono text-xs text-black/40 mt-2">Share your link to start getting visitors</p>
+                      )}
+                    </div>
+                    <div className="border-[3px] border-black bg-[#E8E8E3] p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MessageSquare className="h-4 w-4 text-black/60" />
+                        <span className="mono text-xs uppercase tracking-wider text-black/60">Questions Asked</span>
+                      </div>
+                      <div className="text-4xl font-bold">{questionCount}</div>
+                      <p className="mono text-xs text-black/40 mt-2">
+                        {isFree ? "Upgrade to Pro to see what they asked" : "Last 10 shown below"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {isFree && questionCount > 0 ? (
+                    <div className="relative">
+                      <div className="filter blur-sm select-none pointer-events-none opacity-50">
+                        <div className="mono text-xs uppercase tracking-wider text-black/50 mb-3">Questions visitors asked your Twin</div>
+                        <div className="space-y-2">
+                          {analytics!.recentQuestions.slice(0, 3).map((q, i) => (
+                            <div key={i} className="flex items-start gap-3 border-l-[3px] border-[#22C55E] pl-3 py-1">
+                              <p className="text-sm font-medium text-black">{q.question}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 border-[3px] border-black p-4 text-center">
+                        <Lock className="h-5 w-5 mb-2" />
+                        <p className="font-bold text-sm mb-1">{questionCount} recruiters asked your Twin questions.</p>
+                        <p className="mono text-xs text-black/60 mb-3">Upgrade to Pro to see what they wanted to know.</p>
+                        <button
+                          onClick={() => document.getElementById("upgrade-section")?.scrollIntoView({ behavior: "smooth" })}
+                          className="bg-black text-white mono text-xs px-4 py-2 uppercase tracking-wider hover:bg-black/80 transition-colors"
+                        >
+                          Upgrade to Pro →
+                        </button>
+                      </div>
+                    </div>
+                  ) : !isFree && questionCount > 0 ? (
+                    <div>
+                      <div className="mono text-xs uppercase tracking-wider text-black/50 mb-3">Questions visitors asked your Twin</div>
+                      <div className="space-y-2">
+                        {analytics!.recentQuestions.map((q, i) => (
+                          <div key={i} className="flex items-start gap-3 border-l-[3px] border-[#22C55E] pl-3 py-1">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-black">{q.question}</p>
+                              <p className="mono text-xs text-black/40 mt-0.5">
+                                {new Date(q.askedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border-[3px] border-dashed border-black/20 p-4 text-center">
+                      <MessageSquare className="h-8 w-8 text-black/20 mx-auto mb-2" />
+                      <p className="mono text-xs text-black/40 uppercase tracking-wider">No questions yet — share your profile to get started</p>
+                    </div>
                   )}
                 </div>
-              </div>
+              )}
 
-              <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] brutal-card">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-[#E8A75D] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                    <FileText className="h-6 w-6 text-black" />
+              {/* Analytics placeholder — not yet published */}
+              {profile && profile.status !== "published" && (
+                <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-[#D1D1CC] border-[3px] border-black flex items-center justify-center">
+                      <BarChart3 className="h-5 w-5 text-black/40" />
+                    </div>
+                    <h3 className="font-bold text-lg text-black/40">ACTIVITY</h3>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg">QUESTIONNAIRE</h3>
-                    <div className="mono text-xs text-black/50 uppercase">CONTEXT_INGESTION</div>
+                  <p className="mono text-xs text-black/50 leading-relaxed">
+                    Once your profile is published, you'll see how many people visited and what they asked your Twin. Publish to unlock this.
+                  </p>
+                </div>
+              )}
+
+              {/* 3. Upgrade prompt — free window expired or ready to pay */}
+              {freeWindowExpired && (
+                <div className="md:col-span-2 bg-[#FDE68A] border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-start gap-3">
+                    <Lock className="h-5 w-5 text-black mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-bold text-sm">Your Twin is live and working.</p>
+                      <p className="mono text-xs text-black/70 mt-1">
+                        {viewCount > 0 || questionCount > 0
+                          ? `${viewCount} people visited${questionCount > 0 ? ` and ${questionCount} asked questions` : ""}. Upgrade to Pro to keep refining your profile and see exactly what they asked.`
+                          : "Your free edit window has ended. Upgrade to Pro to keep editing, unlock analytics, and remove all limits."}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <p className="mono text-sm text-black/60 mb-4">
-                  {profile?.status === "draft"
-                    ? "This is how you get your profile live. Fill it in and submit — AI builds your Twin."
-                    : profile
-                    ? "Update your career information and stories."
-                    : "Tell us about your career to build your Digital Twin."}
-                </p>
-                <Link href="/questionnaire">
-                  <button
-                    className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
-                    data-testid="button-goto-questionnaire"
-                  >
-                    <span className="flex items-center gap-2">
-                      {profile ? "EDIT ANSWERS" : "GET STARTED"}
-                      <ArrowRight className="h-3 w-3" />
-                    </span>
-                  </button>
-                </Link>
-              </div>
+              )}
 
-              {/* Draft: clear numbered progress — questionnaire is the path to publish */}
+              {showUpgrade && (
+                <div id="upgrade-section" className="md:col-span-2">
+                  <PaymentGate profileId={profile!.id} username={user?.username} />
+                </div>
+              )}
+
+              {/* 4. Draft progress */}
               {profile && profile.status === "draft" && (
                 <div className="md:col-span-2 bg-[#FDE68A] border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                  <div className="mono text-xs text-black/60 uppercase tracking-widest mb-4">// how_to_publish</div>
+                  <div className="mono text-xs text-black/60 uppercase tracking-widest mb-4">// how to publish</div>
                   <div className="grid grid-cols-3 gap-3 mb-5">
                     {[
                       { step: "1", label: "Fill Questionnaire", done: true },
@@ -279,28 +355,45 @@ export default function DashboardPage() {
                       { step: "3", label: "Publish Your Profile", done: false },
                     ].map(({ step, label, done }) => (
                       <div key={step} className={`border-[3px] border-black p-3 flex items-center gap-3 ${done ? "bg-white" : "bg-white/50"}`}>
-                        <div className={`w-8 h-8 border-[2px] border-black flex items-center justify-center font-bold text-sm shrink-0 ${done ? "bg-[#22C55E]" : "bg-white"}`}>
-                          {step}
-                        </div>
+                        <div className={`w-8 h-8 border-[2px] border-black flex items-center justify-center font-bold text-sm shrink-0 ${done ? "bg-[#22C55E]" : "bg-white"}`}>{step}</div>
                         <span className="mono text-xs font-bold uppercase tracking-wide">{label}</span>
                       </div>
                     ))}
                   </div>
                   <p className="mono text-sm text-black/70 mb-4">
-                    You're in step 1. Complete the questionnaire — it takes about 10 minutes. When you submit, AI builds your Twin. Then you can publish.
+                    You're in step 1. Complete the questionnaire — it takes about 10 minutes. When you submit, AI builds your Twin.
                   </p>
                   <Link href="/questionnaire">
                     <button className="bg-black text-white px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-800 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
-                      <span className="flex items-center gap-2">
-                        Continue Questionnaire
-                        <ArrowRight className="h-4 w-4" />
-                      </span>
+                      <span className="flex items-center gap-2">Continue Questionnaire<ArrowRight className="h-4 w-4" /></span>
                     </button>
                   </Link>
                 </div>
               )}
 
-              {/* Share your AI-ready profile — visible for all published users */}
+              {/* Processing state */}
+              {(profile?.status === "processing" || profile?.status === "reprocessing") && (
+                <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-[#93C5FD] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                      <Loader2 className="h-6 w-6 text-black animate-spin" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg">BUILDING YOUR TWIN</h3>
+                      <div className="mono text-xs text-black/50 uppercase">AI is processing your profile</div>
+                    </div>
+                  </div>
+                  <p className="mono text-sm text-black/60 mb-4">
+                    This usually takes 1–2 minutes. This page will update automatically — no need to refresh.
+                  </p>
+                  <div className="flex items-center gap-2 px-3 py-1 bg-[#93C5FD] border-[3px] border-black mono text-xs uppercase tracking-wider font-bold w-fit">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    IN PROGRESS
+                  </div>
+                </div>
+              )}
+
+              {/* 5. Share — published users */}
               {profile && profile.status === "published" && (
                 <div className="md:col-span-2 bg-black text-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                   <div className="flex items-center gap-3 mb-4">
@@ -308,13 +401,10 @@ export default function DashboardPage() {
                       <Globe className="h-6 w-6 text-black" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg">SHARE YOUR AI-READY PROFILE</h3>
-                      <div className="mono text-xs text-white/50 uppercase">// built_for_humans._found_by_ai</div>
+                      <h3 className="font-bold text-lg">SHARE YOUR PROFILE</h3>
+                      <p className="mono text-xs text-white/50">Your profile is indexed by search engines and AI sourcing tools — every share gets you more visibility.</p>
                     </div>
                   </div>
-                  <p className="mono text-sm text-white/60 mb-5">
-                    Your profile is structured to be found by AI sourcing tools — not just search engines. Every share puts it in front of recruiters and their networks. We've written the post.
-                  </p>
                   <div className="bg-white/10 border border-white/20 p-4 mb-4 mono text-xs text-white/80 leading-relaxed whitespace-pre-line">
 {`Just launched my AI career profile on Proxy.
 
@@ -338,9 +428,7 @@ Explore it here: https://myproxy.work/portfolio/${user?.username}
                       Copy LinkedIn Post
                     </button>
                     <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(`https://myproxy.work/portfolio/${user?.username}`);
-                      }}
+                      onClick={() => navigator.clipboard.writeText(`https://myproxy.work/portfolio/${user?.username}`)}
                       className="flex items-center gap-2 bg-white/10 text-white px-5 py-3 font-bold border-[3px] border-white/30 mono text-xs uppercase tracking-wider hover:bg-white/20 active:translate-x-[1px] active:translate-y-[1px] transition-all"
                     >
                       <Copy className="h-3.5 w-3.5" />
@@ -350,20 +438,62 @@ Explore it here: https://myproxy.work/portfolio/${user?.username}
                 </div>
               )}
 
-              {/* Referral card — published users only */}
-              {profile && profile.status === "published" && referral && (
+              {/* 6. Questionnaire + Deepen Your Twin — side by side */}
+              <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-[#E8A75D] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    <FileText className="h-6 w-6 text-black" />
+                  </div>
+                  <h3 className="font-bold text-lg">QUESTIONNAIRE</h3>
+                </div>
+                <p className="mono text-sm text-black/60 mb-4">
+                  {profile?.status === "draft"
+                    ? "Fill this in to build your Twin. It takes about 10 minutes — AI does the heavy lifting."
+                    : profile
+                    ? "Update your career information, stories, and answers."
+                    : "Tell us about your career to build your Digital Twin."}
+                </p>
+                <Link href="/questionnaire">
+                  <button className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none" data-testid="button-goto-questionnaire">
+                    <span className="flex items-center gap-2">{profile ? "EDIT ANSWERS" : "GET STARTED"}<ArrowRight className="h-3 w-3" /></span>
+                  </button>
+                </Link>
+              </div>
+
+              {(profile?.status === "ready" || profile?.status === "published") && (
                 <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-[#A78BFA] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                      <Mic className="h-6 w-6 text-black" />
+                    </div>
+                    <h3 className="font-bold text-lg">DEEPEN YOUR TWIN</h3>
+                  </div>
+                  <p className="mono text-sm text-black/60 mb-4">
+                    {(profile as any).lastDeepenedAt
+                      ? `Last deepened: ${new Date((profile as any).lastDeepenedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}. Go deeper to sharpen your Twin further — just speak, no typing needed.`
+                      : "Your Twin is only as good as the stories inside it. Speak naturally — no typing, no prep. A voice interview gives your Twin real depth and your actual voice."}
+                  </p>
+                  <Link href="/interview">
+                    <button className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">
+                      <span className="flex items-center gap-2">{(profile as any).lastDeepenedAt ? "GO DEEPER" : "START INTERVIEW"}<ArrowRight className="h-3 w-3" /></span>
+                    </button>
+                  </Link>
+                </div>
+              )}
+
+              {/* 7. Referral link — published users */}
+              {profile && profile.status === "published" && referral && (
+                <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 bg-[#FDE68A] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                       <span className="text-xl">🔗</span>
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg">YOUR REFERRAL LINK</h3>
-                      <div className="mono text-xs text-black/50 uppercase">// share_proxy</div>
+                      <h3 className="font-bold text-lg">REFER A COLLEAGUE</h3>
                     </div>
                   </div>
                   <p className="mono text-sm text-black/60 mb-4">
-                    Share this link with professionals who'd benefit from Proxy. When they sign up, they're attributed to you.
+                    Know someone who'd benefit from Proxy? Share your referral link — when they sign up, they're attributed to you.
                   </p>
                   <div className="bg-[#E8E8E3] border-[2px] border-black p-3 mb-4 mono text-xs text-black/70 break-all">
                     {referral.referralUrl}
@@ -382,207 +512,6 @@ Explore it here: https://myproxy.work/portfolio/${user?.username}
                 </div>
               )}
 
-              {/* Ready/Published: show Deepen Your Twin */}
-              {profile && (profile.status === "ready" || profile.status === "published") && (
-                <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] brutal-card">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-[#A78BFA] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                      <Mic className="h-6 w-6 text-black" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg">DEEPEN YOUR TWIN</h3>
-                      <div className="mono text-xs text-black/50 uppercase">PROFILE_INTERVIEW</div>
-                    </div>
-                  </div>
-                  <p className="mono text-sm text-black/60 mb-4">
-                    {(profile as any).lastDeepenedAt
-                      ? `Last deepened: ${new Date((profile as any).lastDeepenedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}. Go deeper to sharpen your Twin further — just speak, no typing needed.`
-                      : "Your Twin is only as good as the stories inside it. Just speak naturally — no typing, no prep. A voice interview gives your Twin real depth, real numbers, your voice."}
-                  </p>
-                  <Link href="/interview">
-                    <button className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">
-                      <span className="flex items-center gap-2">
-                        {(profile as any).lastDeepenedAt ? "GO DEEPER" : "START INTERVIEW"}
-                        <ArrowRight className="h-3 w-3" />
-                      </span>
-                    </button>
-                  </Link>
-                </div>
-              )}
-
-              {(profile?.status === "processing" || profile?.status === "reprocessing") && (
-                <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] brutal-card">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-[#93C5FD] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                      <Loader2 className="h-6 w-6 text-black animate-spin" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg">BUILDING YOUR TWIN</h3>
-                      <div className="mono text-xs text-black/50 uppercase">AI is processing your profile</div>
-                    </div>
-                  </div>
-                  <p className="mono text-sm text-black/60 mb-4">
-                    This usually takes 1–2 minutes. This page will update automatically when it's ready — no need to refresh.
-                  </p>
-                  <div className="flex items-center gap-2 px-3 py-1 bg-[#93C5FD] border-[3px] border-black mono text-xs uppercase tracking-wider font-bold w-fit">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    IN PROGRESS
-                  </div>
-                </div>
-              )}
-
-              {/* 48-hour free edit window expiry notice */}
-              {freeWindowExpired && (
-                <div className="md:col-span-2 bg-[#FDE68A] border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                  <div className="flex items-start gap-3">
-                    <Lock className="h-5 w-5 text-black mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="font-bold text-sm">Free edit window has expired.</p>
-                      <p className="mono text-xs text-black/70 mt-1">
-                        Your 48-hour edit window ended. Your Twin is still live and working. Upgrade to Pro to make edits, unlock analytics, and remove all limits.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* PaymentGate: show for "ready" unpaid users AND free-tier published users wanting to upgrade */}
-              {profile && (
-                (profile.status === "ready" && profile.paymentStatus !== "paid") ||
-                (profile.status === "published" && profile.tier === "free")
-              ) && (
-                <div id="upgrade-section" className="md:col-span-2">
-                  <PaymentGate profileId={profile.id} username={user?.username} />
-                </div>
-              )}
-
-              {profile && profile.status !== "published" && (
-                <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-[#D1D1CC] border-[3px] border-black flex items-center justify-center">
-                      <BarChart3 className="h-5 w-5 text-black/40" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg text-black/40">TWIN ANALYTICS</h3>
-                      <div className="mono text-xs text-black/30 uppercase">COMING_SOON</div>
-                    </div>
-                  </div>
-                  <p className="mono text-xs text-black/50 leading-relaxed">
-                    Once your profile is published, you'll see analytics here — profile views, questions visitors ask your Twin, and engagement trends. Publish your profile to unlock this.
-                  </p>
-                </div>
-              )}
-
-              {profile?.status === "published" && (
-                <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Globe className="h-5 w-5 text-black" />
-                    <h3 className="font-bold text-lg">PORTFOLIO_URL</h3>
-                  </div>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <div className="flex-1 min-w-0 border-[3px] border-black bg-[#D1D1CC] px-4 py-3 mono text-sm text-black overflow-x-auto" data-testid="text-portfolio-url">
-                      <span className="text-black/40">$ </span>myproxy.work/portfolio/{user?.username}
-                    </div>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(`https://myproxy.work/portfolio/${user?.username}`);
-                      }}
-                      className="bg-black text-white px-5 py-3 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center gap-2"
-                      data-testid="button-copy-url"
-                    >
-                      <Copy className="h-3 w-3" />
-                      COPY
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {profile?.status === "published" && (
-                <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 bg-[#22C55E] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                      <BarChart3 className="h-6 w-6 text-black" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg">TWIN ANALYTICS</h3>
-                      <div className="mono text-xs text-black/50 uppercase">ENGAGEMENT_METRICS</div>
-                    </div>
-                  </div>
-                  <div className="bg-[#E8E8E3] border-2 border-black/10 rounded p-3 mb-6">
-                    <p className="mono text-xs text-black/60 leading-relaxed">
-                      Track how people engage with your Digital Twin. Every time someone visits your profile or asks your Twin a question, it shows up here. Share your profile link to start seeing activity.
-                    </p>
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="border-[3px] border-black bg-[#E8E8E3] p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Eye className="h-4 w-4 text-black/60" />
-                        <span className="mono text-xs uppercase tracking-wider text-black/60">Profile Views</span>
-                      </div>
-                      <div className="text-4xl font-bold">{analytics?.viewCount ?? 0}</div>
-                      {(analytics?.viewCount ?? 0) === 0 && (
-                        <p className="mono text-xs text-black/40 mt-2">Share your profile link to start getting visitors</p>
-                      )}
-                    </div>
-                    <div className="border-[3px] border-black bg-[#E8E8E3] p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MessageSquare className="h-4 w-4 text-black/60" />
-                        <span className="mono text-xs uppercase tracking-wider text-black/60">Questions Asked</span>
-                      </div>
-                      <div className="text-4xl font-bold">{analytics?.recentQuestions?.length ?? 0}</div>
-                      <p className="mono text-xs text-black/40 mt-2">
-                        {isFree ? "Upgrade to Pro to see the questions feed" : "Last 10 shown below"}
-                      </p>
-                    </div>
-                  </div>
-                  {isFree && (analytics?.recentQuestions?.length ?? 0) > 0 ? (
-                    <div className="mt-6 relative">
-                      <div className="filter blur-sm select-none pointer-events-none opacity-50">
-                        <div className="mono text-xs uppercase tracking-wider text-black/50 mb-3">Recent Questions from Visitors</div>
-                        <div className="space-y-2">
-                          {analytics!.recentQuestions.slice(0, 3).map((q, i) => (
-                            <div key={i} className="flex items-start gap-3 border-l-[3px] border-[#22C55E] pl-3 py-1">
-                              <p className="text-sm font-medium text-black">{q.question}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 border-[3px] border-black p-4 text-center">
-                        <Lock className="h-5 w-5 mb-2" />
-                        <p className="font-bold text-sm mb-1 uppercase tracking-wide">PRO FEATURE</p>
-                        <p className="mono text-xs text-black/60 mb-3">See every question visitors asked your Twin</p>
-                        <button
-                          onClick={() => document.getElementById("upgrade-section")?.scrollIntoView({ behavior: "smooth" })}
-                          className="bg-black text-white mono text-xs px-4 py-2 uppercase tracking-wider hover:bg-black/80 transition-colors"
-                        >
-                          Upgrade to Pro →
-                        </button>
-                      </div>
-                    </div>
-                  ) : !isFree && (analytics?.recentQuestions?.length ?? 0) > 0 ? (
-                    <div className="mt-6">
-                      <div className="mono text-xs uppercase tracking-wider text-black/50 mb-3">Recent Questions from Visitors</div>
-                      <div className="space-y-2">
-                        {analytics!.recentQuestions.map((q, i) => (
-                          <div key={i} className="flex items-start gap-3 border-l-[3px] border-[#22C55E] pl-3 py-1">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-black">{q.question}</p>
-                              <p className="mono text-xs text-black/40 mt-0.5">
-                                {new Date(q.askedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mt-6 border-[3px] border-dashed border-black/20 p-4 text-center">
-                      <MessageSquare className="h-8 w-8 text-black/20 mx-auto mb-2" />
-                      <p className="mono text-xs text-black/40 uppercase tracking-wider">No questions yet — visitors haven't chatted with your Twin</p>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
         </motion.div>

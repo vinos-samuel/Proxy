@@ -111,7 +111,8 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="border-t border-black/10 p-3 mono text-xs text-black/40 text-center">
-                // responding in real time · myproxy.work/priya
+                // responding in real time ·{" "}
+                <a href="https://myproxy.work/portfolio/priya" target="_blank" rel="noopener noreferrer" className="text-[#22C55E] hover:underline">myproxy.work/portfolio/priya</a>
               </div>
             </div>
 

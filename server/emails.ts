@@ -241,8 +241,12 @@ export function nudgeEngagementTemplate(name: string, viewCount: number, upgrade
 // ─── Admin Broadcast ─────────────────────────────────────────────────────────
 
 export function broadcastTemplate(name: string, bodyText: string): string {
+  // Replace [name] placeholder with actual first name
+  const firstName = name.split(" ")[0];
+  const resolvedText = bodyText.replace(/\[name\]/gi, firstName);
+
   // Convert plain text to HTML paragraphs (double newline = new paragraph)
-  const paragraphs = bodyText
+  const paragraphs = resolvedText
     .split(/\n\n+/)
     .map((para) => {
       const inner = para.trim().replace(/\n/g, "<br>");
@@ -251,7 +255,6 @@ export function broadcastTemplate(name: string, bodyText: string): string {
     .join("");
 
   const body = `
-    <p style="font-size:13px;color:#999999;margin:0 0 20px 0;font-family:monospace;text-transform:uppercase;letter-spacing:0.5px;">Hi ${name},</p>
     ${paragraphs}
     <p style="font-size:12px;color:#aaaaaa;margin:28px 0 0 0;border-top:1px solid #e5e5e5;padding-top:16px;">
       — Vinos, Proxy

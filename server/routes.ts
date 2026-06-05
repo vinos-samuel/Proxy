@@ -1796,25 +1796,20 @@ PASS if every specific claim traces back to the profile data, or if the response
       const resend = new Resend(process.env.RESEND_API_KEY);
       const from = `Vinos at Proxy <vinos@myproxy.work>`;
 
-      let sent = 0;
-      const errors: string[] = [];
+      // Use batch send — avoids rate limiting from sequential loop
+      const batch = targets.map((c) => ({
+        from,
+        to: c.email,
+        reply_to: "vinos@myproxy.work",
+        subject,
+        html: broadcastTemplate(c.name, body),
+      }));
 
-      for (const c of targets) {
-        try {
-          await resend.emails.send({
-            from,
-            to: c.email,
-            reply_to: "vinos@myproxy.work",
-            subject,
-            html: broadcastTemplate(c.name, body),
-          });
-          sent++;
-        } catch (err) {
-          errors.push(`${c.email}: ${String(err)}`);
-        }
-      }
+      const { data, error } = await resend.batch.send(batch);
+      const sent = data?.data?.length ?? 0;
+      const errors: string[] = error ? [String(error)] : [];
 
-      logger.info("[Admin] Broadcast sent", { audience, subject, sent, errors: errors.length, by: req.session.customerId });
+      logger.info("[Admin] Broadcast sent", { audience, subject, sent, total: targets.length, errors: errors.length, by: req.session.customerId });
       res.json({ sent, total: targets.length, errors });
     } catch (error) {
       logger.error("[Admin] Broadcast error", { error: String(error) });

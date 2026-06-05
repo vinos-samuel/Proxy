@@ -13,7 +13,7 @@ export function startNudgeCron() {
       if (profiles.length === 0) return;
 
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
+      const from = `Vinos at Proxy <vinos@myproxy.work>`;
       const now = new Date();
 
       for (const p of profiles) {

@@ -1794,7 +1794,7 @@ PASS if every specific claim traces back to the profile data, or if the response
       const { Resend } = await import("resend");
       const { broadcastTemplate } = await import("./emails");
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
+      const from = `Vinos at Proxy <vinos@myproxy.work>`;
 
       let sent = 0;
       const errors: string[] = [];
@@ -1834,7 +1834,7 @@ PASS if every specific claim traces back to the profile data, or if the response
       const { Resend } = await import("resend");
       const { nudgeEditWindowTemplate, nudgeEngagementTemplate } = await import("./emails");
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
+      const from = `Vinos at Proxy <vinos@myproxy.work>`;
       const upgradeUrl = "https://myproxy.work/dashboard";
       const viewCount = profile.viewCount ?? 0;
 
@@ -1879,7 +1879,7 @@ PASS if every specific claim traces back to the profile data, or if the response
       const { Resend } = await import("resend");
       const { broadcastTemplate } = await import("./emails");
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
+      const from = `Vinos at Proxy <vinos@myproxy.work>`;
 
       await resend.emails.send({
         from,

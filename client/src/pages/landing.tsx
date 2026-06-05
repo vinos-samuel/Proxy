@@ -48,14 +48,11 @@ export default function LandingPage() {
             {/* Left column */}
             <div>
               <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-4" data-testid="text-hero-headline">
-                Don't send a PDF.<br />
-                <span className="text-[#22C55E]">Send a link.</span>
+                Mid to senior professionals don't lose roles to being underqualified.<br />
+                <span className="text-[#22C55E]">They lose them to being misunderstood.</span>
               </h1>
-              <p className="text-xl text-black/70 mt-2 mb-4">
-                "Think of it as your LinkedIn — but it actually talks back."
-              </p>
               <p className="text-lg text-black/60 mb-8">
-                Built for mid to senior professionals whose careers don't fit on two pages.
+                Proxy gives recruiters something that actually explains your career — in your voice, on your terms.
               </p>
               <div className="flex gap-4 flex-wrap">
                 <button
@@ -83,35 +80,28 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Right column — chatbot mockup */}
-            <div className="border-[3px] border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              <div className="bg-black text-white p-3 flex items-center justify-between">
+            {/* Right column — demo video */}
+            <div className="border-[3px] border-black bg-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+              <div className="bg-black text-white p-3 flex items-center justify-between border-b border-white/10">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-[#22C55E] border-[2px] border-black flex items-center justify-center font-bold text-black text-sm">P</div>
                   <span className="font-bold text-sm">Priya — VP, Talent Acquisition & Workforce Strategy</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-[#22C55E] rounded-full"></div>
-                  <span className="mono text-xs">LIVE</span>
+                  <div className="w-2 h-2 bg-[#22C55E] rounded-full animate-pulse"></div>
+                  <span className="mono text-xs text-white/60">LIVE</span>
                 </div>
               </div>
-              <div className="p-4 space-y-3">
-                <div className="bg-[#E8E8E3] border border-black/20 p-3 rounded-sm max-w-[80%]">
-                  <div className="mono text-xs text-black/40 mb-1">Recruiter</div>
-                  <p className="text-sm">How did you reduce contingent workforce spend?</p>
-                </div>
-                <div className="bg-[#22C55E] border border-black/20 p-3 rounded-sm max-w-[80%] ml-auto">
-                  <div className="mono text-xs text-black/60 mb-1 text-right">Priya's Proxy</div>
-                  <p className="text-sm">We redesigned the supplier tier model — consolidated from 22 vendors to 8, tied SLA bonuses to fill rate. That's where the 38% came from...</p>
-                </div>
-                <div className="flex items-center gap-1 mt-2">
-                  <div className="w-2 h-2 bg-black/30 rounded-full animate-pulse"></div>
-                  <div className="w-2 h-2 bg-black/30 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
-                  <div className="w-2 h-2 bg-black/30 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
-                </div>
-              </div>
-              <div className="border-t border-black/10 p-3 mono text-xs text-black/40 text-center">
-                // responding in real time ·{" "}
+              <video
+                src="/priya-demo.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full"
+              />
+              <div className="border-t border-white/10 p-3 mono text-xs text-white/40 text-center">
+                // real conversation · try it yourself ·{" "}
                 <a href="https://myproxy.work/portfolio/priya" target="_blank" rel="noopener noreferrer" className="text-[#22C55E] hover:underline">myproxy.work/portfolio/priya</a>
               </div>
             </div>
@@ -214,7 +204,7 @@ export default function LandingPage() {
                 <FileText className="h-6 w-6" />
               </div>
               <h3 className="text-2xl font-bold mt-4 mb-3">Upload your CV</h3>
-              <p className="mono text-sm text-black/70 leading-relaxed">AI reads it and pre-fills your profile in minutes. You review, refine, and add your voice.</p>
+              <p className="mono text-sm text-black/70 leading-relaxed">AI writes the first draft — your experience, your roles, your language. You review, correct anything that feels off, and add the stories only you know. Most people are done in 30 minutes. Worth it once to stand out from every other candidate at your level.</p>
             </div>
 
             <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
@@ -333,6 +323,7 @@ export default function LandingPage() {
       <section id="pricing" className="px-6 py-20 border-t-[3px] border-black bg-[#D1D1CC]">
         <div className="max-w-7xl mx-auto">
           <div className="mono text-xs text-black/50 mb-4 uppercase tracking-widest">// pricing</div>
+          <p className="text-lg text-black/70 mb-6 max-w-2xl">Resume writers charge $500–$800 to reword your CV. Proxy builds you a living profile with an AI that represents you 24/7 — for $49, once.</p>
           <div className="flex flex-wrap items-center gap-4 mb-6">
             <h2 className="text-5xl font-bold">CHOOSE YOUR PLAN</h2>
             <div className="bg-black text-[#22C55E] px-4 py-2 font-bold mono text-sm border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(34,197,94,1)] uppercase tracking-wider" data-testid="badge-launch-special">

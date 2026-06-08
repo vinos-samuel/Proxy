@@ -960,6 +960,7 @@ export async function generatePortfolioPreview(parsedResume: ParsedResume): Prom
   heroSubtitle: string;
   stats: Array<{ value: string; label: string; icon: string }>;
   careerTimeline: Array<{ company: string; roles: Array<{ title: string; years: string; achievements: string[] }> }>;
+  draftChatQuestions: string[];
 }> {
   const rolesText = (parsedResume.roles || [])
     .map((r) => `${sanitizeForPrompt(r.title, 100)} at ${sanitizeForPrompt(r.company, 100)} (${sanitizeForPrompt(r.years, 50)}): ${sanitizeForPrompt(r.achievements, 400)}`)
@@ -985,13 +986,15 @@ Generate:
    - "label": What it represents IN ALL CAPS (e.g., "COST SAVINGS DELIVERED", "MARKETS ACROSS APAC")
    - "icon": one of: "target", "chart", "users", "ribbon", "lightning", "globe"
 
+4. "draftChatQuestions": Generate exactly 2 highly specific questions a recruiter would ask THIS person based on their CV. Reference their actual company names, roles, or specific achievements. Examples of good questions: "How did you scale the MSP program at Randstad to $75M spend?" or "What was the toughest challenge building the Netflix TA function across APAC?" Bad: "Tell me about your leadership experience." Each question should be answerable from the CV data.
+
 RULES:
 - NO generic language ("passionate", "results-driven")
 - Every statement must be specific and evidence-backed
-- Use first person ("I")
+- Use first person ("I") for positioning only
 - Return ONLY valid JSON, no markdown:
 
-{"positioning": "string", "heroSubtitle": "string", "stats": [{"value": "string", "label": "string", "icon": "string"}]}`;
+{"positioning": "string", "heroSubtitle": "string", "stats": [{"value": "string", "label": "string", "icon": "string"}], "draftChatQuestions": ["string", "string"]}`;
 
   try {
     const result = await ai.models.generateContent({
@@ -1020,6 +1023,7 @@ RULES:
         heroSubtitle: parsed.heroSubtitle || parsedResume.currentTitle || "",
         stats: Array.isArray(parsed.stats) ? parsed.stats.slice(0, 6) : [],
         careerTimeline: groupedCareer,
+        draftChatQuestions: Array.isArray(parsed.draftChatQuestions) ? parsed.draftChatQuestions.slice(0, 2) : [],
       };
     }
   } catch (err) {
@@ -1040,6 +1044,7 @@ RULES:
     heroSubtitle: parsedResume.currentTitle || "",
     stats: [],
     careerTimeline: groupedCareer,
+    draftChatQuestions: [],
   };
 }
 

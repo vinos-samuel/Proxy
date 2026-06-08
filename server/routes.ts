@@ -713,6 +713,11 @@ export async function registerRoutes(
           questionnaireDraft._aiDraftGeneratedAt = new Date().toISOString();
           linkedInDraft = linkedin;
 
+          // Stamp draft questions into questionnaire data so portfolio route can serve them
+          if (portfolioPreview.draftChatQuestions?.length) {
+            questionnaireDraft._draftChatQuestions = portfolioPreview.draftChatQuestions;
+          }
+
           // Save questionnaire draft + portfolio preview data to profile
           await storage.upsertProfile({
             customerId: req.session.customerId!,
@@ -878,16 +883,24 @@ RULES:
       }
 
       const isOwner = req.session.customerId === customer.id;
+      const isDraftRequest = req.query.draft === "true";
 
-      if (profile.status !== "published" && profile.status !== "ready" && profile.status !== "reprocessing") {
-        return res.status(404).json({ message: "Portfolio not found" });
-      }
-
-      if (!profile.isPublic && !isOwner) {
-        return res.status(403).json({
-          message: "This portfolio is private",
-          paymentRequired: true,
-        });
+      // Draft mode: only the owner can view their own draft
+      if (isDraftRequest) {
+        if (!isOwner) {
+          return res.status(403).json({ message: "Not authorised" });
+        }
+        // Allow any status for draft view — fall through to data return
+      } else {
+        if (profile.status !== "published" && profile.status !== "ready" && profile.status !== "reprocessing") {
+          return res.status(404).json({ message: "Portfolio not found" });
+        }
+        if (!profile.isPublic && !isOwner) {
+          return res.status(403).json({
+            message: "This portfolio is private",
+            paymentRequired: true,
+          });
+        }
       }
 
       const factBanksList = await storage.getFactBanksByProfileId(profile.id);
@@ -917,6 +930,8 @@ RULES:
         : [];
 
       res.json({
+        isDraft: isDraftRequest && isOwner,
+        draftChatQuestions: isDraftRequest ? ((profile.questionnaireData as any)?._draftChatQuestions || []) : [],
         profile: {
           displayName: profile.displayName,
           roleTitle: profile.roleTitle,

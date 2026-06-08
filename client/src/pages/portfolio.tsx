@@ -9,7 +9,7 @@ import {
   Send, Mail, Linkedin, Download,
   Loader2, MessageSquare, Globe,
   Terminal, ArrowRight, Target, Users,
-  Award, Briefcase, BarChart3, Zap
+  Award, Briefcase, BarChart3, Zap, Lock
 } from "lucide-react";
 
 interface PortfolioData {
@@ -173,12 +173,19 @@ export default function PortfolioPage() {
   const [demoBannerDismissed, setDemoBannerDismissed] = useState(false);
   const [, navigate] = useLocation();
   const { user } = useAuth();
+  const isDraftMode = new URLSearchParams(window.location.search).get("draft") === "true";
   const isDemo = username === "test2" && new URLSearchParams(window.location.search).get("demo") === "true" && !user && !demoBannerDismissed;
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: portfolio, isLoading, error } = useQuery<PortfolioData>({
-    queryKey: ["/api/portfolio", username],
+    queryKey: ["/api/portfolio", username, isDraftMode ? "draft" : "live"],
+    queryFn: async () => {
+      const url = isDraftMode ? `/api/portfolio/${username}?draft=true` : `/api/portfolio/${username}`;
+      const res = await fetch(url, { credentials: "include" });
+      if (!res.ok) throw new Error("Portfolio not found");
+      return res.json();
+    },
   });
 
   useEffect(() => {
@@ -325,21 +332,46 @@ export default function PortfolioPage() {
   const theme = themes[brandingTheme];
   const hasVideo = !!profile.videoUrl;
   const hasPhoto = !!profile.photoUrl;
-  const hasMedia = hasVideo || hasPhoto;
+  // In draft mode always show the media column so placeholders appear
+  const hasMedia = hasVideo || hasPhoto || isDraftMode;
   const initials = profile.displayName?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "DT";
 
   const skills = profile.technicalSkills?.split(/[,\n]/).map(s => s.trim()).filter(Boolean) || [];
-  const suggestedQs = portfolio.suggestedQuestions?.length
-    ? portfolio.suggestedQuestions
-    : profile.portfolioSuggestedQuestions?.length
-      ? profile.portfolioSuggestedQuestions
-      : ["Tell me about yourself", "What's your biggest achievement?", "How do you handle challenges?"];
+
+  // Draft mode: use CV-specific questions, limit to 2
+  const draftChatQuestions: string[] = (portfolio as any).draftChatQuestions || [];
+  const suggestedQs = isDraftMode && draftChatQuestions.length
+    ? draftChatQuestions
+    : portfolio.suggestedQuestions?.length
+      ? portfolio.suggestedQuestions
+      : profile.portfolioSuggestedQuestions?.length
+        ? profile.portfolioSuggestedQuestions
+        : ["Tell me about yourself", "What's your biggest achievement?", "How do you handle challenges?"];
 
   const visibleStats = showAllStats ? (profile.stats || []) : (profile.stats || []).slice(0, 6);
 
   return (
     <div className={`${theme.bg} ${theme.text} ${theme.bodyClass} min-h-screen ${theme.selectionColor} overflow-x-hidden`}>
       <div className={`${theme.gradient} fixed inset-0 pointer-events-none`} />
+
+      {/* Draft banner */}
+      {isDraftMode && (
+        <div className="relative z-50 bg-[#E8A75D] border-b-[3px] border-black px-6 py-3 flex items-center justify-between gap-4 flex-wrap" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <div className="flex items-center gap-3">
+            <div className="bg-black text-[#E8A75D] px-3 py-1 mono text-xs font-bold uppercase tracking-wider shrink-0">DRAFT</div>
+            <p className="mono text-sm font-bold text-black">
+              This is your AI-generated profile preview.
+              <span className="font-normal ml-2 text-black/70">Complete the questionnaire to personalise it and go live.</span>
+            </p>
+          </div>
+          <button
+            onClick={() => navigate("/questionnaire?skipUpload=true")}
+            className="bg-black text-white px-5 py-2 mono text-xs font-bold uppercase tracking-wider hover:bg-black/80 shrink-0 border-[2px] border-black"
+          >
+            Complete your profile →
+          </button>
+        </div>
+      )}
       
       {/* 1. HERO SECTION */}
       <section className="pt-16 pb-12 px-6 max-w-6xl mx-auto relative">
@@ -458,6 +490,23 @@ export default function PortfolioPage() {
                   </div>
                   <div className={`absolute bottom-4 left-4 ${theme.dotColor} text-xs font-black text-white px-3 py-1.5 rounded-full uppercase tracking-wider`}>
                     Open to Work
+                  </div>
+                </div>
+              ) : isDraftMode ? (
+                <div className="space-y-4">
+                  <div className={`${theme.glass} rounded-2xl overflow-hidden aspect-[4/5] flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/20`}>
+                    <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center">
+                      <span className="text-3xl font-bold text-white/30">{initials}</span>
+                    </div>
+                    <p className="text-white/30 text-sm font-medium">Add your photo</p>
+                    <p className="text-white/20 text-xs text-center px-6">Complete your profile to add a headshot</p>
+                  </div>
+                  <div className={`${theme.glass} rounded-2xl overflow-hidden aspect-video flex flex-col items-center justify-center gap-2 border-2 border-dashed border-white/20`}>
+                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                      <ArrowRight className="w-4 h-4 text-white/30" />
+                    </div>
+                    <p className="text-white/30 text-sm font-medium">Add intro video</p>
+                    <p className="text-white/20 text-xs">3× more recruiter responses</p>
                   </div>
                 </div>
               ) : null}
@@ -668,6 +717,27 @@ export default function PortfolioPage() {
       )}
 
       {/* 4. WHERE I'M MOST USEFUL */}
+      {isDraftMode && !profile.whereImMostUseful?.scenarios?.length && (
+        <section className="py-12 px-6 max-w-5xl mx-auto">
+          <div className="relative">
+            <div className="filter blur-sm pointer-events-none select-none opacity-40">
+              <h2 className={`text-3xl font-bold mb-4 ${theme.headingClass}`}>Where I'm Most Useful</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1,2,3,4,5,6].map(i => (
+                  <div key={i} className={`${theme.glass} p-5 rounded-xl h-24`} />
+                ))}
+              </div>
+            </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className="bg-black/80 border border-white/20 px-6 py-4 rounded-xl text-center">
+                <Lock className="w-5 h-5 text-white/50 mx-auto mb-2" />
+                <p className="text-white font-semibold text-sm">Unlocks after completing your profile</p>
+                <button onClick={() => navigate("/questionnaire?skipUpload=true")} className="mt-2 text-xs text-[#22C55E] hover:underline">Complete now →</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
       {(profile.whereImMostUseful?.scenarios?.length || (profile.problemFit && profile.problemFit.length > 0)) && (
         <section className="py-12 px-6 max-w-5xl mx-auto">
           <h2 className={`text-3xl font-bold mb-2 ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{theme.name === 'Tech' && <span className="text-white/30">// </span>}Where I'm Most Useful</h2>
@@ -700,6 +770,27 @@ export default function PortfolioPage() {
       )}
 
       {/* 5. HOW I WORK — Horizontal timeline with arrows */}
+      {isDraftMode && !profile.howIWork && (
+        <section className="py-12 px-6 max-w-6xl mx-auto">
+          <div className="relative">
+            <div className="filter blur-sm pointer-events-none select-none opacity-40">
+              <h2 className={`text-3xl font-bold mb-4 text-center ${theme.headingClass}`}>My Operating Model</h2>
+              <div className="flex flex-col md:flex-row gap-2">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className={`${theme.glass} p-5 rounded-xl flex-1 h-28`} />
+                ))}
+              </div>
+            </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className="bg-black/80 border border-white/20 px-6 py-4 rounded-xl text-center">
+                <Lock className="w-5 h-5 text-white/50 mx-auto mb-2" />
+                <p className="text-white font-semibold text-sm">Unlocks after completing your profile</p>
+                <button onClick={() => navigate("/questionnaire?skipUpload=true")} className="mt-2 text-xs text-[#22C55E] hover:underline">Complete now →</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
       {profile.howIWork && profile.howIWork.steps?.length > 0 && (
         <section className="py-12 px-6 max-w-6xl mx-auto">
           <h2 className={`text-3xl font-bold mb-2 text-center ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{theme.name === 'Tech' && <span className="text-white/30">// </span>}{profile.howIWork.name || "My Operating Model"}</h2>
@@ -801,6 +892,27 @@ export default function PortfolioPage() {
       )}
 
       {/* 7. SKILL MATRIX */}
+      {isDraftMode && !(profile.skillsMatrix && profile.skillsMatrix.length > 0) && (
+        <section className="py-12 px-6 max-w-5xl mx-auto">
+          <div className="relative">
+            <div className="filter blur-sm pointer-events-none select-none opacity-40">
+              <h2 className={`text-3xl font-bold mb-6 ${theme.headingClass}`}>Skill Matrix</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className={`${theme.glass} p-6 rounded-xl h-24`} />
+                ))}
+              </div>
+            </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className="bg-black/80 border border-white/20 px-6 py-4 rounded-xl text-center">
+                <Lock className="w-5 h-5 text-white/50 mx-auto mb-2" />
+                <p className="text-white font-semibold text-sm">Unlocks after completing your profile</p>
+                <button onClick={() => navigate("/questionnaire?skipUpload=true")} className="mt-2 text-xs text-[#22C55E] hover:underline">Complete now →</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
       {(profile.skillsMatrix && profile.skillsMatrix.length > 0) ? (
         <section className="py-12 px-6 max-w-5xl mx-auto">
           <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>

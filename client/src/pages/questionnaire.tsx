@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useUpload } from "@/hooks/use-upload";
 import { Link } from "wouter";
+import { useAuth } from "@/lib/auth";
 
 const STEPS = [
   { id: 1, title: "Basic Information", icon: User, description: "Your name, contact details and location" },
@@ -147,6 +148,7 @@ const defaultData: QuestionnaireData = {
 export default function QuestionnairePage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<QuestionnaireData>(defaultData);
   const [resumeUploading, setResumeUploading] = useState(false);
@@ -287,11 +289,8 @@ export default function QuestionnairePage() {
           if (draft.step9?.objections?.length >= 2) merged.step9.objections = draft.step9.objections;
           return merged;
         });
-        // Store data for preview-draft page
-        if (linkedInDraft) sessionStorage.setItem("linkedInDraft", JSON.stringify(linkedInDraft));
-        // Store full extracted CV text for comparison panel
-        sessionStorage.setItem("cvExtracted", JSON.stringify(extracted));
-        navigate("/preview-draft");
+        // Redirect to draft portfolio — the real portfolio page in draft mode
+        navigate(`/portfolio/${user?.username}?draft=true`);
         return;
       } else {
         // Fallback: basic field pre-fill from extractedData only

@@ -739,7 +739,8 @@ export async function registerRoutes(
           });
         }
 
-        res.json({ extractedData, questionnaireDraft, linkedInDraft });
+        const customer = await storage.getCustomer(req.session.customerId!);
+        res.json({ extractedData, questionnaireDraft, linkedInDraft, username: customer?.username ?? null });
       } catch (error: any) {
         logger.error("[Resume Parse] Error", { error: String(error) });
         res.status(500).json({

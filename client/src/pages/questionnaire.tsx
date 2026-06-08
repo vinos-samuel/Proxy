@@ -273,6 +273,7 @@ export default function QuestionnairePage() {
       const extracted = responseJson.extractedData ?? responseJson;
       const draft = responseJson.questionnaireDraft;
       const linkedInDraft = responseJson.linkedInDraft;
+      const parsedUsername = responseJson.username;
 
       if (draft && draft._aiDraft) {
         // Merge draft into state
@@ -289,8 +290,9 @@ export default function QuestionnairePage() {
           if (draft.step9?.objections?.length >= 2) merged.step9.objections = draft.step9.objections;
           return merged;
         });
-        // Redirect to draft portfolio — the real portfolio page in draft mode
-        navigate(`/portfolio/${user?.username}?draft=true`);
+        // Redirect to draft portfolio — use username from API response, not auth context (may not be populated yet)
+        const targetUsername = parsedUsername || user?.username;
+        navigate(`/portfolio/${targetUsername}?draft=true`);
         return;
       } else {
         // Fallback: basic field pre-fill from extractedData only

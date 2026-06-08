@@ -3,8 +3,10 @@ import bcrypt from "bcryptjs";
 
 export async function seedDatabase() {
   try {
-    // Create admin user if not exists
-    const existingAdmin = await storage.getCustomerByEmail("admin@digitaltwin.studio");
+    // Create admin user if not exists (check both email and username to avoid duplicate key crash)
+    const existingAdmin =
+      (await storage.getCustomerByEmail("admin@digitaltwin.studio")) ||
+      (await storage.getCustomerByUsername("admin"));
     if (!existingAdmin) {
       console.log("Seeding admin user...");
       const adminHash = await bcrypt.hash("admin123", 10);

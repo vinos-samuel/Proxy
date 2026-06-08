@@ -744,6 +744,63 @@ export async function registerRoutes(
     },
   );
 
+  // ==================== DRAFT CHAT ====================
+  // Lightweight chat using draft questionnaire data — no knowledge entries needed
+  app.post("/api/chat/draft", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { message } = req.body;
+      if (!message) return res.status(400).json({ error: "message required" });
+
+      const profile = await storage.getProfileByCustomerId(req.session.customerId!);
+      if (!profile) return res.status(404).json({ error: "No profile found" });
+
+      const draft = (profile.questionnaireData as any) || {};
+      const name = profile.displayName || draft.step1?.fullName || "this professional";
+      const title = profile.roleTitle || draft.step1?.currentTitle || "Senior Professional";
+      const positioning = profile.positioning || draft.step2?.professionalSummary || "";
+      const careerHistory = (draft.step2?.careerHistory || [])
+        .map((r: any) => `${r.title} at ${r.company} (${r.years}): ${(r.achievements || "").slice(0, 300)}`)
+        .join("\n");
+      const stories = (draft.step4?.stories || [])
+        .map((s: any) => `Story: ${s.title}\nChallenge: ${s.challenge}\nResult: ${s.result}`)
+        .join("\n\n");
+      const skills = draft.step6?.technicalSkills || "";
+
+      const systemPrompt = `You are the AI representative of ${name}, a ${title}. Answer questions about their career authentically and concisely, as if you are them. Use first person.
+
+ABOUT THEM:
+${positioning}
+
+CAREER HISTORY:
+${careerHistory}
+
+KEY STORIES:
+${stories}
+
+SKILLS: ${skills}
+
+RULES:
+- Answer in first person as ${name}
+- Be specific — use real details from the career data above
+- Keep answers to 2-3 sentences max
+- If asked something not in the data, say "That's something I'd love to discuss directly"
+- Sound human, not like a chatbot`;
+
+      const safeMessage = (message as string).replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").trim().slice(0, 300);
+      const result = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+          { role: "user", parts: [{ text: systemPrompt + "\n\nQuestion: " + safeMessage }] }
+        ],
+      });
+
+      res.json({ reply: result.text || "I'd be happy to discuss that — let's connect directly." });
+    } catch (err: any) {
+      logger.error("[Draft Chat] Error", { error: String(err) });
+      res.status(500).json({ error: "Failed to generate response" });
+    }
+  });
+
   // ==================== QUESTIONNAIRE ====================
 
   app.post(

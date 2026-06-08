@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
@@ -6,8 +6,9 @@ import ProxyLogo from "@/components/ProxyLogo";
 import ThreePanelModal from "@/components/ThreePanelModal";
 import {
   Lock, ArrowRight, Eye, Camera, Video, CheckCircle,
-  Target, BarChart3, Users, Award, Zap, Globe
+  Target, BarChart3, Users, Award, Zap, Globe, Send, Loader2
 } from "lucide-react";
+import { getCsrfToken } from "@/lib/queryClient";
 
 interface LinkedInDraft { headline: string; about: string; }
 interface CvExtracted {
@@ -27,6 +28,10 @@ export default function PreviewDraftPage() {
   const [showModal, setShowModal] = useState(false);
   const [linkedInDraft, setLinkedInDraft] = useState<LinkedInDraft | null>(null);
   const [cvExtracted, setCvExtracted] = useState<CvExtracted | null>(null);
+  const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "ai"; text: string }>>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const li = sessionStorage.getItem("linkedInDraft");
@@ -70,6 +75,30 @@ export default function PreviewDraftPage() {
   };
 
   const cleanText = (t: string) => (t || "").replace(/\[EDIT\]/g, "...").trim();
+
+  const sendChatMessage = async (q?: string) => {
+    const msg = q || chatInput.trim();
+    if (!msg || chatLoading) return;
+    setChatInput("");
+    setChatMessages(prev => [...prev, { role: "user", text: msg }]);
+    setChatLoading(true);
+    try {
+      const csrf = getCsrfToken();
+      const res = await fetch("/api/chat/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(csrf ? { "x-csrf-token": csrf } : {}) },
+        credentials: "include",
+        body: JSON.stringify({ message: msg }),
+      });
+      const data = await res.json();
+      setChatMessages(prev => [...prev, { role: "ai", text: data.reply || "Let's connect to discuss this further." }]);
+    } catch {
+      setChatMessages(prev => [...prev, { role: "ai", text: "Let's connect to discuss this further." }]);
+    } finally {
+      setChatLoading(false);
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+    }
+  };
 
   // Build linkedin draft fallback from extracted CV if API didn't return one
   const effectiveLinkedIn = linkedInDraft || (cvExtracted ? {
@@ -261,10 +290,10 @@ export default function PreviewDraftPage() {
               <p className="mono text-xs text-black/40">Where I'm Most Useful · How I Work · Skills Matrix · Full Q&A</p>
             </div>
 
-            {/* AI Chat */}
+            {/* AI Chat — live, powered by draft data */}
             <div className="bg-black border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-6">
               <div className="mono text-xs text-[#22C55E] uppercase tracking-widest mb-4">// ask_me_anything</div>
-              <div className="flex items-center gap-3 mb-5">
+              <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-[#22C55E] border-[2px] border-white/20 flex items-center justify-center font-bold text-black">
                   {name[0]?.toUpperCase()}
                 </div>
@@ -273,18 +302,70 @@ export default function PreviewDraftPage() {
                   <div className="mono text-xs text-white/40">Answers questions about my career · 24/7</div>
                 </div>
                 <div className="ml-auto flex items-center gap-1.5">
-                  <div className="w-2 h-2 bg-[#E8A75D] rounded-full"></div>
-                  <span className="mono text-xs text-[#E8A75D]">Training incomplete</span>
+                  <div className="w-2 h-2 bg-[#22C55E] rounded-full animate-pulse"></div>
+                  <span className="mono text-xs text-[#22C55E]">Live draft</span>
                 </div>
               </div>
-              <div className="space-y-2 mb-4">
-                {suggestedQs.map((q, i) => (
-                  <div key={i} className="border border-white/10 px-4 py-2 text-white/50 text-sm mono">{q}</div>
-                ))}
+
+              {/* Chat messages */}
+              {chatMessages.length === 0 ? (
+                <div className="space-y-2 mb-4">
+                  <p className="mono text-xs text-white/40 mb-3">Try asking a question:</p>
+                  {suggestedQs.map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => sendChatMessage(q)}
+                      className="w-full text-left border border-white/10 px-4 py-2 text-white/60 text-sm mono hover:border-[#22C55E] hover:text-white transition-colors"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
+                  {chatMessages.map((m, i) => (
+                    <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[85%] px-4 py-2 text-sm leading-relaxed ${
+                        m.role === "user"
+                          ? "bg-white/10 text-white/80 mono"
+                          : "bg-[#22C55E] text-black font-medium"
+                      }`}>
+                        {m.text}
+                      </div>
+                    </div>
+                  ))}
+                  {chatLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-[#22C55E]/20 px-4 py-2 flex items-center gap-2">
+                        <Loader2 className="h-3 w-3 animate-spin text-[#22C55E]" />
+                        <span className="mono text-xs text-[#22C55E]">Thinking...</span>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+              )}
+
+              {/* Input */}
+              <div className="flex gap-2">
+                <input
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && sendChatMessage()}
+                  placeholder="Ask anything about my career..."
+                  className="flex-1 bg-white/10 border border-white/20 px-4 py-2 text-white text-sm mono placeholder-white/30 focus:outline-none focus:border-[#22C55E]"
+                />
+                <button
+                  onClick={() => sendChatMessage()}
+                  disabled={chatLoading || !chatInput.trim()}
+                  className="bg-[#22C55E] text-black px-4 py-2 border-[2px] border-[#22C55E] hover:bg-[#16A34A] disabled:opacity-40 transition-colors"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
               </div>
-              <div className="bg-[#111] border border-white/10 px-4 py-3 mono text-xs text-white/30 text-center">
-                Complete your profile to train the AI on your full career story →
-              </div>
+              <p className="mono text-[10px] text-white/20 mt-2 text-center">
+                Powered by your CV data · Complete questionnaire for the full version
+              </p>
             </div>
 
           </div>
@@ -360,7 +441,7 @@ export default function PreviewDraftPage() {
           onClose={() => setShowModal(false)}
           cvExtracted={cvExtracted}
           linkedInDraft={effectiveLinkedIn}
-          proxyPreview={{ name, title: heroSubtitle || title, summary: positioning, stats }}
+          proxyPreview={{ name, title: heroSubtitle || title, summary: positioning, stats, careerTimeline }}
           onComplete={handleComplete}
         />
       )}

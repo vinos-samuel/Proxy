@@ -12,7 +12,7 @@ interface CvExtracted {
   skills: string[]; achievements: string[];
 }
 interface LinkedInDraft { headline: string; about: string; }
-interface ProxyPreview { name: string; title: string; summary: string; stats?: Array<{ value: string; label: string; icon: string }> }
+interface ProxyPreview { name: string; title: string; summary: string; stats?: Array<{ value: string; label: string; icon: string }>; careerTimeline?: Array<{ company: string; roles?: Array<{ title: string }> }> }
 
 interface ThreePanelModalProps {
   onClose: () => void;
@@ -44,7 +44,10 @@ export default function ThreePanelModal({ onClose, cvExtracted, linkedInDraft, p
           {/* Panel 1: CV */}
           <div className="p-5 bg-[#FAFAFA] flex flex-col">
             <div className="mono text-xs text-black/30 uppercase tracking-widest mb-1">// what_they_see_now</div>
-            <div className="text-sm font-bold mb-3 text-black/50 uppercase tracking-wide">The CV</div>
+            <div className="text-sm font-bold mb-2 text-black/50 uppercase tracking-wide">The CV</div>
+            <div className="mb-3 px-3 py-2 bg-red-50 border border-red-200 text-[10px] text-red-600 mono">
+              Static. Hard to understand your depth of experience.
+            </div>
             <div className="flex-1 overflow-hidden relative">
               {/* Dense CV document */}
               <div className="font-mono text-[10px] leading-[1.45] text-black/60 space-y-2 select-none">
@@ -86,15 +89,15 @@ export default function ThreePanelModal({ onClose, cvExtracted, linkedInDraft, p
               {/* Fade out at bottom */}
               <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#FAFAFA] to-transparent" />
             </div>
-            <div className="mt-3 px-3 py-2 bg-red-50 border border-red-200 text-[10px] text-red-600 mono text-center">
-              Wall of text · 6-second scan · static · one-way
-            </div>
           </div>
 
           {/* Panel 2: LinkedIn */}
           <div className="p-5 bg-[#F3F6F8] flex flex-col">
             <div className="mono text-xs text-black/30 uppercase tracking-widest mb-1">// linkedin_profile</div>
-            <div className="text-sm font-bold mb-3 text-[#0077B5] uppercase tracking-wide">LinkedIn</div>
+            <div className="text-sm font-bold mb-2 text-[#0077B5] uppercase tracking-wide">LinkedIn</div>
+            <div className="mb-3 px-3 py-2 bg-yellow-50 border border-yellow-200 text-[10px] text-yellow-700 mono">
+              Passive. Same as thousands of other professionals.
+            </div>
             <div className="flex-1">
               {linkedInDraft ? (
                 <LinkedInMockup
@@ -108,63 +111,67 @@ export default function ThreePanelModal({ onClose, cvExtracted, linkedInDraft, p
                 <div className="text-center text-black/30 mono text-xs py-8">LinkedIn preview not generated</div>
               )}
             </div>
-            <div className="mt-3 px-3 py-2 bg-yellow-50 border border-yellow-200 text-[10px] text-yellow-700 mono text-center">
-              Passive · same as thousands · no answers · one-way
-            </div>
           </div>
 
-          {/* Panel 3: Proxy */}
+          {/* Panel 3: Proxy — looks like real portfolio */}
           <div className="p-5 bg-white flex flex-col">
             <div className="mono text-xs text-[#22C55E] uppercase tracking-widest mb-1">// your_proxy</div>
-            <div className="text-sm font-bold mb-3 text-black uppercase tracking-wide">Your Proxy</div>
-            <div className="flex-1 space-y-3">
-              {/* Mini hero */}
-              <div className="bg-black p-4 flex items-start gap-3">
-                <div className="w-10 h-10 bg-[#22C55E] border-[2px] border-white/20 flex items-center justify-center font-bold text-black text-sm shrink-0">
-                  {proxyPreview.name[0]?.toUpperCase()}
-                </div>
-                <div>
-                  <div className="font-bold text-white text-sm">{proxyPreview.name}</div>
-                  <div className="mono text-[10px] text-[#22C55E]">{proxyPreview.title}</div>
-                </div>
-              </div>
-              {proxyPreview.summary && (
-                <p className="text-xs text-black/70 leading-relaxed border-l-2 border-[#22C55E] pl-3">
-                  {proxyPreview.summary.slice(0, 180).replace(/\[EDIT\]/g, "...")}...
-                </p>
-              )}
-              {/* AI chat preview */}
-              <div className="bg-[#F0FDF4] border border-[#22C55E] p-3 space-y-2">
-                <div className="mono text-[9px] text-[#22C55E] uppercase tracking-wider mb-1">// live_ai_chat</div>
-                <div className="bg-white border border-black/10 rounded px-3 py-1.5 text-[10px] text-black/60 mono">
-                  "What's your leadership style?"
-                </div>
-                <div className="bg-[#22C55E] rounded px-3 py-1.5 text-[10px] text-black font-medium">
-                  {proxyPreview.name.split(" ")[0]}'s AI responds instantly — in their voice, 24/7.
-                </div>
-              </div>
-              {proxyPreview.stats && proxyPreview.stats.length > 0 && (
-                <div className="grid grid-cols-2 gap-1.5">
-                  {proxyPreview.stats.slice(0, 4).map((s, i) => {
-                    const Icon = iconMap[s.icon] || Target;
-                    return (
-                      <div key={i} className="bg-[#0a0a0a] border border-white/10 p-2">
-                        <div className="text-sm font-bold text-white">{s.value}</div>
-                        <div className="mono text-[8px] text-white/40 uppercase leading-tight">{s.label}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              <div className="mono text-[9px] text-black/40 space-y-1">
-                <div>✓ Answers recruiter questions</div>
-                <div>✓ Available 24/7</div>
-                <div>✓ Shareable link</div>
-                <div>✓ Indexed by Google & AI tools</div>
-              </div>
+            <div className="text-sm font-bold mb-2 text-black uppercase tracking-wide">Your Proxy</div>
+            <div className="mb-3 px-3 py-2 bg-[#F0FDF4] border border-[#22C55E] text-[10px] text-[#15803D] mono">
+              Interactive. Shows your depth. Makes you stand out.
             </div>
-            <div className="mt-3 px-3 py-2 bg-[#F0FDF4] border border-[#22C55E] text-[10px] text-[#15803D] mono text-center">
-              Interactive · answers questions · works while you sleep
+            <div className="flex-1 space-y-3 overflow-hidden">
+              {/* Hero */}
+              <div className="bg-black p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-[#22C55E] flex items-center justify-center font-bold text-black text-xs shrink-0">
+                    {proxyPreview.name[0]?.toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="font-bold text-white text-xs">{proxyPreview.name}</div>
+                    <div className="mono text-[9px] text-[#22C55E] leading-tight">{proxyPreview.title}</div>
+                  </div>
+                </div>
+                {proxyPreview.summary && (
+                  <p className="text-[9px] text-white/60 leading-relaxed line-clamp-3">
+                    {proxyPreview.summary.replace(/\[EDIT\]/g, "...").split("\n\n")[0]}
+                  </p>
+                )}
+              </div>
+
+              {/* Impact metrics */}
+              {proxyPreview.stats && proxyPreview.stats.length > 0 && (
+                <div className="grid grid-cols-2 gap-1">
+                  {proxyPreview.stats.slice(0, 4).map((s, i) => (
+                    <div key={i} className="bg-black border border-white/10 p-2">
+                      <div className="text-sm font-bold text-white leading-none">{s.value}</div>
+                      <div className="mono text-[7px] text-white/40 uppercase leading-tight mt-0.5">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* AI chat */}
+              <div className="border border-[#22C55E]/30 bg-[#F0FDF4] p-2 space-y-1.5">
+                <div className="mono text-[8px] text-[#22C55E] uppercase tracking-wider">// live ai chat</div>
+                <div className="bg-white border border-black/10 px-2 py-1 text-[9px] text-black/60 mono rounded">
+                  "What's your biggest career achievement?"
+                </div>
+                <div className="bg-[#22C55E] px-2 py-1 text-[9px] text-black font-medium rounded">
+                  AI answers instantly in {proxyPreview.name.split(" ")[0]}'s voice — with real metrics and stories.
+                </div>
+              </div>
+
+              {/* Career preview */}
+              <div className="border-l-[2px] border-[#22C55E] pl-2 space-y-1">
+                <div className="mono text-[8px] text-black/40 uppercase">Career highlights</div>
+                {(proxyPreview.careerTimeline || []).slice(0, 2).map((c: any, i: number) => (
+                  <div key={i} className="text-[9px]">
+                    <span className="font-bold">{c.company}</span>
+                    {c.roles?.[0] && <span className="text-black/50"> · {c.roles[0].title}</span>}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

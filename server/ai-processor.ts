@@ -955,6 +955,51 @@ interface ParsedResume {
   achievements?: string[];
 }
 
+export async function generateLinkedInAbout(parsedResume: ParsedResume): Promise<{ headline: string; about: string }> {
+  const rolesText = (parsedResume.roles || [])
+    .slice(0, 3)
+    .map((r) => `${sanitizeForPrompt(r.title, 100)} at ${sanitizeForPrompt(r.company, 100)} (${sanitizeForPrompt(r.years, 50)})`)
+    .join("; ");
+
+  const prompt = `You are a professional LinkedIn profile writer. Based on this resume data, write a LinkedIn headline and About section.
+
+Name: ${sanitizeForPrompt(parsedResume.name, 100)}
+Current Title: ${sanitizeForPrompt(parsedResume.currentTitle, 100)}
+Summary: ${sanitizeForPrompt(parsedResume.summary, 500)}
+Recent Roles: ${rolesText}
+Key Achievements: ${(parsedResume.achievements || []).slice(0, 3).map((a) => sanitizeForPrompt(a, 200)).join(" | ")}
+
+RULES:
+- Headline: max 60 characters, title-case, uses " | " to separate 2-3 positioning facets. NOT generic ("Experienced Professional"). Be specific.
+- About: exactly 3 sentences, first-person, achievement-focused. Sentence 1: who you are and your domain. Sentence 2: a specific quantified achievement. Sentence 3: what you're focused on or known for.
+- Sound human, not AI-generated. No buzzwords ("passionate", "results-driven", "synergy").
+
+Return ONLY valid JSON:
+{"headline": "string", "about": "string"}`;
+
+  try {
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    });
+    const text = (result.text || "").trim();
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) {
+      const parsed = JSON.parse(match[0]);
+      return {
+        headline: parsed.headline || `${parsedResume.currentTitle || "Professional"}`,
+        about: parsed.about || "",
+      };
+    }
+  } catch (err) {
+    logger.warn("[LinkedIn About] Generation failed", { error: String(err) });
+  }
+  return {
+    headline: parsedResume.currentTitle || "Senior Professional",
+    about: parsedResume.summary || "",
+  };
+}
+
 export async function generateQuestionnaireDraft(parsedResume: ParsedResume) {
   const rolesText = (parsedResume.roles || [])
     .map((r) => `- ${sanitizeForPrompt(r.title, 100)} at ${sanitizeForPrompt(r.company, 100)} (${sanitizeForPrompt(r.years, 50)}): ${sanitizeForPrompt(r.achievements, 500)}`)

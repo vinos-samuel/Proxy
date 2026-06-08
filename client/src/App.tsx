@@ -28,6 +28,7 @@ import BlogPostPage from "@/pages/blog-post";
 import TwinInterviewPage from "@/pages/twin-interview";
 import OnboardingChatPage from "@/pages/onboarding-chat";
 import JobSearchPage from "@/pages/job-search";
+import PreviewDraftPage from "@/pages/preview-draft";
 import { Loader2 } from "lucide-react";
 import { Redirect } from "wouter";
 
@@ -95,6 +96,7 @@ function Router() {
       <Route path="/interview">{() => <ProtectedRoute component={TwinInterviewPage} />}</Route>
       <Route path="/onboarding-chat">{() => <ProtectedRoute component={OnboardingChatPage} />}</Route>
       <Route path="/job-search">{() => <ProtectedRoute component={JobSearchPage} />}</Route>
+      <Route path="/preview-draft">{() => <ProtectedRoute component={PreviewDraftPage} />}</Route>
       <Route path="/payment/success" component={PaymentSuccessPage} />
       <Route path="/payment/cancelled" component={PaymentCancelledPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />

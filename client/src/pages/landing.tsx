@@ -51,10 +51,10 @@ export default function LandingPage() {
                 Every candidate at your level has the same CV.
               </h1>
               <p className="text-2xl lg:text-3xl font-bold text-[#22C55E] mb-6">
-                Proxy is how you stop being one of them.
+                Get more recruiter responses. Get to interview faster.
               </p>
               <p className="text-xl text-black/70 mb-8">
-                They've all led teams. Cut costs. Hit targets. Proxy builds a career profile that answers recruiter questions in your voice — so the right people actually understand what makes you different.
+                Proxy gives recruiters answers before they ask. Share one link — your AI handles the conversation, explains what made your work matter, and gets you to the call already ahead.
               </p>
               <div className="flex gap-4 flex-wrap">
                 <button
@@ -115,19 +115,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 2. Who it's for */}
-      <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
-        <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// who_its_for</div>
-          <h2 className="text-5xl font-bold mb-8">Built for people with more to say.</h2>
-          <div className="space-y-4 max-w-3xl">
-            <p className="text-xl text-black/70">Mid to senior professionals who have built real careers that don't fit neatly on two pages. Managers, directors, and VPs who know their resume undersells them.</p>
-            <p className="text-xl text-black/70">If you've ever been passed over not because you weren't qualified — but because your story didn't land — Proxy is for you.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Problem / Solution */}
+      {/* 2. Problem / Solution */}
       <section className="px-6 py-20 border-t-[3px] border-black bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// the_problem</div>
@@ -175,27 +163,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 4. See it live */}
-      <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// see_it_live</div>
-          <h2 className="text-5xl font-bold mb-4">Don't take our word for it.</h2>
-          <p className="text-xl text-black/60 mb-10 max-w-2xl mx-auto">
-            Priya is a real Proxy user — VP of Talent Acquisition with 15+ years across APAC. Her AI Twin is live and answers real questions.
-          </p>
-          <a
-            href="https://myproxy.work/portfolio/priya"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-[#22C55E] text-black px-10 py-4 font-bold hover:bg-[#16A34A] border-[3px] border-black mono uppercase tracking-wider shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-          >
-            Visit Priya's Profile &rarr;
-          </a>
-          <p className="mono text-xs text-black/40 mt-4">Try asking the AI a question — "How did you build the MSP program?"</p>
-        </div>
-      </section>
-
-      {/* 5. How It Works */}
+      {/* 4. How It Works */}
       <section id="how" className="px-6 py-20 border-t-[3px] border-black bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// how_it_works</div>
@@ -235,63 +203,58 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 6. How to use it — NEW */}
+      {/* 6. Why candidates use Proxy */}
       <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
         <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// how_to_use_it</div>
-          <h2 className="text-5xl font-bold mb-16">Three ways to put it to work.</h2>
+          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// why_candidates_use_proxy</div>
+          <h2 className="text-5xl font-bold mb-16">What you actually get.</h2>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <div className="text-4xl mb-4">✉️</div>
-              <h3 className="text-xl font-bold mb-3">Add it to your email signature</h3>
-              <p className="mono text-sm text-black/70 leading-relaxed">Every email you send becomes a door to your full career story. One click and they're talking to your AI.</p>
-            </div>
-
-            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <div className="text-4xl mb-4">🔗</div>
-              <h3 className="text-xl font-bold mb-3">Put it on your LinkedIn</h3>
-              <p className="mono text-sm text-black/70 leading-relaxed">Add the link to your About section. Let recruiters explore before they reach out — they arrive already informed.</p>
-            </div>
-
-            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <div className="text-4xl mb-4">📎</div>
-              <h3 className="text-xl font-bold mb-3">Share it instead of a CV</h3>
-              <p className="mono text-sm text-black/70 leading-relaxed">When someone asks for your resume, send your Proxy link instead. Give them context, not a document.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. AEO — reframed */}
-      <section className="px-6 py-20 border-t-[3px] border-black bg-black text-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-[#22C55E] mb-4 uppercase tracking-widest">// ai_discovery</div>
-          <h2 className="text-5xl font-bold mb-6">Recruiters search for talent.<br />Their AI does too.</h2>
-          <p className="text-xl text-white/70 mb-12 max-w-3xl">
-            A recruiter searches "Senior HR Director APAC open to work." Their AI sourcing tool does the same scan. A PDF never shows up in those results. A Proxy profile does — indexed, structured, and readable by both humans and AI.
-          </p>
-
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl">
-            {[
-              { label: "Indexed by Google", desc: "Your profile is a live web page — searchable the moment it goes live." },
-              { label: "Readable by AI sourcing tools", desc: "When AI agents scan for candidates, structured profiles get surfaced. PDFs don't." },
-              { label: "Shareable as a link", desc: "Every share adds more indexed surface area. More surface area means more chances to be found." },
-              { label: "Always available", desc: "A recruiter looks at your profile at 11pm on a Sunday. Your AI answers. You don't have to." },
-            ].map((item, i) => (
-              <div key={i} className="border border-white/20 p-5 bg-white/5 flex items-start gap-4">
-                <div className="w-2 h-2 bg-[#22C55E] mt-2 shrink-0"></div>
-                <div>
-                  <div className="font-bold mb-1">{item.label}</div>
-                  <div className="mono text-sm text-white/60 leading-relaxed">{item.desc}</div>
-                </div>
+          <div className="grid lg:grid-cols-2 gap-12">
+            {/* Left — why */}
+            <div>
+              <h3 className="text-xl font-bold mb-6 mono uppercase tracking-wider">Why candidates use it</h3>
+              <div className="space-y-4">
+                {[
+                  { title: "More recruiter responses", desc: "Recruiters get answers before they ask. Less friction = more replies." },
+                  { title: "Get referred more easily", desc: "Give contacts the context to actually vouch for you — not just forward your CV." },
+                  { title: "Start the interview before it begins", desc: "They arrive already knowing your work. The call starts one step ahead." },
+                  { title: "One link instead of five documents", desc: "Resume, LinkedIn, portfolio, references — all in one place, always up to date." },
+                  { title: "Stand out from candidates using only resumes", desc: "At your level, everyone has the same CV. This is how you don't." },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-4">
+                    <div className="w-2 h-2 bg-[#22C55E] mt-2 shrink-0 border border-black"></div>
+                    <div>
+                      <div className="font-bold text-black">{item.title}</div>
+                      <div className="mono text-sm text-black/60 leading-relaxed">{item.desc}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Right — what happens after */}
+            <div>
+              <h3 className="text-xl font-bold mb-6 mono uppercase tracking-wider">What happens after you create one</h3>
+              <div className="space-y-4">
+                {[
+                  { step: "01", text: "Share your link in LinkedIn DMs when reaching out to recruiters" },
+                  { step: "02", text: "Add it to job applications alongside your CV" },
+                  { step: "03", text: "Put it in your email signature — every email becomes a door" },
+                  { step: "04", text: "Recruiters ask your AI questions, get real answers in your voice" },
+                  { step: "05", text: "More qualified conversations. Fewer cold rejections." },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-4 border-[2px] border-black bg-white p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="mono text-2xl font-bold text-[#22C55E] shrink-0">{item.step}</div>
+                    <p className="mono text-sm text-black/70 leading-relaxed pt-1">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 8. Referral edge */}
+      {/* 7. Referral edge */}
       <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
         <div className="max-w-7xl mx-auto">
           <div className="mono text-sm text-black/50 mb-6 uppercase tracking-widest">// the_referral_edge</div>
@@ -324,7 +287,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 9. Pricing */}
+      {/* 8. Pricing */}
       <section id="pricing" className="px-6 py-20 border-t-[3px] border-black bg-[#D1D1CC]">
         <div className="max-w-7xl mx-auto">
           <div className="mono text-xs text-black/50 mb-4 uppercase tracking-widest">// pricing</div>
@@ -447,7 +410,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 10. Final CTA */}
+      {/* 9. Final CTA */}
       <section className="px-6 py-32 bg-white">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight" data-testid="text-final-cta">

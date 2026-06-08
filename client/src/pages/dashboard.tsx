@@ -225,6 +225,27 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {/* Draft ready nudge — show when AI draft exists but profile not yet complete */}
+              {profile?.status === "draft" && (profile?.questionnaireData as any)?._aiDraft && (
+                <div className="md:col-span-2 bg-[#22C55E] border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div>
+                      <div className="mono text-xs text-black/60 uppercase tracking-widest mb-1">// your_draft_is_ready</div>
+                      <h3 className="text-xl font-bold mb-1">Your profile was built from your CV. Now make it yours.</h3>
+                      <p className="mono text-sm text-black/70">
+                        Review the AI draft, add your stories, and claim your profile URL —&nbsp;
+                        <strong>myproxy.work/portfolio/{user?.username}</strong>
+                      </p>
+                    </div>
+                    <Link href="/questionnaire?step=2">
+                      <button className="bg-black text-white px-8 py-4 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none whitespace-nowrap flex items-center gap-2">
+                        Complete your profile <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </Link>
+                  </div>
+                </div>
+              )}
+
               {/* 2. Questionnaire + Deepen Your Twin — side by side */}
               <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                 <div className="flex items-center gap-3 mb-4">

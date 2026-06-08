@@ -250,12 +250,13 @@ export default function QuestionnairePage() {
       }
 
       const responseJson = await response.json();
-      // Server returns { extractedData, questionnaireDraft } — handle both shapes
+      // Server returns { extractedData, questionnaireDraft, linkedInDraft }
       const extracted = responseJson.extractedData ?? responseJson;
       const draft = responseJson.questionnaireDraft;
+      const linkedInDraft = responseJson.linkedInDraft;
 
       if (draft && draft._aiDraft) {
-        // Full AI draft available — merge it into all steps
+        // Full AI draft — merge into state then redirect to preview
         setData(prev => {
           const merged = { ...defaultData };
           for (const key of Object.keys(defaultData) as (keyof QuestionnaireData)[]) {
@@ -269,9 +270,21 @@ export default function QuestionnairePage() {
           if (draft.step9?.objections?.length >= 2) merged.step9.objections = draft.step9.objections;
           return merged;
         });
-        setShowAiDraftBanner(true);
-        setShowPathChoice(true); // Show path choice instead of advancing to step 1
-        toast({ title: "✨ Draft ready", description: `Profile pre-filled from ${file.name}.` });
+        // Store linkedInDraft in sessionStorage so preview-draft page can read it
+        if (linkedInDraft) {
+          sessionStorage.setItem("linkedInDraft", JSON.stringify(linkedInDraft));
+        }
+        // Store cv excerpt for comparison panel
+        if (extracted.summary) {
+          sessionStorage.setItem("cvExcerpt", JSON.stringify({
+            name: extracted.name,
+            title: extracted.currentTitle,
+            summary: extracted.summary,
+            roles: (extracted.roles || []).slice(0, 3),
+          }));
+        }
+        navigate("/preview-draft");
+        return;
       } else {
         // Fallback: basic field pre-fill from extractedData only
         setData(prev => ({

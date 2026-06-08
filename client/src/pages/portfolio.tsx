@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useParams, useLocation } from "wouter";
+import { useParams, useLocation, useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { motion } from "framer-motion";
@@ -173,8 +173,9 @@ export default function PortfolioPage() {
   const [demoBannerDismissed, setDemoBannerDismissed] = useState(false);
   const [, navigate] = useLocation();
   const { user } = useAuth();
-  const isDraftMode = new URLSearchParams(window.location.search).get("draft") === "true";
-  const isDemo = username === "test2" && new URLSearchParams(window.location.search).get("demo") === "true" && !user && !demoBannerDismissed;
+  const search = useSearch();
+  const isDraftMode = new URLSearchParams(search).get("draft") === "true";
+  const isDemo = username === "test2" && new URLSearchParams(search).get("demo") === "true" && !user && !demoBannerDismissed;
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 

@@ -154,6 +154,16 @@ export default function QuestionnairePage() {
   const [showAiDraftBanner, setShowAiDraftBanner] = useState(false);
   const [showPathChoice, setShowPathChoice] = useState(false);
   const [showVoiceReminder, setShowVoiceReminder] = useState(false);
+  const [buildingProfile, setBuildingProfile] = useState(false);
+  const [buildingStep, setBuildingStep] = useState(0);
+
+  // If ?skipUpload=true, jump straight to step 1
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("skipUpload") === "true") {
+      setCurrentStep(1);
+    }
+  }, []);
   const resumeInputRef = useRef<HTMLInputElement>(null);
 
   const headshotInputRef = useRef<HTMLInputElement>(null);
@@ -231,6 +241,14 @@ export default function QuestionnairePage() {
 
     setResumeUploading(true);
     setResumeFileName(file.name);
+    setBuildingProfile(true);
+    setBuildingStep(0);
+    // Animate through steps while waiting
+    const steps = [0, 1, 2, 3];
+    const delays = [0, 8000, 18000, 28000];
+    delays.forEach((delay, i) => {
+      setTimeout(() => setBuildingStep(i), delay);
+    });
 
     try {
       const formData = new FormData();
@@ -250,13 +268,12 @@ export default function QuestionnairePage() {
       }
 
       const responseJson = await response.json();
-      // Server returns { extractedData, questionnaireDraft, linkedInDraft }
       const extracted = responseJson.extractedData ?? responseJson;
       const draft = responseJson.questionnaireDraft;
       const linkedInDraft = responseJson.linkedInDraft;
 
       if (draft && draft._aiDraft) {
-        // Full AI draft — merge into state then redirect to preview
+        // Merge draft into state
         setData(prev => {
           const merged = { ...defaultData };
           for (const key of Object.keys(defaultData) as (keyof QuestionnaireData)[]) {
@@ -270,19 +287,10 @@ export default function QuestionnairePage() {
           if (draft.step9?.objections?.length >= 2) merged.step9.objections = draft.step9.objections;
           return merged;
         });
-        // Store linkedInDraft in sessionStorage so preview-draft page can read it
-        if (linkedInDraft) {
-          sessionStorage.setItem("linkedInDraft", JSON.stringify(linkedInDraft));
-        }
-        // Store cv excerpt for comparison panel
-        if (extracted.summary) {
-          sessionStorage.setItem("cvExcerpt", JSON.stringify({
-            name: extracted.name,
-            title: extracted.currentTitle,
-            summary: extracted.summary,
-            roles: (extracted.roles || []).slice(0, 3),
-          }));
-        }
+        // Store data for preview-draft page
+        if (linkedInDraft) sessionStorage.setItem("linkedInDraft", JSON.stringify(linkedInDraft));
+        // Store full extracted CV text for comparison panel
+        sessionStorage.setItem("cvExtracted", JSON.stringify(extracted));
         navigate("/preview-draft");
         return;
       } else {
@@ -325,9 +333,11 @@ export default function QuestionnairePage() {
       setCurrentStep(1);
     } catch (error: any) {
       console.error("Resume upload error:", error);
+      setBuildingProfile(false);
       toast({ title: "Parse failed", description: error.message || "Could not parse resume. You can fill the form manually.", variant: "destructive" });
     } finally {
       setResumeUploading(false);
+      setBuildingProfile(false);
     }
   };
 
@@ -512,6 +522,53 @@ export default function QuestionnairePage() {
     return (
       <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
         <Loader2 className="h-8 w-8 animate-spin text-black/40" />
+      </div>
+    );
+  }
+
+  const buildingSteps = [
+    { label: "Reading your CV...", sub: "Extracting experience, roles and achievements" },
+    { label: "Drafting your profile...", sub: "AI is writing all 11 sections from your career data" },
+    { label: "Building your career story...", sub: "War stories, Q&A, objection handling — all drafted" },
+    { label: "Almost ready...", sub: "Preparing your Proxy profile preview" },
+  ];
+
+  if (buildingProfile) {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center px-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+        <div className="max-w-lg w-full text-center">
+          <div className="w-20 h-20 bg-[#22C55E] border-[3px] border-white flex items-center justify-center mx-auto mb-8 shadow-[6px_6px_0px_0px_rgba(34,197,94,0.4)]">
+            <Sparkles className="h-10 w-10 text-black animate-pulse" />
+          </div>
+          <h1 className="text-3xl font-bold mb-2">Building your Proxy profile...</h1>
+          <p className="mono text-sm text-white/50 mb-12">This takes about 30–40 seconds. Worth it.</p>
+
+          <div className="space-y-4 text-left mb-12">
+            {buildingSteps.map((s, i) => (
+              <div key={i} className={`flex items-start gap-4 transition-all duration-500 ${i <= buildingStep ? "opacity-100" : "opacity-20"}`}>
+                <div className={`w-6 h-6 border-[2px] flex items-center justify-center shrink-0 mt-0.5 transition-all ${i < buildingStep ? "bg-[#22C55E] border-[#22C55E]" : i === buildingStep ? "border-[#22C55E] animate-pulse" : "border-white/30"}`}>
+                  {i < buildingStep ? (
+                    <CheckCircle className="h-4 w-4 text-black" />
+                  ) : i === buildingStep ? (
+                    <Loader2 className="h-3 w-3 text-[#22C55E] animate-spin" />
+                  ) : null}
+                </div>
+                <div>
+                  <div className={`font-bold ${i === buildingStep ? "text-[#22C55E]" : i < buildingStep ? "text-white/60" : "text-white/20"}`}>{s.label}</div>
+                  {i === buildingStep && <div className="mono text-xs text-white/40 mt-0.5">{s.sub}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[#22C55E] ease-linear rounded-full" style={{ transition: "width 8000ms linear" }}
+              style={{ width: `${Math.min(((buildingStep + 1) / buildingSteps.length) * 95, 95)}%` }}
+            />
+          </div>
+          <p className="mono text-xs text-white/30 mt-4 uppercase tracking-widest">// ai_is_working</p>
+        </div>
       </div>
     );
   }

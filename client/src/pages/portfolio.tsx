@@ -179,11 +179,16 @@ export default function PortfolioPage() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: portfolio, isLoading, error } = useQuery<PortfolioData>({
-    queryKey: ["/api/portfolio", username, isDraftMode ? "draft" : "live"],
+    queryKey: ["/api/portfolio", username, isDraftMode],
     queryFn: async () => {
-      const url = isDraftMode ? `/api/portfolio/${username}?draft=true` : `/api/portfolio/${username}`;
+      const url = isDraftMode
+        ? `/api/portfolio/${username}?draft=true`
+        : `/api/portfolio/${username}`;
       const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) throw new Error("Portfolio not found");
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || "Portfolio not found");
+      }
       return res.json();
     },
   });

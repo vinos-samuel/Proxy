@@ -263,9 +263,11 @@ export default function PortfolioPage() {
     }
 
     try {
-      const res = await fetch(`/api/chat/${username}`, {
+      const chatUrl = isDraftMode ? `/api/chat/draft` : `/api/chat/${username}`;
+      const res = await fetch(chatUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ message: msgText }),
       });
 
@@ -379,6 +381,59 @@ export default function PortfolioPage() {
         </div>
       )}
       
+      {/* 3-panel comparison CTA — draft mode only */}
+      {isDraftMode && (
+        <div className="relative z-40 bg-[#0f1117] border-b border-white/10 px-6 py-8">
+          <div className="max-w-5xl mx-auto">
+            <p className="text-center mono text-xs text-white/40 uppercase tracking-widest mb-6">Your profile, upgraded</p>
+            <div className="grid grid-cols-3 gap-4">
+              {/* CV */}
+              <div className="rounded-lg border border-white/10 bg-white/5 p-5 opacity-60">
+                <div className="mono text-xs text-white/40 uppercase tracking-wider mb-3">📄 Your CV</div>
+                <div className="space-y-1.5">
+                  {["Name + job titles", "Bullet point duties", "Date ranges", "Static document"].map(t => (
+                    <div key={t} className="text-xs text-white/50 flex items-center gap-2">
+                      <span className="text-red-400/70">✗</span> {t}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* LinkedIn */}
+              <div className="rounded-lg border border-white/10 bg-white/5 p-5 opacity-70">
+                <div className="mono text-xs text-white/40 uppercase tracking-wider mb-3">💼 LinkedIn</div>
+                <div className="space-y-1.5">
+                  {["Summary paragraph", "Role descriptions", "Skills list", "No AI interaction"].map(t => (
+                    <div key={t} className="text-xs text-white/50 flex items-center gap-2">
+                      <span className="text-yellow-400/70">~</span> {t}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Proxy */}
+              <div className="rounded-lg border-2 border-[#E8A75D] bg-[#E8A75D]/5 p-5 relative">
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#E8A75D] text-black mono text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">You, completed</div>
+                <div className="mono text-xs text-[#E8A75D] uppercase tracking-wider mb-3">⚡ Proxy</div>
+                <div className="space-y-1.5">
+                  {["AI-powered positioning", "Impact metrics & stories", "Answers recruiter questions", "Works while you sleep"].map(t => (
+                    <div key={t} className="text-xs text-white/80 flex items-center gap-2">
+                      <span className="text-[#E8A75D]">✓</span> {t}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="text-center mt-6">
+              <button
+                onClick={() => navigate("/questionnaire?skipUpload=true")}
+                className="bg-[#E8A75D] text-black px-8 py-3 mono text-sm font-bold uppercase tracking-wider hover:bg-[#d4944a] transition-colors"
+              >
+                Complete your profile to go live →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 1. HERO SECTION */}
       <section className="pt-16 pb-12 px-6 max-w-6xl mx-auto relative">
         {hasMedia ? (

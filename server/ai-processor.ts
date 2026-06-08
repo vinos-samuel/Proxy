@@ -955,6 +955,94 @@ interface ParsedResume {
   achievements?: string[];
 }
 
+export async function generatePortfolioPreview(parsedResume: ParsedResume): Promise<{
+  positioning: string;
+  heroSubtitle: string;
+  stats: Array<{ value: string; label: string; icon: string }>;
+  careerTimeline: Array<{ company: string; roles: Array<{ title: string; years: string; achievements: string[] }> }>;
+}> {
+  const rolesText = (parsedResume.roles || [])
+    .map((r) => `${sanitizeForPrompt(r.title, 100)} at ${sanitizeForPrompt(r.company, 100)} (${sanitizeForPrompt(r.years, 50)}): ${sanitizeForPrompt(r.achievements, 400)}`)
+    .join("\n");
+
+  const prompt = `You are an expert career strategist. Transform this resume data into a positioned portfolio preview.
+
+Name: ${sanitizeForPrompt(parsedResume.name, 100)}
+Title: ${sanitizeForPrompt(parsedResume.currentTitle, 100)}
+Summary: ${sanitizeForPrompt(parsedResume.summary, 500)}
+Roles:
+${rolesText}
+Key Achievements: ${(parsedResume.achievements || []).map((a) => sanitizeForPrompt(a, 200)).join(" | ")}
+
+Generate:
+
+1. "positioning": Write EXACTLY 2 paragraphs (not bullet points). First paragraph: a bold value proposition statement — NOT "I am a..." but a positioning statement like "I architect...". Second paragraph: a specific proof story with concrete metrics.
+
+2. "heroSubtitle": Reframe their title into 3 positioning facets separated by " • ". Not "Director of Sales" but "Revenue Architecture • Market Expansion • Client Partnership". Max 80 chars total.
+
+3. "stats": Extract EXACTLY 4 most impressive quantifiable achievements. Each must have:
+   - "value": The number with context (e.g., "98%", "$60M+", "3x", "15+")
+   - "label": What it represents IN ALL CAPS (e.g., "COST SAVINGS DELIVERED", "MARKETS ACROSS APAC")
+   - "icon": one of: "target", "chart", "users", "ribbon", "lightning", "globe"
+
+RULES:
+- NO generic language ("passionate", "results-driven")
+- Every statement must be specific and evidence-backed
+- Use first person ("I")
+- Return ONLY valid JSON, no markdown:
+
+{"positioning": "string", "heroSubtitle": "string", "stats": [{"value": "string", "label": "string", "icon": "string"}]}`;
+
+  try {
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    });
+    const text = (result.text || "").trim();
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) {
+      const parsed = JSON.parse(match[0]);
+      // Build clean career timeline from raw CV roles
+      const groupedCareer: any[] = [];
+      const companyMap = new Map<string, any>();
+      for (const role of (parsedResume.roles || [])) {
+        const key = (role.company || "").trim();
+        if (!companyMap.has(key)) {
+          companyMap.set(key, { company: key, roles: [] });
+          groupedCareer.push(companyMap.get(key));
+        }
+        const achievements = (role.achievements || "")
+          .split("\n").filter((a: string) => a.trim().length > 0).map((a: string) => a.replace(/^[\s•\-\*]+/, "").trim()).filter(Boolean);
+        companyMap.get(key).roles.push({ title: role.title, years: role.years, achievements });
+      }
+      return {
+        positioning: parsed.positioning || parsedResume.summary || "",
+        heroSubtitle: parsed.heroSubtitle || parsedResume.currentTitle || "",
+        stats: Array.isArray(parsed.stats) ? parsed.stats.slice(0, 6) : [],
+        careerTimeline: groupedCareer,
+      };
+    }
+  } catch (err) {
+    logger.warn("[Portfolio Preview] Generation failed", { error: String(err) });
+  }
+
+  // Fallback — use raw data
+  const groupedCareer: any[] = [];
+  const companyMap = new Map<string, any>();
+  for (const role of (parsedResume.roles || [])) {
+    const key = (role.company || "").trim();
+    if (!companyMap.has(key)) { companyMap.set(key, { company: key, roles: [] }); groupedCareer.push(companyMap.get(key)); }
+    const achievements = (role.achievements || "").split("\n").filter((a: string) => a.trim()).map((a: string) => a.replace(/^[\s•\-\*]+/, "").trim()).filter(Boolean);
+    companyMap.get(key).roles.push({ title: role.title, years: role.years, achievements });
+  }
+  return {
+    positioning: parsedResume.summary || "",
+    heroSubtitle: parsedResume.currentTitle || "",
+    stats: [],
+    careerTimeline: groupedCareer,
+  };
+}
+
 export async function generateLinkedInAbout(parsedResume: ParsedResume): Promise<{ headline: string; about: string }> {
   const rolesText = (parsedResume.roles || [])
     .slice(0, 3)

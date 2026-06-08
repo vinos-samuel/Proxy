@@ -6,3 +6,5 @@ vite.config.ts.*
 *.tar.gz.env
 .claude/worktrees/
 server/job-search-agent 2.ts
+.env
+council-reports/

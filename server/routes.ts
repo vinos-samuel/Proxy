@@ -7,7 +7,7 @@ import { registerSchema, loginSchema } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import session from "express-session";
-import { processQuestionnaire, parseResumeWithGemini, generateQuestionnaireDraft, generateLinkedInAbout } from "./ai-processor";
+import { processQuestionnaire, parseResumeWithGemini, generateQuestionnaireDraft, generateLinkedInAbout, generatePortfolioPreview } from "./ai-processor";
 import multer from "multer";
 import { GoogleGenAI } from "@google/genai";
 import pgSession from "connect-pg-simple";
@@ -698,13 +698,14 @@ export async function registerRoutes(
           rolesCount: extractedData.roles?.length || 0,
         });
 
-        // Run questionnaire draft + LinkedIn about in parallel for speed
+        // Run all three in parallel for speed
         let questionnaireDraft: any = null;
         let linkedInDraft: { headline: string; about: string } | null = null;
         try {
-          const [draft, linkedin] = await Promise.all([
+          const [draft, linkedin, portfolioPreview] = await Promise.all([
             generateQuestionnaireDraft(extractedData),
             generateLinkedInAbout(extractedData),
+            generatePortfolioPreview(extractedData),
           ]);
 
           questionnaireDraft = draft;
@@ -712,16 +713,23 @@ export async function registerRoutes(
           questionnaireDraft._aiDraftGeneratedAt = new Date().toISOString();
           linkedInDraft = linkedin;
 
+          // Save questionnaire draft + portfolio preview data to profile
           await storage.upsertProfile({
             customerId: req.session.customerId!,
             questionnaireData: questionnaireDraft,
+            displayName: extractedData.name || null,
+            roleTitle: extractedData.currentTitle || null,
+            positioning: portfolioPreview.positioning || null,
+            heroSubtitle: portfolioPreview.heroSubtitle || null,
+            stats: portfolioPreview.stats?.length ? portfolioPreview.stats : null,
+            careerTimeline: portfolioPreview.careerTimeline?.length ? portfolioPreview.careerTimeline : null,
           });
 
-          logger.info("[Resume Parse] Draft + LinkedIn about saved", {
+          logger.info("[Resume Parse] Draft + preview data saved", {
             customerId: req.session.customerId,
           });
         } catch (draftErr) {
-          logger.warn("[Resume Parse] Draft generation failed, continuing without full draft", {
+          logger.warn("[Resume Parse] Draft generation failed", {
             error: String(draftErr),
           });
         }

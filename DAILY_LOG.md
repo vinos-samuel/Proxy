@@ -302,3 +302,149 @@
 
 **Blockers**
 - None
+
+---
+
+## 2026-05-22
+
+**Tasks Completed**
+- Replaced blurry gray OG image with high-contrast dark design (dark bg, green accents, bold PROXY. branding)
+- Generated new image at 1200x630 using puppeteer from HTML/CSS template
+- Added `?v=2` to og:image URLs in index.html to bust LinkedIn cache
+- Renamed to `og-image-v2.png` to force Twitter CDN cache refresh
+- Confirmed new image live on both LinkedIn Post Inspector and X tweet composer
+
+**Files Modified**
+- `client/public/og-image.png` — replaced with new dark design
+- `client/public/og-image-v2.png` — new filename to bust Twitter cache
+- `client/index.html` — updated og:image and twitter:image to og-image-v2.png
+
+**Blockers**
+- None
+
+---
+
+## 2026-06-03
+
+**Tasks Completed**
+- Fixed admin revenue showing $0 — `getAdminStats()` now returns `paidCustomers` count; UI shows "X paid users — grant access (no Stripe)" when Stripe revenue is $0
+- Fixed broadcast audience cards — each segment now shows live verified-recipient count badge before selection
+- Added clarifying note: "Numbers above show verified accounts only — unverified signups are excluded"
+- Fixed root cause of unknown broadcast email — admin accounts (`isAdmin=true`) were included in broadcast targets; now excluded server-side and client-side
+
+**Files Modified**
+- `server/storage.ts` — add `paidCustomers` count to `getAdminStats()`
+- `server/routes.ts` — exclude `isAdmin` users from broadcast targets
+- `client/src/pages/admin.tsx` — updated `AdminData` type, revenue card UI, per-segment counts, `isAdmin` exclusion in `recipientCount` and `countFor`
+
+**Blockers**
+- DB migrations still pending in Replit Production SQL: `profile_ready_at`, `feedback_email_sent_at` columns on `twin_profiles`
+
+---
+
+## 2026-06-03 (session 2)
+
+**Tasks Completed**
+- Fixed root cause of broadcast undercount: replaced N+1 sequential DB loop in `getCustomersWithProfiles()` with a single LEFT JOIN query — was causing profile lookups to fail silently under load, making draft users appear as "no profile"
+- Added broadcast logging (`[Admin] Broadcast customers loaded` + `[Admin] Broadcast targets`) to confirm fix in Replit logs
+- Confirmed all 16 target users (9 draft, 7 null) are verified and have correct DB links — data is clean, bug was purely in query strategy
+
+**Files Modified**
+- `server/storage.ts` — rewrote `getCustomersWithProfiles()` to use single JOIN instead of N+1 loop
+- `server/routes.ts` — added target count + email logging to broadcast endpoint
+
+**Blockers**
+- DB migrations still pending in Replit Production SQL: `profile_ready_at`, `feedback_email_sent_at` on `twin_profiles`
+- Deploy pending: all changes from both sessions today need push + Replit pull + build + redeploy
+
+---
+
+## 2026-06-03
+
+**Tasks Completed**
+- Fixed system prompt: classification labels now internal-only (no more "Type 2" leak in responses)
+- Tightened ending rules: 4 exact permitted closing forms, explicit gate before forming offers
+- Added code-level backstop: `stripRecruiterQuestion()` strips recruiter-facing questions from chat responses before they reach users
+- Added grounding verifier: fire-and-forget second AI call logs hallucinations to Replit logs (verify-and-log mode)
+- Added admin: Email individual user (modal with subject/body, sends via Resend)
+- Added admin: Export CSV button (downloads all customers with key fields)
+- Drafted personalised outreach emails for Segment 1/2/3 users; reviewed Malik and Sudipta profiles for email copy
+
+**Files Modified**
+- `server/system-prompt-builder.ts` — prompt fixes: classification internal, ending rules, hallucination check
+- `server/routes.ts` — grounding verifier, recruiter-question backstop, admin email + CSV routes
+- `client/src/pages/admin.tsx` — email modal, CSV export button
+
+**Blockers**
+- Recruiter-question stripping needs live testing after redeploy
+- Sudipta email draft pending (visit public portfolio to pick reference)
+
+---
+
+## 2026-06-05
+
+**Tasks Completed**
+- Deployed broadcast JOIN query fix + admin exclusion from previous session
+- Fixed all broadcast/individual/nudge emails: now send from `Vinos at Proxy <vinos@myproxy.work>` with `reply_to: vinos@myproxy.work`
+- Fixed individual admin email: now uses branded Proxy template (was plain div)
+- Fixed broadcast rate limiting: switched to Resend batch API
+- Fixed broadcast template: removed duplicate `HI NAME,` header, `[name]` now resolves to first name
+- Sent apology broadcast to all verified users
+- Full landing page restructure planned (new structure, copy, visuals) — ready to build next session
+
+**Files Modified**
+- `server/routes.ts` — from address, reply-to, batch API, individual email template, nudge-test
+- `server/nudge-cron.ts` — from address, reply-to on nudge emails
+- `server/emails.ts` — removed duplicate greeting, added [name] substitution
+
+**Blockers**
+- Landing page restructure not yet built — start next session
+
+---
+
+## 2026-06-05 (Session 2)
+
+**Tasks Completed**
+- Voice mirroring: `writingSample` from step 7 now injected into chatbot system prompt
+- Soft reminder added before questionnaire submit if writing sample is empty
+- Tips email template built (3 tips: voice, privacy, how to use link)
+- Tips email automated trigger: 3 days after profile ready, via nudge cron
+- `tips_email_sent_at` column added to schema
+- Landing page link in chatbot mockup fixed: correct URL + clickable
+- All changes staged and ready to push together
+
+**Files Modified**
+- `server/system-prompt-builder.ts` — writingSample injected as voice mirroring instruction
+- `server/routes.ts` — writingSample passed to buildSystemPrompt
+- `server/emails.ts` — tipsEmailTemplate added
+- `server/nudge-cron.ts` — tips email trigger added
+- `server/storage.ts` — getProfilesDueForTipsEmail + markTipsEmailSent
+- `shared/schema.ts` — tips_email_sent_at column
+- `client/src/pages/questionnaire.tsx` — voice sample reminder before submit
+- `client/src/pages/landing.tsx` — chatbot mockup link fixed
+
+**Blockers**
+- DB migration pending: `ALTER TABLE twin_profiles ADD COLUMN IF NOT EXISTS tips_email_sent_at TIMESTAMPTZ;`
+
+---
+
+## 2026-06-05
+
+**Tasks Completed**
+- Full landing page restructure per LANDING_PAGE_PLAN.md — new section order, hero rewrite, demo video (Priya MP4), pricing comparison line, How It Works copy update
+- Hero headline iterations: settled on "Every candidate at your level has the same CV. Proxy is how you stop being one of them."
+- Added gimmicky-killer line, fixed faint trust/privacy callouts, improved See a Live Example button
+- LLM Council (5 advisors + peer review + chairman) on myproxy.work conversion — report saved to council-reports/
+- Dashboard restructure: reordered sections, removed jargon labels, moved analytics up, questionnaire + Deepen side by side, positive upgrade framing
+
+**Files Modified**
+- `client/src/pages/landing.tsx` — full hero + section restructure
+- `client/public/priya-demo.mp4` — demo video added
+- `client/src/pages/dashboard.tsx` — section reorder, jargon removed
+- `council-reports/council-report-20260605-170152.html` — LLM Council report
+- `LANDING_PAGE_PLAN.md` — used as build spec
+
+**Blockers**
+- Playwright E2E test setup — carry to next session (test user needed)
+- Social proof outreach to existing 30 users — not yet done
+- PostHog A/B testing for headline — parked until conversion tracking set up

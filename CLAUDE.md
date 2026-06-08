@@ -7,32 +7,44 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-05-19
-**Status:** LIVE. All changes deployed and confirmed working on myproxy.work.
+## Current Sprint — 2026-06-05 (Session 3)
+**Status:** All changes built locally. Push + redeploy on Replit required to go live.
+
 **Last session completed:**
-- GA4 installed (Measurement ID: G-750EWDCJL2) — gtag.js added to client/index.html
-- `sign_up` event fires on successful registration (client/src/lib/auth.tsx)
-- `purchase` event fires on payment success with value + tier (client/src/pages/payment-success.tsx)
-- Helmet CSP updated to allow googletagmanager.com + google-analytics.com (server/index.ts) — was blocking GA4 silently
-- GA4 Realtime confirmed working — live user visible in Singapore
-- `purchase` starred as key event in GA4; `sign_up` pending first real signup
-- 6 pitch deck content ideas mapped to post formats — parked for next 2 weeks
-**Still needs action:**
-- Star `sign_up` as key event in GA4 once next real signup fires
-- Content ideas to draft and schedule (next 2 weeks):
-  1. The 6-second stat — Monday plain text post
-  2. Two failure modes — Tuesday carousel
-  3. "Your resume isn't the problem. Your resume writer is." — Thursday teaser
-  4. The 7/7 hallucination finding — carousel (trust/differentiation)
-  5. 3 forces converging in 2026 — LinkedIn article / long-form
-  6. "Not a resume builder. A career platform." — positioning post
-  7. The moat/compounding loop — short thread (X/LinkedIn)
-  8. Is Proxy for you? — 3 signals carousel (Instagram)
+- Landing page restructured per LANDING_PAGE_PLAN.md — new section order, hero, visuals
+- Hero headline: "Every candidate at your level has the same CV. Proxy is how you stop being one of them."
+- Hero right panel: replaced static chatbot mockup with Priya demo MP4 (autoplay loop, black bg)
+- Trust callouts made prominent: gimmicky-killer line + green privacy box
+- Pricing section: added "$500–$800 resume writers vs $49" comparison line
+- How It Works Step 01: rewritten to explain AI pre-fill + "30 minutes" framing
+- LLM Council run on myproxy.work — 5 advisors + peer review + chairman synthesis
+- Council key findings: belief problem (demo must convince), social proof gap, reactivation > new traffic
+- Dashboard restructured: jargon removed, sections reordered, analytics moved up, questionnaire + Deepen side by side, positive upgrade framing, portfolio URL inline in profile card
+
+**Where we stopped:**
+- All changes committed locally, not yet deployed to Replit
+- Playwright E2E test setup discussed but not built
+
+**What's next:**
+- Deploy: push to GitHub → pull on Replit → build → redeploy
+- Social proof: email existing 30 users asking for a real outcome story (recruiter response, interview) — put in hero
+- Playwright E2E tests: install Playwright, write test against live URL, need test user (admin grant-access)
+- PostHog A/B test (headline A vs B): parked until conversion tracking is set up
+- Reactivation email: 48hr nudge to free-profile-no-pay users — council identified as highest-leverage pool
+
+**Architecture decisions made:**
+- Demo: use real Priya MP4 (autoplay loop) in hero instead of static mockup or video modal
+- Dashboard: questionnaire + Deepen Your Twin above analytics (user improves Twin first, then checks performance)
+- Upgrade trigger: analytics "X questions asked but locked" is the strongest free→Pro conversion moment — keep it prominent
+- B2B strategy (outplacement firms, recruiter-side monetisation): confirmed in long-term roadmap, not now
+- A/B testing: only worth building after PostHog conversion events are wired up
+
 **Don't touch:** server/ai-processor.ts, Stripe webhook flow, server/job-search-agent.ts
 **Pending decisions:**
 - Test $19/mo pricing alongside $49 (Anthony's suggestion — not actioned yet)
-- PostHog session tracking for drop-off analysis (Anthony's suggestion — not actioned yet)
+- PostHog session tracking for drop-off analysis — needed before A/B test
 - Suggested question chips on portfolio pages (removes recruiter cold-start friction — ~3 days)
+- Free tier limits — visitor question cap discussed, not implemented yet
 
 ## What This Is
 Digital Twin / AI-powered career profile builder. Users upload a resume, fill an 11-step questionnaire, and get a public AI portfolio page with a chatbot that represents them.

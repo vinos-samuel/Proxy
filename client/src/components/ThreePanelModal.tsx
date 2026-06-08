@@ -1,5 +1,10 @@
-import { X } from "lucide-react";
+import { X, Target, BarChart3, Users, Award, Zap, Globe } from "lucide-react";
 import LinkedInMockup from "./LinkedInMockup";
+
+const iconMap: Record<string, any> = {
+  target: Target, chart: BarChart3, users: Users,
+  ribbon: Award, lightning: Zap, globe: Globe,
+};
 
 interface CvExtracted {
   name: string; currentTitle: string; summary: string;
@@ -7,7 +12,7 @@ interface CvExtracted {
   skills: string[]; achievements: string[];
 }
 interface LinkedInDraft { headline: string; about: string; }
-interface ProxyPreview { name: string; title: string; summary: string; }
+interface ProxyPreview { name: string; title: string; summary: string; stats?: Array<{ value: string; label: string; icon: string }> }
 
 interface ThreePanelModalProps {
   onClose: () => void;
@@ -138,6 +143,19 @@ export default function ThreePanelModal({ onClose, cvExtracted, linkedInDraft, p
                   {proxyPreview.name.split(" ")[0]}'s AI responds instantly — in their voice, 24/7.
                 </div>
               </div>
+              {proxyPreview.stats && proxyPreview.stats.length > 0 && (
+                <div className="grid grid-cols-2 gap-1.5">
+                  {proxyPreview.stats.slice(0, 4).map((s, i) => {
+                    const Icon = iconMap[s.icon] || Target;
+                    return (
+                      <div key={i} className="bg-[#0a0a0a] border border-white/10 p-2">
+                        <div className="text-sm font-bold text-white">{s.value}</div>
+                        <div className="mono text-[8px] text-white/40 uppercase leading-tight">{s.label}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               <div className="mono text-[9px] text-black/40 space-y-1">
                 <div>✓ Answers recruiter questions</div>
                 <div>✓ Available 24/7</div>

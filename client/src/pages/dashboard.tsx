@@ -23,10 +23,11 @@ export default function DashboardPage() {
 
   const DELETE_REASONS = [
     "I found a job",
-    "The profile didn't represent me well",
-    "Too complicated to set up",
+    "The profile doesn't sound like me",
+    "I don't see the value",
+    "Too much information to fill",
+    "Duplicate account",
     "Just exploring — not ready to use it",
-    "Other",
   ];
 
   const handleDeleteAccount = async () => {

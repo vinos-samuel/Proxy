@@ -448,3 +448,29 @@
 - Playwright E2E test setup — carry to next session (test user needed)
 - Social proof outreach to existing 30 users — not yet done
 - PostHog A/B testing for headline — parked until conversion tracking set up
+
+---
+
+## 2026-06-08
+
+**Tasks Completed**
+- Landing page: hero rewritten (outcome-led), 4 sections removed, new "Why candidates use Proxy" section added
+- Onboarding: animated full-screen "Building your profile..." loading screen during CV parse
+- `generatePortfolioPreview()`: new parallel Gemini call — generates positioning, heroSubtitle, 4 impact metrics, career timeline, 2 CV-specific draft chat questions
+- Draft portfolio: `/portfolio/username?draft=true` — real portfolio page in draft mode with banner, photo/video placeholders, 3 locked sections (blur overlay), 2 live chat questions
+- Dashboard delete reasons updated (removed "Other", added 4 specific reasons)
+- `.gitignore`: added `.env` and `council-reports/`
+
+**Files Modified**
+- `server/ai-processor.ts` — generatePortfolioPreview(), generateLinkedInAbout(), draftChatQuestions
+- `server/routes.ts` — parallel parse, draft portfolio auth, /api/chat/draft endpoint
+- `client/src/pages/portfolio.tsx` — draft mode: banner, placeholders, locked sections, draft query
+- `client/src/pages/questionnaire.tsx` — animated loading, skipUpload param, redirect to draft portfolio
+- `client/src/pages/landing.tsx` — hero rewrite, section cuts, new outcome section
+- `client/src/pages/dashboard.tsx` — draft nudge card, delete reasons
+- `client/src/components/ThreePanelModal.tsx` — labels at top, proper Proxy panel
+- `client/src/components/LinkedInMockup.tsx` — full LinkedIn UI mockup
+
+**Blockers**
+- `/portfolio/username?draft=true` showing "Portfolio Not Found" — API query URL bug not yet resolved (carry to next session)
+- All changes on `feature/onboarding-preview` branch — not yet merged to main

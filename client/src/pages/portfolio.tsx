@@ -373,7 +373,7 @@ export default function PortfolioPage() {
             </p>
           </div>
           <button
-            onClick={() => navigate("/questionnaire?skipUpload=true")}
+            onClick={() => navigate("/onboarding-chat")}
             className="bg-black text-white px-5 py-2 mono text-xs font-bold uppercase tracking-wider hover:bg-black/80 shrink-0 border-[2px] border-black"
           >
             Complete your profile →
@@ -427,7 +427,7 @@ export default function PortfolioPage() {
             </div>
             <div className="text-center mt-6">
               <button
-                onClick={() => navigate("/questionnaire?skipUpload=true")}
+                onClick={() => navigate("/onboarding-chat")}
                 className="bg-[#E8A75D] text-black px-8 py-3 mono text-sm font-bold uppercase tracking-wider hover:bg-[#d4944a] transition-colors"
               >
                 Complete your profile to go live →
@@ -651,7 +651,7 @@ export default function PortfolioPage() {
                 </div>
               )}
               <button
-                onClick={() => navigate("/questionnaire?skipUpload=true")}
+                onClick={() => navigate("/onboarding-chat")}
                 className="bg-[#E8A75D] text-black px-8 py-3 mono text-sm font-bold uppercase tracking-wider hover:bg-[#d4944a] transition-colors"
               >
                 Complete to unlock your Twin →
@@ -823,7 +823,7 @@ export default function PortfolioPage() {
           {isDraftMode && (
             <p className="text-center mt-6 mono text-xs text-white/40 italic">
               Based on your CV only. Complete the questionnaire to show your full impact.{" "}
-              <button onClick={() => navigate("/questionnaire?skipUpload=true")} className="text-[#E8A75D] hover:underline">Complete now →</button>
+              <button onClick={() => navigate("/onboarding-chat")} className="text-[#E8A75D] hover:underline">Complete now →</button>
             </p>
           )}
         </section>
@@ -845,7 +845,7 @@ export default function PortfolioPage() {
               <div className="bg-black/80 border border-white/20 px-6 py-4 rounded-xl text-center">
                 <Lock className="w-5 h-5 text-white/50 mx-auto mb-2" />
                 <p className="text-white font-semibold text-sm">Unlocks after completing your profile</p>
-                <button onClick={() => navigate("/questionnaire?skipUpload=true")} className="mt-2 text-xs text-[#22C55E] hover:underline">Complete now →</button>
+                <button onClick={() => navigate("/onboarding-chat")} className="mt-2 text-xs text-[#22C55E] hover:underline">Complete now →</button>
               </div>
             </div>
           </div>
@@ -898,7 +898,7 @@ export default function PortfolioPage() {
               <div className="bg-black/80 border border-white/20 px-6 py-4 rounded-xl text-center">
                 <Lock className="w-5 h-5 text-white/50 mx-auto mb-2" />
                 <p className="text-white font-semibold text-sm">Unlocks after completing your profile</p>
-                <button onClick={() => navigate("/questionnaire?skipUpload=true")} className="mt-2 text-xs text-[#22C55E] hover:underline">Complete now →</button>
+                <button onClick={() => navigate("/onboarding-chat")} className="mt-2 text-xs text-[#22C55E] hover:underline">Complete now →</button>
               </div>
             </div>
           </div>
@@ -1020,7 +1020,7 @@ export default function PortfolioPage() {
               <div className="bg-black/80 border border-white/20 px-6 py-4 rounded-xl text-center">
                 <Lock className="w-5 h-5 text-white/50 mx-auto mb-2" />
                 <p className="text-white font-semibold text-sm">Unlocks after completing your profile</p>
-                <button onClick={() => navigate("/questionnaire?skipUpload=true")} className="mt-2 text-xs text-[#22C55E] hover:underline">Complete now →</button>
+                <button onClick={() => navigate("/onboarding-chat")} className="mt-2 text-xs text-[#22C55E] hover:underline">Complete now →</button>
               </div>
             </div>
           </div>

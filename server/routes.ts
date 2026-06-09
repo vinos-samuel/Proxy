@@ -886,15 +886,6 @@ RULES:
       const isOwner = req.session.customerId === customer.id;
       const isDraftRequest = req.query.draft === "true";
 
-      if (isDraftRequest) {
-        logger.info("Draft portfolio access attempt", {
-          username: req.params.username,
-          sessionCustomerId: req.session.customerId ?? null,
-          profileCustomerId: customer.id,
-          isOwner,
-        });
-      }
-
       // Draft mode: only the owner can view their own draft
       if (isDraftRequest) {
         if (!isOwner) {

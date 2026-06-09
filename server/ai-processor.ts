@@ -986,7 +986,7 @@ Generate:
    - "label": What it represents IN ALL CAPS (e.g., "COST SAVINGS DELIVERED", "MARKETS ACROSS APAC")
    - "icon": one of: "target", "chart", "users", "ribbon", "lightning", "globe"
 
-4. "draftChatQuestions": Generate exactly 2 highly specific questions a recruiter would ask THIS person based on their CV. Reference their actual company names, roles, or specific achievements. Examples of good questions: "How did you scale the MSP program at Randstad to $75M spend?" or "What was the toughest challenge building the Netflix TA function across APAC?" Bad: "Tell me about your leadership experience." Each question should be answerable from the CV data.
+4. "draftChatQuestions": Generate exactly 2 highly specific questions a recruiter would ask THIS person based on their CV. Reference their actual company names, roles, or achievements. Keep each question under 15 words — sharp and direct. Good: "How did you scale the MSP program at Randstad to $75M?" or "What drove Netflix APAC HR NPS to 60+?" Bad: "Tell me about your leadership experience."
 
 RULES:
 - NO generic language ("passionate", "results-driven")

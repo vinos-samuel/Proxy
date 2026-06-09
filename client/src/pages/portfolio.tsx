@@ -368,8 +368,8 @@ export default function PortfolioPage() {
           <div className="flex items-center gap-3">
             <div className="bg-black text-[#E8A75D] px-3 py-1 mono text-xs font-bold uppercase tracking-wider shrink-0">DRAFT</div>
             <p className="mono text-sm font-bold text-black">
-              This is your AI-generated profile preview.
-              <span className="font-normal ml-2 text-black/70">Complete the questionnaire to personalise it and go live.</span>
+              AI built this from your CV.
+              <span className="font-normal ml-2 text-black/70">Complete the questionnaire to make it yours — then go live.</span>
             </p>
           </div>
           <button
@@ -389,6 +389,7 @@ export default function PortfolioPage() {
             <div className="grid grid-cols-3 gap-4">
               {/* CV */}
               <div className="rounded-lg border border-white/10 bg-white/5 p-5 opacity-60">
+                <p className="text-white/40 text-xs mb-2 italic">Static · Your depth is invisible</p>
                 <div className="mono text-xs text-white/40 uppercase tracking-wider mb-3">📄 Your CV</div>
                 <div className="space-y-1.5">
                   {["Name + job titles", "Bullet point duties", "Date ranges", "Static document"].map(t => (
@@ -400,6 +401,7 @@ export default function PortfolioPage() {
               </div>
               {/* LinkedIn */}
               <div className="rounded-lg border border-white/10 bg-white/5 p-5 opacity-70">
+                <p className="text-white/40 text-xs mb-2 italic">Passive · Same as everyone else</p>
                 <div className="mono text-xs text-white/40 uppercase tracking-wider mb-3">💼 LinkedIn</div>
                 <div className="space-y-1.5">
                   {["Summary paragraph", "Role descriptions", "Skills list", "No AI interaction"].map(t => (
@@ -412,6 +414,7 @@ export default function PortfolioPage() {
               {/* Proxy */}
               <div className="rounded-lg border-2 border-[#E8A75D] bg-[#E8A75D]/5 p-5 relative">
                 <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#E8A75D] text-black mono text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">You, completed</div>
+                <p className="text-[#E8A75D]/70 text-xs mb-2 italic">Interactive · Your depth, on demand</p>
                 <div className="mono text-xs text-[#E8A75D] uppercase tracking-wider mb-3">⚡ Proxy</div>
                 <div className="space-y-1.5">
                   {["AI-powered positioning", "Impact metrics & stories", "Answers recruiter questions", "Works while you sleep"].map(t => (
@@ -766,13 +769,19 @@ export default function PortfolioPage() {
           </div>
           {(profile.stats?.length || 0) > 6 && !showAllStats && (
             <div className="text-center mt-6">
-              <button 
+              <button
                 onClick={() => setShowAllStats(true)}
                 className={`${theme.glass} px-6 py-2 rounded-full text-sm ${theme.glassHover} ${theme.accentSolid}`}
               >
                 View All Metrics
               </button>
             </div>
+          )}
+          {isDraftMode && (
+            <p className="text-center mt-6 mono text-xs text-white/40 italic">
+              Based on your CV only. Complete the questionnaire to show your full impact.{" "}
+              <button onClick={() => navigate("/questionnaire?skipUpload=true")} className="text-[#E8A75D] hover:underline">Complete now →</button>
+            </p>
           )}
         </section>
       )}
@@ -1015,7 +1024,7 @@ export default function PortfolioPage() {
             </div>
           )}
         </section>
-      ) : skills.length > 0 ? (
+      ) : skills.length > 0 && !isDraftMode ? (
         <section className="py-12 px-6 max-w-5xl mx-auto">
           <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`}>
             Skill Matrix
@@ -1048,10 +1057,13 @@ export default function PortfolioPage() {
                   LinkedIn
                 </a>
               )}
-              {portfolio.contact.email && (
+              {portfolio.contact.email && !isDraftMode && (
                 <a href={`mailto:${portfolio.contact.email}`} className={`${theme.accentSolid} hover:opacity-80 transition-opacity text-sm`}>
                   {portfolio.contact.email}
                 </a>
+              )}
+              {isDraftMode && !portfolio.contact.email && (
+                <span className="text-white/30 text-sm italic">Add your email in the questionnaire</span>
               )}
             </div>
           </div>

@@ -7,47 +7,47 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-06-08 (Session 4)
-**Status:** All onboarding changes on `feature/onboarding-preview` branch. NOT on main. Draft portfolio page has a bug — debug first thing next session.
+## Current Sprint — 2026-06-09 (Session 5)
+**Status:** `feature/onboarding-preview` merged to main. Full draft portfolio flow live on myproxy.work. Tested end-to-end in production.
 
 **Last session completed:**
-- Landing page: hero subheading rewritten (outcome-led: interviews/recruiter responses), 4 sections removed (Who it's for, See it live, How to use it, AEO), new "Why candidates use Proxy" section added
-- Onboarding: animated full-screen "Building your profile..." loading screen (4 steps, progress bar) during CV parse
-- `generatePortfolioPreview()`: new server function — single Gemini call generates positioning, heroSubtitle, 4 impact metrics, career timeline, 2 CV-specific draft chat questions
-- All three Gemini calls (questionnaire draft + LinkedIn about + portfolio preview) now run in parallel — faster parse
-- Draft portfolio: `/portfolio/username?draft=true` — real portfolio page in draft mode (owner-only, auth-gated)
-- Draft mode: orange DRAFT banner, photo/video placeholders, 3 locked sections with blur overlay (Where I'm Most Useful, How I Work, Skills Matrix)
-- Draft chat: 2 CV-specific questions generated per user (not generic), answered via `/api/chat/draft` endpoint
-- Locked URL commitment: "myproxy.work/portfolio/username is reserved for you. Complete to claim it."
-- Dashboard: prominent green "draft ready" nudge card for AI draft users; delete reasons updated (removed "Other", added 4 specific reasons)
-- `.env` accidentally committed, GitHub blocked push — rotated Stripe key, cleaned history, added to `.gitignore`
+- Fixed draft portfolio 404: two root causes found and fixed — `window.location.search` replaced with wouter `useSearch()` hook; `user?.username` (stale auth context) replaced with `username` returned from `/api/parse-resume` API response
+- Fixed seed crash on workspace startup: seed now checks by username AND email before inserting admin user
+- Fixed draft chat 404: chat endpoint was calling `/api/chat/:username` in draft mode — now correctly calls `/api/chat/draft`
+- Fixed draft chat "No response": server was returning `{ reply: ... }` but client expected `{ content: ... }` — field name aligned
+- Fixed Skill Matrix double-render: plain skill tags fallback now hidden in draft mode (lock overlay already renders)
+- Fixed footer `[EDIT: Your Email Address]` leak: email hidden in draft mode, replaced with "Add your email in the questionnaire"
+- 3-panel comparison CTA added below draft banner: CV vs LinkedIn vs Proxy with feature lists
+- 3-panel labels added: CV = red "Static · Your depth is invisible", LinkedIn = yellow "Passive · Same as everyone else", Proxy = gold "Interactive · Your depth, on demand"
+- Draft banner copy updated: "AI built this from your CV. Complete the questionnaire to make it yours — then go live."
+- Impact metrics CTA added in draft mode: "Based on your CV only. Complete the questionnaire to show your full impact."
+- Draft chat replaced with locked Twin teaser: shows interface chrome + greyed-out sample questions + "Complete to unlock your Twin →" CTA — no shallow live responses
+- Draft chat questions shortened: Gemini prompt now enforces under 15 words per question
+- All "Complete your profile" CTAs in draft mode now route to `/onboarding-chat` (bot/forms choice screen) not directly to questionnaire
+- Production DB: 4 columns confirmed present (`positioning`, `hero_subtitle`, `stats`, `career_timeline`)
+- Merged `feature/onboarding-preview` → main, deployed to myproxy.work, tested successfully
 
 **Where we stopped:**
-- `/portfolio/username?draft=true` shows "Portfolio Not Found" — API fetch is failing
-- Likely cause: server-side session check failing (isOwner = false) or profile status check blocking draft access — need Replit logs to confirm
-- All changes on `feature/onboarding-preview` branch, NOT merged to main
+- Full draft flow confirmed working on myproxy.work
+- Reactivation email not yet built — next action
 
-**What's next (first thing next session):**
-- Debug draft portfolio 404: check Replit server logs for the actual error when `?draft=true` is hit
-- Confirm `isOwner` check works (session cookie sent with fetch, credentials: "include")
-- Once draft portfolio works: review full flow end-to-end, then merge to main and deploy to production
-- After merge: reactivation email to free-profile-no-pay users (highest-leverage pool)
+**What's next:**
+- Design and send reactivation email to existing `draft` status users — link directly to `/portfolio/username?draft=true`
+- Email hook: "We built your profile from your CV. Come see it." — personalised with their draft preview URL
 - Social proof: reach out to existing users for one real outcome story for hero section
+- PostHog drop-off tracking — needed before any A/B test on pricing
 
 **Architecture decisions made this session:**
-- Draft portfolio = real portfolio page (`/portfolio/:username?draft=true`) not a separate page — same layout, same code, draft mode flag controls banner + locked sections
-- `/preview-draft` retired — now a redirect shim to the draft portfolio URL
-- `processQuestionnaire()` NOT run at upload time — `generatePortfolioPreview()` (1 call) is enough for the draft wow moment; full processing runs when questionnaire is submitted
-- Draft chat uses `/api/chat/draft` (Gemini + raw draft data) not knowledge entries — knowledge entries only exist after full questionnaire submit
-- 3-panel comparison: CV (extracted text as document), LinkedIn (generated mockup), Proxy (mini portfolio with real metrics)
-- ICP for outreach: PMs, consultants, fractional execs, HR leaders — people who already build personal brand
+- All draft mode CTAs route to `/onboarding-chat` (choice screen) not `/questionnaire` directly — preserves bot path option
+- Reactivation email targets `draft` status users only — links to `/portfolio/username?draft=true` directly, not dashboard
+- Draft Twin chat is a locked teaser, not a live (shallow) chat — protects first impression until questionnaire complete
+- Do NOT use Replit Agent — it modifies files directly on Replit causing divergent branch conflicts
 
 **Don't touch:** server/ai-processor.ts processQuestionnaire(), Stripe webhook flow, server/job-search-agent.ts
 **Pending decisions:**
 - Test $19/mo pricing alongside $49 — not actioned
 - PostHog session tracking for drop-off analysis — needed before A/B test
 - Free tier limits — visitor question cap discussed, not implemented
-- Reactivation email — designed but not built
 
 ## What This Is
 Digital Twin / AI-powered career profile builder. Users upload a resume, fill an 11-step questionnaire, and get a public AI portfolio page with a chatbot that represents them.

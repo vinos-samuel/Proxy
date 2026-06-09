@@ -389,7 +389,7 @@ export default function PortfolioPage() {
             <div className="grid grid-cols-3 gap-4">
               {/* CV */}
               <div className="rounded-lg border border-white/10 bg-white/5 p-5 opacity-60">
-                <p className="text-white/40 text-xs mb-2 italic">Static · Your depth is invisible</p>
+                <p className="text-red-400/80 text-xs mb-2 italic font-semibold">Static · Your depth is invisible</p>
                 <div className="mono text-xs text-white/40 uppercase tracking-wider mb-3">📄 Your CV</div>
                 <div className="space-y-1.5">
                   {["Name + job titles", "Bullet point duties", "Date ranges", "Static document"].map(t => (
@@ -401,7 +401,7 @@ export default function PortfolioPage() {
               </div>
               {/* LinkedIn */}
               <div className="rounded-lg border border-white/10 bg-white/5 p-5 opacity-70">
-                <p className="text-white/40 text-xs mb-2 italic">Passive · Same as everyone else</p>
+                <p className="text-yellow-400/80 text-xs mb-2 italic font-semibold">Passive · Same as everyone else</p>
                 <div className="mono text-xs text-white/40 uppercase tracking-wider mb-3">💼 LinkedIn</div>
                 <div className="space-y-1.5">
                   {["Summary paragraph", "Role descriptions", "Skills list", "No AI interaction"].map(t => (
@@ -617,6 +617,48 @@ export default function PortfolioPage() {
           <p className={`${theme.muted} text-sm`}>Trained on {profile.displayName}'s career data, decision models, and communication style.</p>
         </div>
         
+        {isDraftMode ? (
+          <div className={`${theme.glass} rounded-3xl overflow-hidden flex flex-col ${theme.glow} relative`} style={{ minHeight: "500px" }}>
+            {/* PERSONALITY HEADER — same as live */}
+            <div className={`flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border-b border-white/10`}>
+              <div className="relative">
+                <Avatar className="w-14 h-14 border-2 border-white/20">
+                  <AvatarImage src={profile.photoUrl || ""} alt={profile.displayName} />
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
+                <div className={`absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 ${theme.bg}`}></div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">I'm {profile.displayName?.split(' ')[0]}'s Digital Twin</h3>
+                <p className="text-sm text-white/70">Ask me about my experience, approach, or war stories</p>
+              </div>
+            </div>
+            {/* Teaser body */}
+            <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 text-center">
+              <Lock className="w-8 h-8 text-white/20 mb-4" />
+              <p className="text-white/80 font-semibold text-base mb-2 max-w-md">
+                Your Twin answers in your voice — with your specific stories, decisions, and career context.
+              </p>
+              <p className={`${theme.muted} text-sm max-w-sm mb-8`}>
+                Complete the questionnaire so recruiters get real answers, not summaries.
+              </p>
+              {/* Sample questions as non-clickable chips */}
+              {draftChatQuestions.length > 0 && (
+                <div className="flex flex-wrap gap-2 justify-center max-w-xl mb-8 opacity-40 pointer-events-none select-none">
+                  {draftChatQuestions.map((q, i) => (
+                    <span key={i} className={`${theme.glass} px-4 py-2 rounded-full text-xs font-medium`}>{q}</span>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => navigate("/questionnaire?skipUpload=true")}
+                className="bg-[#E8A75D] text-black px-8 py-3 mono text-sm font-bold uppercase tracking-wider hover:bg-[#d4944a] transition-colors"
+              >
+                Complete to unlock your Twin →
+              </button>
+            </div>
+          </div>
+        ) : (
         <div className={`${theme.glass} rounded-3xl overflow-hidden flex flex-col ${theme.glow} relative`} style={{ minHeight: "600px" }}>
           {/* PERSONALITY HEADER */}
           <div className={`flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border-b border-white/10`}>
@@ -737,6 +779,7 @@ export default function PortfolioPage() {
             </form>
           </div>
         </div>
+        )}
       </section>
 
       {/* 3. IMPACT METRICS */}

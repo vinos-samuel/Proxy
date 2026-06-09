@@ -187,6 +187,12 @@ export default function PortfolioPage() {
         : `/api/portfolio/${username}`;
       const res = await fetch(url, { credentials: "include" });
       if (!res.ok) {
+        // Draft link clicked while not logged in — send to login then back
+        if (res.status === 403 && isDraftMode) {
+          const returnUrl = `/portfolio/${username}?draft=true`;
+          window.location.href = `/login?next=${encodeURIComponent(returnUrl)}`;
+          return new Promise(() => {}); // suspend while redirecting
+        }
         const body = await res.json().catch(() => ({}));
         throw new Error(body.message || "Portfolio not found");
       }

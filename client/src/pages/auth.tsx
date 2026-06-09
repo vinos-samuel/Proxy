@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { motion } from "framer-motion";
 import ProxyLogo from "@/components/ProxyLogo";
 import { useForm } from "react-hook-form";
@@ -16,6 +16,8 @@ import { registerSchema, loginSchema } from "@shared/schema";
 
 export function LoginPage() {
   const [, navigate] = useLocation();
+  const search = useSearch();
+  const nextUrl = new URLSearchParams(search).get("next");
   const { login } = useAuth();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
@@ -31,7 +33,7 @@ export function LoginPage() {
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     try {
       await login(data.email, data.password);
-      navigate("/dashboard");
+      navigate(nextUrl || "/dashboard");
     } catch (err: any) {
       if (err.message?.includes("403") && err.message?.includes("unverified")) {
         setUnverifiedEmail(data.email);

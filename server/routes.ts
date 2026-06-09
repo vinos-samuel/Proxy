@@ -800,7 +800,7 @@ RULES:
         ],
       });
 
-      res.json({ reply: result.text || "I'd be happy to discuss that — let's connect directly." });
+      res.json({ content: result.text || "I'd be happy to discuss that — let's connect directly." });
     } catch (err: any) {
       logger.error("[Draft Chat] Error", { error: String(err) });
       res.status(500).json({ error: "Failed to generate response" });

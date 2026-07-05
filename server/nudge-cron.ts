@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { storage } from "./storage";
 import { Resend } from "resend";
-import { nudgeEditWindowTemplate, nudgeEngagementTemplate, feedbackEmailTemplate, tipsEmailTemplate } from "./emails";
+import { nudgeEditWindowTemplate, nudgeEngagementTemplate, feedbackEmailTemplate, tipsEmailTemplate, weeklyDigestTemplate } from "./emails";
 import { logger } from "./logger";
 
 export function startNudgeCron() {
@@ -75,6 +75,31 @@ export function startNudgeCron() {
         }).catch(() => {});
         await storage.markTipsEmailSent(p.profileId);
         logger.info("[Nudge] Tips email sent", { profileId: p.profileId, email: p.email });
+      }
+      // Weekly activity digest: published profiles, at most once every 7 days, only when there was activity
+      const digestProfiles = await storage.getProfilesDueForWeeklyDigest();
+      for (const p of digestProfiles) {
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const questions = await storage.getQuestionsSince(p.profileId, p.digestSentAt ?? sevenDaysAgo);
+        const newViews = Math.max(0, p.viewCount - p.digestViewCount);
+        if (newViews === 0 && questions.length === 0) {
+          // No activity — reset the window silently so we don't recheck hourly
+          await storage.markDigestSent(p.profileId, p.viewCount);
+          continue;
+        }
+        const isPro = p.tier !== "free" && p.tier !== null;
+        const profileUrl = `https://myproxy.work/portfolio/${p.username}`;
+        await resend.emails.send({
+          from,
+          reply_to: "vinos@myproxy.work",
+          to: p.email,
+          subject: newViews > 0
+            ? `${newViews} ${newViews === 1 ? "person" : "people"} viewed your Proxy profile this week`
+            : `Visitors asked your Twin ${questions.length} question${questions.length === 1 ? "" : "s"} this week`,
+          html: weeklyDigestTemplate(p.name, newViews, questions, isPro, profileUrl, dashboardUrl),
+        }).catch(() => {});
+        await storage.markDigestSent(p.profileId, p.viewCount);
+        logger.info("[Nudge] Weekly digest sent", { profileId: p.profileId, email: p.email, newViews, questions: questions.length });
       }
     } catch (err) {
       logger.error("[Nudge] Cron error", { error: String(err) });

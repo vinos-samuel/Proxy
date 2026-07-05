@@ -1428,7 +1428,12 @@ PASS if every specific claim traces back to the profile data, or if the response
         logger.info("[Free] Profile live email failed (non-blocking)", { error: String(emailErr) });
       }
 
-      res.json({ success: true, username: customer?.username });
+      res.json({
+        success: true,
+        username: customer?.username,
+        displayName: profile.displayName || customer?.name || "",
+        roleTitle: profile.roleTitle || "",
+      });
     } catch (error) {
       logger.error("[Free] Publish error", { error: String(error) });
       res.status(500).json({ message: "Failed to publish" });

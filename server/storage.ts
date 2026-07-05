@@ -200,6 +200,49 @@ export class DatabaseStorage implements IStorage {
     await db.update(twinProfiles).set({ tipsEmailSentAt: new Date() }).where(eq(twinProfiles.id, profileId));
   }
 
+  async getProfilesDueForWeeklyDigest(): Promise<Array<{ profileId: string; email: string; name: string; username: string; tier: string | null; viewCount: number; digestViewCount: number; digestSentAt: Date | null }>> {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const rows = await db
+      .select({
+        profileId: twinProfiles.id,
+        email: customers.email,
+        name: customers.name,
+        username: customers.username,
+        tier: twinProfiles.tier,
+        viewCount: twinProfiles.viewCount,
+        digestViewCount: twinProfiles.digestViewCount,
+        digestSentAt: twinProfiles.digestSentAt,
+      })
+      .from(twinProfiles)
+      .innerJoin(customers, eq(twinProfiles.customerId, customers.id))
+      .where(
+        and(
+          eq(twinProfiles.status, "published"),
+          eq(twinProfiles.isPublic, true),
+          sql`(twin_profiles.digest_sent_at IS NULL OR twin_profiles.digest_sent_at < ${sevenDaysAgo})`,
+          eq(customers.emailVerified, true)
+        )
+      );
+    return rows.map(r => ({
+      ...r,
+      viewCount: r.viewCount ?? 0,
+      digestViewCount: r.digestViewCount ?? 0,
+    }));
+  }
+
+  async getQuestionsSince(profileId: string, since: Date): Promise<string[]> {
+    const rows = await db.select({ question: chatMessages.question })
+      .from(chatMessages)
+      .where(and(eq(chatMessages.profileId, profileId), sql`${chatMessages.askedAt} > ${since}`))
+      .orderBy(desc(chatMessages.askedAt))
+      .limit(10);
+    return rows.map(r => r.question);
+  }
+
+  async markDigestSent(profileId: string, currentViewCount: number): Promise<void> {
+    await db.update(twinProfiles).set({ digestSentAt: new Date(), digestViewCount: currentViewCount }).where(eq(twinProfiles.id, profileId));
+  }
+
   async getOnboardingSession(customerId: string): Promise<any | null> {
     const [row] = await db.select({ onboardingSession: customers.onboardingSession }).from(customers).where(eq(customers.id, customerId));
     return row?.onboardingSession ?? null;

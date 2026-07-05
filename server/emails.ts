@@ -236,6 +236,61 @@ export function nudgeEngagementTemplate(name: string, viewCount: number, upgrade
   return baseTemplate(body);
 }
 
+// ─── Weekly Activity Digest ──────────────────────────────────────────────────
+
+export function weeklyDigestTemplate(
+  name: string,
+  newViews: number,
+  questions: string[],
+  isPro: boolean,
+  profileUrl: string,
+  dashboardUrl: string
+): string {
+  const firstName = name.split(" ")[0];
+  const viewLine = newViews > 0
+    ? `<strong>${newViews} ${newViews === 1 ? "person" : "people"}</strong> viewed your profile this week.`
+    : "";
+  const questionLine = questions.length > 0
+    ? `Visitors asked your Twin <strong>${questions.length} question${questions.length === 1 ? "" : "s"}</strong>.`
+    : "";
+
+  const questionBlock = questions.length > 0
+    ? isPro
+      ? `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:24px;">
+          <tr>
+            <td style="background:#f5f5f0;border:2px solid #000000;padding:18px 20px;">
+              <strong style="font-size:12px;color:#888888;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px;">What they asked</strong>
+              <p style="font-size:14px;color:#555555;margin:0;line-height:1.8;">
+                ${questions.slice(0, 5).map(q => `<strong style="color:#22C55E;">→</strong> ${q}`).join("<br>")}
+              </p>
+            </td>
+          </tr>
+        </table>`
+      : `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:24px;">
+          <tr>
+            <td style="background:#f5f5f0;border:2px solid #000000;padding:18px 20px;">
+              <p style="font-size:14px;color:#555555;margin:0;line-height:1.6;">
+                Upgrade to Pro to see exactly what visitors asked your Twin.
+              </p>
+            </td>
+          </tr>
+        </table>`
+    : "";
+
+  const body = `
+    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your Twin was busy this week</h1>
+    <p style="font-size:15px;color:#555555;margin:0 0 24px 0;line-height:1.6;">
+      Hi ${firstName} — a quick update on your Proxy profile. ${viewLine} ${questionLine}
+    </p>
+    ${questionBlock}
+    ${ctaButton(dashboardUrl, "See Your Dashboard →")}
+    <p style="font-size:13px;color:#888888;margin:0;line-height:1.6;">
+      More shares mean more visitors. Your profile: <a href="${profileUrl}" style="color:#22C55E;text-decoration:none;">${profileUrl}</a>
+    </p>
+  `;
+  return baseTemplate(body);
+}
+
 // ─── Password Reset ──────────────────────────────────────────────────────────
 
 // ─── Admin Broadcast ─────────────────────────────────────────────────────────

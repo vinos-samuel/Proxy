@@ -65,6 +65,8 @@ export const twinProfiles = pgTable("twin_profiles", {
   profileReadyAt: timestamp("profile_ready_at"),
   feedbackEmailSentAt: timestamp("feedback_email_sent_at"),
   tipsEmailSentAt: timestamp("tips_email_sent_at"),
+  digestSentAt: timestamp("digest_sent_at"),
+  digestViewCount: integer("digest_view_count").default(0),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

@@ -499,6 +499,16 @@ Explore it here: https://myproxy.work/portfolio/${user?.username}
                       <Copy className="h-3.5 w-3.5" />
                       Copy Profile URL
                     </button>
+                    <button
+                      onClick={() => {
+                        const signature = `${profile?.displayName || user?.name || user?.username}${profile?.roleTitle ? ` | ${profile.roleTitle}` : ""}\nAsk my AI about my work: https://myproxy.work/portfolio/${user?.username}`;
+                        navigator.clipboard.writeText(signature);
+                      }}
+                      className="flex items-center gap-2 bg-white/10 text-white px-5 py-3 font-bold border-[3px] border-white/30 mono text-xs uppercase tracking-wider hover:bg-white/20 active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      Copy Email Signature
+                    </button>
                   </div>
                 </div>
               )}

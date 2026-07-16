@@ -68,6 +68,7 @@ export const twinProfiles = pgTable("twin_profiles", {
   digestSentAt: timestamp("digest_sent_at"),
   digestViewCount: integer("digest_view_count").default(0),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const factBanks = pgTable("fact_banks", {

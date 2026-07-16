@@ -282,11 +282,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProfileStatus(id: string, status: string): Promise<void> {
-    await db.update(twinProfiles).set({ status }).where(eq(twinProfiles.id, id));
+    await db.update(twinProfiles).set({ status, updatedAt: new Date() }).where(eq(twinProfiles.id, id));
   }
 
   async updateProfileById(id: string, data: Partial<InsertTwinProfile>): Promise<void> {
-    await db.update(twinProfiles).set(data).where(eq(twinProfiles.id, id));
+    await db.update(twinProfiles).set({ ...data, updatedAt: new Date() }).where(eq(twinProfiles.id, id));
   }
 
   async getFactBanksByProfileId(profileId: string): Promise<FactBank[]> {
@@ -513,6 +513,15 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(customers, eq(twinProfiles.customerId, customers.id))
       .where(eq(twinProfiles.status, "published"));
     return results.map((r) => r.username);
+  }
+
+  async getPublishedProfilesForSitemap(): Promise<Array<{ username: string; updatedAt: Date }>> {
+    const results = await db
+      .select({ username: customers.username, updatedAt: twinProfiles.updatedAt })
+      .from(twinProfiles)
+      .innerJoin(customers, eq(twinProfiles.customerId, customers.id))
+      .where(eq(twinProfiles.status, "published"));
+    return results;
   }
 
   async mergeInterviewData(profileId: string, extracted: {

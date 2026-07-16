@@ -167,7 +167,7 @@ export function serveStatic(app: Express) {
         }
       } catch { /* fall through */ }
     }
-    res.sendFile(indexHtmlPath);
+    res.status(404).sendFile(indexHtmlPath);
   });
 
   // Portfolio page — full AEO/SEO: real profile data + JSON-LD Person schema
@@ -231,11 +231,26 @@ export function serveStatic(app: Express) {
         }
       } catch { /* fall through to SPA */ }
     }
-    res.sendFile(indexHtmlPath);
+    res.status(404).sendFile(indexHtmlPath);
   });
 
-  // SPA catch-all
-  app.use("/{*path}", (_req, res) => {
-    res.sendFile(indexHtmlPath);
+  // Known static client routes — these render via the SPA shell with a real 200
+  const knownStaticRoutes = new Set([
+    "/", "/about", "/blog", "/faq", "/login", "/register", "/dashboard",
+    "/questionnaire", "/preview", "/admin", "/interview", "/onboarding-chat",
+    "/job-search", "/preview-draft", "/payment/success", "/payment/cancelled",
+    "/forgot-password", "/reset-password", "/verify-email", "/privacy",
+    "/terms", "/pricing",
+  ]);
+
+  // SPA catch-all — real 404 status for anything that isn't a known static
+  // route. /blog/:slug and /portfolio/:username are handled by the routes
+  // above (which now also send a real 404 when the slug/username doesn't
+  // resolve to a published record), so they never reach here.
+  app.use("/{*path}", (req, res) => {
+    if (knownStaticRoutes.has(req.path)) {
+      return res.sendFile(indexHtmlPath);
+    }
+    res.status(404).sendFile(indexHtmlPath);
   });
 }

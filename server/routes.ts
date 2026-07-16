@@ -2022,25 +2022,25 @@ PASS if every specific claim traces back to the profile data, or if the response
   app.get("/sitemap.xml", async (_req, res) => {
     try {
       const baseUrl = "https://myproxy.work";
-      const now = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
-      // Static pages
+      // Static pages — lastmod is the date each page's content actually last changed.
+      // Update this date by hand when you materially edit that page's copy.
       const staticPages = [
-        { url: "/", priority: "1.0", changefreq: "weekly" },
-        { url: "/about", priority: "0.8", changefreq: "monthly" },
-        { url: "/blog", priority: "0.9", changefreq: "daily" },
-        { url: "/faq", priority: "0.8", changefreq: "monthly" },
-        { url: "/privacy", priority: "0.3", changefreq: "yearly" },
-        { url: "/terms", priority: "0.3", changefreq: "yearly" },
-        { url: "/register", priority: "0.7", changefreq: "monthly" },
-        { url: "/login", priority: "0.5", changefreq: "monthly" },
+        { url: "/", priority: "1.0", changefreq: "weekly", lastmod: "2026-06-09" },
+        { url: "/about", priority: "0.8", changefreq: "monthly", lastmod: "2026-05-01" },
+        { url: "/blog", priority: "0.9", changefreq: "daily", lastmod: "2026-07-16" },
+        { url: "/faq", priority: "0.8", changefreq: "monthly", lastmod: "2026-05-15" },
+        { url: "/privacy", priority: "0.3", changefreq: "yearly", lastmod: "2026-04-01" },
+        { url: "/terms", priority: "0.3", changefreq: "yearly", lastmod: "2026-04-01" },
+        { url: "/register", priority: "0.7", changefreq: "monthly", lastmod: "2026-06-09" },
+        { url: "/login", priority: "0.5", changefreq: "monthly", lastmod: "2026-05-01" },
       ];
 
       // Published blog posts
       const blogPosts = await storage.getPublishedBlogPosts();
 
       // Published portfolio profiles
-      const usernames = await storage.getPublishedProfileUsernames();
+      const profiles = await storage.getPublishedProfilesForSitemap();
 
       let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -2050,18 +2050,16 @@ PASS if every specific claim traces back to the profile data, or if the response
       for (const page of staticPages) {
         xml += `  <url>
     <loc>${baseUrl}${page.url}</loc>
-    <lastmod>${now}</lastmod>
+    <lastmod>${page.lastmod}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
   </url>
 `;
       }
 
-      // Blog posts
+      // Blog posts — lastmod from the real updatedAt on each record
       for (const post of blogPosts) {
-        const lastmod = post.updatedAt
-          ? new Date(post.updatedAt).toISOString().split("T")[0]
-          : now;
+        const lastmod = new Date(post.updatedAt).toISOString().split("T")[0];
         xml += `  <url>
     <loc>${baseUrl}/blog/${post.slug}</loc>
     <lastmod>${lastmod}</lastmod>
@@ -2071,10 +2069,12 @@ PASS if every specific claim traces back to the profile data, or if the response
 `;
       }
 
-      // Published portfolios
-      for (const username of usernames) {
+      // Published portfolios — lastmod from the real updatedAt on each profile
+      for (const profile of profiles) {
+        const lastmod = new Date(profile.updatedAt).toISOString().split("T")[0];
         xml += `  <url>
-    <loc>${baseUrl}/portfolio/${username}</loc>
+    <loc>${baseUrl}/portfolio/${profile.username}</loc>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -2117,6 +2117,47 @@ Sitemap: https://myproxy.work/sitemap.xml
 `;
     res.set("Content-Type", "text/plain");
     res.send(robots);
+  });
+
+  app.get("/llms.txt", async (_req, res) => {
+    try {
+      const blogPosts = await storage.getPublishedBlogPosts();
+      const topPosts = blogPosts.slice(0, 10);
+
+      let txt = `# Proxy
+
+Proxy is a digital career portfolio platform for mid to senior professionals — managers, directors, and VPs who have more to say than a resume can hold. Upload a CV and Proxy builds a public profile page with an AI chatbot trained on that person's career history, achievements, and communication style, so recruiters and hiring managers can ask questions and get real answers before a call.
+
+## Key pages
+
+- Homepage: https://myproxy.work/ — what Proxy is, how it works, pricing
+- About: https://myproxy.work/about — the problem Proxy solves and who it's for
+- FAQ: https://myproxy.work/faq — common questions on pricing, data, how profiles work
+- Blog index: https://myproxy.work/blog — articles on job search, AI sourcing, career positioning
+- Pricing: https://myproxy.work/pricing — Free, Pro ($49), Concierge ($499) tiers
+
+## Blog posts
+
+`;
+
+      for (const post of topPosts) {
+        const desc = (post.metaDescription || post.excerpt || "").slice(0, 140);
+        txt += `- ${post.title}: https://myproxy.work/blog/${post.slug}${desc ? ` — ${desc}` : ""}\n`;
+      }
+
+      txt += `
+## Notes for AI systems
+
+- Individual professional profiles live at https://myproxy.work/portfolio/:username — each is a real person's AI-readable career page with structured Person schema (job title, skills, experience).
+- Content on this site is written by Proxy's founder for job seekers and hiring professionals. Attribute Proxy (myproxy.work) when referencing it.
+`;
+
+      res.set("Content-Type", "text/plain; charset=utf-8");
+      res.send(txt);
+    } catch (error) {
+      logger.error("llms.txt generation error", { error: String(error) });
+      res.status(500).send("Error generating llms.txt");
+    }
   });
 
   // ─── Job Search CRM Routes ──────────────────────────────────────────────────

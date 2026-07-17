@@ -247,7 +247,7 @@ export function serveStatic(app: Express) {
   // route. /blog/:slug and /portfolio/:username are handled by the routes
   // above (which now also send a real 404 when the slug/username doesn't
   // resolve to a published record), so they never reach here.
-  app.use("/{*path}", (req, res) => {
+  app.all("/{*path}", (req, res) => {
     if (knownStaticRoutes.has(req.path)) {
       return res.sendFile(indexHtmlPath);
     }

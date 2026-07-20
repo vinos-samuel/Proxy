@@ -53,9 +53,21 @@ Testing today requires manually creating accounts and typing profile content. Re
 | test-ready@proxy.test | test1234 | processed profile, status `ready`, unpublished |
 | test-live@proxy.test | test1234 | published + public, free tier, viewCount 23, 6 chat_messages questions spread over the last 10 days |
 
-- Print the account table to console on completion.
+- Print the account table to console on completion, clearly formatted so Vinos can read credentials straight off the terminal without hunting — e.g.:
 
-**Acceptance:** running `npm run seed:test` twice in a row succeeds; logging in as each persona lands in the correct state; production URL guard refuses to run.
+```
+============================================
+ TEST ACCOUNTS READY — myproxy.work workspace
+============================================
+ test-fresh@proxy.test   / test1234   → no profile yet
+ test-draft@proxy.test   / test1234   → AI draft, not submitted
+ test-ready@proxy.test   / test1234   → processed, ready to publish
+ test-live@proxy.test    / test1234   → published, 23 views, 6 questions
+============================================
+Login at: https://worf.replit.dev/login
+```
+
+**Acceptance:** running `npm run seed:test` twice in a row succeeds; logging in as each persona lands in the correct state; production URL guard refuses to run; the printed table is copy-paste ready (aligned columns, includes the login URL).
 
 ---
 

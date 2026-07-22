@@ -17,6 +17,23 @@ function sanitizeForPrompt(s: string | undefined | null, maxLen = 1000): string 
   return s.replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").trim().slice(0, maxLen);
 }
 
+// Single source of truth for banned hype language — used in every prose-generating
+// prompt below, and by script/check-prose.ts to verify generation output.
+export const BANNED_PHRASES = [
+  "visionary", "passionate", "transformational", "transformative", "redefines",
+  "revolutionize", "spearheaded", "dynamic", "results-driven", "seasoned professional",
+  "proven track record", "cutting-edge", "innovative mindset", "thought leader",
+  "synergy", "leverage", "unique ability", "showcasing", "testament to", "delve",
+  "tapestry", "in today's fast-paced world",
+];
+
+const WRITING_RULES = `WRITING RULES (mandatory):
+- Short sentences. Plain words. Write like a sharp colleague describing this person, not a marketer.
+- Every claim must be anchored to something specific: a number, a company, a project, a timeframe.
+- BANNED WORDS/PHRASES (never output): ${BANNED_PHRASES.join(", ")}.
+- No sentence may start with a rhetorical setup ("What sets X apart is...", "It's not just X, it's Y").
+- If the CV gives no number for a claim, state the claim plainly without inflating it.`;
+
 interface QuestionnaireData {
   step1: {
     fullName: string;
@@ -186,8 +203,8 @@ MINDSET: You are POSITIONING this person, not listing their history. Every secti
 Generate a JSON object with the following structure:
 
 1. "heroDescription": Write EXACTLY 2 paragraphs:
-   - Paragraph 1: Bold positioning statement. Not "I am a..." but a value proposition. Example: "I architect talent solutions that transform how organizations compete for leadership across Asia Pacific."
-   - Paragraph 2: A specific proof story with concrete metrics that demonstrates the positioning.
+   - Paragraph 1: ONE sentence, max 140 characters. A concrete positioning statement anchored to their actual domain, scope, and experience — not a slogan. Example: "I run supply-chain ops for consumer brands — 18 years, 3 markets, $200M budgets."
+   - Paragraph 2: A specific proof story with concrete metrics that demonstrates the positioning. Max 3 sentences.
 
 2. "heroSubtitle": Reframe their title into 3 positioning facets separated by " • ". Not "Director of Sales" but "Revenue Architecture • Market Expansion • Client Partnership".
 
@@ -211,10 +228,8 @@ Generate a JSON object with the following structure:
 
 7. "chatbotPersona": Write a 2-3 sentence description of how the AI chatbot should BEHAVE and COMMUNICATE. This is NOT a career summary — it describes the chatbot's personality, tone, and conversational style. Example: "Speaks with quiet confidence about talent strategy, drawing on 15+ years across APAC markets. Uses real client examples rather than theory. Balances strategic insight with practical directness — no corporate jargon."
 
-QUALITY RULES:
-- NO generic corporate jargon ("passionate", "results-driven", "team player")
-- Every statement must be specific and evidence-backed
-- Use active voice and strong verbs
+${WRITING_RULES}
+- Use active voice and strong, plain verbs (not "team player" or other generic jargon)
 - If data contains "NA"/"N/A"/"None", skip that item entirely
 
 CRITICAL: Return ONLY valid JSON. No markdown, no code fences.
@@ -255,6 +270,8 @@ Good: {"title": "Stakeholder Engagement", "proficiency": "EXPERT", "description"
 Bad: "Sales" (single word)
 Good: {"title": "Key Account Management", "proficiency": "ADVANCED", "description": "Certified Miller Heiman LAMP practitioner. Built KAM framework resulting in 3x growth across 5 key accounts.", "icon": "briefcase"}
 
+${WRITING_RULES}
+
 Return ONLY valid JSON, no markdown:
 {"skillsMatrix": [{"title": "string", "proficiency": "EXPERT"|"ADVANCED", "description": "string (15-25 words with evidence)", "icon": "target"|"users"|"ribbon"|"briefcase"|"chart"|"lightning"|"globe"}], "skillTags": ["string"]}`;
 
@@ -277,6 +294,8 @@ Good: {"title": "You need access to senior and executive talent", "description":
 
 Bad: "You're hiring in Asia" (vague)
 Good: {"title": "You're scaling across APAC", "description": "You're scaling across APAC and need a trusted recruitment partner who understands regional talent markets and cultural nuances.", "icon": "globe"}
+
+${WRITING_RULES}
 
 Return ONLY valid JSON, no markdown:
 {"intro": "string", "scenarios": [{"title": "string (short)", "description": "string (full scenario, 15-25 words)", "icon": "globe"|"users"|"target"|"chart"|"briefcase"|"lightning"}]}`;
@@ -404,7 +423,9 @@ ${s7WritingSample ? `Sample of their writing style:\n${s7WritingSample}` : ""}
 
 ${s11SpecialInstructions ? `Special instructions: ${s11SpecialInstructions}` : ""}
 
-Write a compelling, first-person narrative (2-3 paragraphs) that introduces this person authentically. Mirror their communication style and word choices. Be specific and weave in key achievements.
+Write a first-person narrative (2-3 paragraphs) that introduces this person authentically. Mirror their communication style and word choices. Be specific and cite key achievements.
+
+${WRITING_RULES}
 
 Return ONLY the narrative text, no headers or labels.`;
 
@@ -493,14 +514,16 @@ Approach (raw input): ${sanitizeForPrompt(story.approach, 500)}
 Result (raw input): ${sanitizeForPrompt(story.result, 500)}
 
 INSTRUCTIONS:
-- Rewrite each section to be polished, impactful, and interview-ready
+- Rewrite each section to be clear, specific, and interview-ready
 - Add specificity and quantify results wherever possible
 - Mirror the person's communication style
-- Make the challenge feel high-stakes
-- Make the approach show strategic thinking
-- Make the result feel like a clear win with measurable impact
+- Make the challenge concrete — what was actually at stake
+- Make the approach show what they specifically decided and did
+- Make the result state the measurable outcome plainly
 - Keep first-person voice
 - Also generate 8-12 search keywords/phrases
+
+${WRITING_RULES}
 
 Return ONLY valid JSON (no markdown, no code fences):
 {"challenge": "...", "approach": "...", "result": "...", "keywords": ["...", "..."]}`;
@@ -564,11 +587,13 @@ ${achievementLines.join("\n")}
 
 INSTRUCTIONS:
 - Quantify everything possible (percentages, dollar amounts, team sizes, timeframes)
-- Use strong action verbs (spearheaded, orchestrated, drove, transformed)
-- Make each achievement a standalone impressive bullet point
-- If raw input is vague, infer reasonable specifics that make it concrete
+- Use plain, strong action verbs (built, led, cut, grew, delivered, fixed)
+- Make each achievement a standalone, specific bullet point
+- If raw input is vague, infer reasonable specifics that make it concrete — never inflate
 - Keep first-person voice
 - Return as bullet points, one per line, starting with "- "
+
+${WRITING_RULES}
 
 Return ONLY the rewritten bullet points, nothing else.`;
 
@@ -664,7 +689,9 @@ A visitor asks: "${sanitizeForPrompt(qa.question, 300)}"
 
 The key points to cover are: ${sanitizeForPrompt(qa.answer, 500)}
 
-Write a natural first-person response (2-3 paragraphs) that covers these key points while matching the communication style. Be authentic and specific.
+Write a natural first-person response (2-3 paragraphs) that covers these key points while matching the communication style. Be specific.
+
+${WRITING_RULES}
 
 Return ONLY the response text.`;
 
@@ -724,7 +751,9 @@ Someone raises this objection/concern: "${sanitizeForPrompt(obj.objection, 300)}
 
 Your key response points: ${sanitizeForPrompt(obj.response, 500)}
 
-Write a natural first-person response (1-2 paragraphs) that addresses this concern confidently while matching the communication style. Turn the objection into a positive.
+Write a natural first-person response (1-2 paragraphs) that addresses this concern directly and honestly while matching the communication style.
+
+${WRITING_RULES}
 
 Return ONLY the response text.`;
 
@@ -977,7 +1006,7 @@ Key Achievements: ${(parsedResume.achievements || []).map((a) => sanitizeForProm
 
 Generate:
 
-1. "positioning": Write EXACTLY 2 paragraphs (not bullet points). First paragraph: a bold value proposition statement — NOT "I am a..." but a positioning statement like "I architect...". Second paragraph: a specific proof story with concrete metrics.
+1. "positioning": Write EXACTLY 2 paragraphs (not bullet points). First paragraph: ONE sentence, max 140 characters — a concrete positioning statement anchored to their actual domain, scope, and experience, not a slogan. Example: "I run supply-chain ops for consumer brands — 18 years, 3 markets, $200M budgets." Second paragraph: a specific proof story with concrete metrics, max 3 sentences.
 
 2. "heroSubtitle": Reframe their title into 3 positioning facets separated by " • ". Not "Director of Sales" but "Revenue Architecture • Market Expansion • Client Partnership". Max 80 chars total.
 
@@ -988,9 +1017,7 @@ Generate:
 
 4. "draftChatQuestions": Generate exactly 2 highly specific questions a recruiter would ask THIS person based on their CV. Reference their actual company names, roles, or achievements. Keep each question under 15 words — sharp and direct. Good: "How did you scale the MSP program at Randstad to $75M?" or "What drove Netflix APAC HR NPS to 60+?" Bad: "Tell me about your leadership experience."
 
-RULES:
-- NO generic language ("passionate", "results-driven")
-- Every statement must be specific and evidence-backed
+${WRITING_RULES}
 - Use first person ("I") for positioning only
 - Return ONLY valid JSON, no markdown:
 
@@ -1122,7 +1149,7 @@ REQUIRED OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
     "location": "string"
   },
   "step2": {
-    "professionalSummary": "string (2-3 compelling sentences positioning this person as an expert — first person, confident)",
+    "professionalSummary": "string (2-3 sentences, first person, each anchored to a specific number, company, or timeframe — not generic positioning)",
     "careerHistory": [
       { "company": "string", "title": "string", "years": "string", "achievements": "string (newline-separated bullet points)" }
     ]
@@ -1178,13 +1205,16 @@ REQUIRED OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
 RULES:
 - step4.stories: generate exactly 3 stories from the most impactful roles/achievements
 - step8.questions: generate exactly 5 likely questions with specific draft answers
-- step9.objections: generate exactly 3 common objections with confident responses
+- step9.objections: generate exactly 3 common objections with direct, honest responses
 - step10.brandingTheme: choose "corporate", "tech", or "creative" based on their industry
 - step7.communicationStyle: choose one of direct/warm/technical/strategic based on their role type
 - Use first person ("I") throughout
 - Be specific — use company names, years, technologies from the resume
 - Add [EDIT] markers where the user should add personal details, numbers, or context
-- Return ONLY valid JSON. No markdown code fences, no explanations.`;
+
+${WRITING_RULES}
+
+Return ONLY valid JSON. No markdown code fences, no explanations.`;
 
   try {
     const result = await ai.models.generateContent({

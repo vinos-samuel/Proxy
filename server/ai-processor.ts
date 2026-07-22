@@ -32,7 +32,8 @@ const WRITING_RULES = `WRITING RULES (mandatory):
 - Every claim must be anchored to something specific: a number, a company, a project, a timeframe.
 - BANNED WORDS/PHRASES (never output): ${BANNED_PHRASES.join(", ")}.
 - No sentence may start with a rhetorical setup ("What sets X apart is...", "It's not just X, it's Y").
-- If the CV gives no number for a claim, state the claim plainly without inflating it.`;
+- If the CV gives no number for a claim, state the claim plainly without inflating it.
+- Before you finalize your answer, re-read every sentence you wrote against the banned list above and rewrite any sentence that contains one of those words.`;
 
 interface QuestionnaireData {
   step1: {
@@ -202,9 +203,10 @@ MINDSET: You are POSITIONING this person, not listing their history. Every secti
 
 Generate a JSON object with the following structure:
 
-1. "heroDescription": Write EXACTLY 2 paragraphs:
-   - Paragraph 1: ONE sentence, max 140 characters. A concrete positioning statement anchored to their actual domain, scope, and experience — not a slogan. Example: "I run supply-chain ops for consumer brands — 18 years, 3 markets, $200M budgets."
+1. "heroDescription": A single JSON string containing EXACTLY 2 paragraphs, separated by a literal blank line — two newline characters ("\n\n") inside the string, nothing else on that line:
+   - Paragraph 1: ONE sentence, max 140 characters. A concrete positioning statement anchored to their actual domain, scope, and experience — not a slogan.
    - Paragraph 2: A specific proof story with concrete metrics that demonstrates the positioning. Max 3 sentences.
+   Example value (note the "\n\n" between paragraphs): "I run supply-chain ops for consumer brands — 18 years, 3 markets, $200M budgets.\n\nAt Acme Corp I cut freight costs 22% in 18 months by renegotiating carrier contracts across 3 regions, saving $4M a year."
 
 2. "heroSubtitle": Reframe their title into 3 positioning facets separated by " • ". Not "Director of Sales" but "Revenue Architecture • Market Expansion • Client Partnership".
 
@@ -1006,7 +1008,7 @@ Key Achievements: ${(parsedResume.achievements || []).map((a) => sanitizeForProm
 
 Generate:
 
-1. "positioning": Write EXACTLY 2 paragraphs (not bullet points). First paragraph: ONE sentence, max 140 characters — a concrete positioning statement anchored to their actual domain, scope, and experience, not a slogan. Example: "I run supply-chain ops for consumer brands — 18 years, 3 markets, $200M budgets." Second paragraph: a specific proof story with concrete metrics, max 3 sentences.
+1. "positioning": A single JSON string containing EXACTLY 2 paragraphs, separated by a literal blank line — two newline characters ("\n\n") inside the string, nothing else on that line. First paragraph: ONE sentence, max 140 characters — a concrete positioning statement anchored to their actual domain, scope, and experience, not a slogan. Second paragraph: a specific proof story with concrete metrics, max 3 sentences. Example value (note the "\n\n" between paragraphs): "I run supply-chain ops for consumer brands — 18 years, 3 markets, $200M budgets.\n\nAt Acme Corp I cut freight costs 22% in 18 months by renegotiating carrier contracts across 3 regions, saving $4M a year."
 
 2. "heroSubtitle": Reframe their title into 3 positioning facets separated by " • ". Not "Director of Sales" but "Revenue Architecture • Market Expansion • Client Partnership". Max 80 chars total.
 

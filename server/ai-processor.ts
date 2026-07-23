@@ -224,7 +224,7 @@ Generate a JSON object with the following structure:
    - If no clear framework exists in their data, return null for howIWork
    - Each step: {"label": "Step Name", "description": "What specifically happens in this phase (15-20 words)"}
 
-5. "whyAiCv": Write 4-5 short paragraphs explaining why this AI portfolio exists and what to ask it.
+5. "whyAiCv": Write 4-5 short paragraphs (array of strings, one paragraph per item) explaining why this AI portfolio exists and what to ask it. This describes the TOOL, not the person — it is the field most likely to drift into generic AI-marketing language ("dynamic", "interactive", "innovative way to explore"), so be extra plain here: say what a visitor can do (ask it questions, get specific answers about this person's work) in concrete terms, not what kind of experience it is. Example line: "Ask it anything about my work — a past project, how I handle a specific situation, why I made a call the way I did. It answers from what's actually in my career history, not a script."
 
 6. "suggestedQuestions": Write 8 questions a HIRING MANAGER would ask, mapped to their war stories.
 

@@ -75,6 +75,11 @@ export default function LandingPage() {
                   <span className="text-xs text-black/50 font-normal normal-case tracking-normal mt-0.5">Try asking the AI a question</span>
                 </a>
               </div>
+              <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 mono text-xs font-bold uppercase tracking-wider text-black/60">
+                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> No credit card</span>
+                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Free to start</span>
+                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Private until you publish</span>
+              </div>
               <p className="text-base font-semibold text-black mt-5">
                 Professional enough to send to a headhunter. Personal enough to actually represent you.
               </p>
@@ -173,8 +178,11 @@ export default function LandingPage() {
             <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <div className="mono text-xs text-black/60 mb-2 uppercase tracking-widest">// step_01</div>
               <div className="text-6xl font-bold text-[#22C55E]">01</div>
-              <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center mb-4 mt-4">
-                <FileText className="h-6 w-6" />
+              <div className="flex items-center gap-3 mb-4 mt-4">
+                <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center shrink-0">
+                  <FileText className="h-6 w-6" />
+                </div>
+                <span className="mono text-xs font-bold border-[2px] border-black bg-white px-2 py-1 uppercase tracking-wider">~30 min</span>
               </div>
               <h3 className="text-2xl font-bold mt-4 mb-3">Upload your CV</h3>
               <p className="mono text-sm text-black/70 leading-relaxed">AI writes the first draft — your experience, your roles, your language. You review, correct anything that feels off, and add the stories only you know. Most people are done in 30 minutes. Worth it once to stand out from every other candidate at your level.</p>
@@ -183,8 +191,11 @@ export default function LandingPage() {
             <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <div className="mono text-xs text-black/60 mb-2 uppercase tracking-widest">// step_02</div>
               <div className="text-6xl font-bold text-[#22C55E]">02</div>
-              <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center mb-4 mt-4">
-                <Rocket className="h-6 w-6" />
+              <div className="flex items-center gap-3 mb-4 mt-4">
+                <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center shrink-0">
+                  <Rocket className="h-6 w-6" />
+                </div>
+                <span className="mono text-xs font-bold border-[2px] border-black bg-white px-2 py-1 uppercase tracking-wider">Automatic</span>
               </div>
               <h3 className="text-2xl font-bold mt-4 mb-3">Your profile goes live</h3>
               <p className="mono text-sm text-black/70 leading-relaxed">A personal page at myproxy.work/you — with an AI chatbot trained on your exact background, available 24/7.</p>
@@ -193,8 +204,11 @@ export default function LandingPage() {
             <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <div className="mono text-xs text-black/60 mb-2 uppercase tracking-widest">// step_03</div>
               <div className="text-6xl font-bold text-[#22C55E]">03</div>
-              <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center mb-4 mt-4">
-                <Zap className="h-6 w-6" />
+              <div className="flex items-center gap-3 mb-4 mt-4">
+                <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center shrink-0">
+                  <Zap className="h-6 w-6" />
+                </div>
+                <span className="mono text-xs font-bold border-[2px] border-black bg-white px-2 py-1 uppercase tracking-wider">24/7</span>
               </div>
               <h3 className="text-2xl font-bold mt-4 mb-3">Recruiters engage</h3>
               <p className="mono text-sm text-black/70 leading-relaxed">They ask questions, get real answers from your AI, and reach out already knowing why you're a fit.</p>
@@ -284,6 +298,37 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-6 mono text-xs text-black/40 text-right">// send a link, not a file</div>
+        </div>
+      </section>
+
+      {/* 7.5 Testimonials */}
+      <section className="px-6 py-20 border-t-[3px] border-black bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// what_people_say</div>
+          <h2 className="text-5xl font-bold mb-16">Real profiles. Real results.</h2>
+          <div className="grid lg:grid-cols-3 gap-8 items-start">
+            <div className="border-[3px] border-black bg-[#E8E8E3] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <p className="text-base text-black/80 mb-6 leading-relaxed">
+                "I honestly didn't expect the 45 minutes I spent building my Proxy profile to make such a difference. I went beyond my CV and talked about the projects I've worked on, the lessons I've learned, the decisions I've made and, importantly, how I actually work. That context <strong className="text-black">made the AI bot sound surprisingly like me — not like a generic career assistant.</strong> When someone is evaluating you for a senior role, that ability to communicate the story behind the experience is incredibly valuable."
+              </p>
+              <div className="mono text-sm font-bold text-black">Steven Bong</div>
+              <div className="mono text-xs text-black/50 uppercase tracking-wider mt-0.5">TA Strategy @ Airtable</div>
+            </div>
+            <div className="border-[3px] border-black bg-[#E8E8E3] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <p className="text-base text-black/80 mb-6 leading-relaxed">
+                "I started by simply uploading my CV to see what Proxy would do with it. The initial profile was already impressive, but what I really liked was being able to keep adding detail and customise the story around my experience. The designs are clean and genuinely <strong className="text-black">make your career look more interesting than a traditional CV ever could.</strong> I've shared my portfolio with recruiters and the feedback has been very positive — it gives them a much better way to understand what I've actually done."
+              </p>
+              <div className="mono text-sm font-bold text-black">John Lima</div>
+              <div className="mono text-xs text-black/50 uppercase tracking-wider mt-0.5">Portfolio Manager @ HSBC</div>
+            </div>
+            <div className="border-[3px] border-black bg-[#E8E8E3] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <p className="text-base text-black/80 mb-6 leading-relaxed">
+                "<strong className="text-black">The Job Search CRM is probably the feature I didn't know I needed.</strong> Once you're managing multiple conversations, applications, recruiters and follow-ups, it's surprisingly easy to lose track of things. Proxy gives me one place to organise the search and actually stay on top of it. The combination of the portfolio, AI assistant and CRM makes the whole process much more structured — I'm spending less time trying to remember what I need to do and more time actually moving opportunities forward."
+              </p>
+              <div className="mono text-sm font-bold text-black">Anthony Souza</div>
+              <div className="mono text-xs text-black/50 uppercase tracking-wider mt-0.5">Clinical Research Strategy @ J&J</div>
+            </div>
+          </div>
         </div>
       </section>
 

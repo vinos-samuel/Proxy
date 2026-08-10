@@ -120,6 +120,18 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* 1.5 Trust strip */}
+      <div className="border-t-[3px] border-b-[3px] border-black bg-[#F5F5F0] py-4 px-6">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-1 mono text-xs uppercase tracking-widest text-black/50">
+          <span>Trusted by professionals at</span>
+          <span className="font-bold text-black">Airtable</span>
+          <span>·</span>
+          <span className="font-bold text-black">HSBC</span>
+          <span>·</span>
+          <span className="font-bold text-black">J&amp;J</span>
+        </div>
+      </div>
+
       {/* 2. Problem / Solution */}
       <section className="px-6 py-20 border-t-[3px] border-black bg-white">
         <div className="max-w-7xl mx-auto">
@@ -298,6 +310,50 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-6 mono text-xs text-black/40 text-right">// send a link, not a file</div>
+        </div>
+      </section>
+
+      {/* 7.7 Comparison table */}
+      <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
+        <div className="max-w-7xl mx-auto">
+          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// the_comparison</div>
+          <h2 className="text-5xl font-bold mb-4">A portfolio page is a résumé you can scroll.</h2>
+          <p className="text-2xl font-bold text-[#22C55E] mb-16">Proxy is a résumé you can talk to.</p>
+
+          <div className="overflow-x-auto border-[3px] border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <table className="w-full min-w-[720px] border-collapse">
+              <thead>
+                <tr className="border-b-[3px] border-black">
+                  <th className="text-left p-5 mono text-xs uppercase tracking-widest text-black/50 font-bold">Feature</th>
+                  <th className="text-left p-5 bg-[#22C55E] mono text-sm uppercase tracking-widest font-bold">Proxy</th>
+                  <th className="text-left p-5 mono text-sm uppercase tracking-widest text-black/60 font-bold">Resume / CV</th>
+                  <th className="text-left p-5 mono text-sm uppercase tracking-widest text-black/60 font-bold">LinkedIn Profile</th>
+                  <th className="text-left p-5 mono text-sm uppercase tracking-widest text-black/60 font-bold">Portfolio Site</th>
+                </tr>
+              </thead>
+              <tbody className="mono text-sm">
+                {[
+                  { feature: "Answers a recruiter's follow-up question", proxy: "✓ 24/7", resume: "✗", linkedin: "✗", portfolio: "✗" },
+                  { feature: "Explains why an achievement mattered", proxy: "✓", resume: "✗ Lists only", linkedin: "Partial", portfolio: "✗ Lists only" },
+                  { feature: "One link, always current", proxy: "✓", resume: "✗", linkedin: "Partial", portfolio: "✓" },
+                  { feature: "Tracks your job search", proxy: "✓ Built-in CRM", resume: "✗", linkedin: "✗", portfolio: "✗" },
+                  { feature: "Setup time", proxy: "~30 min", resume: "Redone per application", linkedin: "Ongoing upkeep", portfolio: "~2 min" },
+                  { feature: "Cost", proxy: "Free to start · $49 once", resume: "$500–800 (writer)", linkedin: "Free", portfolio: "Often free" },
+                ].map((row, i) => (
+                  <tr key={i} className="border-b border-black/10 last:border-b-0">
+                    <td className="p-5 font-bold text-black">{row.feature}</td>
+                    <td className="p-5 bg-[#F0FDF4] font-bold text-black">{row.proxy}</td>
+                    <td className="p-5 text-black/60">{row.resume}</td>
+                    <td className="p-5 text-black/60">{row.linkedin}</td>
+                    <td className="p-5 text-black/60">{row.portfolio}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mono text-xs text-black/50 mt-4">
+            Yes, a bare portfolio link is faster to set up. It also can't answer a single question about your work after someone reads it.
+          </p>
         </div>
       </section>
 

@@ -1,4 +1,5 @@
 # Proxy / BIOSai — Project Context
+> **On session start:** Read `~/Documents/Projects/_MissionControl/PROJECTS.md` for cross-project context and priorities.
 
 ## Session Protocol
 At the end of every session, update the "Current Sprint" block above with:
@@ -7,41 +8,41 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-06-09 (Session 5)
-**Status:** `feature/onboarding-preview` merged to main. Full draft portfolio flow live on myproxy.work. Tested end-to-end in production.
+## Current Sprint — 2026-07-22 (Session 8)
+**Status:** Deep UX/psychology review of the profile creation funnel done. Full PRD written for publish-first flow + Executive theme + honest prose. Workstream 0 (test harness) built, debugged, and verified end-to-end on a newly-fixed, genuinely separate dev database.
 
-**Last session completed:**
-- Fixed draft portfolio 404: two root causes found and fixed — `window.location.search` replaced with wouter `useSearch()` hook; `user?.username` (stale auth context) replaced with `username` returned from `/api/parse-resume` API response
-- Fixed seed crash on workspace startup: seed now checks by username AND email before inserting admin user
-- Fixed draft chat 404: chat endpoint was calling `/api/chat/:username` in draft mode — now correctly calls `/api/chat/draft`
-- Fixed draft chat "No response": server was returning `{ reply: ... }` but client expected `{ content: ... }` — field name aligned
-- Fixed Skill Matrix double-render: plain skill tags fallback now hidden in draft mode (lock overlay already renders)
-- Fixed footer `[EDIT: Your Email Address]` leak: email hidden in draft mode, replaced with "Add your email in the questionnaire"
-- 3-panel comparison CTA added below draft banner: CV vs LinkedIn vs Proxy with feature lists
-- 3-panel labels added: CV = red "Static · Your depth is invisible", LinkedIn = yellow "Passive · Same as everyone else", Proxy = gold "Interactive · Your depth, on demand"
-- Draft banner copy updated: "AI built this from your CV. Complete the questionnaire to make it yours — then go live."
-- Impact metrics CTA added in draft mode: "Based on your CV only. Complete the questionnaire to show your full impact."
-- Draft chat replaced with locked Twin teaser: shows interface chrome + greyed-out sample questions + "Complete to unlock your Twin →" CTA — no shallow live responses
-- Draft chat questions shortened: Gemini prompt now enforces under 15 words per question
-- All "Complete your profile" CTAs in draft mode now route to `/onboarding-chat` (bot/forms choice screen) not directly to questionnaire
-- Production DB: 4 columns confirmed present (`positioning`, `hero_subtitle`, `stats`, `career_timeline`)
-- Merged `feature/onboarding-preview` → main, deployed to myproxy.work, tested successfully
+**This session completed:**
+- Marketing: set up Resend Audience for blog broadcast emails (replacing the earlier Loops.so idea — reuses existing verified domain); drafted/debugged 3 blog announcement emails; reviewed a "building in public" LinkedIn post (kept as-is, cut one AI-sounding line)
+- Strategy: diagnosed why upload→publish conversion is stuck (~35%) — root cause is the 11-step questionnaire standing between the CV-upload "wow moment" and a live page, not lack of marketing; gave a full funnel redesign recommendation (publish-first, deepen-later loop)
+- Reviewed a reference portfolio site (portfolio-nikil29.vercel.app) against our own live output — identified our hero is a wall of AI-sounding prose, chat (our real differentiator) is buried 7000px down the page, empty states render as ugly placeholders, and all 3 themes are dark and read "developer portfolio" not "executive profile"
+- Staffing-agency lens applied to the product: identified candidate-contact masking, consultant notes, and confidential/anonymized candidates as the real agency requirements — explicitly scoped OUT of the current build; decided to keep agency conversations alive (manual, zero build) while building for B2C candidates only for now
+- Decided: one new light "Executive" theme becomes the default, one dark theme kept as backup, Tech/Creative themes killed for new profiles (existing profiles unaffected)
+- Wrote `docs/PRD-publish-first.md` — full PRD covering test harness, honest-prose prompt rewrite, Executive theme, portfolio hero/chat restructure, and the publish-first flow (endowed progress, capped bot sessions, Twin Strength meter, digest nudges tied to unanswered questions)
+- Built Workstream 0 from the PRD: 3 realistic fixture CVs (`test-fixtures/`, generated via `pdf-lib`) + `npm run seed:test` script creating 4 accounts frozen at each funnel stage (fresh/draft/ready/live), with a safety guard against running on a production-sized DB
+- **Major infra fix:** discovered Workspace Secrets `DATABASE_URL` was pointing at the exact same database as Production (both `ep-withered-rice-aigjhqf1...`) — meaning all prior dev/workspace testing was silently writing to real production data; Replit's Database tab offered no second database for this project, so provisioned a genuinely separate dev database directly via neon.tech and wired it into Workspace Secrets only (Production Deployment Secrets untouched)
+- Fixed `npm run db:push` safely on the new empty dev DB (declined a destructive `session` table drop prompt until the DB was confirmed non-production, then it applied clean with zero data-loss prompts on the real dev DB)
+- Debugged a port conflict (EADDRINUSE) caused by manually running `npm run dev` in the Shell at the same time as Replit's own "Start application" workflow — resolved by killing the manual process and using only the ▶ Run button going forward
+- Debugged a login failure on the freshly seeded `test-live@proxy.test` account all the way down to raw SQL and a direct bcrypt hash comparison (both confirmed correct) — root cause was stale browser-autofilled password, not a real bug
+- Cleaned up the temporary `script/debug-login.ts` used for that investigation
 
 **Where we stopped:**
-- Full draft flow confirmed working on myproxy.work
-- Reactivation email not yet built — next action
+- Workstream 0 fully verified end-to-end: separate dev DB confirmed, `db:push` + `seed:test` both work cleanly, all 4 test personas log in correctly
+- CLAUDE.md updated with a history note on the DB mixup and the corrected architecture — future sessions should trust this over the old "separate DB" claim that wasn't actually true until this session
+- PRD Phases 1-4c (prompt rewrite, Executive theme, portfolio restructure, publish-first flow) not yet started
 
 **What's next:**
-- Design and send reactivation email to existing `draft` status users — link directly to `/portfolio/username?draft=true`
-- Email hook: "We built your profile from your CV. Come see it." — personalised with their draft preview URL
-- Social proof: reach out to existing users for one real outcome story for hero section
+- Run PRD Phase 1 (honest-prose prompt rewrite) — smallest, highest-credibility-impact change, ready to build
+- Then Phase 2 (Executive theme), Phase 4a (publish-from-draft gate), Phase 3 (portfolio restructure), Phase 4b/4c (questionnaire progress + bot caps + strength meter) — see phasing table in the PRD
+- `npm audit fix` pass — still not addressed (1 critical, 9 high)
+- Staffing agency pilot outreach (Salt, Nicoll Curtin, Pride Global, TringApps, GreenRootz) — conversations continue manually, no product build until a pilot converts
 - PostHog drop-off tracking — needed before any A/B test on pricing
 
 **Architecture decisions made this session:**
-- All draft mode CTAs route to `/onboarding-chat` (choice screen) not `/questionnaire` directly — preserves bot path option
-- Reactivation email targets `draft` status users only — links to `/portfolio/username?draft=true` directly, not dashboard
-- Draft Twin chat is a locked teaser, not a live (shallow) chat — protects first impression until questionnaire complete
-- Do NOT use Replit Agent — it modifies files directly on Replit causing divergent branch conflicts
+- Workspace dev database is now a separate Neon project (see "Two Separate Environments" section below) — always verify `$DATABASE_URL`'s host in the Shell before assuming workspace/prod are isolated on any future project
+- Never run `npm run dev` manually in the Shell — use only the Replit ▶ Run button, to avoid two processes fighting over port 5000
+- Agency-specific features (masking, consultant notes, branded shortlist pages) are explicitly out of scope until an agency pilot actually converts — sell first, build after
+- Executive (light) becomes the default theme for new profiles; Tech/Creative removed from the theme picker (kept in code for existing profiles only)
+- Publish-first is the core fix for the conversion problem — publishing a CV-derived draft immediately, then deepening the profile in small optional sessions afterward, replaces "finish all 11 steps before anything goes live"
 
 **Don't touch:** server/ai-processor.ts processQuestionnaire(), Stripe webhook flow, server/job-search-agent.ts
 **Pending decisions:**
@@ -113,20 +114,28 @@ npm run build
 | | Workspace (Dev) | Deployment (Prod) |
 |---|---|---|
 | URL | worf.replit.dev | myproxy.work |
-| Database | Workspace PostgreSQL (separate) | Replit Production Database |
+| Database | Neon dev project (separate from prod — see note below) | Replit Production Database |
 | Secrets | Workspace Secrets tab | Deployments → Secrets tab |
 | Code runs | When Replit Run button is pressed | After clicking Deploy |
 
-**Never test auth flows (login, password reset, email verification) on worf.replit.dev** — they use the dev database, which is separate from production.
+**⚠️ History note (fixed 2026-07-20):** for an unknown period before this date, the Workspace Secrets `DATABASE_URL` was actually pointing at the *same* database as production (both had host `ep-withered-rice-aigjhqf1...`). Any testing done on worf.replit.dev before this date — signups, logins, password resets — was writing to real production data, not a sandbox. This is now fixed: Replit's own Database tab for this project only offers a single database (no built-in way to add a second), so a genuinely separate dev database was created directly via neon.tech and wired into Workspace Secrets only. Production's Deployment Secrets were never touched and still point to the original database.
+
+**Never test auth flows (login, password reset, email verification) on worf.replit.dev** — they use the dev database, which is now actually separate from production (see history note above for when this became true).
 
 ## Key Env Vars
 **Workspace secrets** (dev, worf.replit.dev):
-- `DATABASE_URL` — dev Postgres (separate from prod)
+- `DATABASE_URL` — separate Neon dev project (host starts with `ep-blue-field-avzfds4n...`), NOT the production host (`ep-withered-rice-aigjhqf1...`). If this ever needs recreating, see the history note above — Replit's Database tab does not offer a second DB for this project, so provision directly at neon.tech and paste the connection string in here only.
 - `AI_INTEGRATIONS_GEMINI_API_KEY` + `AI_INTEGRATIONS_GEMINI_BASE_URL`
 - `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET`
 - `RESEND_API_KEY`, `FROM_EMAIL=noreply@myproxy.work`
 - `SESSION_SECRET`, `NODE_ENV=production`
 - Do NOT set `APP_URL` in workspace — without it, reset/verify links use the request host (worf.replit.dev), keeping dev tokens in dev DB
+
+## Test Data — `npm run seed:test`
+- Creates/resets 4 accounts on the workspace dev DB, each frozen at a funnel stage: `test-fresh@proxy.test` (no profile), `test-draft@proxy.test` (AI draft, unsubmitted), `test-ready@proxy.test` (processed, unpublished), `test-live@proxy.test` (published, fake views + questions). All passwords `test1234`.
+- Refuses to run if the target DB has more than 20 customers (production-like) unless `--force` is passed — but even forced, it only ever touches the 4 `@proxy.test` emails.
+- Sample CVs for manual upload-flow testing live in `test-fixtures/` (3 realistic PDF CVs — ops, tech, marketing personas). Regenerate them with `tsx script/generate-test-cvs.ts` if content needs to change.
+- After any schema change, re-run `npm run db:push` against the workspace dev DB first, then `npm run seed:test` again.
 
 **Deployment secrets** (prod, myproxy.work) — set in Deployments → Secrets tab:
 - `DATABASE_URL` — MUST point to the Replit Production Database connection string. Replit shows "External database detected" warning — ignore it, do NOT remove DATABASE_URL. Removing it breaks all logins.

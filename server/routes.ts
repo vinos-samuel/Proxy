@@ -89,7 +89,67 @@ const ai = new GoogleGenAI({
 declare module "express-session" {
   interface SessionData {
     customerId?: string;
+    anonDraft?: {
+      createdAt: number;
+      chatCount: number;
+      extractedData: any;
+      questionnaireDraft: any;
+      portfolioPreview: {
+        positioning: string;
+        heroSubtitle: string;
+        stats: Array<{ value: string; label: string; icon: string }>;
+        careerTimeline: any[];
+        draftChatQuestions: string[];
+      };
+    };
   }
+}
+
+// Anonymous drafts expire after 4 hours of inactivity — long enough to try the
+// product and decide to claim it, short enough not to accumulate stale session data.
+const ANON_DRAFT_TTL_MS = 4 * 60 * 60 * 1000;
+const ANON_DRAFT_MAX_MESSAGES = 8;
+
+function getLiveAnonDraft(req: Request) {
+  const draft = req.session.anonDraft;
+  if (!draft) return undefined;
+  if (Date.now() - draft.createdAt > ANON_DRAFT_TTL_MS) {
+    delete req.session.anonDraft;
+    return undefined;
+  }
+  return draft;
+}
+
+// Shared system prompt for answering chat questions from draft data (no knowledge
+// entries yet) — used by both the authenticated draft chat and the anonymous
+// pre-signup try-it chat.
+function buildDraftChatSystemPrompt(opts: {
+  name: string;
+  title: string;
+  positioning: string;
+  careerHistory: string;
+  stories: string;
+  skills: string;
+}): string {
+  return `You are the AI representative of ${opts.name}, a ${opts.title}. Answer questions about their career authentically and concisely, as if you are them. Use first person.
+
+ABOUT THEM:
+${opts.positioning}
+
+CAREER HISTORY:
+${opts.careerHistory}
+
+KEY STORIES:
+${opts.stories}
+
+SKILLS: ${opts.skills}
+
+RULES:
+- Answer in first person as ${opts.name}
+- Be specific — use real details from the career data above
+- Keep answers to 2-3 sentences max
+- If asked something not in the data, say "That's something I'd love to discuss directly"
+- Sound human, not like a chatbot`;
 }
 
 function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -201,6 +261,28 @@ export async function registerRoutes(
         emailVerified: false,
         ...(referredBy ? { referredBy } : {}),
       });
+
+      // Claim any anonymous try-it draft from this session into the new account —
+      // the CV upload + AI draft they saw before registering becomes their real profile.
+      const anonDraft = getLiveAnonDraft(req);
+      if (anonDraft) {
+        try {
+          await storage.upsertProfile({
+            customerId: customer.id,
+            questionnaireData: anonDraft.questionnaireDraft,
+            displayName: anonDraft.extractedData?.name || null,
+            roleTitle: anonDraft.extractedData?.currentTitle || null,
+            positioning: anonDraft.portfolioPreview?.positioning || null,
+            heroSubtitle: anonDraft.portfolioPreview?.heroSubtitle || null,
+            stats: anonDraft.portfolioPreview?.stats?.length ? anonDraft.portfolioPreview.stats : null,
+            careerTimeline: anonDraft.portfolioPreview?.careerTimeline?.length ? anonDraft.portfolioPreview.careerTimeline : null,
+          });
+          delete req.session.anonDraft;
+          logger.info("[Register] Claimed anonymous draft", { customerId: customer.id });
+        } catch (claimErr) {
+          logger.warn("[Register] Failed to claim anonymous draft", { error: String(claimErr) });
+        }
+      }
 
       // Send verification email
       const rawToken = crypto.randomBytes(32).toString("hex");
@@ -750,6 +832,110 @@ export async function registerRoutes(
     },
   );
 
+  // ==================== ANONYMOUS TRY-IT FLOW ====================
+  // Pre-signup: let a visitor upload a CV and get a live AI draft + a taste of the
+  // chat before creating an account. No PDF is persisted — parsed once, discarded.
+  // The draft lives in the session only, and is claimed into a real profile on
+  // register (see /api/auth/register below).
+  app.post(
+    "/api/anon/upload-cv",
+    resumeUpload.single("resume"),
+    async (req: Request, res: Response) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ error: "No file uploaded" });
+        }
+        if (req.file.mimetype !== "application/pdf") {
+          return res.status(400).json({
+            error: "Only PDF resumes are supported. Please convert your document to PDF first.",
+          });
+        }
+
+        const extractedData = await parseResumeWithGemini(req.file.buffer);
+
+        const [questionnaireDraft, portfolioPreview] = await Promise.all([
+          generateQuestionnaireDraft(extractedData),
+          generatePortfolioPreview(extractedData),
+        ]);
+        questionnaireDraft._aiDraft = true;
+        questionnaireDraft._aiDraftGeneratedAt = new Date().toISOString();
+        if (portfolioPreview.draftChatQuestions?.length) {
+          questionnaireDraft._draftChatQuestions = portfolioPreview.draftChatQuestions;
+        }
+
+        req.session.anonDraft = {
+          createdAt: Date.now(),
+          chatCount: 0,
+          extractedData,
+          questionnaireDraft,
+          portfolioPreview,
+        };
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => (err ? reject(err) : resolve()));
+        });
+
+        logger.info("[Anon Upload] Draft generated", { name: extractedData.name });
+        res.json({ extractedData, questionnaireDraft, portfolioPreview });
+      } catch (error: any) {
+        logger.error("[Anon Upload] Error", { error: String(error) });
+        res.status(500).json({
+          error: error.message || "Failed to parse resume. Please try again.",
+        });
+      }
+    },
+  );
+
+  app.post("/api/anon/chat", async (req: Request, res: Response) => {
+    try {
+      const draft = getLiveAnonDraft(req);
+      if (!draft) {
+        return res.status(404).json({ error: "No draft found. Upload a CV to try the chat." });
+      }
+      if (draft.chatCount >= ANON_DRAFT_MAX_MESSAGES) {
+        return res.status(429).json({ error: "You've reached the try-it chat limit. Create a free account to keep talking to your Twin." });
+      }
+
+      const { message } = req.body;
+      if (!message) return res.status(400).json({ error: "message required" });
+
+      const q = draft.questionnaireDraft || {};
+      const name = q.step1?.fullName || draft.extractedData?.name || "this professional";
+      const title = q.step1?.currentTitle || draft.extractedData?.currentTitle || "Senior Professional";
+      const positioning = draft.portfolioPreview?.positioning || q.step2?.professionalSummary || "";
+      const careerHistory = (q.step2?.careerHistory || [])
+        .map((r: any) => `${r.title} at ${r.company} (${r.years}): ${(r.achievements || "").slice(0, 300)}`)
+        .join("\n");
+      const stories = (q.step4?.stories || [])
+        .map((s: any) => `Story: ${s.title}\nChallenge: ${s.challenge}\nResult: ${s.result}`)
+        .join("\n\n");
+      const skills = q.step6?.technicalSkills || "";
+
+      const systemPrompt = buildDraftChatSystemPrompt({ name, title, positioning, careerHistory, stories, skills });
+      const safeMessage = (message as string).replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").trim().slice(0, 300);
+
+      const result = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+          { role: "user", parts: [{ text: systemPrompt + "\n\nQuestion: " + safeMessage }] },
+        ],
+      });
+
+      draft.chatCount += 1;
+      req.session.anonDraft = draft;
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => (err ? reject(err) : resolve()));
+      });
+
+      res.json({
+        content: result.text || "I'd be happy to discuss that — let's connect directly.",
+        remaining: ANON_DRAFT_MAX_MESSAGES - draft.chatCount,
+      });
+    } catch (err: any) {
+      logger.error("[Anon Chat] Error", { error: String(err) });
+      res.status(500).json({ error: "Failed to get a response. Please try again." });
+    }
+  });
+
   // ==================== DRAFT CHAT ====================
   // Lightweight chat using draft questionnaire data — no knowledge entries needed
   app.post("/api/chat/draft", requireAuth, async (req: Request, res: Response) => {
@@ -772,25 +958,7 @@ export async function registerRoutes(
         .join("\n\n");
       const skills = draft.step6?.technicalSkills || "";
 
-      const systemPrompt = `You are the AI representative of ${name}, a ${title}. Answer questions about their career authentically and concisely, as if you are them. Use first person.
-
-ABOUT THEM:
-${positioning}
-
-CAREER HISTORY:
-${careerHistory}
-
-KEY STORIES:
-${stories}
-
-SKILLS: ${skills}
-
-RULES:
-- Answer in first person as ${name}
-- Be specific — use real details from the career data above
-- Keep answers to 2-3 sentences max
-- If asked something not in the data, say "That's something I'd love to discuss directly"
-- Sound human, not like a chatbot`;
+      const systemPrompt = buildDraftChatSystemPrompt({ name, title, positioning, careerHistory, stories, skills });
 
       const safeMessage = (message as string).replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").trim().slice(0, 300);
       const result = await ai.models.generateContent({

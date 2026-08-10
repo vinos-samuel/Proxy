@@ -240,7 +240,7 @@ export function serveStatic(app: Express) {
     "/questionnaire", "/preview", "/admin", "/interview", "/onboarding-chat",
     "/job-search", "/preview-draft", "/payment/success", "/payment/cancelled",
     "/forgot-password", "/reset-password", "/verify-email", "/privacy",
-    "/terms", "/pricing",
+    "/terms", "/pricing", "/try",
   ]);
 
   // SPA catch-all — real 404 status for anything that isn't a known static

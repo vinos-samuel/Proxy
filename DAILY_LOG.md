@@ -474,3 +474,36 @@
 **Blockers**
 - `/portfolio/username?draft=true` showing "Portfolio Not Found" — API query URL bug not yet resolved (carry to next session)
 - All changes on `feature/onboarding-preview` branch — not yet merged to main
+
+---
+## 2026-06-15
+
+**Tasks Completed**
+- Fixed draft-portfolio login redirect: logged-out users hitting `/portfolio/username?draft=true` now redirect to `/login?next=...` and return to draft after login
+- Sent reactivation emails to 14 `draft`-status users with personalized draft profile links
+- Drafted reply to customer account-deletion request (Leslie Asmussen)
+- Reviewed blog broadcast options (Resend Broadcasts vs Loops.so) — chose Resend, created audience
+- Drafted and troubleshot blog announcement email in Resend (merge tags, link formatting, removed default template block, dropped P.S. reactivation CTA per discussion)
+
+**Files Modified**
+- `client/src/pages/portfolio.tsx` — 403 redirect to login with `?next=` param in draft mode
+- `client/src/pages/auth.tsx` — login redirects to `next` param after success
+- `CLAUDE.md` — session 5 sprint notes
+
+**Blockers**
+- Confirm deploy of login-redirect fix (push to main → Replit pull/build/redeploy) not yet confirmed
+- "Ready" status user email (12 users) drafted but not sent
+
+---
+## 2026-07-16
+
+**Tasks Completed**
+- Fixed GEO audit items 1-3: real 404 status codes, real llms.txt, honest sitemap lastmod — all verified live on myproxy.work
+- Diagnosed and fixed a critical deploy bug: `app.use("/{*path}", ...)` strips the mount path so `req.path` collapsed to `"/"` on every request, silently defeating the 404 catch-all — switched to `app.all` which doesn't strip the path
+- Long debugging chain: wrong Repl deployed first (NEN, not Proxy), then confirmed NODE_ENV=production was correctly set — real bug was in the routing code itself, not infra
+
+**Files Modified**
+- `server/static.ts` — `app.use` → `app.all` for the SPA catch-all (root cause fix)
+
+**Blockers**
+- None — all three GEO fixes confirmed live via curl

@@ -1,9 +1,50 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { FileText, Zap, Rocket, X, Check } from "lucide-react";
+import { FileText, Zap, Rocket, X, Check, Send, Loader2 } from "lucide-react";
 import ProxyLogo from "@/components/ProxyLogo";
+import { getCsrfToken } from "@/lib/queryClient";
 
 export default function LandingPage() {
   const [, navigate] = useLocation();
+
+  // Live chat-in-hero — ask the demo profile a real question, no click-through.
+  // Uses the same public, unauthenticated /api/chat/:username endpoint the
+  // portfolio page itself uses.
+  const [heroQuestion, setHeroQuestion] = useState("");
+  const [heroAnswer, setHeroAnswer] = useState("");
+  const [heroAsking, setHeroAsking] = useState(false);
+  const heroSuggestions = [
+    "How did you migrate 40,000 accounts with zero downtime?",
+    "What's your approach when you inherit a struggling team?",
+  ];
+
+  const askHeroDemo = async (question: string) => {
+    const text = question.trim();
+    if (!text || heroAsking) return;
+    setHeroAsking(true);
+    setHeroAnswer("");
+    try {
+      const csrfToken = getCsrfToken();
+      const response = await fetch("/api/chat/priya", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
+        },
+        body: JSON.stringify({ message: text }),
+      });
+      if (!response.ok) {
+        setHeroAnswer("Couldn't reach the demo right now — try the full example below.");
+        return;
+      }
+      const data = await response.json();
+      setHeroAnswer(data.content || "");
+    } catch {
+      setHeroAnswer("Couldn't reach the demo right now — try the full example below.");
+    } finally {
+      setHeroAsking(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white text-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -58,11 +99,11 @@ export default function LandingPage() {
               </p>
               <div className="flex gap-4 flex-wrap">
                 <button
-                  onClick={() => navigate("/register")}
+                  onClick={() => navigate("/try")}
                   className="bg-[#22C55E] text-black px-8 py-4 font-bold hover:bg-[#16A34A] border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
                   data-testid="button-hero-cta"
                 >
-                  Build Your Profile Free &rarr;
+                  Try It With Your CV — Free &rarr;
                 </button>
                 <a
                   href="https://myproxy.work/portfolio/priya"
@@ -76,10 +117,16 @@ export default function LandingPage() {
                 </a>
               </div>
               <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 mono text-xs font-bold uppercase tracking-wider text-black/60">
-                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> No credit card</span>
+                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> No account to try it</span>
                 <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Free to start</span>
                 <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Private until you publish</span>
               </div>
+              <button
+                onClick={() => navigate("/register")}
+                className="text-sm text-black/50 hover:text-black underline mt-3"
+              >
+                Already sure? Create an account directly &rarr;
+              </button>
               <p className="text-base font-semibold text-black mt-5">
                 Professional enough to send to a headhunter. Personal enough to actually represent you.
               </p>
@@ -110,9 +157,52 @@ export default function LandingPage() {
                 playsInline
                 className="w-full"
               />
-              <div className="border-t border-white/10 p-3 mono text-xs text-white/40 text-center">
-                // real conversation · try it yourself ·{" "}
-                <a href="https://myproxy.work/portfolio/priya" target="_blank" rel="noopener noreferrer" className="text-[#22C55E] hover:underline">myproxy.work/portfolio/priya</a>
+              <div className="border-t border-white/10 p-4">
+                <p className="mono text-xs text-white/40 mb-2">// ask her something real, right now</p>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    askHeroDemo(heroQuestion);
+                  }}
+                  className="flex gap-2 mb-2"
+                >
+                  <input
+                    value={heroQuestion}
+                    onChange={(e) => setHeroQuestion(e.target.value)}
+                    placeholder="Ask about her experience..."
+                    className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#22C55E]/50"
+                    data-testid="input-hero-chat"
+                  />
+                  <button
+                    type="submit"
+                    disabled={heroAsking || !heroQuestion.trim()}
+                    className="bg-[#22C55E] disabled:opacity-40 text-black px-3 py-2 rounded font-bold"
+                    data-testid="button-hero-chat-send"
+                  >
+                    {heroAsking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </button>
+                </form>
+                {!heroAnswer && !heroAsking && (
+                  <div className="flex flex-wrap gap-2">
+                    {heroSuggestions.map((q, i) => (
+                      <button
+                        key={i}
+                        onClick={() => { setHeroQuestion(q); askHeroDemo(q); }}
+                        className="text-xs text-white/50 border border-white/10 rounded-full px-3 py-1 hover:text-white hover:border-white/30"
+                        data-testid={`button-hero-suggestion-${i}`}
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {heroAnswer && (
+                  <p className="text-sm text-white/90 leading-relaxed" data-testid="text-hero-answer">{heroAnswer}</p>
+                )}
+                <p className="mono text-xs text-white/30 mt-3 text-center">
+                  Real conversation ·{" "}
+                  <a href="https://myproxy.work/portfolio/priya" target="_blank" rel="noopener noreferrer" className="text-[#22C55E] hover:underline">see the full profile</a>
+                </p>
               </div>
             </div>
 

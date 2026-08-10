@@ -29,6 +29,7 @@ import TwinInterviewPage from "@/pages/twin-interview";
 import OnboardingChatPage from "@/pages/onboarding-chat";
 import JobSearchPage from "@/pages/job-search";
 import PreviewDraftPage from "@/pages/preview-draft";
+import TryPage from "@/pages/try";
 import { Loader2 } from "lucide-react";
 import { Redirect } from "wouter";
 
@@ -83,6 +84,7 @@ function Router() {
       <ReferralCapture />
     <Switch>
       <Route path="/" component={LandingPage} />
+      <Route path="/try" component={TryPage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/blog" component={BlogPage} />
       <Route path="/blog/:slug" component={BlogPostPage} />

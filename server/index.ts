@@ -81,6 +81,17 @@ const chatLimiter = rateLimit({
   },
 });
 
+// Anonymous pre-signup try-it flow (CV upload + draft chat, no account required).
+// Stricter than the authenticated limiters — IP is the only signal we have here.
+const anonLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 8, // 8 requests per hour per IP, shared across upload + chat
+  standardHeaders: false,
+  handler: (_req, res) => {
+    res.status(429).json({ error: "Too many requests, please try again later." });
+  },
+});
+
 // Apply general API limiter to all /api/* routes
 app.use("/api/", generalApiLimiter);
 
@@ -93,6 +104,10 @@ app.post("/api/auth/resend-verification", authLimiter);
 
 // Apply chat limiter to the public portfolio chat endpoint
 app.post("/api/chat/:username", chatLimiter);
+
+// Anonymous pre-signup try-it flow — CV upload + draft chat, no account required
+app.post("/api/anon/upload-cv", anonLimiter);
+app.post("/api/anon/chat", anonLimiter);
 
 // CSRF protection using double-submit cookie pattern
 app.use((req: Request, res: Response, next: NextFunction) => {

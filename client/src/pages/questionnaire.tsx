@@ -38,7 +38,8 @@ const COMMUNICATION_STYLES = [
 ];
 
 const BRANDING_THEMES = [
-  { value: "corporate", label: "Corporate", description: "Traditional industries. Authoritative, institutional. Think: Finance, Consulting, Corporate HR." },
+  { value: "executive", label: "Executive (recommended)", description: "Light, confident, built for senior professionals. The default for new profiles." },
+  { value: "corporate", label: "Dark", description: "Traditional industries. Authoritative, institutional. Think: Finance, Consulting, Corporate HR." },
   { value: "tech", label: "Tech", description: "Technology & innovation. Modern, cutting-edge. Think: Startups, AI/ML, Product." },
   { value: "creative", label: "Creative", description: "Design & strategy. Refined, confident. Think: Consulting, Coaching, Creative roles." },
 ];
@@ -141,7 +142,7 @@ const defaultData: QuestionnaireData = {
       { objection: "", response: "" },
     ],
   },
-  step10: { brandingTheme: "corporate", headshot: "", introVideo: "", cvResume: "" },
+  step10: { brandingTheme: "executive", headshot: "", introVideo: "", cvResume: "" },
   step11: { suggestedQuestions: "", specialInstructions: "", easterEgg: "" },
 };
 

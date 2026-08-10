@@ -379,7 +379,7 @@ Return ONLY valid JSON, no markdown:
     fallbackResponse: `I appreciate the question, but that's outside my area of expertise. I'm ${s1Name}, and I'm happy to discuss my experience as a ${s1Title}. Feel free to ask about my career history, key projects, or professional philosophy.`,
     photoUrl: data.step10?.headshot || null,
     resumeUrl: data.step3?.resumeUrl || null,
-    brandingTheme: data.step10?.brandingTheme || "corporate",
+    brandingTheme: data.step10?.brandingTheme || "executive",
     videoUrl: data.step10?.introVideo || null,
     cvResumeUrl: data.step10?.cvResume || null,
     heroSubtitle: portfolioData.heroSubtitle || null,
@@ -1192,7 +1192,7 @@ REQUIRED OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
     ]
   },
   "step10": {
-    "brandingTheme": "string (one of: corporate, tech, creative — based on their industry)",
+    "brandingTheme": "string (one of: executive, corporate, tech, creative — see rules below)",
     "headshot": "",
     "introVideo": "",
     "cvResume": ""
@@ -1208,7 +1208,7 @@ RULES:
 - step4.stories: generate exactly 3 stories from the most impactful roles/achievements
 - step8.questions: generate exactly 5 likely questions with specific draft answers
 - step9.objections: generate exactly 3 common objections with direct, honest responses
-- step10.brandingTheme: choose "corporate", "tech", or "creative" based on their industry
+- step10.brandingTheme: default to "executive" unless their industry clearly fits another theme — "tech" for startups/AI/ML/product roles, "creative" for design/coaching/creative roles, "corporate" for traditional finance/consulting/institutional roles
 - step7.communicationStyle: choose one of direct/warm/technical/strategic based on their role type
 - Use first person ("I") throughout
 - Be specific — use company names, years, technologies from the resume

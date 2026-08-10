@@ -159,6 +159,32 @@ const themes = {
     timelineLineColor: "bg-[#8BA888]/30",
     selectionColor: "selection:bg-[#8BA888]/30",
   },
+  executive: {
+    name: "Executive",
+    bg: "bg-[#FAFAF7]",
+    fontFamily: "'Space Grotesk', sans-serif",
+    cardStyle: "rounded-lg border border-[#E7E7E1] bg-white shadow-sm",
+    metricStyle: { className: "text-4xl font-bold text-[#1A1A1A]", style: {} as Record<string, string> },
+    gradient: "",
+    glass: "bg-white border border-[#E7E7E1] shadow-sm",
+    glassHover: "hover:shadow-md transition-shadow duration-300",
+    accent: "from-[#15803D] to-[#15803D]",
+    accentSolid: "text-[#15803D]",
+    glow: "shadow-sm",
+    text: "text-[#1A1A1A]",
+    muted: "text-[#5A5A62]",
+    headingClass: "font-['Space_Grotesk',sans-serif] tracking-tight",
+    bodyClass: "font-sans",
+    chatUserBg: "bg-[#15803D] text-white",
+    chatBotBg: "bg-white border border-[#E7E7E1] text-[#1A1A1A]",
+    ctaBg: "bg-[#15803D] hover:bg-[#166534]",
+    ctaGlow: "shadow-sm",
+    sectionLabel: (_num: number) => "",
+    moduleStyle: "formal" as const,
+    dotColor: "bg-[#15803D]",
+    timelineLineColor: "bg-[#15803D]/30",
+    selectionColor: "selection:bg-[#15803D]/20",
+  },
 };
 
 export default function PortfolioPage() {
@@ -337,13 +363,27 @@ export default function PortfolioPage() {
   }
 
   const profile = portfolio.profile;
-  const rawTheme = profile.brandingTheme?.toLowerCase() || "corporate";
+  const rawTheme = profile.brandingTheme?.toLowerCase() || "executive";
   const themeMap: Record<string, keyof typeof themes> = {
-    executive: "corporate", futurist: "tech", minimalist: "creative",
+    executive: "executive", futurist: "tech", minimalist: "creative",
     corporate: "corporate", tech: "tech", creative: "creative",
   };
-  const brandingTheme = themeMap[rawTheme] || "corporate";
+  const brandingTheme = themeMap[rawTheme] || "executive";
   const theme = themes[brandingTheme];
+  const isLight = brandingTheme === "executive";
+  // Small set of light/dark equivalents for the handful of hardcoded (non-theme-object)
+  // utility classes used throughout this file — added so the Executive theme renders
+  // legibly instead of inheriting styling built only for the dark themes.
+  const rawHairline = isLight ? "border-black/10" : "border-white/10";
+  const rawPanelBg = isLight ? "bg-black/[0.03]" : "bg-white/5";
+  const rawPanelBorder = isLight ? "border-black/10" : "border-white/10";
+  const rawAvatarRing = isLight ? "border-black/10" : "border-white/20";
+  const rawAvatarFallback = isLight ? "bg-[#E7E7E1] text-[#1A1A1A]" : "bg-white/10 text-white";
+  const rawStrongText = isLight ? "text-[#1A1A1A]" : "text-white";
+  const rawMutedText = isLight ? "text-[#5A5A62]" : "text-white/75";
+  const rawInputClass = isLight
+    ? "flex-1 bg-white border border-[#E7E7E1] rounded-xl px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#15803D]/40 transition-all text-[#1A1A1A] placeholder:text-[#8A8A92]"
+    : "flex-1 bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-white placeholder:text-white/30";
   const hasVideo = !!profile.videoUrl;
   const hasPhoto = !!profile.photoUrl;
   // In draft mode always show the media column so placeholders appear
@@ -455,9 +495,9 @@ export default function PortfolioPage() {
               <div className="flex items-center gap-4 mb-6">
                 {hasVideo && hasPhoto && (
                   <div className="relative shrink-0">
-                    <Avatar className="h-20 w-20 border-2 border-white/20">
+                    <Avatar className={`h-20 w-20 border-2 ${rawAvatarRing}`}>
                       <AvatarImage src={profile.photoUrl!} alt={profile.displayName} />
-                      <AvatarFallback className="bg-white/10 text-white text-lg">{initials}</AvatarFallback>
+                      <AvatarFallback className={`${rawAvatarFallback} text-lg`}>{initials}</AvatarFallback>
                     </Avatar>
                     <div className={`absolute -bottom-1 -right-1 ${theme.dotColor} text-[9px] font-black text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider`}>
                       Open
@@ -537,7 +577,9 @@ export default function PortfolioPage() {
               animate={{ opacity: 1, scale: 1 }}
               className="md:col-span-2 relative"
             >
-              <div className={`absolute -inset-6 bg-gradient-to-r ${theme.accent} opacity-15 blur-3xl rounded-full pointer-events-none`} />
+              {!isLight && (
+                <div className={`absolute -inset-6 bg-gradient-to-r ${theme.accent} opacity-15 blur-3xl rounded-full pointer-events-none`} />
+              )}
               {hasVideo ? (
                 <div className="relative">
                   <div className={`${theme.glass} rounded-2xl overflow-hidden ${theme.glow}`}>
@@ -626,9 +668,9 @@ export default function PortfolioPage() {
         {isDraftMode ? (
           <div className={`${theme.glass} rounded-3xl overflow-hidden flex flex-col ${theme.glow} relative`} style={{ minHeight: "500px" }}>
             {/* PERSONALITY HEADER — same as live */}
-            <div className={`flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border-b border-white/10`}>
+            <div className={`flex items-center gap-4 p-4 ${rawPanelBg} backdrop-blur-xl border-b ${rawPanelBorder} ${rawStrongText}`}>
               <div className="relative">
-                <Avatar className="w-14 h-14 border-2 border-white/20">
+                <Avatar className={`w-14 h-14 border-2 ${rawAvatarRing}`}>
                   <AvatarImage src={profile.photoUrl || ""} alt={profile.displayName} />
                   <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
@@ -636,7 +678,7 @@ export default function PortfolioPage() {
               </div>
               <div>
                 <h3 className="text-lg font-semibold">I'm {profile.displayName?.split(' ')[0]}'s Digital Twin</h3>
-                <p className="text-sm text-white/70">Ask me about my experience, approach, or war stories</p>
+                <p className={`text-sm ${rawMutedText}`}>Ask me about my experience, approach, or war stories</p>
               </div>
             </div>
             {/* Teaser body */}
@@ -667,9 +709,9 @@ export default function PortfolioPage() {
         ) : (
         <div className={`${theme.glass} rounded-3xl overflow-hidden flex flex-col ${theme.glow} relative`} style={{ minHeight: "600px" }}>
           {/* PERSONALITY HEADER */}
-          <div className={`flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border-b border-white/10`}>
+          <div className={`flex items-center gap-4 p-4 ${rawPanelBg} backdrop-blur-xl border-b ${rawPanelBorder} ${rawStrongText}`}>
             <div className="relative">
-              <Avatar className="w-14 h-14 border-2 border-white/20">
+              <Avatar className={`w-14 h-14 border-2 ${rawAvatarRing}`}>
                 <AvatarImage src={profile.photoUrl || ""} alt={profile.displayName} />
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
@@ -677,7 +719,7 @@ export default function PortfolioPage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold">I'm {profile.displayName?.split(' ')[0]}'s Digital Twin</h3>
-              <p className="text-sm text-white/70">Ask me about my experience, approach, or war stories</p>
+              <p className={`text-sm ${rawMutedText}`}>Ask me about my experience, approach, or war stories</p>
             </div>
           </div>
 
@@ -752,8 +794,8 @@ export default function PortfolioPage() {
                   <AvatarImage src={profile.photoUrl || ""} alt={profile.displayName} />
                   <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
-                <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
-                  <span className="text-white/70 text-xs">{profile.displayName?.split(' ')[0]} is typing</span>
+                <div className={`flex items-center gap-2 ${isLight ? "bg-black/5" : "bg-white/10"} px-4 py-2 rounded-lg`}>
+                  <span className={`${rawMutedText} text-xs`}>{profile.displayName?.split(' ')[0]} is typing</span>
                   <div className="flex gap-1">
                     <div className={`w-1.5 h-1.5 ${theme.dotColor} rounded-full animate-bounce`} style={{animationDelay: '0ms'}}></div>
                     <div className={`w-1.5 h-1.5 ${theme.dotColor} rounded-full animate-bounce`} style={{animationDelay: '150ms'}}></div>
@@ -764,14 +806,14 @@ export default function PortfolioPage() {
             )}
           </div>
           
-          <div className="p-4 border-t border-white/10 bg-white/[0.02]">
+          <div className={`p-4 border-t ${rawPanelBorder} ${isLight ? "bg-black/[0.015]" : "bg-white/[0.02]"}`}>
             <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-2">
               <input
                 ref={inputRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask about strategy, experience, or specific roles..."
-                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-white placeholder:text-white/30"
+                className={rawInputClass}
                 data-testid="input-chat"
               />
               <button
@@ -792,9 +834,9 @@ export default function PortfolioPage() {
       {profile.stats && profile.stats.length > 0 && (
         <section className="py-12 px-6 max-w-6xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
-            <div className="h-px flex-1 bg-white/10" />
+            <div className={`h-px flex-1 ${rawHairline}`} />
             <h2 className={`text-2xl font-bold uppercase tracking-widest ${theme.accentSolid} ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{theme.name === 'Tech' && <span className="text-white/30">// </span>}Impact Metrics</h2>
-            <div className="h-px flex-1 bg-white/10" />
+            <div className={`h-px flex-1 ${rawHairline}`} />
           </div>
           <div className={`grid ${brandingTheme === 'creative' ? 'grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'} ${brandingTheme === 'corporate' ? 'gap-3' : 'gap-4'}`}>
             {visibleStats.map((stat, i) => (
@@ -809,7 +851,10 @@ export default function PortfolioPage() {
                     {getIcon(stat.icon, "w-5 h-5 text-white")}
                   </div>
                 )}
-                <div className={`${theme.metricStyle.className} mb-2 bg-gradient-to-r ${theme.accent} bg-clip-text text-transparent`} style={theme.metricStyle.style}>
+                <div
+                  className={isLight ? theme.metricStyle.className + " mb-2" : `${theme.metricStyle.className} mb-2 bg-gradient-to-r ${theme.accent} bg-clip-text text-transparent`}
+                  style={theme.metricStyle.style}
+                >
                   {stat.value}
                 </div>
                 <div className={`${theme.muted} text-xs uppercase tracking-wider`}>{stat.label}</div>
@@ -827,7 +872,7 @@ export default function PortfolioPage() {
             </div>
           )}
           {isDraftMode && (
-            <p className="text-center mt-6 mono text-xs text-white/40 italic">
+            <p className={`text-center mt-6 mono text-xs ${rawMutedText} italic`}>
               Based on your CV only. Complete the questionnaire to show your full impact.{" "}
               <button onClick={() => navigate("/onboarding-chat")} className="text-[#E8A75D] hover:underline">Complete now →</button>
             </p>
@@ -868,10 +913,10 @@ export default function PortfolioPage() {
               profile.whereImMostUseful.scenarios.map((scenario, i) => (
                 <div key={i} className={`${theme.cardStyle} p-6 group`}>
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-gradient-to-r ${theme.accent} bg-opacity-20`}>
-                    {getIcon(scenario.icon, "w-6 h-6 text-white/80")}
+                    {getIcon(scenario.icon, `w-6 h-6 ${isLight ? theme.accentSolid : "text-white/80"}`)}
                   </div>
-                  <h3 className="font-semibold text-sm mb-2 text-white/90">{scenario.title}</h3>
-                  <p className="text-white/70 text-sm leading-relaxed">{scenario.description}</p>
+                  <h3 className={`font-semibold text-sm mb-2 ${rawStrongText}`}>{scenario.title}</h3>
+                  <p className={`${rawMutedText} text-sm leading-relaxed`}>{scenario.description}</p>
                 </div>
               ))
             ) : (
@@ -954,19 +999,19 @@ export default function PortfolioPage() {
                       </div>
                       <div className="p-4 space-y-3">
                       {entry.roles!.map((role, j) => (
-                        <div key={j} className={`bg-white/5 border border-white/10 p-5 rounded-lg ${theme.glassHover} w-full overflow-hidden`}>
+                        <div key={j} className={`${rawPanelBg} border ${rawPanelBorder} p-5 rounded-lg ${theme.glassHover} w-full overflow-hidden`}>
                           <div className="flex flex-wrap justify-between items-start mb-2 gap-2">
-                            <h4 className="text-xl font-bold text-white/90">{role.title}</h4>
-                            <span className="text-sm text-white/75 font-medium">{role.years}</span>
+                            <h4 className={`text-xl font-bold ${rawStrongText}`}>{role.title}</h4>
+                            <span className={`text-sm ${rawMutedText} font-medium`}>{role.years}</span>
                           </div>
                           {cleanAch(role.achievements).length > 0 && (
                             <details className="mt-4">
                               <summary className={`cursor-pointer text-sm ${theme.accentSolid} font-bold hover:opacity-80 transition-opacity flex items-center gap-1`}>
                                 <span>▸</span> Role Context & Achievements ({cleanAch(role.achievements).length})
                               </summary>
-                              <ul className="mt-3 space-y-2 pl-5 border-l border-white/10">
+                              <ul className={`mt-3 space-y-2 pl-5 border-l ${rawHairline}`}>
                                 {cleanAch(role.achievements).map((a, k) => (
-                                  <li key={k} className="text-white/80 text-sm leading-relaxed">{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
+                                  <li key={k} className={`${rawMutedText} text-sm leading-relaxed`}>{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
                                 ))}
                               </ul>
                             </details>
@@ -985,19 +1030,19 @@ export default function PortfolioPage() {
                   <div className={theme.glass + " p-8 rounded-xl w-full overflow-hidden " + theme.glassHover}>
                     <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
                       <div>
-                        <h3 className={`text-2xl font-bold mb-1 ${theme.headingClass} text-white`}>{entry.title}</h3>
+                        <h3 className={`text-2xl font-bold mb-1 ${theme.headingClass} ${rawStrongText}`}>{entry.title}</h3>
                         <p className={`text-xl font-bold ${theme.accentSolid}`}>{entry.company}</p>
                       </div>
-                      <span className="text-sm text-white/75 font-medium">{entry.years}</span>
+                      <span className={`text-sm ${rawMutedText} font-medium`}>{entry.years}</span>
                     </div>
                     {cleanAch(entry.achievements).length > 0 && (
                       <details className="mt-6">
                         <summary className={`cursor-pointer text-sm ${theme.accentSolid} font-bold hover:opacity-80 transition-opacity flex items-center gap-1`}>
                           <span>▸</span> Role Context & Achievements ({cleanAch(entry.achievements).length})
                         </summary>
-                        <ul className="mt-4 space-y-3 pl-6 border-l border-white/10">
+                        <ul className={`mt-4 space-y-3 pl-6 border-l ${rawHairline}`}>
                           {cleanAch(entry.achievements).map((a, j) => (
-                            <li key={j} className="text-white/85 text-sm leading-relaxed">{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
+                            <li key={j} className={`${rawMutedText} text-sm leading-relaxed`}>{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
                           ))}
                         </ul>
                       </details>
@@ -1042,7 +1087,7 @@ export default function PortfolioPage() {
               <div key={i} className={`${theme.cardStyle} p-6 ${brandingTheme === 'creative' && i === 0 ? 'md:col-span-2' : ''}`} data-testid={`skill-card-${i}`}>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-white/10 border border-white/20 group-hover:border-white/30 transition-colors shadow-sm`}>
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isLight ? "bg-black/5 border border-black/10 group-hover:border-black/20" : "bg-white/10 border border-white/20 group-hover:border-white/30"} transition-colors shadow-sm`}>
                       {getIcon(skill.icon, `w-6 h-6 ${theme.accentSolid} opacity-100 drop-shadow-md`)}
                     </div>
                     <h3 className="text-lg font-bold">{skill.title}</h3>
@@ -1094,7 +1139,7 @@ export default function PortfolioPage() {
       ) : null}
 
       {/* 9. FOOTER */}
-      <footer className="py-12 px-6 border-t border-white/10">
+      <footer className={`py-12 px-6 border-t ${rawHairline}`}>
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
             <div className={`text-sm ${theme.muted}`}>
@@ -1112,7 +1157,7 @@ export default function PortfolioPage() {
                 </a>
               )}
               {isDraftMode && !portfolio.contact.email && (
-                <span className="text-white/30 text-sm italic">Add your email in the questionnaire</span>
+                <span className={`${rawMutedText} text-sm italic`}>Add your email in the questionnaire</span>
               )}
             </div>
           </div>
@@ -1148,14 +1193,14 @@ export default function PortfolioPage() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`${theme.glass} w-full max-w-lg rounded-3xl overflow-hidden ${theme.glow} border-white/20`}
+            className={`${theme.glass} w-full max-w-lg rounded-3xl overflow-hidden ${theme.glow} ${rawStrongText}`}
           >
             <div className="p-8 space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className={`text-2xl font-bold ${theme.headingClass}`}>Get in Touch</h3>
-                <button 
+                <button
                   onClick={() => setShowEmailModal(false)}
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                  className={`p-2 ${isLight ? "hover:bg-black/5" : "hover:bg-white/10"} rounded-full transition-colors`}
                 >
                   <Globe className="w-6 h-6 rotate-45" /> {/* Use Globe as a close X if X is missing, or just a placeholder */}
                   <span className="sr-only">Close</span>
@@ -1163,9 +1208,9 @@ export default function PortfolioPage() {
               </div>
 
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <div className={`p-4 rounded-xl ${rawPanelBg} border ${rawPanelBorder}`}>
                   <p className={`${theme.muted} text-sm mb-1`}>Contact Email</p>
-                  <p className="font-mono text-lg">{portfolio.contact.email}</p>
+                  <p className={`font-mono text-lg ${rawStrongText}`}>{portfolio.contact.email}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

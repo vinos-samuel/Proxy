@@ -204,6 +204,7 @@ export default function PortfolioPage() {
   const isDemo = username === "test2" && new URLSearchParams(search).get("demo") === "true" && !user && !demoBannerDismissed;
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasAutoFiredRef = useRef(false);
 
   const { data: portfolio, isLoading, error } = useQuery<PortfolioData>({
     queryKey: ["/api/portfolio", username, isDraftMode],
@@ -321,6 +322,20 @@ export default function PortfolioPage() {
     }
   };
 
+  // Auto-fire the first suggested question once, on real page loads only —
+  // a recruiter gets a real, specific answer already sitting there instead of
+  // an empty chat box to type into. Skipped in draft mode, where the chat is a
+  // locked teaser, not a live conversation.
+  useEffect(() => {
+    if (!portfolio || isDraftMode || hasAutoFiredRef.current) return;
+    const firstQuestion =
+      portfolio.suggestedQuestions?.[0] || portfolio.profile.portfolioSuggestedQuestions?.[0];
+    if (!firstQuestion) return;
+    hasAutoFiredRef.current = true;
+    handleSendMessage(firstQuestion);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [portfolio, isDraftMode]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#18181b] flex items-center justify-center">
@@ -339,7 +354,7 @@ export default function PortfolioPage() {
         {isDemo && !demoBannerDismissed && (
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
             <p className="text-white text-sm font-medium flex-1 min-w-0">
-              <span className="text-[#22C55E] font-bold">This is a real conversation, not a script.</span> Ask it something, explore the profile — then build your own.
+              <span className="text-[#22C55E] font-bold">Ask it something real.</span> Explore the profile, then build your own.
             </p>
             <div className="flex items-center gap-3 shrink-0">
               <button
@@ -403,6 +418,385 @@ export default function PortfolioPage() {
         : ["Tell me about yourself", "What's your biggest achievement?", "How do you handle challenges?"];
 
   const visibleStats = showAllStats ? (profile.stats || []) : (profile.stats || []).slice(0, 6);
+
+  // ==========================================================================
+  // EXECUTIVE THEME — rendered as its own layout, not a recolor of the shared
+  // template. A confidential-briefing-document concept: margin annotations
+  // instead of a nav, the positioning line as the headline, a ledger "scope
+  // band" of real figures, an interrogation transcript instead of chat
+  // bubbles, career record instead of cards. See docs design review for the
+  // full rationale. Empty sections collapse rather than showing placeholders
+  // or lock overlays, in both draft and live — the chat itself is fully live
+  // in draft mode too (handleSendMessage already routes to /api/chat/draft),
+  // consistent with the publish-first direction: gate the account, not the
+  // conversation.
+  if (brandingTheme === "executive") {
+    const dCareer = profile.careerTimeline || [];
+    const dSkillsMatrix = profile.skillsMatrix || [];
+    const dSkillTags = profile.skillTags || [];
+    const dStats = (profile.stats || []).slice(0, 4);
+    const dPositioning = (profile.positioning || "").split("\n\n").filter(Boolean);
+    const dRoleLine = [profile.roleTitle, dCareer[0]?.company].filter(Boolean).join(" — ");
+    const dRemainingQs = suggestedQs.filter((q) => !messages.some((m) => m.role === "user" && m.content === q)).slice(0, 3);
+
+    const renderAnswer = (content: string) => (
+      <div className="space-y-3">
+        {content.split(/\n\n+/).map((paragraph, pi) => {
+          const parts = paragraph.split(/(\*\*[^*]+\*\*)/g);
+          return (
+            <p key={pi}>
+              {parts.map((part, partI) =>
+                part.startsWith("**") && part.endsWith("**")
+                  ? <strong key={partI}>{part.slice(2, -2)}</strong>
+                  : <span key={partI}>{part}</span>
+              )}
+            </p>
+          );
+        })}
+      </div>
+    );
+
+    return (
+      <div className="min-h-screen bg-[#F2F1EC] text-[#1B211E]" style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif" }}>
+        <style>{`
+          .dossier-serif { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif; }
+          .dossier-mono { font-family: "SF Mono", "IBM Plex Mono", Menlo, Consolas, monospace; }
+          .dossier-tab { font-variant-numeric: tabular-nums; }
+        `}</style>
+
+        {/* Document header */}
+        <header className="border-b border-[#DBD9CD] py-4 px-6">
+          <div className="max-w-[920px] mx-auto flex justify-between items-center gap-4 flex-wrap">
+            <div className="dossier-mono text-[11px] tracking-wide text-[#5B6158]">
+              PROXY / EXECUTIVE PROFILE
+            </div>
+            <div className="dossier-mono text-[11px] uppercase tracking-wider text-[#5B6158] flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#2F5D4C] inline-block" />
+              {isDraftMode ? "Draft preview — not live yet" : "Published"}
+            </div>
+          </div>
+        </header>
+
+        {/* Hero */}
+        <section className="py-14 px-6 border-b border-[#DBD9CD]">
+          <div className="max-w-[920px] mx-auto grid md:grid-cols-[108px_1fr] gap-8">
+            <div className="flex md:flex-col gap-5 md:gap-4 pt-1 flex-wrap">
+              {hasPhoto && (
+                <img
+                  src={profile.photoUrl!}
+                  alt={profile.displayName}
+                  className="w-16 h-16 md:w-full md:h-auto md:aspect-square object-cover border border-[#DBD9CD]"
+                />
+              )}
+              {portfolio.contact.location && (
+                <div>
+                  <div className="dossier-mono text-[11px] uppercase tracking-wide text-[#8B8F84] mb-0.5">Based</div>
+                  <div className="dossier-mono text-[12.5px]">{portfolio.contact.location}</div>
+                </div>
+              )}
+            </div>
+            <div>
+              <h1 className="dossier-serif text-[40px] leading-tight mb-2">{profile.displayName}</h1>
+              {dRoleLine && <div className="dossier-mono text-[13px] text-[#5B6158] uppercase mb-6">{dRoleLine}</div>}
+
+              {dPositioning.length > 0 && (
+                <div className="pl-5 border-l-2 border-[#2F5D4C] my-7">
+                  {dPositioning.map((para, i) => (
+                    <p key={i} className={`dossier-serif italic text-[#1B211E] max-w-[62ch] ${i === 0 ? "text-[27px] leading-snug" : "text-[17px] leading-relaxed mt-3 not-italic text-[#5B6158]"}`}>
+                      {para}
+                    </p>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center gap-6 flex-wrap mt-7">
+                <button
+                  onClick={() => document.getElementById("dossier-interrogation")?.scrollIntoView({ behavior: "smooth" })}
+                  className="dossier-mono text-xs uppercase tracking-wider bg-[#2F5D4C] text-[#F2F1EC] px-6 py-3 inline-flex items-center gap-2 hover:opacity-90 transition-opacity"
+                  data-testid="button-dossier-ask"
+                >
+                  <MessageSquare className="w-4 h-4" /> Ask directly
+                </button>
+                {hasVideo && (
+                  <button
+                    onClick={() => document.getElementById("dossier-video")?.scrollIntoView({ behavior: "smooth" })}
+                    className="dossier-mono text-xs text-[#5B6158] border-b border-[#C3C0B0] pb-0.5 hover:text-[#1B211E] hover:border-[#5B6158] transition-colors"
+                  >
+                    Watch intro
+                  </button>
+                )}
+                {portfolio.contact.linkedin && (
+                  <a
+                    href={portfolio.contact.linkedin}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="dossier-mono text-xs text-[#5B6158] border-b border-[#C3C0B0] pb-0.5 hover:text-[#1B211E] hover:border-[#5B6158] transition-colors"
+                  >
+                    LinkedIn
+                  </a>
+                )}
+                {profile.cvResumeUrl && (
+                  <a
+                    href={profile.cvResumeUrl}
+                    download
+                    className="dossier-mono text-xs text-[#5B6158] border-b border-[#C3C0B0] pb-0.5 hover:text-[#1B211E] hover:border-[#5B6158] transition-colors"
+                  >
+                    Download CV
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Scope band */}
+        {dStats.length > 0 && (
+          <section className="border-b border-[#DBD9CD]">
+            <div
+              className={
+                "max-w-[920px] mx-auto grid grid-cols-2 " +
+                (dStats.length >= 4 ? "md:grid-cols-4" : dStats.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2")
+              }
+            >
+              {dStats.map((stat, i) => (
+                <div
+                  key={i}
+                  className={
+                    "px-6 py-8 border-[#DBD9CD] md:border-l md:first:border-l-0 " +
+                    (i >= 2 ? "border-t md:border-t-0" : "")
+                  }
+                >
+                  <div className="dossier-serif dossier-tab text-[34px] leading-none mb-2">{stat.value}</div>
+                  <div className="dossier-mono text-[10.5px] uppercase tracking-wide text-[#8B8F84] leading-snug">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Interrogation */}
+        <section className="py-14 px-6 border-b border-[#DBD9CD]" id="dossier-interrogation">
+          <div className="max-w-[920px] mx-auto">
+            <div className="flex justify-between items-baseline gap-5 flex-wrap mb-8">
+              <h2 className="dossier-serif text-[26px]">Ask directly</h2>
+              <div className="text-sm text-[#5B6158] max-w-[46ch]">Answered from the actual record — not a summary of it.</div>
+            </div>
+
+            <div ref={scrollRef} className="flex flex-col gap-6 mb-6 max-h-[480px] overflow-y-auto">
+              {messages.length === 0 && !isStreaming && (
+                <p className="text-[14.5px] text-[#8B8F84] italic">Ask about a project, a decision, or a specific result.</p>
+              )}
+              {messages.map((msg, i) => (
+                msg.role === "user" ? (
+                  <div key={i}>
+                    <span className="dossier-mono text-[10.5px] text-[#2F5D4C] tracking-wide">Q — </span>
+                    <span className="text-[14.5px] text-[#5B6158] italic">{msg.content}</span>
+                  </div>
+                ) : (
+                  <div key={i} className="dossier-serif text-[17.5px] leading-relaxed pl-5 border-l border-[#C3C0B0] max-w-[66ch]">
+                    {renderAnswer(msg.content)}
+                  </div>
+                )
+              ))}
+              {isStreaming && (
+                <div className="flex items-center gap-2 text-[#8B8F84] text-sm">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Answering…
+                </div>
+              )}
+            </div>
+
+            <form
+              onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
+              className="flex gap-2.5 border-t border-[#DBD9CD] pt-5 mt-1"
+            >
+              <input
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Ask about a project, a decision, or a number above…"
+                className="flex-1 bg-transparent border-b border-[#C3C0B0] px-0.5 py-2 text-[14.5px] outline-none focus:border-[#2F5D4C] placeholder:text-[#8B8F84]"
+                data-testid="input-dossier-chat"
+              />
+              <button
+                type="submit"
+                disabled={isStreaming || !inputValue.trim()}
+                className="dossier-mono text-[11.5px] uppercase tracking-wide border border-[#1B211E] px-4 disabled:opacity-40 hover:bg-[#1B211E] hover:text-[#F2F1EC] transition-colors"
+                data-testid="button-dossier-send"
+              >
+                Ask
+              </button>
+            </form>
+            {dRemainingQs.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {dRemainingQs.map((q, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSendMessage(q)}
+                    className="dossier-mono text-[11px] text-[#5B6158] border border-[#C3C0B0] px-3 py-1.5 hover:border-[#2F5D4C] hover:text-[#2F5D4C] transition-colors"
+                    data-testid={`button-dossier-suggestion-${i}`}
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Video (secondary, optional) */}
+        {hasVideo && (
+          <section className="py-14 px-6 border-b border-[#DBD9CD]" id="dossier-video">
+            <div className="max-w-[920px] mx-auto">
+              <h2 className="dossier-serif text-[22px] mb-5">60-second introduction</h2>
+              <video
+                src={profile.videoUrl!}
+                controls
+                className="w-full max-w-md border border-[#DBD9CD]"
+                data-testid="video-intro"
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Career record */}
+        {dCareer.length > 0 && (
+          <section className="py-14 px-6 border-b border-[#DBD9CD]">
+            <div className="max-w-[920px] mx-auto">
+              <h2 className="dossier-serif text-[26px] mb-7">Career record</h2>
+              {dCareer.map((entry: any, i: number) => (
+                <div key={i} className={`py-5 ${i > 0 ? "border-t border-[#DBD9CD]" : ""}`}>
+                  <div className="flex justify-between items-baseline gap-4 flex-wrap mb-3">
+                    <h3 className="dossier-serif text-[20px]">{entry.company}</h3>
+                  </div>
+                  {(entry.roles || []).map((role: any, j: number) => (
+                    <div key={j} className={`grid md:grid-cols-[200px_1fr] gap-5 py-3 ${j > 0 ? "border-t border-dashed border-[#DBD9CD]" : ""}`}>
+                      <div>
+                        <div className="font-semibold text-[14.5px]">{role.title}</div>
+                        {role.years && <div className="dossier-mono dossier-tab text-[11.5px] text-[#8B8F84] mt-0.5">{role.years}</div>}
+                      </div>
+                      {(role.achievements || []).length > 0 && (
+                        <ul className="flex flex-col gap-1.5">
+                          {role.achievements.map((a: string, k: number) => (
+                            <li key={k} className="text-[14.5px] text-[#5B6158] pl-3.5 relative before:content-['—'] before:absolute before:left-0 before:text-[#8B8F84]">
+                              {a}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Areas of record (skills) */}
+        {(dSkillsMatrix.length > 0 || dSkillTags.length > 0) && (
+          <section className="py-14 px-6">
+            <div className="max-w-[920px] mx-auto">
+              <h2 className="dossier-serif text-[26px] mb-7">Areas of record</h2>
+              {dSkillsMatrix.length > 0 && (
+                <div className="columns-1 sm:columns-2 gap-10">
+                  {dSkillsMatrix.map((skill: any, i: number) => (
+                    <div key={i} className={`break-inside-avoid py-3 ${i > 1 ? "border-t border-[#DBD9CD]" : ""}`}>
+                      <div className="flex justify-between items-baseline gap-3">
+                        <span className="text-[14.5px]">{skill.title}</span>
+                        <span className="dossier-mono text-[10px] text-[#8B8F84] tracking-wide whitespace-nowrap">{skill.proficiency}</span>
+                      </div>
+                      {skill.description && <p className="text-[12.5px] text-[#8B8F84] mt-1 leading-snug">{skill.description}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {dSkillTags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-6">
+                  {dSkillTags.map((tag: string, i: number) => (
+                    <span key={i} className="dossier-mono text-[11px] text-[#5B6158] border border-[#C3C0B0] px-2.5 py-1">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Footer */}
+        <footer className="py-8 px-6 border-t border-[#DBD9CD]">
+          <div className="max-w-[920px] mx-auto flex justify-between items-center gap-4 flex-wrap">
+            <div className="dossier-mono text-[11px] text-[#8B8F84]">
+              {profile.displayName}{profile.roleTitle ? ` · ${profile.roleTitle}` : ""}
+            </div>
+            <div className="flex items-center gap-5">
+              {portfolio.contact.email && (
+                <button
+                  onClick={() => setShowEmailModal(true)}
+                  className="dossier-mono text-xs text-[#2F5D4C] border-b border-[#2F5D4C] pb-0.5"
+                  data-testid="button-dossier-footer-email"
+                >
+                  Get in touch
+                </button>
+              )}
+              <a href="/register" className="dossier-mono text-xs text-[#5B6158] hover:text-[#1B211E]">
+                Build your own record →
+              </a>
+            </div>
+          </div>
+        </footer>
+
+        {showEmailModal && portfolio.contact.email && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/50">
+            <div className="bg-[#FBFAF7] border border-[#DBD9CD] w-full max-w-md p-7">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="dossier-serif text-[20px]">Get in touch</h3>
+                <button onClick={() => setShowEmailModal(false)} className="text-[#8B8F84] hover:text-[#1B211E] text-xl leading-none" aria-label="Close">×</button>
+              </div>
+              <div className="border border-[#DBD9CD] p-4 mb-4">
+                <div className="dossier-mono text-[11px] text-[#8B8F84] uppercase mb-1">Contact email</div>
+                <div className="dossier-mono text-[15px]">{portfolio.contact.email}</div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => navigator.clipboard.writeText(portfolio.contact.email!)}
+                  className="border border-[#1B211E] py-2.5 text-sm hover:bg-[#1B211E] hover:text-[#F2F1EC] transition-colors"
+                >
+                  Copy email
+                </button>
+                <a
+                  href={`mailto:${portfolio.contact.email}`}
+                  className="bg-[#2F5D4C] text-[#F2F1EC] py-2.5 text-sm text-center hover:opacity-90 transition-opacity"
+                >
+                  Open mail app
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isDemo && (
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+            <p className="text-white text-sm font-medium flex-1 min-w-0">
+              <span className="text-[#22C55E] font-bold">Ask it something real.</span> Explore the profile, then build your own.
+            </p>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={() => navigate("/register")}
+                className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]"
+              >
+                Create Mine Free →
+              </button>
+              <button
+                onClick={() => setDemoBannerDismissed(true)}
+                className="text-white/50 hover:text-white text-lg leading-none font-bold"
+                aria-label="Dismiss"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={`${theme.bg} ${theme.text} ${theme.bodyClass} min-h-screen ${theme.selectionColor} overflow-x-hidden`}>

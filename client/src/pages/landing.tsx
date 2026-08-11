@@ -104,7 +104,7 @@ export default function LandingPage() {
                 Get more recruiter responses. Get to interview faster.
               </p>
               <p className="text-xl text-black/70 mb-8">
-                Proxy gives recruiters answers before they ask. Share one link — your AI handles the conversation, explains what made your work matter, and gets you to the call already ahead.
+                Give recruiters a way to know you better, before they speak with you. Share one link — your personalised bot explains what made your work matter, and gets you to the call already ahead.
               </p>
               <div className="flex gap-4 flex-wrap">
                 <button
@@ -122,7 +122,7 @@ export default function LandingPage() {
                   data-testid="button-view-demo"
                 >
                   <span className="uppercase tracking-wider text-sm">See a live example &rarr;</span>
-                  <span className="text-xs text-black/50 font-normal normal-case tracking-normal mt-0.5">Try asking the AI a question</span>
+                  <span className="text-xs text-black/50 font-normal normal-case tracking-normal mt-0.5">Try asking Priya's Bot a question</span>
                 </a>
               </div>
               <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 mono text-xs font-bold uppercase tracking-wider text-black/60">

@@ -82,10 +82,20 @@ const chatLimiter = rateLimit({
 });
 
 // Anonymous pre-signup try-it flow (CV upload + draft chat, no account required).
-// Stricter than the authenticated limiters — IP is the only signal we have here.
-const anonLimiter = rateLimit({
+// Split by cost: uploads run 3 Gemini calls each and stay tight; chat is already
+// capped per-session (ANON_DRAFT_MAX_MESSAGES in routes.ts) so the IP-level limit
+// just needs to stop multi-session abuse, not single-session use.
+const anonUploadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 8, // 8 requests per hour per IP, shared across upload + chat
+  max: 10,
+  standardHeaders: false,
+  handler: (_req, res) => {
+    res.status(429).json({ error: "Too many requests, please try again later." });
+  },
+});
+const anonChatLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 60,
   standardHeaders: false,
   handler: (_req, res) => {
     res.status(429).json({ error: "Too many requests, please try again later." });
@@ -106,8 +116,8 @@ app.post("/api/auth/resend-verification", authLimiter);
 app.post("/api/chat/:username", chatLimiter);
 
 // Anonymous pre-signup try-it flow — CV upload + draft chat, no account required
-app.post("/api/anon/upload-cv", anonLimiter);
-app.post("/api/anon/chat", anonLimiter);
+app.post("/api/anon/upload-cv", anonUploadLimiter);
+app.post("/api/anon/chat", anonChatLimiter);
 
 // CSRF protection using double-submit cookie pattern
 app.use((req: Request, res: Response, next: NextFunction) => {

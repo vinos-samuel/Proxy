@@ -179,7 +179,7 @@ export default function LandingPage() {
                     value={heroQuestion}
                     onChange={(e) => setHeroQuestion(e.target.value)}
                     placeholder="Ask about her experience..."
-                    className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#22C55E]/50"
+                    className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white placeholder:text-white/50 focus:outline-none focus:border-[#22C55E]/50"
                     data-testid="input-hero-chat"
                   />
                   <button

@@ -398,7 +398,7 @@ export default function PortfolioPage() {
   const rawMutedText = isLight ? "text-[#5A5A62]" : "text-white/75";
   const rawInputClass = isLight
     ? "flex-1 bg-white border border-[#E7E7E1] rounded-xl px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#15803D]/40 transition-all text-[#1A1A1A] placeholder:text-[#8A8A92]"
-    : "flex-1 bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-white placeholder:text-white/30";
+    : "flex-1 bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-white placeholder:text-white/50";
   const hasVideo = !!profile.videoUrl;
   const hasPhoto = !!profile.photoUrl;
   // In draft mode always show the media column so placeholders appear

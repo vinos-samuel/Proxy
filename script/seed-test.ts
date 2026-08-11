@@ -145,7 +145,7 @@ function priyaQuestionnaireData() {
         },
       ],
     },
-    step10: { brandingTheme: "corporate", headshot: "", introVideo: "", cvResume: "" },
+    step10: { brandingTheme: "executive", headshot: "", introVideo: "", cvResume: "" },
     step11: {
       suggestedQuestions:
         "How did you migrate 40,000 accounts with zero downtime?\nWhat's your approach when you inherit a struggling team?",
@@ -204,6 +204,7 @@ async function seedReady() {
     fallbackResponse:
       "That's outside what I can speak to directly — happy to connect you with Priya on that one.",
     heroSubtitle: "Head of Operations, APAC",
+    brandingTheme: "executive",
     stats: [
       { value: "18", label: "Years in Ops", icon: "clock" },
       { value: "40K", label: "Accounts Migrated", icon: "database" },
@@ -261,6 +262,7 @@ async function seedLive() {
     fallbackResponse:
       "That's outside what I can speak to directly — happy to connect you with Priya on that one.",
     heroSubtitle: "Head of Operations, APAC",
+    brandingTheme: "executive",
     stats: [
       { value: "18", label: "Years in Ops", icon: "clock" },
       { value: "40K", label: "Accounts Migrated", icon: "database" },

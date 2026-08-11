@@ -13,12 +13,21 @@ export default function LandingPage() {
   const [heroQuestion, setHeroQuestion] = useState("");
   const [heroAnswer, setHeroAnswer] = useState("");
   const [heroAsking, setHeroAsking] = useState(false);
-  const heroSuggestions = [
-    "How did you migrate 40,000 accounts with zero downtime?",
-    "What's your approach when you inherit a struggling team?",
+  // Real answers for the two suggested questions, matching Priya's actual profile
+  // content — used as a fallback if the live API call fails, so a slow proxy or a
+  // cold demo environment never shows a visible error in the hero.
+  const heroSuggestions: Array<{ q: string; fallback: string }> = [
+    {
+      q: "How did you migrate 40,000 accounts with zero downtime?",
+      fallback: "We ran three full rehearsal cutovers before the live weekend, with a six-week parallel reconciliation window so we could catch discrepancies before they touched a client account. That discipline is how we got to zero downtime on 40,000 accounts.",
+    },
+    {
+      q: "What's your approach when you inherit a struggling team?",
+      fallback: "I spend the first 30 days listening before changing anything. Most operational problems are process problems, not people problems — you can't tell the difference until you understand how the work actually gets done.",
+    },
   ];
 
-  const askHeroDemo = async (question: string) => {
+  const askHeroDemo = async (question: string, fallback?: string) => {
     const text = question.trim();
     if (!text || heroAsking) return;
     setHeroAsking(true);
@@ -34,13 +43,13 @@ export default function LandingPage() {
         body: JSON.stringify({ message: text }),
       });
       if (!response.ok) {
-        setHeroAnswer("Couldn't reach the demo right now — try the full example below.");
+        setHeroAnswer(fallback || "That's worth a real answer — ask it on the full profile below.");
         return;
       }
       const data = await response.json();
-      setHeroAnswer(data.content || "");
+      setHeroAnswer(data.content || fallback || "");
     } catch {
-      setHeroAnswer("Couldn't reach the demo right now — try the full example below.");
+      setHeroAnswer(fallback || "That's worth a real answer — ask it on the full profile below.");
     } finally {
       setHeroAsking(false);
     }
@@ -184,14 +193,14 @@ export default function LandingPage() {
                 </form>
                 {!heroAnswer && !heroAsking && (
                   <div className="flex flex-wrap gap-2">
-                    {heroSuggestions.map((q, i) => (
+                    {heroSuggestions.map((s, i) => (
                       <button
                         key={i}
-                        onClick={() => { setHeroQuestion(q); askHeroDemo(q); }}
+                        onClick={() => { setHeroQuestion(s.q); askHeroDemo(s.q, s.fallback); }}
                         className="text-xs text-white/50 border border-white/10 rounded-full px-3 py-1 hover:text-white hover:border-white/30"
                         data-testid={`button-hero-suggestion-${i}`}
                       >
-                        {q}
+                        {s.q}
                       </button>
                     ))}
                   </div>

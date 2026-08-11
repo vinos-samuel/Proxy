@@ -35,6 +35,64 @@ const WRITING_RULES = `WRITING RULES (mandatory):
 - If the CV gives no number for a claim, state the claim plainly without inflating it.
 - Before you finalize your answer, re-read every sentence you wrote against the banned list above and rewrite any sentence that contains one of those words.`;
 
+// Gemini is asked to put "\n\n" inside JSON string values (e.g. two-paragraph
+// fields), but frequently emits a literal newline character there instead of the
+// escaped \n the JSON spec requires — which makes JSON.parse throw on otherwise
+// well-formed output. This walks the text tracking whether we're inside a quoted
+// string and escapes raw control characters found there, without touching
+// whitespace between tokens (which is valid JSON as-is).
+function repairJsonControlChars(text: string): string {
+  let result = "";
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (escaped) {
+      result += ch;
+      escaped = false;
+      continue;
+    }
+    if (ch === "\\") {
+      result += ch;
+      escaped = true;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+      result += ch;
+      continue;
+    }
+    if (inString && ch === "\n") { result += "\\n"; continue; }
+    if (inString && ch === "\r") { result += "\\r"; continue; }
+    if (inString && ch === "\t") { result += "\\t"; continue; }
+    result += ch;
+  }
+  return result;
+}
+
+// Extracts and parses a JSON object from a raw Gemini response. Strips markdown
+// code fences, then tries a direct parse, then a repair pass for the
+// raw-newlines-in-strings failure mode above. Returns null (never throws) if the
+// text still can't be parsed — callers decide what to do on null.
+function extractJson(rawText: string | undefined): any | null {
+  const cleaned = (rawText || "")
+    .replace(/```json\n?/g, "")
+    .replace(/```\n?/g, "")
+    .trim();
+  const match = cleaned.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  const candidate = match[0];
+  try {
+    return JSON.parse(candidate);
+  } catch {
+    try {
+      return JSON.parse(repairJsonControlChars(candidate));
+    } catch {
+      return null;
+    }
+  }
+}
+
 interface QuestionnaireData {
   step1: {
     fullName: string;
@@ -308,15 +366,15 @@ Return ONLY valid JSON, no markdown:
       ai.models.generateContent({ model: "gemini-2.5-flash", contents: positioningPrompt }),
     ]);
 
-    const parseJson = (text: string | undefined) => {
-      const cleaned = (text || "").trim();
-      const match = cleaned.match(/\{[\s\S]*\}/);
-      return match ? JSON.parse(match[0]) : null;
-    };
+    portfolioData = extractJson(portfolioResponse.text) || {};
+    skillsMatrixData = extractJson(skillsResponse.text);
+    whereImMostUsefulData = extractJson(positioningResponse.text);
 
-    portfolioData = parseJson(portfolioResponse.text) || {};
-    skillsMatrixData = parseJson(skillsResponse.text);
-    whereImMostUsefulData = parseJson(positioningResponse.text);
+    if (!Object.keys(portfolioData).length) {
+      logger.info("[Portfolio Data] JSON parse failed after repair — falling back to raw summary", {
+        rawTextSample: (portfolioResponse.text || "").slice(0, 300),
+      });
+    }
 
     const careerTimeline = (data.step2?.careerHistory || [])
       .map((role: any) => {
@@ -535,14 +593,15 @@ Return ONLY valid JSON (no markdown, no code fences):
         contents: rewritePrompt,
       });
 
-      const rewriteText = rewriteResponse.text?.trim() || "";
-      const jsonMatch = rewriteText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
+      const parsed = extractJson(rewriteResponse.text);
+      if (parsed) {
         enhancedChallenge = parsed.challenge || story.challenge;
         enhancedApproach = parsed.approach || story.approach;
         enhancedResult = parsed.result || story.result;
         keywords = parsed.keywords || [story.title.toLowerCase()];
+      } else {
+        logger.info("[War Story Rewrite] JSON parse failed after repair — keeping raw input", { title: story.title });
+        keywords = [story.title.toLowerCase()];
       }
     } catch {
       keywords = [story.title.toLowerCase()];
@@ -948,14 +1007,11 @@ Return ONLY valid JSON. No markdown code fences, no explanations, no preamble.`;
       ],
     });
 
-    const responseText = result.text || "";
-    const cleanJson = responseText
-      .replace(/```json\n?/g, "")
-      .replace(/```\n?/g, "")
-      .trim();
+    const parsed = extractJson(result.text);
 
-    const parsed = JSON.parse(cleanJson);
-
+    if (!parsed) {
+      throw new Error("Could not parse resume data from AI response");
+    }
     if (!parsed.name) {
       throw new Error("Could not extract name from resume");
     }
@@ -1030,10 +1086,8 @@ ${WRITING_RULES}
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
-    const text = (result.text || "").trim();
-    const match = text.match(/\{[\s\S]*\}/);
-    if (match) {
-      const parsed = JSON.parse(match[0]);
+    const parsed = extractJson(result.text);
+    if (parsed) {
       // Build clean career timeline from raw CV roles
       const groupedCareer: any[] = [];
       const companyMap = new Map<string, any>();
@@ -1055,8 +1109,11 @@ ${WRITING_RULES}
         draftChatQuestions: Array.isArray(parsed.draftChatQuestions) ? parsed.draftChatQuestions.slice(0, 2) : [],
       };
     }
+    logger.info("[Portfolio Preview] JSON parse failed after repair — falling back to raw CV summary", {
+      rawTextSample: (result.text || "").slice(0, 300),
+    });
   } catch (err) {
-    logger.warn("[Portfolio Preview] Generation failed", { error: String(err) });
+    logger.info("[Portfolio Preview] Generation failed — falling back to raw CV summary", { error: String(err) });
   }
 
   // Fallback — use raw data
@@ -1104,17 +1161,18 @@ Return ONLY valid JSON:
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
-    const text = (result.text || "").trim();
-    const match = text.match(/\{[\s\S]*\}/);
-    if (match) {
-      const parsed = JSON.parse(match[0]);
+    const parsed = extractJson(result.text);
+    if (parsed) {
       return {
         headline: parsed.headline || `${parsedResume.currentTitle || "Professional"}`,
         about: parsed.about || "",
       };
     }
+    logger.info("[LinkedIn About] JSON parse failed after repair — using fallback", {
+      rawTextSample: (result.text || "").slice(0, 300),
+    });
   } catch (err) {
-    logger.warn("[LinkedIn About] Generation failed", { error: String(err) });
+    logger.info("[LinkedIn About] Generation failed", { error: String(err) });
   }
   return {
     headline: parsedResume.currentTitle || "Senior Professional",
@@ -1224,13 +1282,10 @@ Return ONLY valid JSON. No markdown code fences, no explanations.`;
       contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
 
-    const responseText = result.text || "";
-    const cleanJson = responseText
-      .replace(/```json\n?/g, "")
-      .replace(/```\n?/g, "")
-      .trim();
-
-    const draft = JSON.parse(cleanJson);
+    const draft = extractJson(result.text);
+    if (!draft) {
+      throw new Error("Could not parse questionnaire draft from AI response");
+    }
 
     // Enforce minimum array lengths as safety net
     if (!Array.isArray(draft.step4?.stories) || draft.step4.stories.length < 3) {

@@ -339,7 +339,7 @@ export default function PortfolioPage() {
         {isDemo && !demoBannerDismissed && (
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
             <p className="text-white text-sm font-medium flex-1 min-w-0">
-              <span className="text-[#22C55E] font-bold">This is a real AI Twin.</span> Chat with it, explore the profile — then build yours.
+              <span className="text-[#22C55E] font-bold">This is a real conversation, not a script.</span> Ask it something, explore the profile — then build your own.
             </p>
             <div className="flex items-center gap-3 shrink-0">
               <button
@@ -544,7 +544,7 @@ export default function PortfolioPage() {
                   className={`${theme.ctaBg} text-white px-6 py-3 rounded-xl font-semibold ${theme.ctaGlow} transition-all flex items-center gap-2`}
                   data-testid="button-talk-to-ai"
                 >
-                  <MessageSquare className="w-4 h-4" /> Talk to My AI Twin
+                  <MessageSquare className="w-4 h-4" /> Ask Me Something
                 </button>
                 {portfolio.contact.email && (
                   <button 
@@ -644,7 +644,7 @@ export default function PortfolioPage() {
                 onClick={() => document.getElementById('section-chatbot')?.scrollIntoView({ behavior: 'smooth' })}
                 className={`${theme.ctaBg} text-white px-6 py-3 rounded-xl font-semibold ${theme.ctaGlow} transition-all flex items-center gap-2`}
               >
-                <MessageSquare className="w-4 h-4" /> Talk to My AI Twin
+                <MessageSquare className="w-4 h-4" /> Ask Me Something
               </button>
               {portfolio.contact.email && (
                 <a href={`mailto:${portfolio.contact.email}`}>
@@ -661,8 +661,8 @@ export default function PortfolioPage() {
       {/* 2. DIGITAL TWIN CONSOLE — THE STAR */}
       <section id="section-chatbot" className="py-12 px-6 max-w-4xl mx-auto opacity-0 animate-[fadeIn_0.6s_ease-out_forwards]">
         <div className="text-center mb-6">
-          <h2 className={`text-3xl font-bold mb-2 ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{theme.name === 'Tech' && <span className="text-white/30">// </span>}Twin Interface</h2>
-          <p className={`${theme.muted} text-sm`}>Trained on {profile.displayName}'s career data, decision models, and communication style.</p>
+          <h2 className={`text-3xl font-bold mb-2 ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{theme.name === 'Tech' && <span className="text-white/30">// </span>}Ask Me Anything</h2>
+          <p className={`${theme.muted} text-sm`}>Answers pulled from {profile.displayName}'s real career history — projects, decisions, and results.</p>
         </div>
         
         {isDraftMode ? (
@@ -677,7 +677,7 @@ export default function PortfolioPage() {
                 <div className={`absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 ${theme.bg}`}></div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold">I'm {profile.displayName?.split(' ')[0]}'s Digital Twin</h3>
+                <h3 className="text-lg font-semibold">Ask {profile.displayName?.split(' ')[0]} anything</h3>
                 <p className={`text-sm ${rawMutedText}`}>Ask me about my experience, approach, or war stories</p>
               </div>
             </div>
@@ -685,7 +685,7 @@ export default function PortfolioPage() {
             <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 text-center">
               <Lock className="w-8 h-8 text-white/20 mb-4" />
               <p className="text-white/80 font-semibold text-base mb-2 max-w-md">
-                Your Twin answers in your voice — with your specific stories, decisions, and career context.
+                It answers in your voice — with your specific stories, decisions, and career context.
               </p>
               <p className={`${theme.muted} text-sm max-w-sm mb-8`}>
                 Complete the questionnaire so recruiters get real answers, not summaries.
@@ -702,7 +702,7 @@ export default function PortfolioPage() {
                 onClick={() => navigate("/onboarding-chat")}
                 className="bg-[#E8A75D] text-black px-8 py-3 mono text-sm font-bold uppercase tracking-wider hover:bg-[#d4944a] transition-colors"
               >
-                Complete to unlock your Twin →
+                Complete your profile to unlock this →
               </button>
             </div>
           </div>
@@ -718,7 +718,7 @@ export default function PortfolioPage() {
               <div className={`absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 ${theme.bg}`}></div>
             </div>
             <div>
-              <h3 className="text-lg font-semibold">I'm {profile.displayName?.split(' ')[0]}'s Digital Twin</h3>
+              <h3 className="text-lg font-semibold">Ask {profile.displayName?.split(' ')[0]} anything</h3>
               <p className={`text-sm ${rawMutedText}`}>Ask me about my experience, approach, or war stories</p>
             </div>
           </div>
@@ -1173,7 +1173,7 @@ export default function PortfolioPage() {
             )}
             <a href="/register">
               <button className={`${theme.glass} px-8 py-4 rounded-xl text-lg font-bold ${theme.glassHover}`} data-testid="button-build-twin">
-                Build Your Own Twin
+                Build Your Own Profile
               </button>
             </a>
           </div>
@@ -1249,7 +1249,7 @@ export default function PortfolioPage() {
       {isDemo && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
           <p className="text-white text-sm font-medium flex-1 min-w-0">
-            <span className="text-[#22C55E] font-bold">This is a real AI Twin.</span> Chat with it, explore the profile — then build yours.
+            <span className="text-[#22C55E] font-bold">This is a real conversation, not a script.</span> Ask it something, explore the profile — then build your own.
           </p>
           <div className="flex items-center gap-3 shrink-0">
             <button

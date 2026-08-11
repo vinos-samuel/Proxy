@@ -5,10 +5,17 @@ import ProxyLogo from "@/components/ProxyLogo";
 import { getCsrfToken } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+interface CareerTimelineEntry {
+  company: string;
+  roles: Array<{ title: string; years: string; achievements?: string[] }>;
+}
+
 interface PortfolioPreview {
   positioning: string;
   heroSubtitle: string;
   stats: Array<{ value: string; label: string; icon?: string }>;
+  careerTimeline: CareerTimelineEntry[];
+  draftChatQuestions: string[];
 }
 
 interface ChatMessage {
@@ -18,9 +25,10 @@ interface ChatMessage {
 
 type Stage = "idle" | "uploading" | "ready" | "error";
 
-// Pre-signup try-it flow: upload a CV, get a live AI draft + a taste of the chat,
-// no account required. Claiming (creating an account) happens only when they
-// choose to — see /api/auth/register, which picks up the session draft automatically.
+// Pre-signup try-it flow: upload a CV, get a live AI draft + a taste of the
+// chat, no account required. Claiming (creating an account) happens only when
+// they choose to — see /api/auth/register, which picks up the session draft
+// automatically.
 export default function TryPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -35,6 +43,36 @@ export default function TryPage() {
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [remaining, setRemaining] = useState<number | null>(null);
+
+  const sendToAnonChat = async (text: string) => {
+    setIsSending(true);
+    try {
+      const csrfToken = getCsrfToken();
+      const response = await fetch("/api/anon/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
+        },
+        body: JSON.stringify({ message: text }),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        setMessages((prev) => [...prev, { role: "assistant", content: err.error || "Create a free account to keep going." }]);
+        return;
+      }
+
+      const data = await response.json();
+      setMessages((prev) => [...prev, { role: "assistant", content: data.content }]);
+      if (typeof data.remaining === "number") setRemaining(data.remaining);
+    } catch {
+      setMessages((prev) => [...prev, { role: "assistant", content: "Something went wrong — please try again." }]);
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   const handleFileSelect = async (file: File) => {
     if (file.type !== "application/pdf") {
@@ -65,10 +103,20 @@ export default function TryPage() {
       }
 
       const data = await response.json();
-      setPreview(data.portfolioPreview || null);
+      const p: PortfolioPreview | null = data.portfolioPreview || null;
+      setPreview(p);
       setDisplayName(data.extractedData?.name || "");
       setRemaining(8);
       setStage("ready");
+
+      // Fire the first AI-generated question automatically — the first thing a
+      // visitor sees should be their own profile answering something specific
+      // about their own career, not an empty chat box asking them to type.
+      const firstQuestion = p?.draftChatQuestions?.[0];
+      if (firstQuestion) {
+        setMessages([{ role: "user", content: firstQuestion }]);
+        await sendToAnonChat(firstQuestion);
+      }
     } catch (err: any) {
       setErrorMessage(err.message || "Something went wrong. Please try again.");
       setStage("error");
@@ -78,38 +126,13 @@ export default function TryPage() {
   const handleSendMessage = async (question?: string) => {
     const text = (question ?? inputValue).trim();
     if (!text || isSending) return;
-
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setInputValue("");
-    setIsSending(true);
-
-    try {
-      const csrfToken = getCsrfToken();
-      const response = await fetch("/api/anon/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
-        },
-        body: JSON.stringify({ message: text }),
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        setMessages((prev) => [...prev, { role: "assistant", content: err.error || "Create a free account to keep the conversation going." }]);
-        return;
-      }
-
-      const data = await response.json();
-      setMessages((prev) => [...prev, { role: "assistant", content: data.content }]);
-      if (typeof data.remaining === "number") setRemaining(data.remaining);
-    } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Something went wrong — please try again." }]);
-    } finally {
-      setIsSending(false);
-    }
+    await sendToAnonChat(text);
   };
+
+  const positioningParagraphs = (preview?.positioning || "").split("\n\n").filter(Boolean);
+  const secondQuestion = preview?.draftChatQuestions?.[1];
 
   return (
     <div className="min-h-screen bg-white text-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -132,9 +155,9 @@ export default function TryPage() {
       <main className="max-w-4xl mx-auto px-6 py-16">
         {stage === "idle" && (
           <div className="text-center">
-            <h1 className="text-4xl lg:text-5xl font-bold mb-4">See your AI Twin before you sign up.</h1>
+            <h1 className="text-4xl lg:text-5xl font-bold mb-4">See it work before you sign up.</h1>
             <p className="text-xl text-black/70 mb-8 max-w-2xl mx-auto">
-              Upload your CV. We'll build a live draft and let you ask it a real question — no account, no credit card.
+              Upload your CV. We'll build a live draft from it and ask it a real question about your own career — no account, no credit card.
             </p>
             <input
               ref={fileInputRef}
@@ -185,9 +208,13 @@ export default function TryPage() {
             <div className="border-[3px] border-black bg-[#FAFAF7] p-8 mb-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <div className="mono text-xs text-black/50 mb-2 uppercase tracking-widest">// your_draft</div>
               {displayName && <h2 className="text-2xl font-bold mb-2">{displayName}</h2>}
-              <p className="text-lg text-black/80 mb-4 leading-relaxed">{preview.positioning}</p>
+              <div className="space-y-3 text-lg text-black/80 leading-relaxed mb-4">
+                {positioningParagraphs.length > 0
+                  ? positioningParagraphs.map((para, i) => <p key={i}>{para}</p>)
+                  : <p>{preview.positioning}</p>}
+              </div>
               {preview.stats?.length > 0 && (
-                <div className="flex flex-wrap gap-4 mt-4">
+                <div className="flex flex-wrap gap-4 mt-4 mb-6">
                   {preview.stats.slice(0, 3).map((stat, i) => (
                     <div key={i} className="border-[2px] border-black px-4 py-2 bg-white">
                       <div className="text-2xl font-bold text-[#15803D]">{stat.value}</div>
@@ -196,11 +223,25 @@ export default function TryPage() {
                   ))}
                 </div>
               )}
+              {preview.careerTimeline?.length > 0 && (
+                <div className="border-t-[2px] border-black/10 pt-4 space-y-2">
+                  {preview.careerTimeline.slice(0, 3).map((entry, i) => {
+                    const topRole = entry.roles?.[0];
+                    return (
+                      <div key={i} className="text-sm text-black/70">
+                        <span className="font-bold text-black">{entry.company}</span>
+                        {topRole?.title && <span> — {topRole.title}</span>}
+                        {topRole?.years && <span className="text-black/40"> ({topRole.years})</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <div className="border-[3px] border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col" style={{ minHeight: "400px" }}>
               <div className="border-b-[3px] border-black p-4">
-                <h3 className="font-bold">Ask your Twin something</h3>
+                <h3 className="font-bold">Ask about the work</h3>
                 <p className="text-sm text-black/60">
                   {remaining !== null && remaining > 0
                     ? `${remaining} question${remaining === 1 ? "" : "s"} left in this try-it session`
@@ -208,9 +249,6 @@ export default function TryPage() {
                 </p>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {messages.length === 0 && (
-                  <p className="text-black/50 text-sm">Ask about a project, a decision, or how they'd approach something.</p>
-                )}
                 {messages.map((msg, i) => (
                   <div key={i} className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}>
                     <div
@@ -225,6 +263,15 @@ export default function TryPage() {
                   </div>
                 ))}
                 {isSending && <Loader2 className="h-4 w-4 animate-spin text-black/40" />}
+                {secondQuestion && !isSending && messages.length > 0 && remaining !== 0 && (
+                  <button
+                    onClick={() => handleSendMessage(secondQuestion)}
+                    className="text-xs text-black/50 border border-black/20 rounded-full px-3 py-1.5 hover:text-black hover:border-black/40"
+                    data-testid="button-try-second-question"
+                  >
+                    {secondQuestion}
+                  </button>
+                )}
               </div>
               <form
                 onSubmit={(e) => {
@@ -236,7 +283,7 @@ export default function TryPage() {
                 <input
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder={remaining === 0 ? "Create an account to keep chatting" : "Ask a question..."}
+                  placeholder={remaining === 0 ? "Create an account to keep chatting" : "Ask your own question..."}
                   disabled={remaining === 0}
                   className="flex-1 border-[2px] border-black px-4 py-2 text-sm focus:outline-none disabled:opacity-50"
                   data-testid="input-try-chat"

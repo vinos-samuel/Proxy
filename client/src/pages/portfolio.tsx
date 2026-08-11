@@ -384,28 +384,8 @@ export default function PortfolioPage() {
     corporate: "corporate", tech: "tech", creative: "creative",
   };
   const brandingTheme = themeMap[rawTheme] || "executive";
-  const theme = themes[brandingTheme];
-  const isLight = brandingTheme === "executive";
-  // Small set of light/dark equivalents for the handful of hardcoded (non-theme-object)
-  // utility classes used throughout this file — added so the Executive theme renders
-  // legibly instead of inheriting styling built only for the dark themes.
-  const rawHairline = isLight ? "border-black/10" : "border-white/10";
-  const rawPanelBg = isLight ? "bg-black/[0.03]" : "bg-white/5";
-  const rawPanelBorder = isLight ? "border-black/10" : "border-white/10";
-  const rawAvatarRing = isLight ? "border-black/10" : "border-white/20";
-  const rawAvatarFallback = isLight ? "bg-[#E7E7E1] text-[#1A1A1A]" : "bg-white/10 text-white";
-  const rawStrongText = isLight ? "text-[#1A1A1A]" : "text-white";
-  const rawMutedText = isLight ? "text-[#5A5A62]" : "text-white/75";
-  const rawInputClass = isLight
-    ? "flex-1 bg-white border border-[#E7E7E1] rounded-xl px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#15803D]/40 transition-all text-[#1A1A1A] placeholder:text-[#8A8A92]"
-    : "flex-1 bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-white placeholder:text-white/50";
   const hasVideo = !!profile.videoUrl;
   const hasPhoto = !!profile.photoUrl;
-  // In draft mode always show the media column so placeholders appear
-  const hasMedia = hasVideo || hasPhoto || isDraftMode;
-  const initials = profile.displayName?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "DT";
-
-  const skills = profile.technicalSkills?.split(/[,\n]/).map(s => s.trim()).filter(Boolean) || [];
 
   // Draft mode: use CV-specific questions, limit to 2
   const draftChatQuestions: string[] = (portfolio as any).draftChatQuestions || [];
@@ -419,6 +399,35 @@ export default function PortfolioPage() {
 
   const visibleStats = showAllStats ? (profile.stats || []) : (profile.stats || []).slice(0, 6);
 
+  // Shared across all four branding themes below — each theme is its own
+  // self-contained layout (not a recolor of a shared template), but they all
+  // read from the same derived data, so it's extracted once here rather than
+  // re-derived per theme.
+  const dCareer = profile.careerTimeline || [];
+  const dSkillsMatrix = profile.skillsMatrix || [];
+  const dSkillTags = profile.skillTags || [];
+  const dStats = (profile.stats || []).slice(0, 4);
+  const dPositioning = (profile.positioning || "").split("\n\n").filter(Boolean);
+  const dRoleLine = [profile.roleTitle, dCareer[0]?.company].filter(Boolean).join(" — ");
+  const dRemainingQs = suggestedQs.filter((q) => !messages.some((m) => m.role === "user" && m.content === q)).slice(0, 3);
+
+  const renderAnswer = (content: string) => (
+    <div className="space-y-3">
+      {content.split(/\n\n+/).map((paragraph, pi) => {
+        const parts = paragraph.split(/(\*\*[^*]+\*\*)/g);
+        return (
+          <p key={pi}>
+            {parts.map((part, partI) =>
+              part.startsWith("**") && part.endsWith("**")
+                ? <strong key={partI}>{part.slice(2, -2)}</strong>
+                : <span key={partI}>{part}</span>
+            )}
+          </p>
+        );
+      })}
+    </div>
+  );
+
   // ==========================================================================
   // EXECUTIVE THEME — rendered as its own layout, not a recolor of the shared
   // template. A confidential-briefing-document concept: margin annotations
@@ -431,31 +440,6 @@ export default function PortfolioPage() {
   // consistent with the publish-first direction: gate the account, not the
   // conversation.
   if (brandingTheme === "executive") {
-    const dCareer = profile.careerTimeline || [];
-    const dSkillsMatrix = profile.skillsMatrix || [];
-    const dSkillTags = profile.skillTags || [];
-    const dStats = (profile.stats || []).slice(0, 4);
-    const dPositioning = (profile.positioning || "").split("\n\n").filter(Boolean);
-    const dRoleLine = [profile.roleTitle, dCareer[0]?.company].filter(Boolean).join(" — ");
-    const dRemainingQs = suggestedQs.filter((q) => !messages.some((m) => m.role === "user" && m.content === q)).slice(0, 3);
-
-    const renderAnswer = (content: string) => (
-      <div className="space-y-3">
-        {content.split(/\n\n+/).map((paragraph, pi) => {
-          const parts = paragraph.split(/(\*\*[^*]+\*\*)/g);
-          return (
-            <p key={pi}>
-              {parts.map((part, partI) =>
-                part.startsWith("**") && part.endsWith("**")
-                  ? <strong key={partI}>{part.slice(2, -2)}</strong>
-                  : <span key={partI}>{part}</span>
-              )}
-            </p>
-          );
-        })}
-      </div>
-    );
-
     return (
       <div className="min-h-screen bg-[#F2F1EC] text-[#1B211E]" style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif" }}>
         <style>{`
@@ -517,14 +501,6 @@ export default function PortfolioPage() {
                 >
                   <MessageSquare className="w-4 h-4" /> Ask directly
                 </button>
-                {hasVideo && (
-                  <button
-                    onClick={() => document.getElementById("dossier-video")?.scrollIntoView({ behavior: "smooth" })}
-                    className="dossier-mono text-xs text-[#5B6158] border-b border-[#C3C0B0] pb-0.5 hover:text-[#1B211E] hover:border-[#5B6158] transition-colors"
-                  >
-                    Watch intro
-                  </button>
-                )}
                 {portfolio.contact.linkedin && (
                   <a
                     href={portfolio.contact.linkedin}
@@ -545,6 +521,15 @@ export default function PortfolioPage() {
                   </a>
                 )}
               </div>
+
+              {hasVideo && (
+                <video
+                  src={profile.videoUrl!}
+                  controls
+                  className="w-full max-w-[420px] border border-[#DBD9CD] mt-7"
+                  data-testid="video-intro"
+                />
+              )}
             </div>
           </div>
         </section>
@@ -581,6 +566,7 @@ export default function PortfolioPage() {
               <h2 className="dossier-serif text-[26px]">Ask directly</h2>
               <div className="text-sm text-[#5B6158] max-w-[46ch]">Answered from the actual record — not a summary of it.</div>
             </div>
+            <div className="dossier-mono text-[11px] text-[#8B8F84] -mt-5 mb-8">Answered by {profile.displayName?.split(" ")[0] || "their"} AI proxy, from their own record.</div>
 
             <div ref={scrollRef} className="flex flex-col gap-6 mb-6 max-h-[480px] overflow-y-auto">
               {messages.length === 0 && !isStreaming && (
@@ -642,21 +628,6 @@ export default function PortfolioPage() {
             )}
           </div>
         </section>
-
-        {/* Video (secondary, optional) */}
-        {hasVideo && (
-          <section className="py-14 px-6 border-b border-[#DBD9CD]" id="dossier-video">
-            <div className="max-w-[920px] mx-auto">
-              <h2 className="dossier-serif text-[22px] mb-5">60-second introduction</h2>
-              <video
-                src={profile.videoUrl!}
-                controls
-                className="w-full max-w-md border border-[#DBD9CD]"
-                data-testid="video-intro"
-              />
-            </div>
-          </section>
-        )}
 
         {/* Career record */}
         {dCareer.length > 0 && (
@@ -798,870 +769,560 @@ export default function PortfolioPage() {
     );
   }
 
-  return (
-    <div className={`${theme.bg} ${theme.text} ${theme.bodyClass} min-h-screen ${theme.selectionColor} overflow-x-hidden`}>
-      <div className={`${theme.gradient} fixed inset-0 pointer-events-none`} />
+  // ==========================================================================
+  // DARK THEME — "the career report". An audited annual-report concept: a
+  // contents strip, a ledger of figures, "record of service" instead of a
+  // career list. Deliberately not Executive-in-dark-colors — see design
+  // review notes — chat still sits right after the hero so the product's
+  // core differentiator isn't buried, same principle as Executive.
+  if (brandingTheme === "corporate") {
+    return (
+      <div className="min-h-screen bg-[#0D1117] text-[#E9E7DE]" style={{ fontFamily: "Charter, Cambria, Georgia, serif" }}>
+        <style>{`.rpt-mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; } .rpt-tab { font-variant-numeric: tabular-nums; }`}</style>
 
-      {/* Draft banner */}
-      {isDraftMode && (
-        <div className="relative z-50 bg-[#E8A75D] border-b-[3px] border-black px-6 py-3 flex items-center justify-between gap-4 flex-wrap" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-          <div className="flex items-center gap-3">
-            <div className="bg-black text-[#E8A75D] px-3 py-1 mono text-xs font-bold uppercase tracking-wider shrink-0">DRAFT</div>
-            <p className="mono text-sm font-bold text-black">
-              AI built this from your CV.
-              <span className="font-normal ml-2 text-black/70">Complete the questionnaire to make it yours — then go live.</span>
-            </p>
-          </div>
-          <button
-            onClick={() => navigate("/onboarding-chat")}
-            className="bg-black text-white px-5 py-2 mono text-xs font-bold uppercase tracking-wider hover:bg-black/80 shrink-0 border-[2px] border-black"
-          >
-            Complete your profile →
-          </button>
-        </div>
-      )}
-      
-      {/* 3-panel comparison CTA — draft mode only */}
-      {isDraftMode && (
-        <div className="relative z-40 bg-[#0f1117] border-b border-white/10 px-6 py-8">
-          <div className="max-w-5xl mx-auto">
-            <p className="text-center mono text-xs text-white/40 uppercase tracking-widest mb-6">Your profile, upgraded</p>
-            <div className="grid grid-cols-3 gap-4">
-              {/* CV */}
-              <div className="rounded-lg border border-white/10 bg-white/5 p-5 opacity-60">
-                <p className="text-red-400/80 text-xs mb-2 italic font-semibold">Static · Your depth is invisible</p>
-                <div className="mono text-xs text-white/40 uppercase tracking-wider mb-3">📄 Your CV</div>
-                <div className="space-y-1.5">
-                  {["Name + job titles", "Bullet point duties", "Date ranges", "Static document"].map(t => (
-                    <div key={t} className="text-xs text-white/50 flex items-center gap-2">
-                      <span className="text-red-400/70">✗</span> {t}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* LinkedIn */}
-              <div className="rounded-lg border border-white/10 bg-white/5 p-5 opacity-70">
-                <p className="text-yellow-400/80 text-xs mb-2 italic font-semibold">Passive · Same as everyone else</p>
-                <div className="mono text-xs text-white/40 uppercase tracking-wider mb-3">💼 LinkedIn</div>
-                <div className="space-y-1.5">
-                  {["Summary paragraph", "Role descriptions", "Skills list", "No AI interaction"].map(t => (
-                    <div key={t} className="text-xs text-white/50 flex items-center gap-2">
-                      <span className="text-yellow-400/70">~</span> {t}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* Proxy */}
-              <div className="rounded-lg border-2 border-[#E8A75D] bg-[#E8A75D]/5 p-5 relative">
-                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#E8A75D] text-black mono text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">You, completed</div>
-                <p className="text-[#E8A75D]/70 text-xs mb-2 italic">Interactive · Your depth, on demand</p>
-                <div className="mono text-xs text-[#E8A75D] uppercase tracking-wider mb-3">⚡ Proxy</div>
-                <div className="space-y-1.5">
-                  {["AI-powered positioning", "Impact metrics & stories", "Answers recruiter questions", "Works while you sleep"].map(t => (
-                    <div key={t} className="text-xs text-white/80 flex items-center gap-2">
-                      <span className="text-[#E8A75D]">✓</span> {t}
-                    </div>
-                  ))}
-                </div>
-              </div>
+        <header className="border-b border-[#AD8A4E] py-4 px-6">
+          <div className="max-w-[920px] mx-auto flex justify-between items-center gap-4 flex-wrap">
+            <div className="rpt-mono text-[11px] tracking-wide uppercase text-[#AD8A4E]">Proxy / Career Report</div>
+            <div className="rpt-mono text-[11px] uppercase tracking-wider text-[#8A8F98] flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#AD8A4E] inline-block" />
+              {isDraftMode ? "Draft preview — not live yet" : "Published"}
             </div>
-            <div className="text-center mt-6">
+          </div>
+        </header>
+
+        <div className="border-b border-[#262B33] py-3 px-6">
+          <div className="max-w-[920px] mx-auto flex gap-7 flex-wrap">
+            {[["rpt-qa", "Questions & answers"], ["rpt-figures", "Key figures"], ["rpt-service", "Record of service"], ["rpt-activities", "Principal activities"]].map(([id, label]) => (
               <button
-                onClick={() => navigate("/onboarding-chat")}
-                className="bg-[#E8A75D] text-black px-8 py-3 mono text-sm font-bold uppercase tracking-wider hover:bg-[#d4944a] transition-colors"
+                key={id}
+                onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })}
+                className="rpt-mono text-[10.5px] uppercase tracking-wide text-[#8A8F98] hover:text-[#E9E7DE] transition-colors"
               >
-                Complete your profile to go live →
+                {label}
               </button>
-            </div>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* 1. HERO SECTION */}
-      <section className="pt-16 pb-12 px-6 max-w-6xl mx-auto relative">
-        {hasMedia ? (
-          <div className="grid md:grid-cols-5 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="md:col-span-3"
-            >
-              <div className="flex items-center gap-4 mb-6">
-                {hasVideo && hasPhoto && (
-                  <div className="relative shrink-0">
-                    <Avatar className={`h-20 w-20 border-2 ${rawAvatarRing}`}>
-                      <AvatarImage src={profile.photoUrl!} alt={profile.displayName} />
-                      <AvatarFallback className={`${rawAvatarFallback} text-lg`}>{initials}</AvatarFallback>
-                    </Avatar>
-                    <div className={`absolute -bottom-1 -right-1 ${theme.dotColor} text-[9px] font-black text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider`}>
-                      Open
-                    </div>
-                  </div>
-                )}
+        <section className="py-14 px-6 border-b border-[#262B33]">
+          <div className="max-w-[920px] mx-auto grid md:grid-cols-[108px_1fr] gap-8">
+            <div className="flex md:flex-col gap-5 md:gap-4 pt-1 flex-wrap">
+              {hasPhoto && (
+                <img
+                  src={profile.photoUrl!}
+                  alt={profile.displayName}
+                  className="w-16 h-16 md:w-full md:h-auto md:aspect-square object-cover border border-[#262B33]"
+                />
+              )}
+              {portfolio.contact.location && (
                 <div>
-                  <h1 className={`text-5xl md:text-6xl font-black tracking-tight ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }} data-testid="text-display-name">
-                    {profile.displayName}
-                  </h1>
-                </div>
-              </div>
-              
-              <p className={`text-xl font-medium ${theme.muted} mb-6`} data-testid="text-subtitle">
-                {profile.heroSubtitle?.split(' • ').map((facet, i, arr) => (
-                  <span key={i}>
-                    {facet}
-                    {i < arr.length - 1 && (
-                      <span className={`${theme.accentSolid} mx-2`}>•</span>
-                    )}
-                  </span>
-                )) || profile.roleTitle}
-              </p>
-
-              <div className={`space-y-4 ${theme.muted} text-lg leading-relaxed mb-8`} data-testid="text-positioning">
-                {profile.positioning?.split('\n\n').map((para, i) => (
-                  <p key={i}>{para}</p>
-                ))}
-              </div>
-
-              {theme.moduleStyle === 'system' && (
-                <div className="flex flex-wrap gap-4 text-xs font-mono text-white/60 mb-6" data-testid="tech-status-bar">
-                  <span>STATUS: <span className="text-lime-400">ONLINE</span></span>
-                  <span>|</span>
-                  <span>LATENCY: 0.8s</span>
-                  <span>|</span>
-                  <span>PORTFOLIO_ID: {profile.displayName?.toUpperCase().replace(/\s/g, '_')}</span>
+                  <div className="rpt-mono text-[11px] uppercase tracking-wide text-[#8A8F98] mb-0.5">Based</div>
+                  <div className="rpt-mono text-[12.5px]">{portfolio.contact.location}</div>
                 </div>
               )}
-
-              <div className="flex flex-wrap gap-3">
-                <button 
-                  onClick={() => document.getElementById('section-chatbot')?.scrollIntoView({ behavior: 'smooth' })}
-                  className={`${theme.ctaBg} text-white px-6 py-3 rounded-xl font-semibold ${theme.ctaGlow} transition-all flex items-center gap-2`}
-                  data-testid="button-talk-to-ai"
-                >
-                  <MessageSquare className="w-4 h-4" /> Ask Me Something
-                </button>
-                {portfolio.contact.email && (
-                  <button 
-                    onClick={() => setShowEmailModal(true)}
-                    className={`${theme.glass} px-6 py-3 rounded-xl ${theme.glassHover} font-medium flex items-center gap-2`} 
-                    data-testid="button-email"
-                  >
-                    <Mail className="w-4 h-4" /> Email
-                  </button>
-                )}
-                {portfolio.contact.linkedin && (
-                  <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer">
-                    <button className={`${theme.glass} px-6 py-3 rounded-xl ${theme.glassHover} font-medium flex items-center gap-2`} data-testid="button-linkedin">
-                      <Linkedin className="w-4 h-4" /> LinkedIn
-                    </button>
-                  </a>
-                )}
-                {profile.cvResumeUrl && (
-                  <a href={profile.cvResumeUrl} download>
-                    <button className={`${theme.glass} px-6 py-3 rounded-xl ${theme.glassHover} font-medium flex items-center gap-2`} data-testid="button-cv">
-                      <Download className="w-4 h-4" /> CV
-                    </button>
-                  </a>
-                )}
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="md:col-span-2 relative"
-            >
-              {!isLight && (
-                <div className={`absolute -inset-6 bg-gradient-to-r ${theme.accent} opacity-15 blur-3xl rounded-full pointer-events-none`} />
-              )}
-              {hasVideo ? (
-                <div className="relative">
-                  <div className={`${theme.glass} rounded-2xl overflow-hidden ${theme.glow}`}>
-                    <video
-                      src={profile.videoUrl!}
-                      controls
-                      autoPlay
-                      muted
-                      poster={profile.photoUrl || undefined}
-                      className="w-full aspect-video object-cover"
-                      data-testid="video-intro"
-                    />
-                  </div>
-                  <p className={`text-center text-sm ${theme.muted} mt-3`}>A 60-second self introduction</p>
-                </div>
-              ) : hasPhoto ? (
-                <div className="relative">
-                  <div className={`${theme.glass} rounded-2xl overflow-hidden ${theme.glow}`}>
-                    <img src={profile.photoUrl!} className="w-full aspect-[4/5] object-cover" alt={profile.displayName} />
-                  </div>
-                  <div className={`absolute bottom-4 left-4 ${theme.dotColor} text-xs font-black text-white px-3 py-1.5 rounded-full uppercase tracking-wider`}>
-                    Open to Work
-                  </div>
-                </div>
-              ) : isDraftMode ? (
-                <div className="space-y-4">
-                  <div className={`${theme.glass} rounded-2xl overflow-hidden aspect-[4/5] flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/20`}>
-                    <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center">
-                      <span className="text-3xl font-bold text-white/30">{initials}</span>
-                    </div>
-                    <p className="text-white/30 text-sm font-medium">Add your photo</p>
-                    <p className="text-white/20 text-xs text-center px-6">Complete your profile to add a headshot</p>
-                  </div>
-                  <div className={`${theme.glass} rounded-2xl overflow-hidden aspect-video flex flex-col items-center justify-center gap-2 border-2 border-dashed border-white/20`}>
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                      <ArrowRight className="w-4 h-4 text-white/30" />
-                    </div>
-                    <p className="text-white/30 text-sm font-medium">Add intro video</p>
-                    <p className="text-white/20 text-xs">3× more recruiter responses</p>
-                  </div>
-                </div>
-              ) : null}
-            </motion.div>
-          </div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-3xl mx-auto"
-          >
-            <h1 className={`text-6xl font-black mb-6 tracking-tight ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{profile.displayName}</h1>
-            <p className={`text-xl font-medium ${theme.muted} mb-6`}>
-              {profile.heroSubtitle || profile.roleTitle}
-            </p>
-            <div className={`space-y-4 ${theme.muted} text-lg leading-relaxed mb-8`}>
-              {profile.positioning?.split('\n\n').map((para, i) => (
-                <p key={i}>{para}</p>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-3 justify-center">
-              <button 
-                onClick={() => document.getElementById('section-chatbot')?.scrollIntoView({ behavior: 'smooth' })}
-                className={`${theme.ctaBg} text-white px-6 py-3 rounded-xl font-semibold ${theme.ctaGlow} transition-all flex items-center gap-2`}
-              >
-                <MessageSquare className="w-4 h-4" /> Ask Me Something
-              </button>
-              {portfolio.contact.email && (
-                <a href={`mailto:${portfolio.contact.email}`}>
-                  <button className={`${theme.glass} px-6 py-3 rounded-xl ${theme.glassHover} font-medium flex items-center gap-2`}>
-                    <Mail className="w-4 h-4" /> Email
-                  </button>
-                </a>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </section>
-
-      {/* 2. DIGITAL TWIN CONSOLE — THE STAR */}
-      <section id="section-chatbot" className="py-12 px-6 max-w-4xl mx-auto opacity-0 animate-[fadeIn_0.6s_ease-out_forwards]">
-        <div className="text-center mb-6">
-          <h2 className={`text-3xl font-bold mb-2 ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{theme.name === 'Tech' && <span className="text-white/30">// </span>}Ask Me Anything</h2>
-          <p className={`${theme.muted} text-sm`}>Answers pulled from {profile.displayName}'s real career history — projects, decisions, and results.</p>
-        </div>
-        
-        {isDraftMode ? (
-          <div className={`${theme.glass} rounded-3xl overflow-hidden flex flex-col ${theme.glow} relative`} style={{ minHeight: "500px" }}>
-            {/* PERSONALITY HEADER — same as live */}
-            <div className={`flex items-center gap-4 p-4 ${rawPanelBg} backdrop-blur-xl border-b ${rawPanelBorder} ${rawStrongText}`}>
-              <div className="relative">
-                <Avatar className={`w-14 h-14 border-2 ${rawAvatarRing}`}>
-                  <AvatarImage src={profile.photoUrl || ""} alt={profile.displayName} />
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-                <div className={`absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 ${theme.bg}`}></div>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold">Ask {profile.displayName?.split(' ')[0]} anything</h3>
-                <p className={`text-sm ${rawMutedText}`}>Ask me about my experience, approach, or war stories</p>
-              </div>
-            </div>
-            {/* Teaser body */}
-            <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 text-center">
-              <Lock className="w-8 h-8 text-white/20 mb-4" />
-              <p className="text-white/80 font-semibold text-base mb-2 max-w-md">
-                It answers in your voice — with your specific stories, decisions, and career context.
-              </p>
-              <p className={`${theme.muted} text-sm max-w-sm mb-8`}>
-                Complete the questionnaire so recruiters get real answers, not summaries.
-              </p>
-              {/* Sample questions as non-clickable chips */}
-              {draftChatQuestions.length > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center max-w-xl mb-8 opacity-40 pointer-events-none select-none">
-                  {draftChatQuestions.map((q, i) => (
-                    <span key={i} className={`${theme.glass} px-4 py-2 rounded-full text-xs font-medium`}>{q}</span>
-                  ))}
-                </div>
-              )}
-              <button
-                onClick={() => navigate("/onboarding-chat")}
-                className="bg-[#E8A75D] text-black px-8 py-3 mono text-sm font-bold uppercase tracking-wider hover:bg-[#d4944a] transition-colors"
-              >
-                Complete your profile to unlock this →
-              </button>
-            </div>
-          </div>
-        ) : (
-        <div className={`${theme.glass} rounded-3xl overflow-hidden flex flex-col ${theme.glow} relative`} style={{ minHeight: "600px" }}>
-          {/* PERSONALITY HEADER */}
-          <div className={`flex items-center gap-4 p-4 ${rawPanelBg} backdrop-blur-xl border-b ${rawPanelBorder} ${rawStrongText}`}>
-            <div className="relative">
-              <Avatar className={`w-14 h-14 border-2 ${rawAvatarRing}`}>
-                <AvatarImage src={profile.photoUrl || ""} alt={profile.displayName} />
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
-              <div className={`absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 ${theme.bg}`}></div>
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Ask {profile.displayName?.split(' ')[0]} anything</h3>
-              <p className={`text-sm ${rawMutedText}`}>Ask me about my experience, approach, or war stories</p>
-            </div>
-          </div>
-
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4 scroll-smooth">
-            {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Terminal className={`w-10 h-10 mb-4 opacity-30 ${theme.accentSolid}`} />
-                <p className={`${theme.muted} text-sm mb-6`}>Ask me anything about {profile.displayName}'s experience</p>
-                <div className="flex flex-wrap gap-2 justify-center max-w-xl">
-                  {suggestedQs.slice(0, 6).map((q, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSendMessage(q)}
-                      className={`${theme.glass} px-4 py-2 rounded-full text-xs font-medium ${theme.glassHover} cursor-pointer`}
-                      data-testid={`button-suggested-q-${i}`}
-                    >
-                      {q}
-                    </button>
+              <h1 className="text-[38px] font-medium leading-tight mb-2">{profile.displayName}</h1>
+              {dRoleLine && <div className="rpt-mono text-[12.5px] uppercase tracking-wide text-[#AD8A4E] mb-7">{dRoleLine}</div>}
+              {dPositioning.length > 0 && (
+                <div className="border-l-2 border-[#AD8A4E] pl-5 mb-7">
+                  {dPositioning.map((para, i) => (
+                    <p key={i} className={`text-[18px] leading-relaxed text-[#C9C7BB] max-w-[62ch] ${i > 0 ? "mt-3" : ""}`}>{para}</p>
                   ))}
                 </div>
-              </div>
-            )}
-            {messages.map((msg, i) => (
-              <div key={i} className={msg.role === 'user' ? 'flex justify-end' : 'flex justify-start items-start gap-3'}>
-                {msg.role === 'assistant' && (
-                  <Avatar className="w-8 h-8 flex-shrink-0 mt-1">
-                    <AvatarImage src={profile.photoUrl || ""} alt={profile.displayName} />
-                    <AvatarFallback>{initials}</AvatarFallback>
-                  </Avatar>
+              )}
+              <div className="flex items-center gap-6 flex-wrap">
+                <button
+                  onClick={() => document.getElementById("rpt-qa")?.scrollIntoView({ behavior: "smooth" })}
+                  className="rpt-mono text-[11.5px] uppercase tracking-wide bg-[#AD8A4E] text-[#0D1117] px-6 py-3 hover:opacity-90 transition-opacity"
+                  data-testid="button-rpt-ask"
+                >
+                  Ask directly
+                </button>
+                {portfolio.contact.linkedin && (
+                  <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer" className="rpt-mono text-[11.5px] text-[#8A8F98] border-b border-[#33383F] pb-0.5 hover:text-[#E9E7DE] transition-colors">LinkedIn</a>
                 )}
-                <div className={
-                  msg.role === 'user'
-                    ? `inline-block ${theme.chatUserBg} px-4 py-2 rounded-lg max-w-[80%] text-sm`
-                    : `inline-block ${theme.chatBotBg} px-4 py-3 rounded-lg max-w-[80%] text-sm leading-relaxed`
-                }>
-                  {msg.role === 'user' ? msg.content : (
-                    <div className="space-y-3">
-                      {msg.content.split(/\n\n+/).map((paragraph, pi) => {
-                        // Check if paragraph is a bullet list
-                        const lines = paragraph.split('\n');
-                        const isBulletList = lines.every(l => /^[\s]*[-•*]\s/.test(l) || l.trim() === '');
-                        if (isBulletList && lines.filter(l => l.trim()).length > 0) {
-                          return (
-                            <ul key={pi} className="list-disc list-inside space-y-1">
-                              {lines.filter(l => l.trim()).map((line, li) => (
-                                <li key={li}>{line.replace(/^[\s]*[-•*]\s*/, '')}</li>
-                              ))}
-                            </ul>
-                          );
-                        }
-                        // Check for bold (**text**)
-                        const parts = paragraph.split(/(\*\*[^*]+\*\*)/g);
-                        return (
-                          <p key={pi}>
-                            {parts.map((part, partI) => {
-                              if (part.startsWith('**') && part.endsWith('**')) {
-                                return <strong key={partI}>{part.slice(2, -2)}</strong>;
-                              }
-                              return <span key={partI}>{part}</span>;
-                            })}
-                          </p>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                {profile.cvResumeUrl && (
+                  <a href={profile.cvResumeUrl} download className="rpt-mono text-[11.5px] text-[#8A8F98] border-b border-[#33383F] pb-0.5 hover:text-[#E9E7DE] transition-colors">Download CV</a>
+                )}
               </div>
-            ))}
-            {isStreaming && (
-              <div className="flex items-center gap-3 mb-4">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={profile.photoUrl || ""} alt={profile.displayName} />
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-                <div className={`flex items-center gap-2 ${isLight ? "bg-black/5" : "bg-white/10"} px-4 py-2 rounded-lg`}>
-                  <span className={`${rawMutedText} text-xs`}>{profile.displayName?.split(' ')[0]} is typing</span>
-                  <div className="flex gap-1">
-                    <div className={`w-1.5 h-1.5 ${theme.dotColor} rounded-full animate-bounce`} style={{animationDelay: '0ms'}}></div>
-                    <div className={`w-1.5 h-1.5 ${theme.dotColor} rounded-full animate-bounce`} style={{animationDelay: '150ms'}}></div>
-                    <div className={`w-1.5 h-1.5 ${theme.dotColor} rounded-full animate-bounce`} style={{animationDelay: '300ms'}}></div>
-                  </div>
-                </div>
-              </div>
-            )}
+              {hasVideo && (
+                <video src={profile.videoUrl!} controls className="w-full max-w-[420px] border border-[#262B33] mt-7" data-testid="video-intro" />
+              )}
+            </div>
           </div>
-          
-          <div className={`p-4 border-t ${rawPanelBorder} ${isLight ? "bg-black/[0.015]" : "bg-white/[0.02]"}`}>
-            <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-2">
+        </section>
+
+        <section className="py-14 px-6 border-b border-[#262B33]" id="rpt-qa">
+          <div className="max-w-[820px] mx-auto">
+            <h2 className="text-[21px] font-medium mb-1">Questions &amp; answers</h2>
+            <div className="rpt-mono text-[11px] text-[#6B7078] mb-7">Answered by {profile.displayName?.split(" ")[0] || "their"} AI proxy, from their own record.</div>
+            <div ref={scrollRef} className="flex flex-col gap-6 mb-6 max-h-[480px] overflow-y-auto">
+              {messages.length === 0 && !isStreaming && (
+                <p className="text-[14.5px] text-[#6B7078] italic">Ask about a project, a decision, or a figure above.</p>
+              )}
+              {messages.map((msg, i) =>
+                msg.role === "user" ? (
+                  <div key={i}>
+                    <span className="rpt-mono text-[11px] text-[#AD8A4E]">Q{messages.slice(0, i + 1).filter(m => m.role === "user").length} — </span>
+                    <span className="text-[14.5px] text-[#C9C7BB] italic">{msg.content}</span>
+                  </div>
+                ) : (
+                  <div key={i} className="text-[16px] leading-relaxed pl-5 border-l border-[#33383F] max-w-[66ch]">{renderAnswer(msg.content)}</div>
+                )
+              )}
+              {isStreaming && (
+                <div className="flex items-center gap-2 text-[#8A8F98] text-sm"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Answering…</div>
+              )}
+            </div>
+            <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-2.5 border-t border-[#262B33] pt-5 mt-1">
               <input
                 ref={inputRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ask about strategy, experience, or specific roles..."
-                className={rawInputClass}
-                data-testid="input-chat"
+                placeholder="Ask about a project, a decision, or a figure above…"
+                className="flex-1 bg-transparent border-b border-[#33383F] px-0.5 py-2 text-[14.5px] outline-none focus:border-[#AD8A4E] placeholder:text-[#6B7078] text-[#E9E7DE]"
+                data-testid="input-rpt-chat"
               />
-              <button
-                type="submit"
-                disabled={isStreaming || !inputValue.trim()}
-                className={`${theme.ctaBg} disabled:opacity-50 text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2`}
-                data-testid="button-send"
-              >
-                <Send className="w-4 h-4" />
-              </button>
+              <button type="submit" disabled={isStreaming || !inputValue.trim()} className="rpt-mono text-[11px] uppercase tracking-wide border border-[#E9E7DE] px-4 disabled:opacity-40 hover:bg-[#E9E7DE] hover:text-[#0D1117] transition-colors" data-testid="button-rpt-send">Ask</button>
             </form>
-          </div>
-        </div>
-        )}
-      </section>
-
-      {/* 3. IMPACT METRICS */}
-      {profile.stats && profile.stats.length > 0 && (
-        <section className="py-12 px-6 max-w-6xl mx-auto">
-          <div className="flex items-center gap-4 mb-8">
-            <div className={`h-px flex-1 ${rawHairline}`} />
-            <h2 className={`text-2xl font-bold uppercase tracking-widest ${theme.accentSolid} ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{theme.name === 'Tech' && <span className="text-white/30">// </span>}Impact Metrics</h2>
-            <div className={`h-px flex-1 ${rawHairline}`} />
-          </div>
-          <div className={`grid ${brandingTheme === 'creative' ? 'grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'} ${brandingTheme === 'corporate' ? 'gap-3' : 'gap-4'}`}>
-            {visibleStats.map((stat, i) => (
-              <motion.div 
-                whileHover={{ y: -3 }}
-                key={i} 
-                className={`${theme.cardStyle} p-8 text-center ${brandingTheme === 'creative' && i === 0 ? 'col-span-2' : ''}`}
-                data-testid={`stat-card-${i}`}
-              >
-                {stat.icon && (
-                  <div className={`w-10 h-10 mx-auto mb-3 rounded-lg flex items-center justify-center bg-gradient-to-r ${theme.accent} bg-opacity-20`}>
-                    {getIcon(stat.icon, "w-5 h-5 text-white")}
-                  </div>
-                )}
-                <div
-                  className={isLight ? theme.metricStyle.className + " mb-2" : `${theme.metricStyle.className} mb-2 bg-gradient-to-r ${theme.accent} bg-clip-text text-transparent`}
-                  style={theme.metricStyle.style}
-                >
-                  {stat.value}
-                </div>
-                <div className={`${theme.muted} text-xs uppercase tracking-wider`}>{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
-          {(profile.stats?.length || 0) > 6 && !showAllStats && (
-            <div className="text-center mt-6">
-              <button
-                onClick={() => setShowAllStats(true)}
-                className={`${theme.glass} px-6 py-2 rounded-full text-sm ${theme.glassHover} ${theme.accentSolid}`}
-              >
-                View All Metrics
-              </button>
-            </div>
-          )}
-          {isDraftMode && (
-            <p className={`text-center mt-6 mono text-xs ${rawMutedText} italic`}>
-              Based on your CV only. Complete the questionnaire to show your full impact.{" "}
-              <button onClick={() => navigate("/onboarding-chat")} className="text-[#E8A75D] hover:underline">Complete now →</button>
-            </p>
-          )}
-        </section>
-      )}
-
-      {/* 4. WHERE I'M MOST USEFUL */}
-      {isDraftMode && !profile.whereImMostUseful?.scenarios?.length && (
-        <section className="py-12 px-6 max-w-5xl mx-auto">
-          <div className="relative">
-            <div className="filter blur-sm pointer-events-none select-none opacity-40">
-              <h2 className={`text-3xl font-bold mb-4 ${theme.headingClass}`}>Where I'm Most Useful</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[1,2,3,4,5,6].map(i => (
-                  <div key={i} className={`${theme.glass} p-5 rounded-xl h-24`} />
+            {dRemainingQs.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {dRemainingQs.map((q, i) => (
+                  <button key={i} onClick={() => handleSendMessage(q)} className="rpt-mono text-[11px] text-[#C9C7BB] border border-[#33383F] px-3 py-1.5 hover:border-[#AD8A4E] hover:text-[#AD8A4E] transition-colors" data-testid={`button-rpt-suggestion-${i}`}>{q}</button>
                 ))}
               </div>
-            </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="bg-black/80 border border-white/20 px-6 py-4 rounded-xl text-center">
-                <Lock className="w-5 h-5 text-white/50 mx-auto mb-2" />
-                <p className="text-white font-semibold text-sm">Unlocks after completing your profile</p>
-                <button onClick={() => navigate("/onboarding-chat")} className="mt-2 text-xs text-[#22C55E] hover:underline">Complete now →</button>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-      {(profile.whereImMostUseful?.scenarios?.length || (profile.problemFit && profile.problemFit.length > 0)) && (
-        <section className="py-12 px-6 max-w-5xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-2 ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{theme.name === 'Tech' && <span className="text-white/30">// </span>}Where I'm Most Useful</h2>
-          {profile.whereImMostUseful?.intro && (
-            <p className={`text-lg ${theme.muted} mb-8 leading-relaxed`}>{profile.whereImMostUseful.intro}</p>
-          )}
-          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${brandingTheme === 'corporate' ? 'gap-3' : 'gap-4'}`}>
-            {profile.whereImMostUseful?.scenarios ? (
-              profile.whereImMostUseful.scenarios.map((scenario, i) => (
-                <div key={i} className={`${theme.cardStyle} p-6 group`}>
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-gradient-to-r ${theme.accent} bg-opacity-20`}>
-                    {getIcon(scenario.icon, `w-6 h-6 ${isLight ? theme.accentSolid : "text-white/80"}`)}
-                  </div>
-                  <h3 className={`font-semibold text-sm mb-2 ${rawStrongText}`}>{scenario.title}</h3>
-                  <p className={`${rawMutedText} text-sm leading-relaxed`}>{scenario.description}</p>
-                </div>
-              ))
-            ) : (
-              profile.problemFit?.slice(0, 6).map((problem, i) => (
-                <div key={i} className={`${theme.glass} p-6 rounded-xl ${theme.glassHover} group`}>
-                  <div className="flex items-start gap-3">
-                    <div className={`w-2 h-2 rounded-full ${theme.dotColor} mt-2.5 shrink-0 group-hover:scale-150 transition-transform`} />
-                    <p className={`text-base ${theme.muted} leading-relaxed`}>{problem}</p>
-                  </div>
-                </div>
-              ))
             )}
           </div>
         </section>
-      )}
 
-      {/* 5. HOW I WORK — Horizontal timeline with arrows */}
-      {isDraftMode && !profile.howIWork && (
-        <section className="py-12 px-6 max-w-6xl mx-auto">
-          <div className="relative">
-            <div className="filter blur-sm pointer-events-none select-none opacity-40">
-              <h2 className={`text-3xl font-bold mb-4 text-center ${theme.headingClass}`}>My Operating Model</h2>
-              <div className="flex flex-col md:flex-row gap-2">
-                {[1,2,3,4].map(i => (
-                  <div key={i} className={`${theme.glass} p-5 rounded-xl flex-1 h-28`} />
-                ))}
-              </div>
-            </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="bg-black/80 border border-white/20 px-6 py-4 rounded-xl text-center">
-                <Lock className="w-5 h-5 text-white/50 mx-auto mb-2" />
-                <p className="text-white font-semibold text-sm">Unlocks after completing your profile</p>
-                <button onClick={() => navigate("/onboarding-chat")} className="mt-2 text-xs text-[#22C55E] hover:underline">Complete now →</button>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-      {profile.howIWork && profile.howIWork.steps?.length > 0 && (
-        <section className="py-12 px-6 max-w-6xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-2 text-center ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>{theme.name === 'Tech' && <span className="text-white/30">// </span>}{profile.howIWork.name || "My Operating Model"}</h2>
-          <p className={`text-center ${theme.muted} mb-8`}>How I approach engagements and deliver results</p>
-          <div className="flex flex-col md:flex-row items-stretch gap-2">
-            {profile.howIWork.steps.map((step, i, arr) => (
-              <div key={i} className="flex items-center flex-1 gap-2">
-                <div className={`${theme.glass} p-5 rounded-xl flex-1 ${theme.glassHover} relative`}>
-                  <div className={`text-3xl font-black ${theme.accentSolid} opacity-30 absolute top-2 right-3`}>{i + 1}</div>
-                  <h3 className={`text-lg font-bold mb-2 ${theme.accentSolid}`}>{step.label}</h3>
-                  <p className={`text-sm ${theme.muted} leading-relaxed`}>{step.description}</p>
+        {dStats.length > 0 && (
+          <section className="border-b border-[#262B33]" id="rpt-figures">
+            <div className={`max-w-[920px] mx-auto grid grid-cols-2 ${dStats.length >= 4 ? "md:grid-cols-4" : dStats.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+              {dStats.map((stat, i) => (
+                <div key={i} className={`px-6 py-8 border-[#262B33] md:border-l md:first:border-l-0 ${i >= 2 ? "border-t md:border-t-0" : ""}`}>
+                  <div className="text-[30px] font-medium leading-none mb-2 rpt-tab">{stat.value}</div>
+                  <div className="rpt-mono text-[10.5px] uppercase tracking-wide text-[#8A8F98]">{stat.label}</div>
                 </div>
-                {i < arr.length - 1 && (
-                  <ArrowRight className={`w-5 h-5 shrink-0 ${theme.accentSolid} opacity-40 hidden md:block`} />
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+              ))}
+            </div>
+          </section>
+        )}
 
-      {/* 6. CAREER TRAJECTORY */}
-      {profile.careerTimeline && profile.careerTimeline.length > 0 && (
-        <section className="py-12 px-6 max-w-6xl mx-auto opacity-0 animate-[fadeIn_0.6s_ease-out_forwards]">
-          <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>
-            {theme.name === 'Tech' && <span className="text-white/30">// </span>}Career Trajectory
-          </h2>
-          
-          <div className={`space-y-8 border-l-2 ${theme.timelineLineColor} pl-8`}>
-            {profile.careerTimeline.map((entry, i) => {
-              const isGrouped = entry.roles && entry.roles.length > 0;
-              const cleanAch = (achs: string[] | undefined) => 
-                (achs || []).filter(a => a && !['na', 'n/a', 'none', 'nil', 'null', '-', '—'].includes(a.toLowerCase().trim()));
-              
-              if (isGrouped) {
-                return (
-                  <div key={i} className="relative">
-                    <div className={`absolute -left-[calc(2rem+5px)] top-4 w-4 h-4 ${theme.dotColor} rounded-full border-4 ${theme.bg}`}></div>
-                    <div className={`${theme.glass} rounded-xl overflow-hidden`}>
-                      <div className={`px-6 py-4 border-b ${theme.timelineLineColor}`}>
-                        <h3 className={`text-2xl font-bold ${theme.headingClass}`}>{entry.company}</h3>
-                      </div>
-                      <div className="p-4 space-y-3">
-                      {entry.roles!.map((role, j) => (
-                        <div key={j} className={`${rawPanelBg} border ${rawPanelBorder} p-5 rounded-lg ${theme.glassHover} w-full overflow-hidden`}>
-                          <div className="flex flex-wrap justify-between items-start mb-2 gap-2">
-                            <h4 className={`text-xl font-bold ${rawStrongText}`}>{role.title}</h4>
-                            <span className={`text-sm ${rawMutedText} font-medium`}>{role.years}</span>
-                          </div>
-                          {cleanAch(role.achievements).length > 0 && (
-                            <details className="mt-4">
-                              <summary className={`cursor-pointer text-sm ${theme.accentSolid} font-bold hover:opacity-80 transition-opacity flex items-center gap-1`}>
-                                <span>▸</span> Role Context & Achievements ({cleanAch(role.achievements).length})
-                              </summary>
-                              <ul className={`mt-3 space-y-2 pl-5 border-l ${rawHairline}`}>
-                                {cleanAch(role.achievements).map((a, k) => (
-                                  <li key={k} className={`${rawMutedText} text-sm leading-relaxed`}>{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
-                                ))}
-                              </ul>
-                            </details>
-                          )}
-                        </div>
-                      ))}
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div key={i} className="relative">
-                  <div className={`absolute -left-[calc(2rem+5px)] top-2 w-4 h-4 ${theme.dotColor} rounded-full border-4 ${theme.bg}`}></div>
-                  <div className={theme.glass + " p-8 rounded-xl w-full overflow-hidden " + theme.glassHover}>
-                    <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
+        {dCareer.length > 0 && (
+          <section className="py-14 px-6 border-b border-[#262B33]" id="rpt-service">
+            <div className="max-w-[820px] mx-auto">
+              <h2 className="text-[21px] font-medium mb-7">Record of service</h2>
+              {dCareer.map((entry: any, i: number) => (
+                <div key={i} className={`py-5 ${i > 0 ? "border-t border-dashed border-[#262B33]" : ""}`}>
+                  <div className="text-[17px] font-medium mb-3">{entry.company}</div>
+                  {(entry.roles || []).map((role: any, j: number) => (
+                    <div key={j} className={`grid md:grid-cols-[180px_1fr] gap-4 py-2.5 ${j > 0 ? "border-t border-dashed border-[#262B33]" : ""}`}>
                       <div>
-                        <h3 className={`text-2xl font-bold mb-1 ${theme.headingClass} ${rawStrongText}`}>{entry.title}</h3>
-                        <p className={`text-xl font-bold ${theme.accentSolid}`}>{entry.company}</p>
+                        <div className="text-[14px] font-semibold">{role.title}</div>
+                        {role.years && <div className="rpt-mono text-[11px] text-[#8A8F98] mt-0.5 rpt-tab">{role.years}</div>}
                       </div>
-                      <span className={`text-sm ${rawMutedText} font-medium`}>{entry.years}</span>
-                    </div>
-                    {cleanAch(entry.achievements).length > 0 && (
-                      <details className="mt-6">
-                        <summary className={`cursor-pointer text-sm ${theme.accentSolid} font-bold hover:opacity-80 transition-opacity flex items-center gap-1`}>
-                          <span>▸</span> Role Context & Achievements ({cleanAch(entry.achievements).length})
-                        </summary>
-                        <ul className={`mt-4 space-y-3 pl-6 border-l ${rawHairline}`}>
-                          {cleanAch(entry.achievements).map((a, j) => (
-                            <li key={j} className={`${rawMutedText} text-sm leading-relaxed`}>{a.replace(/^[\s•\-\*]+/, '').trim()}</li>
+                      {(role.achievements || []).length > 0 && (
+                        <ul className="flex flex-col gap-1">
+                          {role.achievements.map((a: string, k: number) => (
+                            <li key={k} className="text-[14px] text-[#C9C7BB]">{a}</li>
                           ))}
                         </ul>
-                      </details>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
+              ))}
+            </div>
+          </section>
+        )}
 
-      {/* 7. SKILL MATRIX */}
-      {isDraftMode && !(profile.skillsMatrix && profile.skillsMatrix.length > 0) && (
-        <section className="py-12 px-6 max-w-5xl mx-auto">
-          <div className="relative">
-            <div className="filter blur-sm pointer-events-none select-none opacity-40">
-              <h2 className={`text-3xl font-bold mb-6 ${theme.headingClass}`}>Skill Matrix</h2>
-              <div className="grid md:grid-cols-2 gap-4">
-                {[1,2,3,4].map(i => (
-                  <div key={i} className={`${theme.glass} p-6 rounded-xl h-24`} />
+        {(dSkillTags.length > 0 || dSkillsMatrix.length > 0) && (
+          <section className="py-14 px-6" id="rpt-activities">
+            <div className="max-w-[820px] mx-auto">
+              <h2 className="text-[21px] font-medium mb-7">Principal activities</h2>
+              <div className="flex flex-wrap gap-2">
+                {(dSkillTags.length > 0 ? dSkillTags : dSkillsMatrix.map((s: any) => s.title)).map((tag: string, i: number) => (
+                  <span key={i} className="rpt-mono text-[11px] text-[#C9C7BB] border border-[#33383F] px-3 py-1.5">{tag}</span>
                 ))}
               </div>
             </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="bg-black/80 border border-white/20 px-6 py-4 rounded-xl text-center">
-                <Lock className="w-5 h-5 text-white/50 mx-auto mb-2" />
-                <p className="text-white font-semibold text-sm">Unlocks after completing your profile</p>
-                <button onClick={() => navigate("/onboarding-chat")} className="mt-2 text-xs text-[#22C55E] hover:underline">Complete now →</button>
+          </section>
+        )}
+
+        <footer className="py-8 px-6 border-t border-[#262B33]">
+          <div className="max-w-[920px] mx-auto flex justify-between items-center gap-5 flex-wrap">
+            <div className="rpt-mono text-[11px] text-[#8A8F98]">{profile.displayName}{profile.roleTitle ? ` · ${profile.roleTitle}` : ""}</div>
+            <div className="flex items-center gap-5">
+              {portfolio.contact.email && (
+                <button onClick={() => setShowEmailModal(true)} className="rpt-mono text-[11px] text-[#AD8A4E] border border-[#AD8A4E] px-4 py-1.5" data-testid="button-rpt-footer-email">Get in touch</button>
+              )}
+              <a href="/register" className="rpt-mono text-[11px] text-[#8A8F98] hover:text-[#E9E7DE]">Build your own record →</a>
+            </div>
+          </div>
+        </footer>
+
+        {showEmailModal && portfolio.contact.email && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60">
+            <div className="bg-[#0D1117] border border-[#262B33] w-full max-w-md p-7">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-[20px] font-medium">Get in touch</h3>
+                <button onClick={() => setShowEmailModal(false)} className="text-[#8A8F98] hover:text-[#E9E7DE] text-xl leading-none" aria-label="Close">×</button>
+              </div>
+              <div className="border border-[#262B33] p-4 mb-4">
+                <div className="rpt-mono text-[11px] text-[#8A8F98] uppercase mb-1">Contact email</div>
+                <div className="rpt-mono text-[15px]">{portfolio.contact.email}</div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={() => navigator.clipboard.writeText(portfolio.contact.email!)} className="border border-[#E9E7DE] py-2.5 text-sm hover:bg-[#E9E7DE] hover:text-[#0D1117] transition-colors">Copy email</button>
+                <a href={`mailto:${portfolio.contact.email}`} className="bg-[#AD8A4E] text-[#0D1117] py-2.5 text-sm text-center hover:opacity-90 transition-opacity">Open mail app</a>
               </div>
             </div>
           </div>
-        </section>
-      )}
-      {(profile.skillsMatrix && profile.skillsMatrix.length > 0) ? (
-        <section className="py-12 px-6 max-w-5xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`} style={{ fontFamily: theme.fontFamily }}>
-            {theme.name === 'Tech' && <span className="text-white/30">// </span>}Skill Matrix
-          </h2>
-          <div className={`grid ${brandingTheme === 'creative' ? 'grid-cols-1 md:grid-cols-3' : 'md:grid-cols-2'} ${brandingTheme === 'corporate' ? 'gap-3' : 'gap-4'}`}>
-            {profile.skillsMatrix.map((skill, i) => (
-              <div key={i} className={`${theme.cardStyle} p-6 ${brandingTheme === 'creative' && i === 0 ? 'md:col-span-2' : ''}`} data-testid={`skill-card-${i}`}>
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isLight ? "bg-black/5 border border-black/10 group-hover:border-black/20" : "bg-white/10 border border-white/20 group-hover:border-white/30"} transition-colors shadow-sm`}>
-                      {getIcon(skill.icon, `w-6 h-6 ${theme.accentSolid} opacity-100 drop-shadow-md`)}
-                    </div>
-                    <h3 className="text-lg font-bold">{skill.title}</h3>
-                  </div>
-                  <span className={`text-[10px] px-3 py-1 rounded-full font-bold tracking-wider ${
-                    skill.proficiency === 'EXPERT' 
-                      ? `bg-gradient-to-r ${theme.accent} text-white` 
-                      : `${theme.glass} ${theme.accentSolid}`
-                  }`}>
-                    {skill.proficiency}
-                  </span>
-                </div>
-                <p className={`${theme.muted} text-sm leading-relaxed`}>{skill.description}</p>
+        )}
+
+        {isDemo && (
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+            <p className="text-white text-sm font-medium flex-1 min-w-0"><span className="text-[#22C55E] font-bold">Ask it something real.</span> Explore the profile, then build your own.</p>
+            <div className="flex items-center gap-3 shrink-0">
+              <button onClick={() => navigate("/register")} className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]">Create Mine Free →</button>
+              <button onClick={() => setDemoBannerDismissed(true)} className="text-white/50 hover:text-white text-lg leading-none font-bold" aria-label="Dismiss">×</button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ==========================================================================
+  // TECH THEME — "the terminal". One typeface throughout, on purpose — a real
+  // terminal doesn't mix fonts. Positioning as a README, chat as a REPL
+  // session, career as a git log, skills as plain badges (no fake proficiency
+  // meters — an early version of these misrepresented strong numbers as low
+  // scores; see design review).
+  if (brandingTheme === "tech") {
+    const flatCommits = dCareer.flatMap((entry: any) => (entry.roles || []).map((role: any) => ({ company: entry.company, ...role })));
+    return (
+      <div className="min-h-screen bg-[#0A0E12] text-[#D7DEE2]" style={{ fontFamily: 'ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace' }}>
+        <div className="flex justify-between items-center px-8 py-3 border-b border-[#1B222A] text-xs">
+          <div className="text-[#46C2B3]">proxy://{username}</div>
+          <div className="flex items-center gap-2 text-[#6E7885]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#46C2B3] inline-block" />
+            {isDraftMode ? "AI · DRAFT" : "AI · ONLINE"}
+          </div>
+        </div>
+
+        <div className="px-8 py-11 pb-8 border-b border-[#1B222A] max-w-[760px]">
+          <div className="text-[#6E7885] text-[13px] mb-2.5"><span className="text-[#46C2B3]">$</span> whoami</div>
+          <div className="flex items-center gap-3.5 mb-5">
+            {hasPhoto && <img src={profile.photoUrl!} alt={profile.displayName} className="w-[52px] h-[52px] border border-[#1B222A] object-cover shrink-0" />}
+            <div>
+              <h1 className="text-[28px] font-bold text-[#EDF1F2] leading-tight">{profile.displayName}</h1>
+              {dRoleLine && <div className="text-[13px] text-[#46C2B3]">{dRoleLine.toLowerCase().replace(/ — /g, " · ").replace(/,\s*/g, " · ").replace(/\s+/g, "_")}</div>}
+            </div>
+          </div>
+          {dPositioning.length > 0 && (
+            <div className="bg-[#10151B] border border-[#1B222A] rounded-md mb-6">
+              <div className="flex gap-1.5 px-3.5 py-2 border-b border-[#1B222A]"><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /></div>
+              <div className="px-5 py-4 text-[14px] leading-relaxed text-[#C3CAD0]">
+                <div className="text-[#6E7885] text-xs mb-2">$ cat README.md</div>
+                {dPositioning.map((para, i) => <p key={i} className={i > 0 ? "mt-2" : ""}>{para}</p>)}
+              </div>
+            </div>
+          )}
+          <div className="flex items-center gap-5 flex-wrap">
+            <button onClick={() => document.getElementById("trm-qa")?.scrollIntoView({ behavior: "smooth" })} className="text-[12.5px] font-bold bg-[#46C2B3] text-[#05201C] px-5 py-2.5 rounded-[3px]" data-testid="button-trm-ask">$ ask</button>
+            {portfolio.contact.linkedin && <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer" className="text-[12.5px] text-[#6E7885] border-b border-dotted border-[#2A333D]">linkedin</a>}
+            {profile.cvResumeUrl && <a href={profile.cvResumeUrl} download className="text-[12.5px] text-[#6E7885] border-b border-dotted border-[#2A333D]">download_cv</a>}
+          </div>
+          {hasVideo && (
+            <div className="bg-[#10151B] border border-[#1B222A] rounded-md max-w-[420px] mt-6">
+              <div className="flex gap-1.5 px-3.5 py-2 border-b border-[#1B222A]"><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /></div>
+              <video src={profile.videoUrl!} controls className="w-full block" data-testid="video-intro" />
+            </div>
+          )}
+        </div>
+
+        {dStats.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 border-b border-[#1B222A]">
+            {dStats.slice(0, 3).map((stat, i) => (
+              <div key={i} className={`px-8 py-6 border-[#1B222A] sm:border-r sm:last:border-r-0 ${i > 0 ? "border-t sm:border-t-0" : ""}`}>
+                <div className="text-[11px] text-[#6E7885] mb-2.5">{stat.label.toLowerCase().replace(/\s+/g, "_")}</div>
+                <div className="text-[22px] font-bold text-[#EDF1F2]">{stat.value}</div>
               </div>
             ))}
           </div>
-          {profile.skillTags && profile.skillTags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-8" data-testid="skill-tags">
-              {profile.skillTags.map((tag, i) => (
-                <span
-                  key={i}
-                  className={`px-4 py-1.5 rounded-full text-sm border ${theme.glass} ${theme.accentSolid} font-medium`}
-                  data-testid={`skill-tag-${i}`}
-                >
-                  {tag}
-                </span>
+        )}
+
+        <div className="px-8 py-10 border-b border-[#1B222A] max-w-[760px]" id="trm-qa">
+          <div className="text-xs text-[#6E7885] mb-1.5">$ ask</div>
+          <div className="text-[11px] text-[#4A535E] mb-5">answers come from {profile.displayName?.split(" ")[0] || "their"} own record, generated by AI — not a live human</div>
+          <div ref={scrollRef} className="flex flex-col gap-4.5 mb-5 max-h-[420px] overflow-y-auto">
+            {messages.length === 0 && !isStreaming && (
+              <p className="text-[13.5px] text-[#4A535E]">ask about a project, a decision, a number above…</p>
+            )}
+            {messages.map((msg, i) =>
+              msg.role === "user" ? (
+                <div key={i} className="text-[13.5px] text-[#6E7885]"><span className="text-[#46C2B3]">&gt;&gt;&gt;</span> {msg.content}</div>
+              ) : (
+                <div key={i} className="bg-[#10151B] border-l-2 border-[#46C2B3] px-4 py-3 text-[14px] leading-relaxed text-[#C3CAD0]">{renderAnswer(msg.content)}</div>
+              )
+            )}
+            {isStreaming && <div className="flex items-center gap-2 text-[#6E7885] text-sm"><Loader2 className="w-3.5 h-3.5 animate-spin" /> running…</div>}
+          </div>
+          <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-2 items-center">
+            <span className="text-[#46C2B3] text-sm">&gt;&gt;&gt;</span>
+            <input
+              ref={inputRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="ask about a project, a decision, a number above…"
+              className="flex-1 bg-transparent border-none text-[#D7DEE2] text-sm outline-none placeholder:text-[#4A535E]"
+              data-testid="input-trm-chat"
+            />
+            <button type="submit" disabled={isStreaming || !inputValue.trim()} className="bg-[#1B222A] text-[#46C2B3] text-[11px] px-3.5 py-2 rounded-[3px] disabled:opacity-40" data-testid="button-trm-send">run</button>
+          </form>
+          {dRemainingQs.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {dRemainingQs.map((q, i) => (
+                <button key={i} onClick={() => handleSendMessage(q)} className="text-[11px] text-[#6E7885] border border-[#1B222A] px-2.5 py-1.5 rounded-[3px] hover:text-[#46C2B3] hover:border-[#46C2B3] transition-colors" data-testid={`button-trm-suggestion-${i}`}>{q}</button>
               ))}
             </div>
           )}
-        </section>
-      ) : skills.length > 0 && !isDraftMode ? (
-        <section className="py-12 px-6 max-w-5xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-8 ${theme.headingClass}`}>
-            Skill Matrix
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill, i) => (
-              <Badge 
-                key={i} 
-                variant="outline" 
-                className={`${theme.glass} px-4 py-2 rounded-full text-sm border-white/5 ${theme.muted} ${theme.glassHover}`}
-                data-testid={`skill-${i}`}
-              >
-                {skill}
-              </Badge>
+        </div>
+
+        {flatCommits.length > 0 && (
+          <div className="px-8 py-10 border-b border-[#1B222A] max-w-[760px]">
+            <div className="text-xs text-[#6E7885] mb-5">$ git log --all</div>
+            {dCareer.map((entry: any, ci: number) => (
+              <div key={ci} className="mb-5 last:mb-0">
+                <div className="text-[14px] font-bold text-[#EDF1F2] mb-2.5">{(entry.company || "").toLowerCase().replace(/\s+/g, "-")} <span className="text-[#46C2B3]">/{(entry.roles?.[0]?.title || "").toLowerCase().replace(/[,]/g, "").replace(/\s+/g, "-")}</span></div>
+                {(entry.roles || []).map((role: any, ri: number) => (
+                  <div key={ri} className="flex gap-3.5 py-1.5 text-[13px]">
+                    <span className="text-[#4A535E]">{(role.years || "").split(/[—-]/)[0]?.trim()}—</span>
+                    <div className="flex-1">
+                      <div className="text-[#C3CAD0]">{role.title}</div>
+                      {(role.achievements || []).map((a: string, ai: number) => (
+                        <div key={ai} className="text-[#5FBF8F] text-[12.5px] mt-0.5">+{a}</div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             ))}
           </div>
-        </section>
-      ) : null}
+        )}
 
-      {/* 9. FOOTER */}
-      <footer className={`py-12 px-6 border-t ${rawHairline}`}>
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-            <div className={`text-sm ${theme.muted}`}>
-              {profile.displayName} {profile.roleTitle ? `• ${profile.roleTitle}` : ""}
-            </div>
-            <div className="flex gap-6">
-              {portfolio.contact.linkedin && (
-                <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer" className={`${theme.accentSolid} hover:opacity-80 transition-opacity text-sm`}>
-                  LinkedIn
-                </a>
-              )}
-              {portfolio.contact.email && !isDraftMode && (
-                <a href={`mailto:${portfolio.contact.email}`} className={`${theme.accentSolid} hover:opacity-80 transition-opacity text-sm`}>
-                  {portfolio.contact.email}
-                </a>
-              )}
-              {isDraftMode && !portfolio.contact.email && (
-                <span className={`${rawMutedText} text-sm italic`}>Add your email in the questionnaire</span>
-              )}
+        {(dSkillTags.length > 0 || dSkillsMatrix.length > 0) && (
+          <div className="px-8 py-10">
+            <div className="text-xs text-[#6E7885] mb-5">$ cat skills.json</div>
+            <div className="flex flex-wrap gap-2">
+              {(dSkillTags.length > 0 ? dSkillTags : dSkillsMatrix.map((s: any) => s.title)).map((tag: string, i: number) => (
+                <span key={i} className="text-[11.5px] bg-[#10151B] border border-[#1B222A] rounded-[3px] px-2.5 py-1.5 text-[#C3CAD0]">{tag.toLowerCase().replace(/[(),]/g, "").replace(/\s+/g, "_")}</span>
+              ))}
             </div>
           </div>
-          <div className="flex flex-wrap gap-4 justify-center mb-8">
-            {portfolio.contact.email && (
-              <button 
-                onClick={() => setShowEmailModal(true)}
-                className={`${theme.ctaBg} text-white px-8 py-4 rounded-xl text-lg font-bold ${theme.ctaGlow} transition-all flex items-center gap-2`} 
-                data-testid="button-footer-email"
-              >
-                <Mail className="w-5 h-5" /> Get in Touch
-              </button>
+        )}
+
+        <div className="flex justify-between items-center px-8 py-5 text-[12.5px]">
+          <button onClick={() => portfolio.contact.email && setShowEmailModal(true)} className="text-[#6E7885]" data-testid="button-trm-footer-email" disabled={!portfolio.contact.email}><span className="text-[#46C2B3]">$</span> contact --email</button>
+          <a href="/register" className="text-[#46C2B3]">build_your_own() →</a>
+        </div>
+
+        {showEmailModal && portfolio.contact.email && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60">
+            <div className="bg-[#0A0E12] border border-[#1B222A] w-full max-w-md p-7 rounded-md">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-[16px] font-bold text-[#EDF1F2]">$ contact --email</h3>
+                <button onClick={() => setShowEmailModal(false)} className="text-[#6E7885] hover:text-[#D7DEE2] text-xl leading-none" aria-label="Close">×</button>
+              </div>
+              <div className="border border-[#1B222A] p-4 mb-4 rounded-[3px]">
+                <div className="text-[11px] text-[#6E7885] mb-1">contact_email</div>
+                <div className="text-[14px]">{portfolio.contact.email}</div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={() => navigator.clipboard.writeText(portfolio.contact.email!)} className="border border-[#1B222A] py-2.5 text-sm rounded-[3px] hover:border-[#46C2B3] hover:text-[#46C2B3] transition-colors">copy</button>
+                <a href={`mailto:${portfolio.contact.email}`} className="bg-[#46C2B3] text-[#05201C] py-2.5 text-sm text-center rounded-[3px] font-bold">open_mail()</a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isDemo && (
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+            <p className="text-white text-sm font-medium flex-1 min-w-0"><span className="text-[#22C55E] font-bold">Ask it something real.</span> Explore the profile, then build your own.</p>
+            <div className="flex items-center gap-3 shrink-0">
+              <button onClick={() => navigate("/register")} className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]">Create Mine Free →</button>
+              <button onClick={() => setDemoBannerDismissed(true)} className="text-white/50 hover:text-white text-lg leading-none font-bold" aria-label="Dismiss">×</button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ==========================================================================
+  // CREATIVE THEME — "the feature story". A magazine profile, not a resume:
+  // asymmetric photo/text hero, a serif pull-quote, stats as a sidebar
+  // factbox, career as flat editorial highlights (not grouped by company),
+  // skills as a keyword line.
+  if (brandingTheme === "creative") {
+    const flatHighlights = dCareer.flatMap((entry: any) => (entry.roles || []).map((role: any) => ({ company: entry.company, ...role })));
+    return (
+      <div className="min-h-screen bg-[#17140F] text-[#EDE7DC]" style={{ fontFamily: 'ui-serif, "New York", "Times New Roman", Georgia, serif' }}>
+        <div className="flex justify-between items-baseline px-11 py-5 border-b border-[#322C22]">
+          <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] tracking-[0.14em] uppercase text-[#96AD86]">Profile</div>
+          <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] text-[#7A7568]">{isDraftMode ? "Draft preview — not live yet" : "Published"}</div>
+        </div>
+
+        <div className="grid md:grid-cols-[200px_1fr] gap-10 px-11 py-12 border-b border-[#322C22]">
+          {hasPhoto ? (
+            <img src={profile.photoUrl!} alt={profile.displayName} className="w-full aspect-[4/5] object-cover border border-[#322C22]" />
+          ) : <div />}
+          <div className="max-w-[560px]">
+            {dRoleLine && <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11.5px] tracking-wide uppercase text-[#96AD86] mb-3.5">{dRoleLine}</div>}
+            <h1 className="text-[38px] md:text-[42px] font-medium leading-[1.05] mb-4.5 tracking-tight">{profile.displayName}</h1>
+            {dPositioning.length > 0 && (
+              <div className="relative pl-2 mb-6">
+                <span className="absolute -left-[30px] -top-[18px] text-[64px] leading-none text-[#8C5A3E] opacity-35" style={{ fontFamily: "Georgia, serif" }}>&ldquo;</span>
+                <p className="text-[20px] italic leading-[1.5] text-[#D8CFC0] mb-0">{dPositioning[0]}</p>
+                {dPositioning.slice(1).map((para, i) => <p key={i} className="text-[15px] not-italic text-[#A69C89] leading-relaxed mt-3">{para}</p>)}
+              </div>
             )}
-            <a href="/register">
-              <button className={`${theme.glass} px-8 py-4 rounded-xl text-lg font-bold ${theme.glassHover}`} data-testid="button-build-twin">
-                Build Your Own Profile
-              </button>
-            </a>
-          </div>
-          <div className="text-center">
-            <p className={`${theme.muted} text-xs tracking-widest uppercase opacity-50`}>
-              Powered by <a href="/" className={`${theme.accentSolid} hover:opacity-80`}>myproxy.work</a>
-            </p>
-            <p className={`${theme.muted} text-xs mt-2 opacity-30`}>
-              &copy; {new Date().getFullYear()} All rights reserved.
-            </p>
+            <div style={{ fontFamily: "-apple-system, sans-serif" }} className="flex items-center gap-5 flex-wrap text-[12.5px]">
+              <button onClick={() => document.getElementById("mag-qa")?.scrollIntoView({ behavior: "smooth" })} className="bg-[#96AD86] text-[#1B2117] px-5.5 py-2.5" data-testid="button-mag-ask">Start the interview</button>
+              {portfolio.contact.linkedin && <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer" className="text-[#A69C89] border-b border-[#4A4335]">LinkedIn</a>}
+              {profile.cvResumeUrl && <a href={profile.cvResumeUrl} download className="text-[#A69C89] border-b border-[#4A4335]">Download CV</a>}
+            </div>
+            {hasVideo && (
+              <video src={profile.videoUrl!} controls className="w-full max-w-[460px] border border-[#322C22] mt-6.5" data-testid="video-intro" />
+            )}
           </div>
         </div>
-      </footer>
 
-      {showEmailModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={`${theme.glass} w-full max-w-lg rounded-3xl overflow-hidden ${theme.glow} ${rawStrongText}`}
-          >
-            <div className="p-8 space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className={`text-2xl font-bold ${theme.headingClass}`}>Get in Touch</h3>
-                <button
-                  onClick={() => setShowEmailModal(false)}
-                  className={`p-2 ${isLight ? "hover:bg-black/5" : "hover:bg-white/10"} rounded-full transition-colors`}
-                >
-                  <Globe className="w-6 h-6 rotate-45" /> {/* Use Globe as a close X if X is missing, or just a placeholder */}
-                  <span className="sr-only">Close</span>
-                </button>
+        {dStats.length > 0 && (
+          <div className="px-11 pb-10 border-b border-[#322C22]">
+            <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] tracking-[0.1em] uppercase text-[#7A7568] mb-4">By the numbers</div>
+            {dStats.map((stat, i) => (
+              <div key={i} className="flex justify-between items-baseline py-2.5 border-t border-[#241F17] max-w-[420px]">
+                <span className="text-[22px]">{stat.value}</span>
+                <span style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[12px] text-[#A69C89]">{stat.label}</span>
               </div>
+            ))}
+          </div>
+        )}
 
-              <div className="space-y-4">
-                <div className={`p-4 rounded-xl ${rawPanelBg} border ${rawPanelBorder}`}>
-                  <p className={`${theme.muted} text-sm mb-1`}>Contact Email</p>
-                  <p className={`font-mono text-lg ${rawStrongText}`}>{portfolio.contact.email}</p>
+        <div className="px-11 py-12 border-b border-[#322C22] max-w-[680px]" id="mag-qa">
+          <h2 style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[13px] tracking-[0.1em] uppercase text-[#96AD86] mb-1">In their words, answered live</h2>
+          <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11.5px] text-[#7A7568] mb-6.5">Their answers, through an AI trained on their own record.</div>
+          <div ref={scrollRef} className="flex flex-col gap-6.5 mb-6.5 max-h-[480px] overflow-y-auto">
+            {messages.length === 0 && !isStreaming && (
+              <p className="text-[15px] text-[#7A7568] italic">Ask about a project, a decision, or a number above.</p>
+            )}
+            {messages.map((msg, i) =>
+              msg.role === "user" ? (
+                <div key={i}>
+                  <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11.5px] font-bold tracking-wide uppercase text-[#96AD86] mb-1.5">{msg.content}</div>
                 </div>
+              ) : (
+                <div key={i} className="text-[18px] leading-relaxed border-l border-[#4A4335] pl-5">{renderAnswer(msg.content)}</div>
+              )
+            )}
+            {isStreaming && <div style={{ fontFamily: "-apple-system, sans-serif" }} className="flex items-center gap-2 text-[#7A7568] text-sm"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Answering…</div>}
+          </div>
+          <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-2.5 border-t border-[#322C22] pt-5.5 mt-2.5">
+            <input
+              ref={inputRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Ask about a project, a decision, a number above…"
+              className="flex-1 bg-transparent border-b border-[#4A4335] px-0.5 py-1.5 italic text-[16px] outline-none placeholder:text-[#7A7568] placeholder:not-italic text-[#EDE7DC]"
+              style={{ fontFamily: 'ui-serif, Georgia, serif' }}
+              data-testid="input-mag-chat"
+            />
+            <button type="submit" disabled={isStreaming || !inputValue.trim()} style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] uppercase tracking-wide border border-[#EDE7DC] px-4 disabled:opacity-40 hover:bg-[#EDE7DC] hover:text-[#1B2117] transition-colors" data-testid="button-mag-send">Ask</button>
+          </form>
+          {dRemainingQs.length > 0 && (
+            <div style={{ fontFamily: "-apple-system, sans-serif" }} className="flex flex-wrap gap-4 mt-4">
+              {dRemainingQs.map((q, i) => (
+                <button key={i} onClick={() => handleSendMessage(q)} className="text-[11.5px] text-[#7A7568] hover:text-[#96AD86] transition-colors underline decoration-[#4A4335]" data-testid={`button-mag-suggestion-${i}`}>{q}</button>
+              ))}
+            </div>
+          )}
+        </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <button 
-                    onClick={() => {
-                      navigator.clipboard.writeText(portfolio.contact.email!);
-                      // Optional: add toast or feedback here
-                    }}
-                    className={`${theme.glass} p-4 rounded-xl flex flex-col items-center gap-2 ${theme.glassHover} transition-all`}
-                  >
-                    <Download className="w-6 h-6" />
-                    <span className="text-sm font-semibold">Copy Email</span>
-                  </button>
-                  
-                  <a 
-                    href={`mailto:${portfolio.contact.email}`}
-                    className={`${theme.ctaBg} p-4 rounded-xl flex flex-col items-center gap-2 text-white transition-all`}
-                  >
-                    <Mail className="w-6 h-6" />
-                    <span className="text-sm font-semibold">Open Mail App</span>
-                  </a>
+        {flatHighlights.length > 0 && (
+          <div className="px-11 py-12 border-b border-[#322C22] max-w-[680px]">
+            <h2 style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[13px] tracking-[0.1em] uppercase text-[#96AD86] mb-6.5">Career highlights</h2>
+            {flatHighlights.map((item: any, i: number) => (
+              <div key={i} className="grid grid-cols-[64px_1fr] gap-4.5 mb-5.5 last:mb-0">
+                <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[12px] text-[#7A7568] pt-0.5">{item.years}</div>
+                <div>
+                  <div className="text-[19px] mb-1">{item.company}</div>
+                  <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[12.5px] text-[#96AD86] mb-2">{item.title}</div>
+                  {(item.achievements || []).length > 0 && (
+                    <p className="text-[15px] leading-relaxed text-[#D8CFC0]">{item.achievements.join(" ")}</p>
+                  )}
                 </div>
               </div>
+            ))}
+          </div>
+        )}
 
-              <div className="space-y-4">
-                <p className={`${theme.muted} text-xs text-center`}>
-                  Feel free to reach out regarding collaborations, opportunities, or just to say hi.
-                </p>
+        {(dSkillTags.length > 0 || dSkillsMatrix.length > 0) && (
+          <div className="px-11 py-12" style={{ fontFamily: "-apple-system, sans-serif" }}>
+            <h2 className="text-[13px] tracking-[0.1em] uppercase text-[#96AD86] mb-6.5">Filed under</h2>
+            <div className="flex flex-wrap gap-2.5">
+              {(dSkillTags.length > 0 ? dSkillTags : dSkillsMatrix.map((s: any) => s.title)).map((tag: string, i: number, arr: string[]) => (
+                <span key={i} className="text-[11.5px] text-[#A69C89]">{tag}{i < arr.length - 1 ? <span className="text-[#4A4335] ml-2.5">·</span> : null}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{ fontFamily: "-apple-system, sans-serif" }} className="flex justify-between items-center px-11 py-6.5 text-[12px] text-[#7A7568] flex-wrap gap-4.5">
+          <div>{profile.displayName}{profile.roleTitle ? ` · ${profile.roleTitle}` : ""}</div>
+          <div className="flex items-center gap-5">
+            {portfolio.contact.email && (
+              <button onClick={() => setShowEmailModal(true)} className="border border-[#96AD86] text-[#96AD86] px-3.5 py-1.5" data-testid="button-mag-footer-email">Get in touch</button>
+            )}
+            <a href="/register" className="text-[#96AD86]">Build your own profile →</a>
+          </div>
+        </div>
+
+        {showEmailModal && portfolio.contact.email && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60">
+            <div className="bg-[#17140F] border border-[#322C22] w-full max-w-md p-7">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-[20px]">Get in touch</h3>
+                <button onClick={() => setShowEmailModal(false)} style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[#7A7568] hover:text-[#EDE7DC] text-xl leading-none" aria-label="Close">×</button>
+              </div>
+              <div className="border border-[#322C22] p-4 mb-4" style={{ fontFamily: "-apple-system, sans-serif" }}>
+                <div className="text-[11px] text-[#7A7568] uppercase mb-1">Contact email</div>
+                <div className="text-[15px] text-[#EDE7DC]">{portfolio.contact.email}</div>
+              </div>
+              <div className="grid grid-cols-2 gap-3" style={{ fontFamily: "-apple-system, sans-serif" }}>
+                <button onClick={() => navigator.clipboard.writeText(portfolio.contact.email!)} className="border border-[#EDE7DC] py-2.5 text-sm hover:bg-[#EDE7DC] hover:text-[#1B2117] transition-colors">Copy email</button>
+                <a href={`mailto:${portfolio.contact.email}`} className="bg-[#96AD86] text-[#1B2117] py-2.5 text-sm text-center">Open mail app</a>
               </div>
             </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Demo banner — only visible when arriving from landing page as unauthenticated visitor */}
-      {isDemo && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
-          <p className="text-white text-sm font-medium flex-1 min-w-0">
-            <span className="text-[#22C55E] font-bold">This is a real conversation, not a script.</span> Ask it something, explore the profile — then build your own.
-          </p>
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              onClick={() => navigate("/register")}
-              className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]"
-            >
-              Create Mine Free →
-            </button>
-            <button
-              onClick={() => setDemoBannerDismissed(true)}
-              className="text-white/50 hover:text-white text-lg leading-none font-bold"
-              aria-label="Dismiss"
-            >
-              ×
-            </button>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        )}
+
+        {isDemo && (
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+            <p className="text-white text-sm font-medium flex-1 min-w-0"><span className="text-[#22C55E] font-bold">Ask it something real.</span> Explore the profile, then build your own.</p>
+            <div className="flex items-center gap-3 shrink-0">
+              <button onClick={() => navigate("/register")} className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]">Create Mine Free →</button>
+              <button onClick={() => setDemoBannerDismissed(true)} className="text-white/50 hover:text-white text-lg leading-none font-bold" aria-label="Dismiss">×</button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // brandingTheme is exhaustively handled by the branches above (executive,
+  // corporate, tech, creative are the only keys in the theme map).
+  return null;
 }

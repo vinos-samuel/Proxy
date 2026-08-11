@@ -918,6 +918,7 @@ export async function registerRoutes(
         contents: [
           { role: "user", parts: [{ text: systemPrompt + "\n\nQuestion: " + safeMessage }] },
         ],
+        config: { temperature: 0.3 },
       });
 
       draft.chatCount += 1;
@@ -966,6 +967,7 @@ export async function registerRoutes(
         contents: [
           { role: "user", parts: [{ text: systemPrompt + "\n\nQuestion: " + safeMessage }] }
         ],
+        config: { temperature: 0.3 },
       });
 
       res.json({ content: result.text || "I'd be happy to discuss that — let's connect directly." });
@@ -1261,6 +1263,7 @@ export async function registerRoutes(
       const result = await anthropic.messages.create({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 1024,
+        temperature: 0.3,
         system: systemPrompt,
         messages: [{ role: "user", content: message }],
       });

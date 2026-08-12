@@ -2,15 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation, useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
-import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Send, Mail, Linkedin, Download,
-  Loader2, MessageSquare, Globe,
-  Terminal, ArrowRight, Target, Users,
-  Award, Briefcase, BarChart3, Zap, Lock
-} from "lucide-react";
+import { Loader2, MessageSquare, Globe } from "lucide-react";
 
 interface PortfolioData {
   profile: {
@@ -66,126 +58,13 @@ interface ChatMessage {
   content: string;
 }
 
-function getIcon(name: string, className: string) {
-  const icons: Record<string, any> = {
-    target: Target,
-    users: Users,
-    ribbon: Award,
-    briefcase: Briefcase,
-    chart: BarChart3,
-    lightning: Zap,
-    globe: Globe,
-  };
-  const Icon = icons[name] || Target;
-  return <Icon className={className} />;
-}
-
-const themes = {
-  corporate: {
-    name: "Corporate",
-    bg: "bg-[#0F1623]",
-    fontFamily: "'Playfair Display', Georgia, serif",
-    cardStyle: "rounded-sm border border-white/20 bg-white/5",
-    metricStyle: { className: "text-4xl font-bold tracking-tight", style: {} as Record<string, string> },
-    gradient: "bg-gradient-to-br from-[#1A1A2E]/40 via-transparent to-[#6B2C3E]/20",
-    glass: "bg-gradient-to-br from-[#1a1a2e]/90 to-[#16213e]/90 backdrop-blur-md border-2 border-[#C9A961]",
-    glassHover: "hover:shadow-[0_4px_24px_rgba(201,169,97,0.25)] transition-all duration-300",
-    accent: "from-[#C9A961] to-[#D4AF37]",
-    accentSolid: "text-[#C9A961]",
-    glow: "shadow-[0_0_20px_rgba(201,169,97,0.2)]",
-    text: "text-white",
-    muted: "text-zinc-400",
-    headingClass: "font-serif",
-    bodyClass: "font-sans",
-    chatUserBg: "bg-[#C9A961] text-[#0A1128]",
-    chatBotBg: "bg-white/10 border border-[#C9A961]/30 text-white",
-    ctaBg: "bg-[#C9A961] hover:bg-[#D4AF37]",
-    ctaGlow: "shadow-lg shadow-[#C9A961]/20",
-    sectionLabel: (_num: number) => "",
-    moduleStyle: "formal" as const,
-    dotColor: "bg-[#C9A961]",
-    timelineLineColor: "bg-[#C9A961]/30",
-    selectionColor: "selection:bg-[#C9A961]/30",
-  },
-  tech: {
-    name: "Tech",
-    bg: "bg-[#18181b]",
-    fontFamily: "'DM Mono', monospace",
-    cardStyle: "rounded-md bg-zinc-900/80 border border-white/10 transition-shadow hover:shadow-[0_0_15px_rgba(34,211,238,0.12)]",
-    metricStyle: { className: "text-4xl font-bold", style: { textShadow: "0 0 24px currentColor" } as Record<string, string> },
-    gradient: "bg-gradient-to-br from-blue-600/20 via-transparent to-cyan-400/20",
-    glass: "bg-slate-900/80 backdrop-blur-xl border border-blue-500/50",
-    glassHover: "hover:border-blue-500 hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] transition-all duration-300",
-    accent: "from-blue-500 to-cyan-400",
-    accentSolid: "text-blue-500",
-    glow: "shadow-[0_0_24px_rgba(59,130,246,0.4)]",
-    text: "text-white",
-    muted: "text-zinc-300",
-    headingClass: "font-['Space_Grotesk',sans-serif] tracking-tight",
-    bodyClass: "font-sans",
-    chatUserBg: "bg-blue-600 text-white",
-    chatBotBg: "bg-white/5 border border-blue-500/30 text-white",
-    ctaBg: "bg-blue-600 hover:bg-blue-700",
-    ctaGlow: "shadow-lg shadow-blue-500/20",
-    sectionLabel: (_num: number) => "",
-    moduleStyle: "system" as const,
-    dotColor: "bg-blue-500",
-    timelineLineColor: "bg-blue-500/30",
-    selectionColor: "selection:bg-blue-500/30",
-  },
-  creative: {
-    name: "Creative",
-    bg: "bg-[#1C1814]",
-    fontFamily: "'Fraunces', serif",
-    cardStyle: "rounded-2xl bg-white/5 border border-white/[0.08]",
-    metricStyle: { className: "text-5xl font-light tracking-tight", style: {} as Record<string, string> },
-    gradient: "bg-gradient-to-br from-transparent via-[#8BA888]/5 to-transparent",
-    glass: "bg-white/[0.03] backdrop-blur-sm border border-white/[0.08]",
-    glassHover: "hover:bg-white/[0.05] transition-all duration-500",
-    accent: "from-[#8BA888] to-[#9BB89A]",
-    accentSolid: "text-[#8BA888]",
-    glow: "shadow-[0_2px_12px_rgba(0,0,0,0.15)]",
-    text: "text-white",
-    muted: "text-zinc-500",
-    headingClass: "font-serif tracking-tight",
-    bodyClass: "font-sans",
-    chatUserBg: "bg-[#8BA888] text-[#18181B]",
-    chatBotBg: "bg-white/5 border border-white/[0.08] text-white",
-    ctaBg: "bg-[#8BA888] hover:bg-[#9BB89A]",
-    ctaGlow: "shadow-lg shadow-[#8BA888]/20",
-    sectionLabel: (_num: number) => "",
-    moduleStyle: "minimal" as const,
-    dotColor: "bg-[#8BA888]",
-    timelineLineColor: "bg-[#8BA888]/30",
-    selectionColor: "selection:bg-[#8BA888]/30",
-  },
-  executive: {
-    name: "Executive",
-    bg: "bg-[#FAFAF7]",
-    fontFamily: "'Space Grotesk', sans-serif",
-    cardStyle: "rounded-lg border border-[#E7E7E1] bg-white shadow-sm",
-    metricStyle: { className: "text-4xl font-bold text-[#1A1A1A]", style: {} as Record<string, string> },
-    gradient: "",
-    glass: "bg-white border border-[#E7E7E1] shadow-sm",
-    glassHover: "hover:shadow-md transition-shadow duration-300",
-    accent: "from-[#15803D] to-[#15803D]",
-    accentSolid: "text-[#15803D]",
-    glow: "shadow-sm",
-    text: "text-[#1A1A1A]",
-    muted: "text-[#5A5A62]",
-    headingClass: "font-['Space_Grotesk',sans-serif] tracking-tight",
-    bodyClass: "font-sans",
-    chatUserBg: "bg-[#15803D] text-white",
-    chatBotBg: "bg-white border border-[#E7E7E1] text-[#1A1A1A]",
-    ctaBg: "bg-[#15803D] hover:bg-[#166534]",
-    ctaGlow: "shadow-sm",
-    sectionLabel: (_num: number) => "",
-    moduleStyle: "formal" as const,
-    dotColor: "bg-[#15803D]",
-    timelineLineColor: "bg-[#15803D]/30",
-    selectionColor: "selection:bg-[#15803D]/20",
-  },
-};
+// The four branding themes a profile can pick — each one is a fully
+// self-contained layout below (search "if (brandingTheme ===" for each).
+// This used to be a big object of per-theme style tokens (colors, fonts,
+// card styles) shared by one generic template; now that each theme has its
+// own dedicated JSX, nothing reads those token values anymore, so this is
+// just the canonical list of valid keys.
+type BrandingThemeKey = "corporate" | "tech" | "creative" | "executive";
 
 export default function PortfolioPage() {
   const params = useParams<{ username: string }>();
@@ -194,8 +73,6 @@ export default function PortfolioPage() {
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const [showAllStats, setShowAllStats] = useState(false);
-  const [expandedTimeline, setExpandedTimeline] = useState<Set<number>>(new Set());
   const [demoBannerDismissed, setDemoBannerDismissed] = useState(false);
   const [, navigate] = useLocation();
   const { user } = useAuth();
@@ -379,7 +256,7 @@ export default function PortfolioPage() {
 
   const profile = portfolio.profile;
   const rawTheme = profile.brandingTheme?.toLowerCase() || "executive";
-  const themeMap: Record<string, keyof typeof themes> = {
+  const themeMap: Record<string, BrandingThemeKey> = {
     executive: "executive", futurist: "tech", minimalist: "creative",
     corporate: "corporate", tech: "tech", creative: "creative",
   };
@@ -396,8 +273,6 @@ export default function PortfolioPage() {
       : profile.portfolioSuggestedQuestions?.length
         ? profile.portfolioSuggestedQuestions
         : ["Tell me about yourself", "What's your biggest achievement?", "How do you handle challenges?"];
-
-  const visibleStats = showAllStats ? (profile.stats || []) : (profile.stats || []).slice(0, 6);
 
   // Shared across all four branding themes below — each theme is its own
   // self-contained layout (not a recolor of a shared template), but they all
@@ -720,7 +595,7 @@ export default function PortfolioPage() {
         </footer>
 
         {showEmailModal && portfolio.contact.email && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/50">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60">
             <div className="bg-[#FBFAF7] border border-[#DBD9CD] w-full max-w-md p-7">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="dossier-serif text-[20px]">Get in touch</h3>
@@ -1022,7 +897,11 @@ export default function PortfolioPage() {
                 {hasPhoto && <img src={profile.photoUrl!} alt={profile.displayName} className="w-11 h-11 rounded-full border border-[#1B222A] object-cover shrink-0" />}
                 <div>
                   <h1 className="text-[28px] font-bold text-[#EDF1F2] leading-tight">{profile.displayName}</h1>
-                  {dRoleLine && <div className="text-[13px] text-[#46C2B3]">{dRoleLine.toLowerCase().replace(/ — /g, " · ").replace(/,\s*/g, " · ").replace(/\s+/g, "_")}</div>}
+                  {dRoleLine && (
+                    <div className="text-[13px] text-[#46C2B3]">
+                      {dRoleLine.toLowerCase().split(/ — |,\s*/).map((seg) => seg.trim().replace(/\s+/g, "_")).filter(Boolean).join(" · ")}
+                    </div>
+                  )}
                 </div>
               </div>
               {dPositioning.length > 0 && (
@@ -1050,11 +929,11 @@ export default function PortfolioPage() {
         </div>
 
         {dStats.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 border-b border-[#1B222A]">
-            {dStats.slice(0, 3).map((stat, i) => (
+          <div className={`grid grid-cols-1 border-b border-[#1B222A] ${dStats.length >= 4 ? "sm:grid-cols-4" : dStats.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+            {dStats.map((stat, i) => (
               <div key={i} className={`px-8 py-6 border-[#1B222A] sm:border-r sm:last:border-r-0 ${i > 0 ? "border-t sm:border-t-0" : ""}`}>
                 <div className="text-[11px] text-[#6E7885] mb-2.5">{stat.label.toLowerCase().replace(/\s+/g, "_")}</div>
-                <div className="text-[22px] font-bold text-[#EDF1F2]">{stat.value}</div>
+                <div className="text-[22px] font-bold text-[#EDF1F2] whitespace-nowrap">{stat.value}</div>
               </div>
             ))}
           </div>
@@ -1131,7 +1010,9 @@ export default function PortfolioPage() {
         )}
 
         <div className="flex justify-between items-center px-8 py-5 text-[12.5px]">
-          <button onClick={() => portfolio.contact.email && setShowEmailModal(true)} className="text-[#6E7885]" data-testid="button-trm-footer-email" disabled={!portfolio.contact.email}><span className="text-[#46C2B3]">$</span> contact --email</button>
+          {portfolio.contact.email ? (
+            <button onClick={() => setShowEmailModal(true)} className="text-[#6E7885]" data-testid="button-trm-footer-email"><span className="text-[#46C2B3]">$</span> contact --email</button>
+          ) : <span />}
           <a href="/register" className="text-[#46C2B3]">build_your_own() →</a>
         </div>
 
@@ -1211,7 +1092,7 @@ export default function PortfolioPage() {
         {dStats.length > 0 && (
           <div className="px-11 pb-11 border-b border-[#322C22]">
             <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] tracking-[0.1em] uppercase text-[#7A7568] mb-5">By the numbers</div>
-            <div className={`grid gap-x-8 gap-y-6 ${dStats.length >= 3 ? "sm:grid-cols-3" : dStats.length === 2 ? "sm:grid-cols-2" : ""} max-w-[720px]`}>
+            <div className={`grid gap-x-8 gap-y-6 ${dStats.length >= 4 ? "sm:grid-cols-4" : dStats.length === 3 ? "sm:grid-cols-3" : dStats.length === 2 ? "sm:grid-cols-2" : ""} max-w-[920px]`}>
               {dStats.map((stat, i) => (
                 <div key={i} className="border-t border-[#241F17] pt-4">
                   <div className="text-[26px] font-medium leading-tight">{stat.value}</div>
@@ -1265,13 +1146,17 @@ export default function PortfolioPage() {
           <div className="px-11 py-12 border-b border-[#322C22] max-w-[680px]">
             <h2 style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[13px] tracking-[0.1em] uppercase text-[#96AD86] mb-6">Career highlights</h2>
             {flatHighlights.map((item: any, i: number) => (
-              <div key={i} className="grid grid-cols-[64px_1fr] gap-4 mb-5 last:mb-0">
-                <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[12px] text-[#7A7568] pt-0.5">{item.years}</div>
+              <div key={i} className="grid grid-cols-[84px_1fr] gap-4 mb-5 last:mb-0">
+                <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] text-[#7A7568] pt-0.5 leading-snug">{item.years}</div>
                 <div>
                   <div className="text-[19px] mb-1">{item.company}</div>
                   <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[12.5px] text-[#96AD86] mb-2">{item.title}</div>
                   {(item.achievements || []).length > 0 && (
-                    <p className="text-[15px] leading-relaxed text-[#D8CFC0]">{item.achievements.join(" ")}</p>
+                    <ul className="flex flex-col gap-2">
+                      {item.achievements.slice(0, 3).map((a: string, ai: number) => (
+                        <li key={ai} className="text-[15px] leading-relaxed text-[#D8CFC0] pl-4 relative before:content-['—'] before:absolute before:left-0 before:text-[#7A7568]">{a}</li>
+                      ))}
+                    </ul>
                   )}
                 </div>
               </div>

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { buildLinkedInPost } from "@/lib/shareCopy";
 import {
   Edit, Eye, Globe, LogOut,
   FileText, Sparkles, ExternalLink, ArrowRight, Copy, BarChart3, MessageSquare, Lock, Trash2, Mic, Loader2
@@ -471,21 +472,12 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="bg-white/10 border border-white/20 p-4 mb-4 mono text-xs text-white/80 leading-relaxed whitespace-pre-line">
-{`Just launched my AI career profile on Proxy.
-
-Instead of sending a PDF, I send a link. Recruiters can ask my AI questions about my experience and get real answers — in my voice, 24/7.
-
-My profile is also structured to be found by AI sourcing tools — not just Google.
-
-Explore it here: https://myproxy.work/portfolio/${user?.username}
-
-#jobsearch #career #AI`}
+                    {buildLinkedInPost(`https://myproxy.work/portfolio/${user?.username}`)}
                   </div>
                   <div className="flex gap-3 flex-wrap">
                     <button
                       onClick={() => {
-                        const post = `Just launched my AI career profile on Proxy.\n\nInstead of sending a PDF, I send a link. Recruiters can ask my AI questions about my experience and get real answers — in my voice, 24/7.\n\nMy profile is also structured to be found by AI sourcing tools — not just Google.\n\nExplore it here: https://myproxy.work/portfolio/${user?.username}\n\n#jobsearch #career #AI`;
-                        navigator.clipboard.writeText(post);
+                        navigator.clipboard.writeText(buildLinkedInPost(`https://myproxy.work/portfolio/${user?.username}`));
                       }}
                       className="flex items-center gap-2 bg-[#22C55E] text-black px-5 py-3 font-bold border-[3px] border-[#22C55E] mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)] hover:bg-[#16A34A] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
                     >

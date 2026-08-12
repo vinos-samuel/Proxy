@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Loader2, CheckCircle, ExternalLink, Copy, ArrowRight, AlertCircle, Share2, Linkedin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { buildLinkedInPost } from "@/lib/shareCopy";
 
 declare global {
   interface Window {
@@ -25,16 +26,7 @@ export default function PaymentSuccessPage() {
 
   const profileUrl = domain ? `https://${domain}` : "";
 
-  const linkedInPost = `Just set up my AI career profile on Proxy.
-
-Instead of sending recruiters a PDF, I now send them a link — they can ask my AI questions about my experience, skills, and career history. It answers in my voice, 24/7.
-
-The profile is also structured to be found by AI sourcing tools — not just search engines.
-
-If you're in hiring or talent acquisition, you can explore it here: ${profileUrl}
-
-Built for humans. Found by AI. 👇
-${profileUrl}`;
+  const linkedInPost = buildLinkedInPost(profileUrl);
 
   useEffect(() => {
     if (!sessionId) {

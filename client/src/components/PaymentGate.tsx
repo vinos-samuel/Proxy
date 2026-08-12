@@ -3,6 +3,7 @@ import { Check, Loader2, Rocket, Star, Crown, Zap } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
+import { buildLinkedInPost } from "@/lib/shareCopy";
 
 interface PaymentGateProps {
   profileId: string;
@@ -108,7 +109,7 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
 
   if (published && publishData) {
     const profileUrl = `https://myproxy.work/portfolio/${publishData.username}`;
-    const linkedInPost = `Just launched my AI career profile on Proxy.\n\nInstead of sending a PDF, I send a link. Recruiters can ask my AI questions about my experience and get real answers — in my voice, 24/7.\n\nExplore it here: ${profileUrl}\n\n#jobsearch #career #AI`;
+    const linkedInPost = buildLinkedInPost(profileUrl);
     const emailSignature = `${publishData.displayName || publishData.username}${publishData.roleTitle ? ` | ${publishData.roleTitle}` : ""}\nAsk my AI about my work: ${profileUrl}`;
     const copyItem = (key: string, text: string) => {
       navigator.clipboard.writeText(text);

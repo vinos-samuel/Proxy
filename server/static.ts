@@ -210,12 +210,15 @@ export function serveStatic(app: Express) {
           // Real headshot for both the JSON-LD image and the social share
           // card (og:image / twitter:image) — without this, LinkedIn/Slack
           // previews show the generic Proxy logo even for a profile with a
-          // real photo. Falls through to the base template's default image
-          // when there's no headshot, same as today.
+          // real photo. profile.photoUrl is the canonical column; step10's
+          // questionnaire field is only a fallback for older data that
+          // predates it — same order the /api/portfolio endpoint already
+          // uses (see routes.ts), which this was missing. Falls through to
+          // the base template's default image when there's no photo at all.
+          const rawHeadshot: string | null = profile.photoUrl || qd.step10?.headshot || qd.step10?.photoUrl || null;
           let headshotUrl: string | undefined;
-          if (qd.step10?.headshot) {
-            const headshot = qd.step10.headshot as string;
-            headshotUrl = headshot.startsWith("http") ? headshot : `https://myproxy.work${headshot}`;
+          if (rawHeadshot) {
+            headshotUrl = rawHeadshot.startsWith("http") ? rawHeadshot : `https://myproxy.work${rawHeadshot}`;
             jsonLd.image = headshotUrl;
           }
 

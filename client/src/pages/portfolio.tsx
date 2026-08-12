@@ -73,6 +73,7 @@ export default function PortfolioPage() {
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [expandedHighlights, setExpandedHighlights] = useState<Set<number>>(new Set());
   const [demoBannerDismissed, setDemoBannerDismissed] = useState(false);
   const [, navigate] = useLocation();
   const { user } = useAuth();
@@ -281,7 +282,11 @@ export default function PortfolioPage() {
   const dCareer = profile.careerTimeline || [];
   const dSkillsMatrix = profile.skillsMatrix || [];
   const dSkillTags = profile.skillTags || [];
-  const dStats = (profile.stats || []).slice(0, 4);
+  // Up to 16 — matches the edit UI's cap. AI generates 8 by default; a user
+  // can add more themselves. Grids below use a fixed 2-col mobile / 4-col
+  // desktop layout that wraps to further rows on its own, rather than a
+  // length-dependent column count that only ever worked up to 4 items.
+  const dStats = (profile.stats || []).slice(0, 16);
   const dPositioning = (profile.positioning || "").split("\n\n").filter(Boolean);
   const dRoleLine = [profile.roleTitle, dCareer[0]?.company].filter(Boolean).join(" — ");
   const dRemainingQs = suggestedQs.filter((q) => !messages.some((m) => m.role === "user" && m.content === q)).slice(0, 3);
@@ -426,12 +431,9 @@ export default function PortfolioPage() {
               {dStats.map((stat, i) => (
                 <div
                   key={i}
-                  className={
-                    "px-6 py-8 border-[#DBD9CD] md:border-l md:first:border-l-0 " +
-                    (i >= 2 ? "border-t md:border-t-0" : "")
-                  }
+                  className={`px-6 py-8 border-[#DBD9CD] md:border-l md:first:border-l-0 ${i >= 2 ? "border-t" : ""} ${i < 4 ? "md:border-t-0" : "md:border-t"}`}
                 >
-                  <div className="dossier-serif dossier-tab text-[34px] leading-none mb-2">{stat.value}</div>
+                  <div className="dossier-serif dossier-tab text-[26px] leading-none mb-2 whitespace-nowrap">{stat.value}</div>
                   <div className="dossier-mono text-[10.5px] uppercase tracking-wide text-[#8B8F84] leading-snug">{stat.label}</div>
                 </div>
               ))}
@@ -538,6 +540,24 @@ export default function PortfolioPage() {
                   ))}
                 </div>
               ))}
+            </div>
+          </section>
+        )}
+
+        {/* How I work */}
+        {profile.howIWork && profile.howIWork.steps?.length > 0 && (
+          <section className="py-14 px-6 border-b border-[#DBD9CD]">
+            <div className="max-w-[920px] mx-auto">
+              <h2 className="dossier-serif text-[26px] mb-2">How I work</h2>
+              {profile.howIWork.name && <div className="dossier-mono text-[13px] text-[#5B6158] uppercase mb-7">{profile.howIWork.name}</div>}
+              <div className="grid sm:grid-cols-2 gap-x-10 gap-y-6">
+                {profile.howIWork.steps.map((step, i) => (
+                  <div key={i}>
+                    <div className="dossier-mono text-[11px] text-[#8B8F84] uppercase tracking-wide mb-1">{step.label}</div>
+                    <p className="text-[14.5px] text-[#5B6158] leading-relaxed">{step.description}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
         )}
@@ -672,7 +692,13 @@ export default function PortfolioPage() {
 
         <div className="border-b border-[#262B33] py-3 px-6">
           <div className="max-w-[920px] mx-auto flex gap-7 flex-wrap">
-            {[["rpt-qa", "Questions & answers"], ["rpt-figures", "Key figures"], ["rpt-service", "Record of service"], ["rpt-activities", "Principal activities"]].map(([id, label]) => (
+            {[
+              ["rpt-qa", "Questions & answers"],
+              ["rpt-figures", "Key figures"],
+              ["rpt-service", "Record of service"],
+              ...(profile.howIWork && profile.howIWork.steps?.length > 0 ? [["rpt-how", "How I work"]] : []),
+              ["rpt-activities", "Principal activities"],
+            ].map(([id, label]) => (
               <button
                 key={id}
                 onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })}
@@ -777,7 +803,7 @@ export default function PortfolioPage() {
           <section className="border-b border-[#262B33]" id="rpt-figures">
             <div className={`max-w-[920px] mx-auto grid grid-cols-2 ${dStats.length >= 4 ? "md:grid-cols-4" : dStats.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
               {dStats.map((stat, i) => (
-                <div key={i} className={`px-6 py-8 border-[#262B33] md:border-l md:first:border-l-0 ${i >= 2 ? "border-t md:border-t-0" : ""}`}>
+                <div key={i} className={`px-6 py-8 border-[#262B33] md:border-l md:first:border-l-0 ${i >= 2 ? "border-t" : ""} ${i < 4 ? "md:border-t-0" : "md:border-t"}`}>
                   <div className={`font-medium leading-tight mb-2 rpt-tab whitespace-nowrap ${stat.value.length > 10 ? "text-[20px]" : "text-[30px]"}`}>{stat.value}</div>
                   <div className="rpt-mono text-[10.5px] uppercase tracking-wide text-[#8A8F98]">{stat.label}</div>
                 </div>
@@ -810,6 +836,23 @@ export default function PortfolioPage() {
                   ))}
                 </div>
               ))}
+            </div>
+          </section>
+        )}
+
+        {profile.howIWork && profile.howIWork.steps?.length > 0 && (
+          <section className="py-14 px-6 border-b border-[#262B33]" id="rpt-how">
+            <div className="max-w-[820px] mx-auto">
+              <h2 className="text-[21px] font-medium mb-2">How I work</h2>
+              {profile.howIWork.name && <div className="rpt-mono text-[11px] uppercase tracking-wide text-[#AD8A4E] mb-7">{profile.howIWork.name}</div>}
+              <div className="grid sm:grid-cols-2 gap-x-10 gap-y-5">
+                {profile.howIWork.steps.map((step, i) => (
+                  <div key={i}>
+                    <div className="rpt-mono text-[10.5px] text-[#8A8F98] uppercase tracking-wide mb-1">{step.label}</div>
+                    <p className="text-[14px] text-[#C9C7BB] leading-relaxed">{step.description}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
         )}
@@ -931,7 +974,7 @@ export default function PortfolioPage() {
         {dStats.length > 0 && (
           <div className={`grid grid-cols-1 border-b border-[#1B222A] ${dStats.length >= 4 ? "sm:grid-cols-4" : dStats.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
             {dStats.map((stat, i) => (
-              <div key={i} className={`px-8 py-6 border-[#1B222A] sm:border-r sm:last:border-r-0 ${i > 0 ? "border-t sm:border-t-0" : ""}`}>
+              <div key={i} className={`px-8 py-6 border-[#1B222A] sm:border-r sm:last:border-r-0 ${i > 0 ? "border-t" : ""} ${i < 4 ? "sm:border-t-0" : "sm:border-t"}`}>
                 <div className="text-[11px] text-[#6E7885] mb-2.5">{stat.label.toLowerCase().replace(/\s+/g, "_")}</div>
                 <div className="text-[22px] font-bold text-[#EDF1F2] whitespace-nowrap">{stat.value}</div>
               </div>
@@ -995,6 +1038,21 @@ export default function PortfolioPage() {
                 ))}
               </div>
             ))}
+          </div>
+        )}
+
+        {profile.howIWork && profile.howIWork.steps?.length > 0 && (
+          <div className="px-8 py-10 border-b border-[#1B222A] max-w-[760px]">
+            <div className="text-xs text-[#6E7885] mb-1.5">$ cat methodology.md</div>
+            {profile.howIWork.name && <div className="text-[13px] text-[#46C2B3] mb-5">{profile.howIWork.name}</div>}
+            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
+              {profile.howIWork.steps.map((step, i) => (
+                <div key={i}>
+                  <div className="text-[11px] text-[#6E7885] mb-1">{step.label.toLowerCase().replace(/\s+/g, "_")}</div>
+                  <p className="text-[13.5px] text-[#C3CAD0] leading-relaxed">{step.description}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -1095,7 +1153,7 @@ export default function PortfolioPage() {
             <div className={`grid gap-x-8 gap-y-6 ${dStats.length >= 4 ? "sm:grid-cols-4" : dStats.length === 3 ? "sm:grid-cols-3" : dStats.length === 2 ? "sm:grid-cols-2" : ""} max-w-[920px]`}>
               {dStats.map((stat, i) => (
                 <div key={i} className="border-t border-[#241F17] pt-4">
-                  <div className="text-[26px] font-medium leading-tight">{stat.value}</div>
+                  <div className="text-[26px] font-medium leading-tight whitespace-nowrap">{stat.value}</div>
                   <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11.5px] text-[#A69C89] mt-1.5 leading-snug">{stat.label}</div>
                 </div>
               ))}
@@ -1145,22 +1203,57 @@ export default function PortfolioPage() {
         {flatHighlights.length > 0 && (
           <div className="px-11 py-12 border-b border-[#322C22] max-w-[680px]">
             <h2 style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[13px] tracking-[0.1em] uppercase text-[#96AD86] mb-6">Career highlights</h2>
-            {flatHighlights.map((item: any, i: number) => (
-              <div key={i} className="grid grid-cols-[84px_1fr] gap-4 mb-5 last:mb-0">
-                <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] text-[#7A7568] pt-0.5 leading-snug">{item.years}</div>
-                <div>
-                  <div className="text-[19px] mb-1">{item.company}</div>
-                  <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[12.5px] text-[#96AD86] mb-2">{item.title}</div>
-                  {(item.achievements || []).length > 0 && (
-                    <ul className="flex flex-col gap-2">
-                      {item.achievements.slice(0, 3).map((a: string, ai: number) => (
-                        <li key={ai} className="text-[15px] leading-relaxed text-[#D8CFC0] pl-4 relative before:content-['—'] before:absolute before:left-0 before:text-[#7A7568]">{a}</li>
-                      ))}
-                    </ul>
-                  )}
+            {flatHighlights.map((item: any, i: number) => {
+              const achievements: string[] = item.achievements || [];
+              const isExpanded = expandedHighlights.has(i);
+              const visible = isExpanded ? achievements : achievements.slice(0, 3);
+              const remaining = achievements.length - 3;
+              return (
+                <div key={i} className="grid grid-cols-[84px_1fr] gap-4 mb-5 last:mb-0">
+                  <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] text-[#7A7568] pt-0.5 leading-snug">{item.years}</div>
+                  <div>
+                    <div className="text-[19px] mb-1">{item.company}</div>
+                    <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[12.5px] text-[#96AD86] mb-2">{item.title}</div>
+                    {visible.length > 0 && (
+                      <ul className="flex flex-col gap-2">
+                        {visible.map((a: string, ai: number) => (
+                          <li key={ai} className="text-[15px] leading-relaxed text-[#D8CFC0] pl-4 relative before:content-['—'] before:absolute before:left-0 before:text-[#7A7568]">{a}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {remaining > 0 && (
+                      <button
+                        onClick={() => setExpandedHighlights((prev) => {
+                          const next = new Set(prev);
+                          isExpanded ? next.delete(i) : next.add(i);
+                          return next;
+                        })}
+                        style={{ fontFamily: "-apple-system, sans-serif" }}
+                        className="text-[11.5px] text-[#96AD86] hover:text-[#EDE7DC] transition-colors mt-2.5 underline decoration-[#4A4335]"
+                        data-testid={`button-mag-highlight-toggle-${i}`}
+                      >
+                        {isExpanded ? "Show less" : `+${remaining} more`}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
+          </div>
+        )}
+
+        {profile.howIWork && profile.howIWork.steps?.length > 0 && (
+          <div className="px-11 py-12 border-b border-[#322C22] max-w-[680px]">
+            <h2 style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[13px] tracking-[0.1em] uppercase text-[#96AD86] mb-1">How I work</h2>
+            {profile.howIWork.name && <p className="text-[18px] italic text-[#D8CFC0] mb-6">{profile.howIWork.name}</p>}
+            <div className="grid sm:grid-cols-2 gap-x-10 gap-y-5">
+              {profile.howIWork.steps.map((step, i) => (
+                <div key={i}>
+                  <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11.5px] font-bold tracking-wide uppercase text-[#96AD86] mb-1.5">{step.label}</div>
+                  <p className="text-[15px] leading-relaxed text-[#D8CFC0]">{step.description}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

@@ -101,6 +101,7 @@ interface QuestionnaireData {
     phone: string;
     linkedinUrl: string;
     location: string;
+    targetRoles?: string;
   };
   step2: {
     professionalSummary: string;
@@ -200,6 +201,7 @@ export async function processQuestionnaire(
   const s1Name     = sanitizeForPrompt(data.step1.fullName, 100);
   const s1Title    = sanitizeForPrompt(data.step1.currentTitle, 100);
   const s1Location = sanitizeForPrompt(data.step1.location, 100) || "N/A";
+  const s1TargetRoles = sanitizeForPrompt(data.step1.targetRoles, 200) || "Not specified — infer from career trajectory";
   const s2Summary  = sanitizeForPrompt(data.step2.professionalSummary, 1000);
   const s5Achievements = sanitizeForPrompt(data.step5?.achievements, 1000) || "Not provided";
   const s6Skills   = sanitizeForPrompt(data.step6?.technicalSkills, 500) || "Not provided";
@@ -225,6 +227,7 @@ EXECUTIVE PROFILE:
 Name: ${s1Name}
 Title: ${s1Title}
 Location: ${s1Location}
+Roles they're targeting next: ${s1TargetRoles}
 
 PROFESSIONAL SUMMARY:
 ${s2Summary}
@@ -268,11 +271,11 @@ Generate a JSON object with the following structure:
 
 2. "heroSubtitle": Reframe their title into 3 positioning facets separated by " • ". Not "Director of Sales" but "Revenue Architecture • Market Expansion • Client Partnership".
 
-3. "impactMetrics": Extract EXACTLY 6 most impressive quantifiable achievements. Return exactly 6 items, no more, no fewer. Each must have:
-   - "value": The number with context (e.g., "98%", "GBP 1.2M+", "3x", "18+")
+3. "impactMetrics": Extract EXACTLY 8 of their most impressive achievements. Return exactly 8 items, no more, no fewer. Each must have:
+   - "value": A short, badge-length headline — a number where one genuinely exists ("98%", "GBP 1.2M+", "3x", "18+"), or a compact non-numeric credential when the achievement isn't a number ("PMP Certified", "Board Appointee", "Patent Holder"). Either way, keep it to a few words — it renders in large bold type, so a full sentence here will break the layout. Put the detail in the label, not the value.
    - "label": What it represents IN ALL CAPS with comparison context where possible (e.g., "RETAINED MANDATE COMPLETION RATE", "NPS SCORE (VS 18% INDUSTRY AVG)")
    - "icon": One of "target", "chart", "users", "ribbon", "lightning", "globe"
-   Prioritize business IMPACT metrics over activity metrics. Bad: "Managed 5 accounts". Good: "3x GROWTH ACROSS 5 KEY ACCOUNTS"
+   Prioritize business IMPACT over activity. Bad: "Managed 5 accounts". Good: "3x GROWTH ACROSS 5 KEY ACCOUNTS". If "Roles they're targeting next" is specified above, weight your selection toward the achievements most relevant to those roles, not just the most impressive achievements in isolation — someone moving from operations into strategy should see their strategic wins surfaced first, even if a purely operational metric is numerically bigger. If no target roles are specified, prioritize by career trajectory as before.
 
 4. "howIWork": Based on the user's questionnaire data, extract or infer their professional methodology/framework.
    RULES:

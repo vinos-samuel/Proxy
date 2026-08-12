@@ -52,6 +52,7 @@ export interface QuestionnaireData {
     phone: string;
     linkedinUrl: string;
     location: string;
+    targetRoles: string;
   };
   step2: {
     professionalSummary: string;
@@ -111,7 +112,7 @@ export interface QuestionnaireData {
 }
 
 const defaultData: QuestionnaireData = {
-  step1: { fullName: "", currentTitle: "", email: "", phone: "", linkedinUrl: "", location: "" },
+  step1: { fullName: "", currentTitle: "", email: "", phone: "", linkedinUrl: "", location: "", targetRoles: "" },
   step2: { 
     professionalSummary: "",
     careerHistory: [
@@ -306,6 +307,7 @@ export default function QuestionnairePage() {
             phone: extracted.phone || prev.step1.phone,
             linkedinUrl: extracted.linkedin || prev.step1.linkedinUrl,
             location: extracted.location || prev.step1.location,
+            targetRoles: prev.step1.targetRoles,
           },
           step2: {
             professionalSummary: extracted.summary || prev.step2.professionalSummary,
@@ -862,6 +864,17 @@ export default function QuestionnairePage() {
                       data-testid="input-current-title"
                       className="w-full border-2 border-black bg-white px-4 py-3 mono text-sm focus:outline-none focus:border-[#22C55E]"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="mono text-xs uppercase tracking-wider text-black/60 block">Roles You're Targeting</label>
+                    <input
+                      value={data.step1.targetRoles}
+                      onChange={e => updateField("step1", "targetRoles", e.target.value)}
+                      placeholder="e.g. VP Talent Acquisition, Head of People Ops"
+                      data-testid="input-target-roles"
+                      className="w-full border-2 border-black bg-white px-4 py-3 mono text-sm focus:outline-none focus:border-[#22C55E]"
+                    />
+                    <p className="text-xs text-black/50">Helps the AI pick achievements that matter for where you're headed, not just where you've been.</p>
                   </div>
                   <div className="space-y-2">
                     <label className="mono text-xs uppercase tracking-wider text-black/60 block">Email Address</label>

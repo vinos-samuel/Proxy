@@ -24,7 +24,6 @@ interface EditState {
   positioning: string;
   heroSubtitle: string;
   persona: string;
-  achievements: string;
   impactMetrics: Array<{ value: string; label: string; icon: string }>;
   howIWork: { name: string; steps: Array<{ label: string; description: string }> } | null;
   whyAiCv: string[];
@@ -42,7 +41,6 @@ export default function PreviewPage() {
     positioning: "",
     heroSubtitle: "",
     persona: "",
-    achievements: "",
     impactMetrics: [],
     howIWork: null,
     whyAiCv: [],
@@ -107,7 +105,6 @@ export default function PreviewPage() {
 
   const startEditing = () => {
     if (!profile) return;
-    const qData = profile.questionnaireData as any;
     const pData = (profile as any);
     setEditState({
       displayName: profile.displayName || "",
@@ -115,7 +112,6 @@ export default function PreviewPage() {
       positioning: profile.positioning || "",
       heroSubtitle: pData.heroSubtitle || "",
       persona: profile.persona || "",
-      achievements: qData?.step5?.achievements || "",
       impactMetrics: Array.isArray(pData.stats) ? pData.stats : [],
       howIWork: pData.howIWork || null,
       whyAiCv: Array.isArray(pData.whyAiCv) ? pData.whyAiCv : [],
@@ -127,7 +123,6 @@ export default function PreviewPage() {
   const saveEdits = () => {
     if (!profile) return;
     const pData = (profile as any);
-    const qData = profile.questionnaireData as any;
     const updates: Record<string, any> = {};
 
     if (editState.displayName !== (profile.displayName || "")) updates.displayName = editState.displayName;
@@ -135,7 +130,6 @@ export default function PreviewPage() {
     if (editState.positioning !== (profile.positioning || "")) updates.positioning = editState.positioning;
     if (editState.heroSubtitle !== (pData.heroSubtitle || "")) updates.heroSubtitle = editState.heroSubtitle;
     if (editState.persona !== (profile.persona || "")) updates.persona = editState.persona;
-    if (editState.achievements !== (qData?.step5?.achievements || "")) updates.achievements = editState.achievements;
 
     if (JSON.stringify(editState.impactMetrics) !== JSON.stringify(pData.stats || [])) {
       updates.stats = editState.impactMetrics;
@@ -414,7 +408,7 @@ export default function PreviewPage() {
 
                       {renderSection("metrics", "Impact Metrics", (
                         <>
-                          <p className="text-xs text-muted-foreground">Edit the key numbers shown on your portfolio.</p>
+                          <p className="text-xs text-muted-foreground">Edit the key numbers and achievements shown on your portfolio. Not every entry needs to be a number — "PMP Certified" or "Board Appointee" work too. Keep the top value short; it renders in large type.</p>
                           {editState.impactMetrics.map((metric, i) => (
                             <div key={i} className="border rounded p-2 space-y-2 relative">
                               {editState.impactMetrics.length > 1 && (
@@ -436,7 +430,7 @@ export default function PreviewPage() {
                                   updated[i] = { ...updated[i], value: e.target.value };
                                   setEditState(prev => ({ ...prev, impactMetrics: updated }));
                                 }}
-                                placeholder="e.g. 98%"
+                                placeholder="e.g. 98% or PMP Certified"
                                 className="text-sm"
                                 data-testid={`input-metric-value-${i}`}
                               />
@@ -453,7 +447,7 @@ export default function PreviewPage() {
                               />
                             </div>
                           ))}
-                          {editState.impactMetrics.length < 8 && (
+                          {editState.impactMetrics.length < 16 && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -600,19 +594,6 @@ export default function PreviewPage() {
                             />
                           </div>
                         </>
-                      ))}
-
-                      {renderSection("achievements", "Key Achievements", (
-                        <div>
-                          <label className="text-xs text-muted-foreground block mb-1">One achievement per line</label>
-                          <Textarea
-                            value={editState.achievements}
-                            onChange={(e) => setEditState(prev => ({ ...prev, achievements: e.target.value }))}
-                            rows={6}
-                            className="text-sm"
-                            data-testid="input-edit-achievements"
-                          />
-                        </div>
                       ))}
 
                       <div className="border rounded-md p-3 bg-muted/30">

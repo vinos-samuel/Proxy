@@ -206,9 +206,17 @@ export function serveStatic(app: Express) {
           if (profile.positioning)      jsonLd.description  = profile.positioning;
           if (qd.step1?.location)       jsonLd.address      = { "@type": "PostalAddress", addressLocality: qd.step1.location };
           if (qd.step1?.linkedinUrl)    jsonLd.sameAs       = [qd.step1.linkedinUrl];
+
+          // Real headshot for both the JSON-LD image and the social share
+          // card (og:image / twitter:image) — without this, LinkedIn/Slack
+          // previews show the generic Proxy logo even for a profile with a
+          // real photo. Falls through to the base template's default image
+          // when there's no headshot, same as today.
+          let headshotUrl: string | undefined;
           if (qd.step10?.headshot) {
             const headshot = qd.step10.headshot as string;
-            jsonLd.image = headshot.startsWith("http") ? headshot : `https://myproxy.work${headshot}`;
+            headshotUrl = headshot.startsWith("http") ? headshot : `https://myproxy.work${headshot}`;
+            jsonLd.image = headshotUrl;
           }
 
           // Skills as knowsAbout array (split on commas/newlines, cap at 15)
@@ -225,6 +233,7 @@ export function serveStatic(app: Express) {
             title: `${name} — ${profile.roleTitle || "AI Career Portfolio"} | Proxy`,
             description: rawDescription,
             ogUrl: url,
+            ogImage: headshotUrl,
             jsonLd,
           });
           return res.send(html);

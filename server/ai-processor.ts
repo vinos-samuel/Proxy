@@ -361,9 +361,9 @@ Return ONLY valid JSON, no markdown:
 {"intro": "string", "scenarios": [{"title": "string (short)", "description": "string (full scenario, 15-25 words)", "icon": "globe"|"users"|"target"|"chart"|"briefcase"|"lightning"}]}`;
 
     const [portfolioResponse, skillsResponse, positioningResponse] = await Promise.all([
-      ai.models.generateContent({ model: "gemini-2.5-flash", contents: portfolioPrompt }),
-      ai.models.generateContent({ model: "gemini-2.5-flash", contents: skillsPrompt }),
-      ai.models.generateContent({ model: "gemini-2.5-flash", contents: positioningPrompt }),
+      ai.models.generateContent({ model: "gemini-2.5-flash", contents: portfolioPrompt, config: { temperature: 0.3 } }),
+      ai.models.generateContent({ model: "gemini-2.5-flash", contents: skillsPrompt, config: { temperature: 0.3 } }),
+      ai.models.generateContent({ model: "gemini-2.5-flash", contents: positioningPrompt, config: { temperature: 0.3 } }),
     ]);
 
     portfolioData = extractJson(portfolioResponse.text) || {};
@@ -492,6 +492,7 @@ Return ONLY the narrative text, no headers or labels.`;
     const aboutResponse = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: aboutPrompt,
+      config: { temperature: 0.3 },
     });
 
     const aboutText =
@@ -591,6 +592,7 @@ Return ONLY valid JSON (no markdown, no code fences):
       const rewriteResponse = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: rewritePrompt,
+        config: { temperature: 0.3 },
       });
 
       const parsed = extractJson(rewriteResponse.text);
@@ -661,6 +663,7 @@ Return ONLY the rewritten bullet points, nothing else.`;
       const achResponse = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: achPrompt,
+        config: { temperature: 0.3 },
       });
 
       enhancedAchievements = achResponse.text?.trim() || enhancedAchievements;
@@ -759,6 +762,7 @@ Return ONLY the response text.`;
       const qaResponse = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: qaPrompt,
+        config: { temperature: 0.3 },
       });
 
       aiAnswer = qaResponse.text || qa.answer;
@@ -821,6 +825,7 @@ Return ONLY the response text.`;
       const objResponse = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: objPrompt,
+        config: { temperature: 0.3 },
       });
 
       aiResponse = objResponse.text || obj.response;
@@ -1005,6 +1010,7 @@ Return ONLY valid JSON. No markdown code fences, no explanations, no preamble.`;
           ],
         },
       ],
+      config: { temperature: 0.3 },
     });
 
     const parsed = extractJson(result.text);
@@ -1085,6 +1091,7 @@ ${WRITING_RULES}
     const result = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: { temperature: 0.3 },
     });
     const parsed = extractJson(result.text);
     if (parsed) {
@@ -1160,6 +1167,7 @@ Return ONLY valid JSON:
     const result = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: { temperature: 0.3 },
     });
     const parsed = extractJson(result.text);
     if (parsed) {
@@ -1280,6 +1288,7 @@ Return ONLY valid JSON. No markdown code fences, no explanations.`;
     const result = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: { temperature: 0.3 },
     });
 
     const draft = extractJson(result.text);

@@ -466,25 +466,25 @@ export default function PortfolioPage() {
           </div>
         </header>
 
-        {/* Hero */}
+        {/* Hero — video (when present) takes the prominent top-right slot, same
+            job the landing page's own hero video does. The photo, when there
+            is one, is just an identity marker next to the name — small and
+            circular, not competing with the video for space. */}
         <section className="py-14 px-6 border-b border-[#DBD9CD]">
-          <div className="max-w-[920px] mx-auto grid md:grid-cols-[108px_1fr] gap-8">
-            <div className="flex md:flex-col gap-5 md:gap-4 pt-1 flex-wrap">
-              {hasPhoto && (
-                <img
-                  src={profile.photoUrl!}
-                  alt={profile.displayName}
-                  className="w-16 h-16 md:w-full md:h-auto md:aspect-square object-cover border border-[#DBD9CD]"
-                />
-              )}
-              {portfolio.contact.location && (
-                <div>
-                  <div className="dossier-mono text-[11px] uppercase tracking-wide text-[#8B8F84] mb-0.5">Based</div>
-                  <div className="dossier-mono text-[12.5px]">{portfolio.contact.location}</div>
-                </div>
-              )}
-            </div>
+          <div className={`max-w-[920px] mx-auto grid gap-10 ${hasVideo ? "md:grid-cols-[1fr_380px]" : ""}`}>
             <div>
+              <div className="flex items-center gap-3 mb-5">
+                {hasPhoto && (
+                  <img
+                    src={profile.photoUrl!}
+                    alt={profile.displayName}
+                    className="w-12 h-12 rounded-full object-cover border border-[#DBD9CD]"
+                  />
+                )}
+                {portfolio.contact.location && (
+                  <div className="dossier-mono text-[12px] text-[#8B8F84]">Based in {portfolio.contact.location}</div>
+                )}
+              </div>
               <h1 className="dossier-serif text-[40px] leading-tight mb-2">{profile.displayName}</h1>
               {dRoleLine && <div className="dossier-mono text-[13px] text-[#5B6158] uppercase mb-6">{dRoleLine}</div>}
 
@@ -526,16 +526,16 @@ export default function PortfolioPage() {
                   </a>
                 )}
               </div>
-
-              {hasVideo && (
-                <video
-                  src={profile.videoUrl!}
-                  controls
-                  className="w-full max-w-[420px] border border-[#DBD9CD] mt-7"
-                  data-testid="video-intro"
-                />
-              )}
             </div>
+
+            {hasVideo && (
+              <video
+                src={profile.videoUrl!}
+                controls
+                className="w-full border border-[#DBD9CD] md:mt-1"
+                data-testid="video-intro"
+              />
+            )}
           </div>
         </section>
 
@@ -810,23 +810,20 @@ export default function PortfolioPage() {
         </div>
 
         <section className="py-14 px-6 border-b border-[#262B33]">
-          <div className="max-w-[920px] mx-auto grid md:grid-cols-[108px_1fr] gap-8">
-            <div className="flex md:flex-col gap-5 md:gap-4 pt-1 flex-wrap">
-              {hasPhoto && (
-                <img
-                  src={profile.photoUrl!}
-                  alt={profile.displayName}
-                  className="w-16 h-16 md:w-full md:h-auto md:aspect-square object-cover border border-[#262B33]"
-                />
-              )}
-              {portfolio.contact.location && (
-                <div>
-                  <div className="rpt-mono text-[11px] uppercase tracking-wide text-[#8A8F98] mb-0.5">Based</div>
-                  <div className="rpt-mono text-[12.5px]">{portfolio.contact.location}</div>
-                </div>
-              )}
-            </div>
+          <div className={`max-w-[920px] mx-auto grid gap-10 ${hasVideo ? "md:grid-cols-[1fr_380px]" : ""}`}>
             <div>
+              <div className="flex items-center gap-3 mb-5">
+                {hasPhoto && (
+                  <img
+                    src={profile.photoUrl!}
+                    alt={profile.displayName}
+                    className="w-12 h-12 rounded-full object-cover border border-[#262B33]"
+                  />
+                )}
+                {portfolio.contact.location && (
+                  <div className="rpt-mono text-[12px] text-[#8A8F98]">Based in {portfolio.contact.location}</div>
+                )}
+              </div>
               <h1 className="text-[38px] font-medium leading-tight mb-2">{profile.displayName}</h1>
               {dRoleLine && <div className="rpt-mono text-[12.5px] uppercase tracking-wide text-[#AD8A4E] mb-7">{dRoleLine}</div>}
               {dPositioning.length > 0 && (
@@ -851,10 +848,10 @@ export default function PortfolioPage() {
                   <a href={profile.cvResumeUrl} download className="rpt-mono text-[11.5px] text-[#8A8F98] border-b border-[#33383F] pb-0.5 hover:text-[#E9E7DE] transition-colors">Download CV</a>
                 )}
               </div>
-              {hasVideo && (
-                <video src={profile.videoUrl!} controls className="w-full max-w-[420px] border border-[#262B33] mt-7" data-testid="video-intro" />
-              )}
             </div>
+            {hasVideo && (
+              <video src={profile.videoUrl!} controls className="w-full border border-[#262B33] md:mt-1" data-testid="video-intro" />
+            )}
           </div>
         </section>
 
@@ -906,7 +903,7 @@ export default function PortfolioPage() {
             <div className={`max-w-[920px] mx-auto grid grid-cols-2 ${dStats.length >= 4 ? "md:grid-cols-4" : dStats.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
               {dStats.map((stat, i) => (
                 <div key={i} className={`px-6 py-8 border-[#262B33] md:border-l md:first:border-l-0 ${i >= 2 ? "border-t md:border-t-0" : ""}`}>
-                  <div className="text-[30px] font-medium leading-none mb-2 rpt-tab">{stat.value}</div>
+                  <div className={`font-medium leading-tight mb-2 rpt-tab whitespace-nowrap ${stat.value.length > 10 ? "text-[20px]" : "text-[30px]"}`}>{stat.value}</div>
                   <div className="rpt-mono text-[10.5px] uppercase tracking-wide text-[#8A8F98]">{stat.label}</div>
                 </div>
               ))}
@@ -1017,35 +1014,39 @@ export default function PortfolioPage() {
           </div>
         </div>
 
-        <div className="px-8 py-11 pb-8 border-b border-[#1B222A] max-w-[760px]">
-          <div className="text-[#6E7885] text-[13px] mb-2.5"><span className="text-[#46C2B3]">$</span> whoami</div>
-          <div className="flex items-center gap-3.5 mb-5">
-            {hasPhoto && <img src={profile.photoUrl!} alt={profile.displayName} className="w-[52px] h-[52px] border border-[#1B222A] object-cover shrink-0" />}
+        <div className="px-8 py-11 pb-8 border-b border-[#1B222A]">
+          <div className={`grid gap-10 ${hasVideo ? "md:grid-cols-[1fr_380px]" : "max-w-[760px]"}`}>
             <div>
-              <h1 className="text-[28px] font-bold text-[#EDF1F2] leading-tight">{profile.displayName}</h1>
-              {dRoleLine && <div className="text-[13px] text-[#46C2B3]">{dRoleLine.toLowerCase().replace(/ — /g, " · ").replace(/,\s*/g, " · ").replace(/\s+/g, "_")}</div>}
-            </div>
-          </div>
-          {dPositioning.length > 0 && (
-            <div className="bg-[#10151B] border border-[#1B222A] rounded-md mb-6">
-              <div className="flex gap-1.5 px-3.5 py-2 border-b border-[#1B222A]"><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /></div>
-              <div className="px-5 py-4 text-[14px] leading-relaxed text-[#C3CAD0]">
-                <div className="text-[#6E7885] text-xs mb-2">$ cat README.md</div>
-                {dPositioning.map((para, i) => <p key={i} className={i > 0 ? "mt-2" : ""}>{para}</p>)}
+              <div className="text-[#6E7885] text-[13px] mb-2.5"><span className="text-[#46C2B3]">$</span> whoami</div>
+              <div className="flex items-center gap-3 mb-5">
+                {hasPhoto && <img src={profile.photoUrl!} alt={profile.displayName} className="w-11 h-11 rounded-full border border-[#1B222A] object-cover shrink-0" />}
+                <div>
+                  <h1 className="text-[28px] font-bold text-[#EDF1F2] leading-tight">{profile.displayName}</h1>
+                  {dRoleLine && <div className="text-[13px] text-[#46C2B3]">{dRoleLine.toLowerCase().replace(/ — /g, " · ").replace(/,\s*/g, " · ").replace(/\s+/g, "_")}</div>}
+                </div>
+              </div>
+              {dPositioning.length > 0 && (
+                <div className="bg-[#10151B] border border-[#1B222A] rounded-md mb-6">
+                  <div className="flex gap-1.5 px-3.5 py-2 border-b border-[#1B222A]"><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /></div>
+                  <div className="px-5 py-4 text-[14px] leading-relaxed text-[#C3CAD0]">
+                    <div className="text-[#6E7885] text-xs mb-2">$ cat README.md</div>
+                    {dPositioning.map((para, i) => <p key={i} className={i > 0 ? "mt-2" : ""}>{para}</p>)}
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-5 flex-wrap">
+                <button onClick={() => document.getElementById("trm-qa")?.scrollIntoView({ behavior: "smooth" })} className="text-[12.5px] font-bold bg-[#46C2B3] text-[#05201C] px-5 py-2.5 rounded-[3px]" data-testid="button-trm-ask">$ ask</button>
+                {portfolio.contact.linkedin && <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer" className="text-[12.5px] text-[#6E7885] border-b border-dotted border-[#2A333D]">linkedin</a>}
+                {profile.cvResumeUrl && <a href={profile.cvResumeUrl} download className="text-[12.5px] text-[#6E7885] border-b border-dotted border-[#2A333D]">download_cv</a>}
               </div>
             </div>
-          )}
-          <div className="flex items-center gap-5 flex-wrap">
-            <button onClick={() => document.getElementById("trm-qa")?.scrollIntoView({ behavior: "smooth" })} className="text-[12.5px] font-bold bg-[#46C2B3] text-[#05201C] px-5 py-2.5 rounded-[3px]" data-testid="button-trm-ask">$ ask</button>
-            {portfolio.contact.linkedin && <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer" className="text-[12.5px] text-[#6E7885] border-b border-dotted border-[#2A333D]">linkedin</a>}
-            {profile.cvResumeUrl && <a href={profile.cvResumeUrl} download className="text-[12.5px] text-[#6E7885] border-b border-dotted border-[#2A333D]">download_cv</a>}
+            {hasVideo && (
+              <div className="bg-[#10151B] border border-[#1B222A] rounded-md md:mt-6 h-fit">
+                <div className="flex gap-1.5 px-3.5 py-2 border-b border-[#1B222A]"><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /></div>
+                <video src={profile.videoUrl!} controls className="w-full block" data-testid="video-intro" />
+              </div>
+            )}
           </div>
-          {hasVideo && (
-            <div className="bg-[#10151B] border border-[#1B222A] rounded-md max-w-[420px] mt-6">
-              <div className="flex gap-1.5 px-3.5 py-2 border-b border-[#1B222A]"><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /></div>
-              <video src={profile.videoUrl!} controls className="w-full block" data-testid="video-intro" />
-            </div>
-          )}
         </div>
 
         {dStats.length > 0 && (
@@ -1180,12 +1181,14 @@ export default function PortfolioPage() {
           <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] text-[#7A7568]">{isDraftMode ? "Draft preview — not live yet" : "Published"}</div>
         </div>
 
-        <div className="grid md:grid-cols-[200px_1fr] gap-10 px-11 py-12 border-b border-[#322C22]">
-          {hasPhoto ? (
-            <img src={profile.photoUrl!} alt={profile.displayName} className="w-full aspect-[4/5] object-cover border border-[#322C22]" />
-          ) : <div />}
+        <div className={`grid gap-10 px-11 py-12 border-b border-[#322C22] ${hasVideo ? "md:grid-cols-[1fr_420px]" : ""}`}>
           <div className="max-w-[560px]">
-            {dRoleLine && <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11.5px] tracking-wide uppercase text-[#96AD86] mb-3.5">{dRoleLine}</div>}
+            <div className="flex items-center gap-3 mb-3.5">
+              {hasPhoto && (
+                <img src={profile.photoUrl!} alt={profile.displayName} className="w-10 h-10 rounded-full object-cover border border-[#322C22]" />
+              )}
+              {dRoleLine && <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11.5px] tracking-wide uppercase text-[#96AD86]">{dRoleLine}</div>}
+            </div>
             <h1 className="text-[38px] md:text-[42px] font-medium leading-[1.05] mb-4 tracking-tight">{profile.displayName}</h1>
             {dPositioning.length > 0 && (
               <div className="relative pl-2 mb-6">
@@ -1199,10 +1202,10 @@ export default function PortfolioPage() {
               {portfolio.contact.linkedin && <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer" className="text-[#A69C89] border-b border-[#4A4335]">LinkedIn</a>}
               {profile.cvResumeUrl && <a href={profile.cvResumeUrl} download className="text-[#A69C89] border-b border-[#4A4335]">Download CV</a>}
             </div>
-            {hasVideo && (
-              <video src={profile.videoUrl!} controls className="w-full max-w-[460px] border border-[#322C22] mt-6" data-testid="video-intro" />
-            )}
           </div>
+          {hasVideo && (
+            <video src={profile.videoUrl!} controls className="w-full border border-[#322C22] h-fit" data-testid="video-intro" />
+          )}
         </div>
 
         {dStats.length > 0 && (

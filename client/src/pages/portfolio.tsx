@@ -284,6 +284,10 @@ export default function PortfolioPage() {
   const dCareer = profile.careerTimeline || [];
   const dSkillsMatrix = profile.skillsMatrix || [];
   const dSkillTags = profile.skillTags || [];
+  // Reused by boldKeyPhrases() below — the same skill list already shown in
+  // Principal Activities / Filed Under, so a bolded skill in an achievement
+  // is always something the person already confirmed, not an AI guess.
+  const dSkillsList: string[] = dSkillTags.length > 0 ? dSkillTags : dSkillsMatrix.map((s: any) => s.title);
   // Up to 16 — matches the edit UI's cap. AI generates 8 by default; a user
   // can add more themselves. Grids below use a fixed 2-col mobile / 4-col
   // desktop layout that wraps to further rows on its own, rather than a
@@ -314,6 +318,48 @@ export default function PortfolioPage() {
       })}
     </div>
   );
+
+  // Bolds the key figures and already-listed skills inside one achievement
+  // line — mechanical, not AI-generated, so it's free, deterministic, and
+  // works retroactively on every existing profile without reprocessing.
+  // Two sources only, in priority order: (1) numbers shaped like a metric —
+  // %, $ amounts, "N+" — and (2) a skill/tool the person already listed
+  // elsewhere on their own profile, never a term the AI merely guessed
+  // matters. Capped at 3 highlights per line: past that, bold stops reading
+  // as emphasis and just becomes the sentence's other font.
+  const boldKeyPhrases = (text: string, skills: string[], maxHighlights = 3) => {
+    const ranges: Array<[number, number]> = [];
+    const figureRegex = /(~?\$[\d,]+(?:\.\d+)?\s?[MKB]?\+?|~?\d+(?:\.\d+)?%|\d+\+)/g;
+    let m: RegExpExecArray | null;
+    while ((m = figureRegex.exec(text)) && ranges.length < maxHighlights) {
+      ranges.push([m.index, m.index + m[0].length]);
+    }
+    for (const skill of skills) {
+      if (ranges.length >= maxHighlights) break;
+      const clean = skill.trim();
+      if (clean.length < 3) continue;
+      const escaped = clean.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const sm = new RegExp(`\\b${escaped}\\b`, "i").exec(text);
+      if (sm) ranges.push([sm.index, sm.index + sm[0].length]);
+    }
+    if (ranges.length === 0) return text;
+    ranges.sort((a, b) => a[0] - b[0]);
+    const merged: Array<[number, number]> = [];
+    for (const r of ranges) {
+      const last = merged[merged.length - 1];
+      if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]);
+      else merged.push([r[0], r[1]]);
+    }
+    const nodes: (string | JSX.Element)[] = [];
+    let cursor = 0;
+    merged.forEach(([start, end], i) => {
+      if (start > cursor) nodes.push(text.slice(cursor, start));
+      nodes.push(<strong key={i}>{text.slice(start, end)}</strong>);
+      cursor = end;
+    });
+    if (cursor < text.length) nodes.push(text.slice(cursor));
+    return nodes;
+  };
 
   // ==========================================================================
   // EXECUTIVE THEME — rendered as its own layout, not a recolor of the shared
@@ -541,7 +587,7 @@ export default function PortfolioPage() {
                               <ul className="flex flex-col gap-1.5">
                                 {visible.map((a: string, k: number) => (
                                   <li key={k} className="text-[14.5px] text-[#5B6158] pl-3.5 relative before:content-['—'] before:absolute before:left-0 before:text-[#8B8F84]">
-                                    {a}
+                                    {boldKeyPhrases(a, dSkillsList)}
                                   </li>
                                 ))}
                               </ul>
@@ -862,7 +908,7 @@ export default function PortfolioPage() {
                             <div>
                               <ul className="flex flex-col gap-1">
                                 {visible.map((a: string, k: number) => (
-                                  <li key={k} className="text-[14px] text-[#C9C7BB]">{a}</li>
+                                  <li key={k} className="text-[14px] text-[#C9C7BB]">{boldKeyPhrases(a, dSkillsList)}</li>
                                 ))}
                               </ul>
                               {remaining > 0 && (
@@ -1081,7 +1127,7 @@ export default function PortfolioPage() {
                     <div className="flex-1">
                       <div className="text-[#C3CAD0]">{role.title}</div>
                       {(role.achievements || []).map((a: string, ai: number) => (
-                        <div key={ai} className="text-[#5FBF8F] text-[12.5px] mt-0.5">+{a}</div>
+                        <div key={ai} className="text-[#5FBF8F] text-[12.5px] mt-0.5">+{boldKeyPhrases(a, dSkillsList)}</div>
                       ))}
                     </div>
                   </div>
@@ -1268,7 +1314,7 @@ export default function PortfolioPage() {
                     {visible.length > 0 && (
                       <ul className="flex flex-col gap-2">
                         {visible.map((a: string, ai: number) => (
-                          <li key={ai} className="text-[15px] leading-relaxed text-[#D8CFC0] pl-4 relative before:content-['—'] before:absolute before:left-0 before:text-[#7A7568]">{a}</li>
+                          <li key={ai} className="text-[15px] leading-relaxed text-[#D8CFC0] pl-4 relative before:content-['—'] before:absolute before:left-0 before:text-[#7A7568]">{boldKeyPhrases(a, dSkillsList)}</li>
                         ))}
                       </ul>
                     )}

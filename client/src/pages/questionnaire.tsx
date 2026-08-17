@@ -14,6 +14,7 @@ import {
 import { useUpload } from "@/hooks/use-upload";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { ThemePreviewSwatch } from "@/components/theme-preview-swatch";
 
 const STEPS = [
   { id: 1, title: "Basic Information", icon: User, description: "Your name, contact details and location" },
@@ -1329,11 +1330,11 @@ export default function QuestionnairePage() {
                 <div className="space-y-6">
                   <div className="space-y-3">
                     <label className="mono text-xs uppercase tracking-wider text-black/60 block">Branding Theme *</label>
-                    <div className="grid gap-3">
+                    <div className="grid gap-3 sm:grid-cols-2">
                       {BRANDING_THEMES.map(theme => (
                         <div
                           key={theme.value}
-                          className={`cursor-pointer border-[3px] p-4 flex items-start gap-3 transition-colors ${
+                          className={`cursor-pointer border-[3px] transition-colors ${
                             data.step10.brandingTheme === theme.value
                               ? "border-[#22C55E] bg-[#22C55E]/5"
                               : "border-black bg-white hover:bg-black/5"
@@ -1341,14 +1342,17 @@ export default function QuestionnairePage() {
                           onClick={() => updateField("step10", "brandingTheme", theme.value)}
                           data-testid={`card-theme-${theme.value}`}
                         >
-                          <div className={`mt-1 h-4 w-4 border-2 flex items-center justify-center shrink-0 ${
-                            data.step10.brandingTheme === theme.value ? "border-[#22C55E]" : "border-black/30"
-                          }`}>
-                            {data.step10.brandingTheme === theme.value && <div className="h-2 w-2 bg-[#22C55E]" />}
-                          </div>
-                          <div>
-                            <p className="font-bold">{theme.label}</p>
-                            <p className="mono text-xs text-black/60">{theme.description}</p>
+                          <ThemePreviewSwatch theme={theme.value} />
+                          <div className="flex items-start gap-3 p-3">
+                            <div className={`mt-1 h-4 w-4 border-2 flex items-center justify-center shrink-0 ${
+                              data.step10.brandingTheme === theme.value ? "border-[#22C55E]" : "border-black/30"
+                            }`}>
+                              {data.step10.brandingTheme === theme.value && <div className="h-2 w-2 bg-[#22C55E]" />}
+                            </div>
+                            <div>
+                              <p className="font-bold">{theme.label}</p>
+                              <p className="mono text-xs text-black/60">{theme.description}</p>
+                            </div>
                           </div>
                         </div>
                       ))}

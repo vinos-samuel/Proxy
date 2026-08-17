@@ -1,8 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { FileText, Zap, Rocket, X, Check, Send, Loader2 } from "lucide-react";
 import ProxyLogo from "@/components/ProxyLogo";
 import { getCsrfToken } from "@/lib/queryClient";
+
+// Demo account the hero widget mirrors. Kept as one constant so the widget
+// and the "see the full profile" link can never point at different accounts.
+const HERO_DEMO_USERNAME = "priya";
+
+interface HeroProfile {
+  displayName: string;
+  roleLine: string;
+  photoUrl: string | null;
+  suggestedQuestions: string[];
+}
+
+// Shown until the live fetch resolves, and if it ever fails — matches her
+// real profile as of the Executive-theme switch, so there's never a blank
+// or broken-looking widget. The live fetch keeps this from drifting again.
+const HERO_PROFILE_FALLBACK: HeroProfile = {
+  displayName: "Priya Sharma",
+  roleLine: "VP, Talent Acquisition & Workforce Strategy — Nexora Group",
+  photoUrl: null,
+  suggestedQuestions: [
+    "What do you see as the biggest emerging challenge in talent acquisition for the APAC region?",
+    "How do you leverage data and analytics to inform your talent strategy decisions?",
+  ],
+};
 
 export default function LandingPage() {
   const [, navigate] = useLocation();
@@ -13,28 +37,41 @@ export default function LandingPage() {
   const [heroQuestion, setHeroQuestion] = useState("");
   const [heroAnswer, setHeroAnswer] = useState("");
   const [heroAsking, setHeroAsking] = useState(false);
-  // Real answers for the two suggested questions, matching Priya's actual profile
-  // content — used as a fallback if the live API call fails, so a slow proxy or a
-  // cold demo environment never shows a visible error in the hero.
-  const heroSuggestions: Array<{ q: string; fallback: string }> = [
-    {
-      q: "How did you migrate 40,000 accounts with zero downtime?",
-      fallback: "We ran three full rehearsal cutovers before the live weekend, with a six-week parallel reconciliation window so we could catch discrepancies before they touched a client account. That discipline is how we got to zero downtime on 40,000 accounts.",
-    },
-    {
-      q: "What's your approach when you inherit a struggling team?",
-      fallback: "I spend the first 30 days listening before changing anything. Most operational problems are process problems, not people problems — you can't tell the difference until you understand how the work actually gets done.",
-    },
-  ];
 
-  const askHeroDemo = async (question: string, fallback?: string) => {
+  // Name, role line, photo and suggested questions are fetched live from the
+  // same public /api/portfolio/:username endpoint the real page uses — never
+  // hardcoded — so the hero can't drift out of sync with her actual profile
+  // the way it used to (invented name, invented questions).
+  const [heroProfile, setHeroProfile] = useState<HeroProfile>(HERO_PROFILE_FALLBACK);
+
+  useEffect(() => {
+    fetch(`/api/portfolio/${HERO_DEMO_USERNAME}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const p = data?.profile;
+        if (!p) return;
+        const roleLine = [p.roleTitle, p.careerTimeline?.[0]?.company].filter(Boolean).join(" — ");
+        const questions = (p.portfolioSuggestedQuestions || []).slice(0, 2);
+        setHeroProfile({
+          displayName: p.displayName || HERO_PROFILE_FALLBACK.displayName,
+          roleLine: roleLine || HERO_PROFILE_FALLBACK.roleLine,
+          photoUrl: p.photoUrl || null,
+          suggestedQuestions: questions.length ? questions : HERO_PROFILE_FALLBACK.suggestedQuestions,
+        });
+      })
+      .catch(() => {
+        // Network failure — keep HERO_PROFILE_FALLBACK, no visible error.
+      });
+  }, []);
+
+  const askHeroDemo = async (question: string) => {
     const text = question.trim();
     if (!text || heroAsking) return;
     setHeroAsking(true);
     setHeroAnswer("");
     try {
       const csrfToken = getCsrfToken();
-      const response = await fetch("/api/chat/priya", {
+      const response = await fetch(`/api/chat/${HERO_DEMO_USERNAME}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,13 +80,13 @@ export default function LandingPage() {
         body: JSON.stringify({ message: text }),
       });
       if (!response.ok) {
-        setHeroAnswer(fallback || "That's worth a real answer — ask it on the full profile below.");
+        setHeroAnswer("That's worth a real answer — ask it on the full profile below.");
         return;
       }
       const data = await response.json();
-      setHeroAnswer(data.content || fallback || "");
+      setHeroAnswer(data.content || "That's worth a real answer — ask it on the full profile below.");
     } catch {
-      setHeroAnswer(fallback || "That's worth a real answer — ask it on the full profile below.");
+      setHeroAnswer("That's worth a real answer — ask it on the full profile below.");
     } finally {
       setHeroAsking(false);
     }
@@ -80,7 +117,7 @@ export default function LandingPage() {
               Login
             </button>
             <button
-              onClick={() => navigate("/portfolio/priya?demo=true")}
+              onClick={() => navigate(`/portfolio/${HERO_DEMO_USERNAME}?demo=true`)}
               className="bg-[#22C55E] text-black px-6 py-3 font-bold hover:bg-[#16A34A] border-[3px] border-black mono text-sm uppercase tracking-wider"
               data-testid="link-register"
             >
@@ -115,14 +152,14 @@ export default function LandingPage() {
                   Try It With Your CV — Free &rarr;
                 </button>
                 <a
-                  href="https://myproxy.work/portfolio/priya"
+                  href={`https://myproxy.work/portfolio/${HERO_DEMO_USERNAME}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-white text-black px-8 py-4 font-bold border-[3px] border-black hover:bg-gray-100 mono shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex flex-col items-center"
                   data-testid="button-view-demo"
                 >
                   <span className="uppercase tracking-wider text-sm">See a live example &rarr;</span>
-                  <span className="text-xs text-black/50 font-normal normal-case tracking-normal mt-0.5">Try asking Priya's Bot a question</span>
+                  <span className="text-xs text-black/50 font-normal normal-case tracking-normal mt-0.5">Try asking {heroProfile.displayName.split(" ")[0]}'s Bot a question</span>
                 </a>
               </div>
               <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 mono text-xs font-bold uppercase tracking-wider text-black/60">
@@ -168,10 +205,20 @@ export default function LandingPage() {
 
               <div className="px-5 pt-5 pb-4 border-b border-[#DBD9CD]">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-[#2F5D4C] flex items-center justify-center hero-dossier-serif text-[#F2F1EC] text-lg shrink-0">P</div>
+                  {heroProfile.photoUrl ? (
+                    <img
+                      src={heroProfile.photoUrl}
+                      alt={heroProfile.displayName}
+                      className="w-10 h-10 rounded-full object-cover border border-[#DBD9CD] shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-[#2F5D4C] flex items-center justify-center hero-dossier-serif text-[#F2F1EC] text-lg shrink-0">
+                      {heroProfile.displayName.charAt(0)}
+                    </div>
+                  )}
                   <div>
-                    <div className="hero-dossier-serif text-[20px] leading-tight">Priya Anand</div>
-                    <div className="hero-dossier-mono text-[11px] text-[#5B6158] uppercase tracking-wide">VP, Talent Acquisition & Workforce Strategy</div>
+                    <div className="hero-dossier-serif text-[20px] leading-tight">{heroProfile.displayName}</div>
+                    <div className="hero-dossier-mono text-[11px] text-[#5B6158] uppercase tracking-wide">{heroProfile.roleLine}</div>
                   </div>
                 </div>
               </div>
@@ -223,14 +270,14 @@ export default function LandingPage() {
 
                 {!heroAnswer && !heroAsking && (
                   <div className="flex flex-wrap gap-2 mt-4">
-                    {heroSuggestions.map((s, i) => (
+                    {heroProfile.suggestedQuestions.map((q, i) => (
                       <button
                         key={i}
-                        onClick={() => { setHeroQuestion(s.q); askHeroDemo(s.q, s.fallback); }}
+                        onClick={() => { setHeroQuestion(q); askHeroDemo(q); }}
                         className="hero-dossier-mono text-[10.5px] text-[#5B6158] border border-[#C3C0B0] px-3 py-1.5 text-left hover:border-[#2F5D4C] hover:text-[#2F5D4C] transition-colors"
                         data-testid={`button-hero-suggestion-${i}`}
                       >
-                        {s.q}
+                        {q}
                       </button>
                     ))}
                   </div>
@@ -238,7 +285,7 @@ export default function LandingPage() {
 
                 <p className="hero-dossier-mono text-[10.5px] text-[#8B8F84] mt-4 text-center">
                   Real conversation ·{" "}
-                  <a href="https://myproxy.work/portfolio/priya" target="_blank" rel="noopener noreferrer" className="text-[#2F5D4C] hover:underline">see the full profile</a>
+                  <a href={`https://myproxy.work/portfolio/${HERO_DEMO_USERNAME}`} target="_blank" rel="noopener noreferrer" className="text-[#2F5D4C] hover:underline">see the full profile</a>
                 </p>
               </div>
             </div>

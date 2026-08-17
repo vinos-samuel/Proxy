@@ -12,6 +12,8 @@ interface HeroProfile {
   displayName: string;
   roleLine: string;
   photoUrl: string | null;
+  videoUrl: string | null;
+  quote: string | null;
   suggestedQuestions: string[];
 }
 
@@ -22,6 +24,8 @@ const HERO_PROFILE_FALLBACK: HeroProfile = {
   displayName: "Priya Sharma",
   roleLine: "VP, Talent Acquisition & Workforce Strategy — Nexora Group",
   photoUrl: null,
+  videoUrl: null,
+  quote: "Priya Sharma leads APAC Talent Acquisition & Workforce Strategy, building scalable functions and governing multi-million dollar contingent workforces.",
   suggestedQuestions: [
     "What do you see as the biggest emerging challenge in talent acquisition for the APAC region?",
     "How do you leverage data and analytics to inform your talent strategy decisions?",
@@ -46,21 +50,31 @@ export default function LandingPage() {
 
   useEffect(() => {
     fetch(`/api/portfolio/${HERO_DEMO_USERNAME}`)
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => {
+        if (!res.ok) {
+          console.error(`[hero] /api/portfolio/${HERO_DEMO_USERNAME} → ${res.status}`);
+          return null;
+        }
+        return res.json();
+      })
       .then((data) => {
         const p = data?.profile;
         if (!p) return;
         const roleLine = [p.roleTitle, p.careerTimeline?.[0]?.company].filter(Boolean).join(" — ");
         const questions = (p.portfolioSuggestedQuestions || []).slice(0, 2);
+        const quote = (p.positioning || "").split("\n\n").filter(Boolean)[0] || null;
         setHeroProfile({
           displayName: p.displayName || HERO_PROFILE_FALLBACK.displayName,
           roleLine: roleLine || HERO_PROFILE_FALLBACK.roleLine,
           photoUrl: p.photoUrl || null,
+          videoUrl: p.videoUrl || null,
+          quote: quote || HERO_PROFILE_FALLBACK.quote,
           suggestedQuestions: questions.length ? questions : HERO_PROFILE_FALLBACK.suggestedQuestions,
         });
       })
-      .catch(() => {
-        // Network failure — keep HERO_PROFILE_FALLBACK, no visible error.
+      .catch((err) => {
+        // Network failure — keep HERO_PROFILE_FALLBACK, no visible error to the visitor.
+        console.error(`[hero] /api/portfolio/${HERO_DEMO_USERNAME} fetch failed`, err);
       });
   }, []);
 
@@ -80,12 +94,14 @@ export default function LandingPage() {
         body: JSON.stringify({ message: text }),
       });
       if (!response.ok) {
+        console.error(`[hero] /api/chat/${HERO_DEMO_USERNAME} → ${response.status}`);
         setHeroAnswer("That's worth a real answer — ask it on the full profile below.");
         return;
       }
       const data = await response.json();
       setHeroAnswer(data.content || "That's worth a real answer — ask it on the full profile below.");
-    } catch {
+    } catch (err) {
+      console.error(`[hero] /api/chat/${HERO_DEMO_USERNAME} request failed`, err);
       setHeroAnswer("That's worth a real answer — ask it on the full profile below.");
     } finally {
       setHeroAsking(false);
@@ -221,13 +237,25 @@ export default function LandingPage() {
                     <div className="hero-dossier-mono text-[11px] text-[#5B6158] uppercase tracking-wide">{heroProfile.roleLine}</div>
                   </div>
                 </div>
+                {heroProfile.quote && (
+                  <p className="hero-dossier-serif italic text-[15px] leading-relaxed text-[#1B211E] pl-4 border-l-2 border-[#2F5D4C] mt-4">
+                    {heroProfile.quote}
+                  </p>
+                )}
               </div>
 
-              {/* No video here — priya-demo.mp4 is a recording of a
-                  discontinued "Twin Interface" UI that predates all 4
-                  current themes and doesn't match Executive. Dropped
-                  rather than ship stale content; a new recording of the
-                  real product is a separate follow-up. */}
+              {/* Her real intro video, fetched live from her profile — not
+                  a pre-recorded stand-in. Same controls-not-autoplay
+                  treatment the real Executive theme uses, since it's a
+                  real video with her actual voice. */}
+              {heroProfile.videoUrl && (
+                <video
+                  src={heroProfile.videoUrl}
+                  controls
+                  className="w-full border-b border-[#DBD9CD] block"
+                  data-testid="video-hero-intro"
+                />
+              )}
 
               <div className="px-5 py-5">
                 <h3 className="hero-dossier-serif text-[17px] mb-1">Ask directly</h3>

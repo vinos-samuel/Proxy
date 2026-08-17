@@ -73,7 +73,9 @@ export default function PortfolioPage() {
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const [expandedHighlights, setExpandedHighlights] = useState<Set<number>>(new Set());
+  // Keyed by string, not index, so Executive/Dark/Creative's career sections
+  // can all share one expand/collapse set without their entries colliding.
+  const [expandedHighlights, setExpandedHighlights] = useState<Set<string>>(new Set());
   const [demoBannerDismissed, setDemoBannerDismissed] = useState(false);
   const [, navigate] = useLocation();
   const { user } = useAuth();
@@ -433,7 +435,7 @@ export default function PortfolioPage() {
                   key={i}
                   className={`px-6 py-8 border-[#DBD9CD] md:border-l md:first:border-l-0 ${i >= 2 ? "border-t" : ""} ${i < 4 ? "md:border-t-0" : "md:border-t"}`}
                 >
-                  <div className="dossier-serif dossier-tab text-[26px] leading-none mb-2 whitespace-nowrap">{stat.value}</div>
+                  <div className={`dossier-serif dossier-tab leading-tight mb-2 ${stat.value.length > 10 ? "text-[19px]" : "text-[26px]"}`}>{stat.value}</div>
                   <div className="dossier-mono text-[10.5px] uppercase tracking-wide text-[#8B8F84] leading-snug">{stat.label}</div>
                 </div>
               ))}
@@ -500,7 +502,7 @@ export default function PortfolioPage() {
                   <button
                     key={i}
                     onClick={() => handleSendMessage(q)}
-                    className="dossier-mono text-[11px] text-[#5B6158] border border-[#C3C0B0] px-3 py-1.5 hover:border-[#2F5D4C] hover:text-[#2F5D4C] transition-colors"
+                    className="dossier-mono text-[11px] text-[#5B6158] border border-[#C3C0B0] px-3 py-1.5 text-left max-w-[300px] hover:border-[#2F5D4C] hover:text-[#2F5D4C] transition-colors"
                     data-testid={`button-dossier-suggestion-${i}`}
                   >
                     {q}
@@ -518,26 +520,50 @@ export default function PortfolioPage() {
               <h2 className="dossier-serif text-[26px] mb-7">Career record</h2>
               {dCareer.map((entry: any, i: number) => (
                 <div key={i} className={`py-5 ${i > 0 ? "border-t border-[#DBD9CD]" : ""}`}>
-                  <div className="flex justify-between items-baseline gap-4 flex-wrap mb-3">
+                  <div className="flex justify-between items-baseline gap-4 flex-wrap mb-4">
                     <h3 className="dossier-serif text-[20px]">{entry.company}</h3>
                   </div>
-                  {(entry.roles || []).map((role: any, j: number) => (
-                    <div key={j} className={`grid md:grid-cols-[200px_1fr] gap-5 py-3 ${j > 0 ? "border-t border-dashed border-[#DBD9CD]" : ""}`}>
-                      <div>
-                        <div className="font-semibold text-[14.5px]">{role.title}</div>
-                        {role.years && <div className="dossier-mono dossier-tab text-[11.5px] text-[#8B8F84] mt-0.5">{role.years}</div>}
-                      </div>
-                      {(role.achievements || []).length > 0 && (
-                        <ul className="flex flex-col gap-1.5">
-                          {role.achievements.map((a: string, k: number) => (
-                            <li key={k} className="text-[14.5px] text-[#5B6158] pl-3.5 relative before:content-['—'] before:absolute before:left-0 before:text-[#8B8F84]">
-                              {a}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))}
+                  <div className="flex flex-col gap-4">
+                    {(entry.roles || []).map((role: any, j: number) => {
+                      const achievements: string[] = role.achievements || [];
+                      const key = `exec-${i}-${j}`;
+                      const isExpanded = expandedHighlights.has(key);
+                      const visible = isExpanded ? achievements : achievements.slice(0, 4);
+                      const remaining = achievements.length - 4;
+                      return (
+                        <div key={j} className="border border-[#DBD9CD] rounded-sm p-5 grid md:grid-cols-[180px_1fr] gap-5">
+                          <div>
+                            <div className="font-semibold text-[14.5px]">{role.title}</div>
+                            {role.years && <div className="dossier-mono dossier-tab text-[11.5px] text-[#8B8F84] mt-0.5">{role.years}</div>}
+                          </div>
+                          {visible.length > 0 && (
+                            <div>
+                              <ul className="flex flex-col gap-1.5">
+                                {visible.map((a: string, k: number) => (
+                                  <li key={k} className="text-[14.5px] text-[#5B6158] pl-3.5 relative before:content-['—'] before:absolute before:left-0 before:text-[#8B8F84]">
+                                    {a}
+                                  </li>
+                                ))}
+                              </ul>
+                              {remaining > 0 && (
+                                <button
+                                  onClick={() => setExpandedHighlights((prev) => {
+                                    const next = new Set(prev);
+                                    isExpanded ? next.delete(key) : next.add(key);
+                                    return next;
+                                  })}
+                                  className="dossier-mono text-[11px] text-[#2F5D4C] hover:text-[#1B211E] transition-colors mt-2.5 underline decoration-[#C3C0B0]"
+                                  data-testid={`button-dossier-role-toggle-${i}-${j}`}
+                                >
+                                  {isExpanded ? "Show less" : `+${remaining} more`}
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               ))}
             </div>
@@ -792,7 +818,7 @@ export default function PortfolioPage() {
             {dRemainingQs.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-4">
                 {dRemainingQs.map((q, i) => (
-                  <button key={i} onClick={() => handleSendMessage(q)} className="rpt-mono text-[11px] text-[#C9C7BB] border border-[#33383F] px-3 py-1.5 hover:border-[#AD8A4E] hover:text-[#AD8A4E] transition-colors" data-testid={`button-rpt-suggestion-${i}`}>{q}</button>
+                  <button key={i} onClick={() => handleSendMessage(q)} className="rpt-mono text-[11px] text-[#C9C7BB] border border-[#33383F] px-3 py-1.5 text-left max-w-[300px] hover:border-[#AD8A4E] hover:text-[#AD8A4E] transition-colors" data-testid={`button-rpt-suggestion-${i}`}>{q}</button>
                 ))}
               </div>
             )}
@@ -804,7 +830,7 @@ export default function PortfolioPage() {
             <div className={`max-w-[920px] mx-auto grid grid-cols-2 ${dStats.length >= 4 ? "md:grid-cols-4" : dStats.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
               {dStats.map((stat, i) => (
                 <div key={i} className={`px-6 py-8 border-[#262B33] md:border-l md:first:border-l-0 ${i >= 2 ? "border-t" : ""} ${i < 4 ? "md:border-t-0" : "md:border-t"}`}>
-                  <div className={`font-medium leading-tight mb-2 rpt-tab whitespace-nowrap ${stat.value.length > 10 ? "text-[20px]" : "text-[30px]"}`}>{stat.value}</div>
+                  <div className={`font-medium leading-tight mb-2 rpt-tab ${stat.value.length > 10 ? "text-[19px]" : "text-[30px]"}`}>{stat.value}</div>
                   <div className="rpt-mono text-[10.5px] uppercase tracking-wide text-[#8A8F98]">{stat.label}</div>
                 </div>
               ))}
@@ -818,22 +844,46 @@ export default function PortfolioPage() {
               <h2 className="text-[21px] font-medium mb-7">Record of service</h2>
               {dCareer.map((entry: any, i: number) => (
                 <div key={i} className={`py-5 ${i > 0 ? "border-t border-dashed border-[#262B33]" : ""}`}>
-                  <div className="text-[17px] font-medium mb-3">{entry.company}</div>
-                  {(entry.roles || []).map((role: any, j: number) => (
-                    <div key={j} className={`grid md:grid-cols-[180px_1fr] gap-4 py-2.5 ${j > 0 ? "border-t border-dashed border-[#262B33]" : ""}`}>
-                      <div>
-                        <div className="text-[14px] font-semibold">{role.title}</div>
-                        {role.years && <div className="rpt-mono text-[11px] text-[#8A8F98] mt-0.5 rpt-tab">{role.years}</div>}
-                      </div>
-                      {(role.achievements || []).length > 0 && (
-                        <ul className="flex flex-col gap-1">
-                          {role.achievements.map((a: string, k: number) => (
-                            <li key={k} className="text-[14px] text-[#C9C7BB]">{a}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))}
+                  <div className="text-[17px] font-medium mb-4">{entry.company}</div>
+                  <div className="flex flex-col gap-3">
+                    {(entry.roles || []).map((role: any, j: number) => {
+                      const achievements: string[] = role.achievements || [];
+                      const key = `rpt-${i}-${j}`;
+                      const isExpanded = expandedHighlights.has(key);
+                      const visible = isExpanded ? achievements : achievements.slice(0, 4);
+                      const remaining = achievements.length - 4;
+                      return (
+                        <div key={j} className="border border-[#262B33] p-4 grid md:grid-cols-[180px_1fr] gap-4">
+                          <div>
+                            <div className="text-[14px] font-semibold">{role.title}</div>
+                            {role.years && <div className="rpt-mono text-[11px] text-[#8A8F98] mt-0.5 rpt-tab">{role.years}</div>}
+                          </div>
+                          {visible.length > 0 && (
+                            <div>
+                              <ul className="flex flex-col gap-1">
+                                {visible.map((a: string, k: number) => (
+                                  <li key={k} className="text-[14px] text-[#C9C7BB]">{a}</li>
+                                ))}
+                              </ul>
+                              {remaining > 0 && (
+                                <button
+                                  onClick={() => setExpandedHighlights((prev) => {
+                                    const next = new Set(prev);
+                                    isExpanded ? next.delete(key) : next.add(key);
+                                    return next;
+                                  })}
+                                  className="rpt-mono text-[11px] text-[#AD8A4E] hover:text-[#E9E7DE] transition-colors mt-2 underline decoration-[#33383F]"
+                                  data-testid={`button-rpt-role-toggle-${i}-${j}`}
+                                >
+                                  {isExpanded ? "Show less" : `+${remaining} more`}
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               ))}
             </div>
@@ -976,7 +1026,7 @@ export default function PortfolioPage() {
             {dStats.map((stat, i) => (
               <div key={i} className={`px-8 py-6 border-[#1B222A] sm:border-r sm:last:border-r-0 ${i > 0 ? "border-t" : ""} ${i < 4 ? "sm:border-t-0" : "sm:border-t"}`}>
                 <div className="text-[11px] text-[#6E7885] mb-2.5">{stat.label.toLowerCase().replace(/\s+/g, "_")}</div>
-                <div className="text-[22px] font-bold text-[#EDF1F2] whitespace-nowrap">{stat.value}</div>
+                <div className={`font-bold text-[#EDF1F2] leading-tight ${stat.value.length > 10 ? "text-[16px]" : "text-[22px]"}`}>{stat.value}</div>
               </div>
             ))}
           </div>
@@ -1013,7 +1063,7 @@ export default function PortfolioPage() {
           {dRemainingQs.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-4">
               {dRemainingQs.map((q, i) => (
-                <button key={i} onClick={() => handleSendMessage(q)} className="text-[11px] text-[#6E7885] border border-[#1B222A] px-2.5 py-1.5 rounded-[3px] hover:text-[#46C2B3] hover:border-[#46C2B3] transition-colors" data-testid={`button-trm-suggestion-${i}`}>{q}</button>
+                <button key={i} onClick={() => handleSendMessage(q)} className="text-[11px] text-[#6E7885] border border-[#1B222A] px-2.5 py-1.5 rounded-[3px] text-left max-w-[300px] hover:text-[#46C2B3] hover:border-[#46C2B3] transition-colors" data-testid={`button-trm-suggestion-${i}`}>{q}</button>
               ))}
             </div>
           )}
@@ -1153,7 +1203,7 @@ export default function PortfolioPage() {
             <div className={`grid gap-x-8 gap-y-6 ${dStats.length >= 4 ? "sm:grid-cols-4" : dStats.length === 3 ? "sm:grid-cols-3" : dStats.length === 2 ? "sm:grid-cols-2" : ""} max-w-[920px]`}>
               {dStats.map((stat, i) => (
                 <div key={i} className="border-t border-[#241F17] pt-4">
-                  <div className="text-[26px] font-medium leading-tight whitespace-nowrap">{stat.value}</div>
+                  <div className={`font-medium leading-tight ${stat.value.length > 10 ? "text-[19px]" : "text-[26px]"}`}>{stat.value}</div>
                   <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11.5px] text-[#A69C89] mt-1.5 leading-snug">{stat.label}</div>
                 </div>
               ))}
@@ -1194,7 +1244,7 @@ export default function PortfolioPage() {
           {dRemainingQs.length > 0 && (
             <div style={{ fontFamily: "-apple-system, sans-serif" }} className="flex flex-wrap gap-4 mt-4">
               {dRemainingQs.map((q, i) => (
-                <button key={i} onClick={() => handleSendMessage(q)} className="text-[11.5px] text-[#7A7568] hover:text-[#96AD86] transition-colors underline decoration-[#4A4335]" data-testid={`button-mag-suggestion-${i}`}>{q}</button>
+                <button key={i} onClick={() => handleSendMessage(q)} className="text-[11.5px] text-[#7A7568] text-left max-w-[320px] hover:text-[#96AD86] transition-colors underline decoration-[#4A4335]" data-testid={`button-mag-suggestion-${i}`}>{q}</button>
               ))}
             </div>
           )}
@@ -1205,7 +1255,8 @@ export default function PortfolioPage() {
             <h2 style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[13px] tracking-[0.1em] uppercase text-[#96AD86] mb-6">Career highlights</h2>
             {flatHighlights.map((item: any, i: number) => {
               const achievements: string[] = item.achievements || [];
-              const isExpanded = expandedHighlights.has(i);
+              const key = `mag-${i}`;
+              const isExpanded = expandedHighlights.has(key);
               const visible = isExpanded ? achievements : achievements.slice(0, 3);
               const remaining = achievements.length - 3;
               return (
@@ -1225,7 +1276,7 @@ export default function PortfolioPage() {
                       <button
                         onClick={() => setExpandedHighlights((prev) => {
                           const next = new Set(prev);
-                          isExpanded ? next.delete(i) : next.add(i);
+                          isExpanded ? next.delete(key) : next.add(key);
                           return next;
                         })}
                         style={{ fontFamily: "-apple-system, sans-serif" }}

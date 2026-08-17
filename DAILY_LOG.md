@@ -507,3 +507,77 @@
 
 **Blockers**
 - None — all three GEO fixes confirmed live via curl
+
+---
+
+## 2026-08-11
+
+**Tasks Completed**
+- Honest-prose rewrite shipped (banned hype words across all AI generation)
+- Executive theme shipped as new default; Dark/Tech/Creative kept in picker
+- Pre-signup try-it flow (`/try`): anonymous CV upload → AI draft → live chat → claim on register
+- Live chat widget added to landing hero (real answers from demo profile)
+- Root-cause fix: Gemini JSON responses with raw newlines silently failed parsing across 6 call sites, falling back to unedited CV text — added repair-and-retry helper
+- Portfolio chat now auto-answers a real question on load, no click needed
+- Executive theme rebuilt as a real "dossier" layout wired to live data, not a recolor
+- Landing page: trust strip, comparison table, real testimonials, copy fixes, no-ai-slop pass
+- Design review + LLM Council run on job-seeker/recruiter value — findings logged for next session
+
+**Files Modified**
+- `server/ai-processor.ts` — prose rules, JSON-parse repair
+- `client/src/pages/portfolio.tsx` — Executive dossier layout, auto-fire question
+- `client/src/pages/landing.tsx` — hero chat widget, copy, comparison/testimonials
+- `client/src/pages/try.tsx` — new file, pre-signup flow
+- `server/routes.ts`, `server/index.ts` — anon endpoints + rate limits
+- `script/seed-test.ts` — theme fixture sync
+
+**Blockers**
+- Hero widget input text visibility bug on homepage — reported, not fixed
+- Dark/Tech/Creative themes still need the same dossier-style redesign
+- `/try` should show a full placeholder profile (video/photo/skills slots), not a subset
+
+---
+
+## 2026-08-12
+
+**Tasks Completed**
+- Fixed hero input contrast bug
+- Built Dark/Tech/Creative as full distinct layouts (approved first); added video-in-hero to Executive
+- Reviewed portfolio.tsx, fixed 6 issues (dead code, slug bug, wrapping)
+- Folded Key Achievements into stats, one editable concept (cap 16); added target-roles field; restored How I Work
+- Consolidated 3 drifted referral copies into one corrected source
+- Fixed social share image (wrong field, then wrong fallback)
+- Real-data testing found stat overlap, misaligned buttons, dense career text — fixed with boxed roles, capped+expand, bold key figures/skills
+- Chat still inconsistent at temp 0.3 — lowered live chat to 0
+- Built product architecture diagram
+
+**Files Modified**
+- `client/src/pages/portfolio.tsx` — theme rebuilds, achievements fold, career record, bold-highlighting
+- `server/ai-processor.ts`, `server/routes.ts` — temperature, 8-metric prompt
+- `client/src/pages/preview.tsx`, `questionnaire.tsx` — stats editor, target-roles
+- `client/src/lib/shareCopy.ts`, `PaymentGate.tsx`, `payment-success.tsx` — referral copy
+- `server/static.ts` — social image fix
+
+**Blockers**
+- None — deployed and tested on prod
+
+---
+
+## 2026-08-17
+
+**Tasks Completed**
+- Theme picker (step 10): live token-accurate preview swatches for all 4 themes, replacing text-only cards
+- Landing hero widget restyled to real Executive theme; removed stale demo video (recording of a discontinued UI)
+- Fixed identity/theme mismatch — widget now fetches Priya Sharma's real name/role/photo/video/quote/questions live from her actual profile instead of hardcoded fake content
+- Rebuilt `/try` draft preview in real Executive-theme styling (paper bg, serif, Q/A chat) instead of its own brutalist card
+
+**Files Modified**
+- `client/src/components/theme-preview-swatch.tsx` — new
+- `client/src/pages/questionnaire.tsx` — wired swatches into picker
+- `client/src/pages/landing.tsx` — hero widget rebuild + live fetch
+- `client/src/pages/try.tsx` — draft preview rebuild
+
+**Blockers**
+- Production still on pre-fix build — Vinos needs to redeploy (push done, Replit steps pending)
+- Chat-fallback bug seen once on prod, not reproduced; added console diagnostics for next check
+- Items 4–5 (user email, LinkedIn post) not started

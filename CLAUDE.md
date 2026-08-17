@@ -8,47 +8,39 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-07-22 (Session 8)
-**Status:** Deep UX/psychology review of the profile creation funnel done. Full PRD written for publish-first flow + Executive theme + honest prose. Workstream 0 (test harness) built, debugged, and verified end-to-end on a newly-fixed, genuinely separate dev database.
+## Current Sprint — 2026-08-17 (Session 10)
+**Status:** Items 1–3 of the "theme picker previews → landing widget → /try rebuild" plan are code-complete and pushed to `main` (commits through `ec06c63`). **Not yet deployed** — production is still on the pre-session build as of last check. Items 4–5 (user email, LinkedIn post) not started.
 
 **This session completed:**
-- Marketing: set up Resend Audience for blog broadcast emails (replacing the earlier Loops.so idea — reuses existing verified domain); drafted/debugged 3 blog announcement emails; reviewed a "building in public" LinkedIn post (kept as-is, cut one AI-sounding line)
-- Strategy: diagnosed why upload→publish conversion is stuck (~35%) — root cause is the 11-step questionnaire standing between the CV-upload "wow moment" and a live page, not lack of marketing; gave a full funnel redesign recommendation (publish-first, deepen-later loop)
-- Reviewed a reference portfolio site (portfolio-nikil29.vercel.app) against our own live output — identified our hero is a wall of AI-sounding prose, chat (our real differentiator) is buried 7000px down the page, empty states render as ugly placeholders, and all 3 themes are dark and read "developer portfolio" not "executive profile"
-- Staffing-agency lens applied to the product: identified candidate-contact masking, consultant notes, and confidential/anonymized candidates as the real agency requirements — explicitly scoped OUT of the current build; decided to keep agency conversations alive (manual, zero build) while building for B2C candidates only for now
-- Decided: one new light "Executive" theme becomes the default, one dark theme kept as backup, Tech/Creative themes killed for new profiles (existing profiles unaffected)
-- Wrote `docs/PRD-publish-first.md` — full PRD covering test harness, honest-prose prompt rewrite, Executive theme, portfolio hero/chat restructure, and the publish-first flow (endowed progress, capped bot sessions, Twin Strength meter, digest nudges tied to unanswered questions)
-- Built Workstream 0 from the PRD: 3 realistic fixture CVs (`test-fixtures/`, generated via `pdf-lib`) + `npm run seed:test` script creating 4 accounts frozen at each funnel stage (fresh/draft/ready/live), with a safety guard against running on a production-sized DB
-- **Major infra fix:** discovered Workspace Secrets `DATABASE_URL` was pointing at the exact same database as Production (both `ep-withered-rice-aigjhqf1...`) — meaning all prior dev/workspace testing was silently writing to real production data; Replit's Database tab offered no second database for this project, so provisioned a genuinely separate dev database directly via neon.tech and wired it into Workspace Secrets only (Production Deployment Secrets untouched)
-- Fixed `npm run db:push` safely on the new empty dev DB (declined a destructive `session` table drop prompt until the DB was confirmed non-production, then it applied clean with zero data-loss prompts on the real dev DB)
-- Debugged a port conflict (EADDRINUSE) caused by manually running `npm run dev` in the Shell at the same time as Replit's own "Start application" workflow — resolved by killing the manual process and using only the ▶ Run button going forward
-- Debugged a login failure on the freshly seeded `test-live@proxy.test` account all the way down to raw SQL and a direct bcrypt hash comparison (both confirmed correct) — root cause was stale browser-autofilled password, not a real bug
-- Cleaned up the temporary `script/debug-login.ts` used for that investigation
+- Theme picker previews (item 1): new `client/src/components/theme-preview-swatch.tsx`, wired into `questionnaire.tsx` step 10 — token-accurate mini mockups for all 4 themes, replacing text-only radio cards
+- Landing hero widget restyle (item 2): rebuilt to match real Executive theme (paper bg, serif headline, hairline borders, mono labels) instead of its own black brutalist card
+- Found and removed `priya-demo.mp4` — a stale screen recording of a discontinued "Twin Interface" UI that predated all 4 current themes; was invisible inside the old black chrome, exposed once the card went light
+- Found and fixed a deeper bug: the hero widget's "Priya" was fictional ("Priya Anand", invented Q&A) while the real demo account (`myproxy.work/portfolio/priya`) is Priya Sharma. Vinos switched her real profile to Executive theme; widget rebuilt to fetch her real name/role/photo/video/positioning-quote/suggested-questions live from `/api/portfolio/priya` — zero hardcoded content now, can't drift again
+- Added `console.error` diagnostics to both hero fetches (`/api/portfolio/priya`, `/api/chat/priya`) after a fallback-answer report from prod that couldn't be reproduced independently — confirmed the underlying endpoints work when tested directly
+- `/try` rebuild (item 3): draft preview card rebuilt in the same real-Executive-theme pattern — paper bg, serif, "By the numbers" stat grid, Q—/serif-answer chat instead of rounded bubbles. Nav/upload/error states left as Proxy's own site style (not profile content)
 
 **Where we stopped:**
-- Workstream 0 fully verified end-to-end: separate dev DB confirmed, `db:push` + `seed:test` both work cleanly, all 4 test personas log in correctly
-- CLAUDE.md updated with a history note on the DB mixup and the corrected architecture — future sessions should trust this over the old "separate DB" claim that wasn't actually true until this session
-- PRD Phases 1-4c (prompt rewrite, Executive theme, portfolio restructure, publish-first flow) not yet started
+- All code for items 1–3 is on `main`, pushed to GitHub. Vinos went to sleep before running the Replit pull/build/redeploy steps — production (`myproxy.work`) is confirmed still serving the pre-session bundle
+- The one live fallback-answer bug Vinos saw on prod was never independently reproduced — root cause unconfirmed, diagnostics added instead
 
-**What's next:**
-- Run PRD Phase 1 (honest-prose prompt rewrite) — smallest, highest-credibility-impact change, ready to build
-- Then Phase 2 (Executive theme), Phase 4a (publish-from-draft gate), Phase 3 (portfolio restructure), Phase 4b/4c (questionnaire progress + bot caps + strength meter) — see phasing table in the PRD
-- `npm audit fix` pass — still not addressed (1 critical, 9 high)
-- Staffing agency pilot outreach (Salt, Nicoll Curtin, Pride Global, TringApps, GreenRootz) — conversations continue manually, no product build until a pilot converts
-- PostHog drop-off tracking — needed before any A/B test on pricing
+**What's next, in order:**
+1. Vinos: pull latest `main` on Replit, `npm run build`, redeploy — nothing else in this list can be verified until this happens
+2. Re-test the hero widget and `/try` on production once redeployed; check browser console for the new `[hero]` error logs if the chat-fallback bug recurs
+3. Email existing users about the redesign (segmented: Dark/Tech/Creative users vs. Executive users get different framing)
+4. LinkedIn post about the changes
 
 **Architecture decisions made this session:**
-- Workspace dev database is now a separate Neon project (see "Two Separate Environments" section below) — always verify `$DATABASE_URL`'s host in the Shell before assuming workspace/prod are isolated on any future project
-- Never run `npm run dev` manually in the Shell — use only the Replit ▶ Run button, to avoid two processes fighting over port 5000
-- Agency-specific features (masking, consultant notes, branded shortlist pages) are explicitly out of scope until an agency pilot actually converts — sell first, build after
-- Executive (light) becomes the default theme for new profiles; Tech/Creative removed from the theme picker (kept in code for existing profiles only)
-- Publish-first is the core fix for the conversion problem — publishing a CV-derived draft immediately, then deepening the profile in small optional sessions afterward, replaces "finish all 11 steps before anything goes live"
+- Hero-widget-style "mini theme cards" (step 10 picker, landing hero, `/try` draft) all follow one pattern now: real theme color/font tokens, live-fetched real data where a real account exists, never hardcoded fictional content — extend this pattern rather than inventing a new one if another such card is needed
+- Landing page and `/try` page chrome (nav, CTAs, upload/loading/error states) stays in Proxy's own brutalist site style; only the content that represents an actual profile gets restyled to match its real theme — a deliberate scope boundary, not an oversight
+- `HERO_DEMO_USERNAME = "priya"` is now a single named constant in `landing.tsx` — every reference to the demo account routes through it, so the widget and the "see the full profile" link can never point at different accounts again
 
 **Don't touch:** server/ai-processor.ts processQuestionnaire(), Stripe webhook flow, server/job-search-agent.ts
 **Pending decisions:**
 - Test $19/mo pricing alongside $49 — not actioned
 - PostHog session tracking for drop-off analysis — needed before A/B test
+- Whether to backfill "roles you're targeting" for existing users, or leave it new-users-only permanently
 - Free tier limits — visitor question cap discussed, not implemented
+- Whether `/try`'s draft-preview pattern should also gain a real video slot (like the landing hero got this session) — not raised yet, parallel opportunity
 
 ## What This Is
 Digital Twin / AI-powered career profile builder. Users upload a resume, fill an 11-step questionnaire, and get a public AI portfolio page with a chatbot that represents them.

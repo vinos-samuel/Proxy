@@ -95,7 +95,11 @@ export default function LandingPage() {
       });
       if (!response.ok) {
         console.error(`[hero] /api/chat/${HERO_DEMO_USERNAME} → ${response.status}`);
-        setHeroAnswer("That's worth a real answer — ask it on the full profile below.");
+        setHeroAnswer(
+          response.status === 429
+            ? "This demo is getting a lot of questions right now — give it a minute and try again, or ask it on the full profile below."
+            : "That's worth a real answer — ask it on the full profile below."
+        );
         return;
       }
       const data = await response.json();

@@ -39,6 +39,7 @@ export default function TryPage() {
   const [preview, setPreview] = useState<PortfolioPreview | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [roleLine, setRoleLine] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -108,6 +109,7 @@ export default function TryPage() {
       setPreview(p);
       setDisplayName(data.extractedData?.name || "");
       setRoleLine([data.extractedData?.currentTitle, p?.careerTimeline?.[0]?.company].filter(Boolean).join(" — "));
+      setSkills(Array.isArray(data.extractedData?.skills) ? data.extractedData.skills : []);
       setRemaining(8);
       setStage("ready");
 
@@ -251,16 +253,26 @@ export default function TryPage() {
               )}
 
               {preview.careerTimeline?.length > 0 && (
-                <div className="px-6 py-5">
-                  <div className="try-dossier-mono text-[10.5px] uppercase tracking-wide text-[#8B8F84] mb-3">Career record</div>
-                  <div className="space-y-2">
+                <div className="px-6 py-5 border-b border-[#DBD9CD]">
+                  <div className="try-dossier-mono text-[10.5px] uppercase tracking-wide text-[#8B8F84] mb-4">Career record</div>
+                  <div className="space-y-5">
                     {preview.careerTimeline.slice(0, 3).map((entry, i) => {
                       const topRole = entry.roles?.[0];
+                      const bullets = (topRole?.achievements || []).slice(0, 3);
                       return (
-                        <div key={i} className="text-[13.5px]">
-                          <span className="try-dossier-serif text-[#1B211E]">{entry.company}</span>
-                          {topRole?.title && <span className="text-[#5B6158]"> — {topRole.title}</span>}
-                          {topRole?.years && <span className="try-dossier-mono text-[11px] text-[#8B8F84]"> ({topRole.years})</span>}
+                        <div key={i}>
+                          <div className="text-[14px] mb-1.5">
+                            <span className="try-dossier-serif text-[#1B211E]">{entry.company}</span>
+                            {topRole?.title && <span className="text-[#5B6158]"> — {topRole.title}</span>}
+                            {topRole?.years && <span className="try-dossier-mono text-[11px] text-[#8B8F84]"> ({topRole.years})</span>}
+                          </div>
+                          {bullets.length > 0 && (
+                            <ul className="space-y-1 pl-4 list-disc marker:text-[#C3C0B0]">
+                              {bullets.map((b, j) => (
+                                <li key={j} className="text-[13px] text-[#5B6158] leading-relaxed">{b}</li>
+                              ))}
+                            </ul>
+                          )}
                         </div>
                       );
                     })}
@@ -268,9 +280,20 @@ export default function TryPage() {
                 </div>
               )}
 
+              {skills.length > 0 && (
+                <div className="px-6 py-5 border-b border-[#DBD9CD]">
+                  <div className="try-dossier-mono text-[10.5px] uppercase tracking-wide text-[#8B8F84] mb-3">Skills</div>
+                  <div className="flex flex-wrap gap-2">
+                    {skills.slice(0, 14).map((skill, i) => (
+                      <span key={i} className="try-dossier-mono text-[11px] text-[#5B6158] border border-[#C3C0B0] px-2.5 py-1">{skill}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Ask directly — same Q/serif-answer layout as the real
                   theme's chat, not chat bubbles. */}
-              <div className="px-6 py-6 border-t border-[#DBD9CD]">
+              <div className="px-6 py-6">
                 <h3 className="try-dossier-serif text-[19px] mb-1">Ask directly</h3>
                 <p className="try-dossier-mono text-[10.5px] text-[#8B8F84] mb-5">
                   {remaining !== null && remaining > 0
@@ -334,7 +357,13 @@ export default function TryPage() {
               </div>
             </div>
 
-            <div className="text-center mt-10">
+            <div className="max-w-xl mx-auto mt-10 bg-[#F0FDF4] border-[2px] border-[#22C55E] px-5 py-4 text-center">
+              <p className="text-sm text-black/80">
+                This preview comes from your CV alone. Complete the questionnaire next and your profile gets sharper — your own stories, your own words, and answers ready for tougher questions.
+              </p>
+            </div>
+
+            <div className="text-center mt-6">
               <button
                 onClick={() => navigate("/register")}
                 className="bg-[#22C55E] text-black px-10 py-4 font-bold hover:bg-[#16A34A] border-[3px] border-black mono uppercase tracking-wider shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all inline-flex items-center gap-2"

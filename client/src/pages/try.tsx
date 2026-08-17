@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useLocation, Link } from "wouter";
-import { Loader2, Upload, Send, ArrowRight } from "lucide-react";
+import { Loader2, Upload, ArrowRight } from "lucide-react";
 import ProxyLogo from "@/components/ProxyLogo";
 import { getCsrfToken } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +38,7 @@ export default function TryPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [preview, setPreview] = useState<PortfolioPreview | null>(null);
   const [displayName, setDisplayName] = useState("");
+  const [roleLine, setRoleLine] = useState("");
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -106,6 +107,7 @@ export default function TryPage() {
       const p: PortfolioPreview | null = data.portfolioPreview || null;
       setPreview(p);
       setDisplayName(data.extractedData?.name || "");
+      setRoleLine([data.extractedData?.currentTitle, p?.careerTimeline?.[0]?.company].filter(Boolean).join(" — "));
       setRemaining(8);
       setStage("ready");
 
@@ -205,98 +207,131 @@ export default function TryPage() {
 
         {stage === "ready" && preview && (
           <div>
-            <div className="border-[3px] border-black bg-[#FAFAF7] p-8 mb-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <div className="mono text-xs text-black/50 mb-2 uppercase tracking-widest">// your_draft</div>
-              {displayName && <h2 className="text-2xl font-bold mb-2">{displayName}</h2>}
-              <div className="space-y-3 text-lg text-black/80 leading-relaxed mb-4">
-                {positioningParagraphs.length > 0
-                  ? positioningParagraphs.map((para, i) => <p key={i}>{para}</p>)
-                  : <p>{preview.positioning}</p>}
+            {/* Real Executive-theme card — same paper background, serif
+                headline, hairline borders and mono labels as the actual
+                profile page, so the draft you see here IS what you'd
+                publish, not a separate bespoke preview design. */}
+            <div className="border border-[#DBD9CD] bg-[#F2F1EC] text-[#1B211E] mb-8" style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif" }}>
+              <style>{`
+                .try-dossier-serif { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif; }
+                .try-dossier-mono { font-family: "SF Mono", "IBM Plex Mono", Menlo, Consolas, monospace; }
+              `}</style>
+
+              <div className="flex items-center justify-between px-6 py-3 border-b border-[#DBD9CD]">
+                <div className="try-dossier-mono text-[11px] tracking-wide text-[#5B6158]">
+                  PROXY / EXECUTIVE PROFILE
+                </div>
+                <div className="try-dossier-mono text-[11px] uppercase tracking-wider text-[#5B6158] flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2F5D4C] inline-block" />
+                  Draft preview — not live yet
+                </div>
               </div>
+
+              <div className="px-6 pt-6 pb-5 border-b border-[#DBD9CD]">
+                {displayName && <h2 className="try-dossier-serif text-[28px] leading-tight mb-1">{displayName}</h2>}
+                {roleLine && <div className="try-dossier-mono text-[12px] text-[#5B6158] uppercase tracking-wide mb-4">{roleLine}</div>}
+                <div className="pl-4 border-l-2 border-[#2F5D4C] space-y-2.5">
+                  {(positioningParagraphs.length > 0 ? positioningParagraphs : [preview.positioning]).map((para, i) => (
+                    <p key={i} className={`try-dossier-serif ${i === 0 ? "italic text-[18px] leading-snug" : "text-[14px] not-italic text-[#5B6158] leading-relaxed"}`}>
+                      {para}
+                    </p>
+                  ))}
+                </div>
+              </div>
+
               {preview.stats?.length > 0 && (
-                <div className="flex flex-wrap gap-4 mt-4 mb-6">
+                <div className="grid grid-cols-3 border-b border-[#DBD9CD]">
                   {preview.stats.slice(0, 3).map((stat, i) => (
-                    <div key={i} className="border-[2px] border-black px-4 py-2 bg-white">
-                      <div className="text-2xl font-bold text-[#15803D]">{stat.value}</div>
-                      <div className="mono text-xs text-black/50 uppercase">{stat.label}</div>
+                    <div key={i} className={`px-6 py-5 ${i > 0 ? "border-l border-[#DBD9CD]" : ""}`}>
+                      <div className="try-dossier-serif text-[22px] leading-tight mb-1">{stat.value}</div>
+                      <div className="try-dossier-mono text-[10px] uppercase tracking-wide text-[#8B8F84] leading-snug">{stat.label}</div>
                     </div>
                   ))}
                 </div>
               )}
+
               {preview.careerTimeline?.length > 0 && (
-                <div className="border-t-[2px] border-black/10 pt-4 space-y-2">
-                  {preview.careerTimeline.slice(0, 3).map((entry, i) => {
-                    const topRole = entry.roles?.[0];
-                    return (
-                      <div key={i} className="text-sm text-black/70">
-                        <span className="font-bold text-black">{entry.company}</span>
-                        {topRole?.title && <span> — {topRole.title}</span>}
-                        {topRole?.years && <span className="text-black/40"> ({topRole.years})</span>}
-                      </div>
-                    );
-                  })}
+                <div className="px-6 py-5">
+                  <div className="try-dossier-mono text-[10.5px] uppercase tracking-wide text-[#8B8F84] mb-3">Career record</div>
+                  <div className="space-y-2">
+                    {preview.careerTimeline.slice(0, 3).map((entry, i) => {
+                      const topRole = entry.roles?.[0];
+                      return (
+                        <div key={i} className="text-[13.5px]">
+                          <span className="try-dossier-serif text-[#1B211E]">{entry.company}</span>
+                          {topRole?.title && <span className="text-[#5B6158]"> — {topRole.title}</span>}
+                          {topRole?.years && <span className="try-dossier-mono text-[11px] text-[#8B8F84]"> ({topRole.years})</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
-            </div>
 
-            <div className="border-[3px] border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col" style={{ minHeight: "400px" }}>
-              <div className="border-b-[3px] border-black p-4">
-                <h3 className="font-bold">Ask about the work</h3>
-                <p className="text-sm text-black/60">
+              {/* Ask directly — same Q/serif-answer layout as the real
+                  theme's chat, not chat bubbles. */}
+              <div className="px-6 py-6 border-t border-[#DBD9CD]">
+                <h3 className="try-dossier-serif text-[19px] mb-1">Ask directly</h3>
+                <p className="try-dossier-mono text-[10.5px] text-[#8B8F84] mb-5">
                   {remaining !== null && remaining > 0
                     ? `${remaining} question${remaining === 1 ? "" : "s"} left in this try-it session`
                     : "You've used your try-it questions — create a free account to keep going"}
                 </p>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {messages.map((msg, i) => (
-                  <div key={i} className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}>
-                    <div
-                      className={
-                        msg.role === "user"
-                          ? "inline-block bg-[#15803D] text-white px-4 py-2 rounded-lg max-w-[80%] text-sm"
-                          : "inline-block bg-[#F5F5F0] border border-black/10 px-4 py-2 rounded-lg max-w-[80%] text-sm"
-                      }
-                    >
-                      {msg.content}
+
+                <div className="flex flex-col gap-4 mb-5 max-h-[420px] overflow-y-auto">
+                  {messages.map((msg, i) => (
+                    msg.role === "user" ? (
+                      <div key={i}>
+                        <span className="try-dossier-mono text-[10.5px] text-[#2F5D4C] tracking-wide">Q — </span>
+                        <span className="text-[14px] text-[#5B6158] italic">{msg.content}</span>
+                      </div>
+                    ) : (
+                      <div key={i} className="try-dossier-serif text-[16px] leading-relaxed pl-4 border-l border-[#C3C0B0] max-w-[66ch]">
+                        {msg.content}
+                      </div>
+                    )
+                  ))}
+                  {isSending && (
+                    <div className="flex items-center gap-2 text-[#8B8F84] text-sm">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Answering…
                     </div>
-                  </div>
-                ))}
-                {isSending && <Loader2 className="h-4 w-4 animate-spin text-black/40" />}
-                {secondQuestion && !isSending && messages.length > 0 && remaining !== 0 && (
-                  <button
-                    onClick={() => handleSendMessage(secondQuestion)}
-                    className="text-xs text-black/50 border border-black/20 rounded-full px-3 py-1.5 hover:text-black hover:border-black/40"
-                    data-testid="button-try-second-question"
-                  >
-                    {secondQuestion}
-                  </button>
-                )}
-              </div>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSendMessage();
-                }}
-                className="border-t-[3px] border-black p-4 flex gap-2"
-              >
-                <input
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder={remaining === 0 ? "Create an account to keep chatting" : "Ask your own question..."}
-                  disabled={remaining === 0}
-                  className="flex-1 border-[2px] border-black px-4 py-2 text-sm focus:outline-none disabled:opacity-50"
-                  data-testid="input-try-chat"
-                />
-                <button
-                  type="submit"
-                  disabled={isSending || !inputValue.trim() || remaining === 0}
-                  className="bg-[#22C55E] disabled:opacity-50 text-black px-4 py-2 font-bold border-[2px] border-black"
-                  data-testid="button-try-send"
+                  )}
+                  {secondQuestion && !isSending && messages.length > 0 && remaining !== 0 && (
+                    <button
+                      onClick={() => handleSendMessage(secondQuestion)}
+                      className="try-dossier-mono text-[11px] text-[#5B6158] border border-[#C3C0B0] px-3 py-1.5 text-left self-start hover:border-[#2F5D4C] hover:text-[#2F5D4C] transition-colors"
+                      data-testid="button-try-second-question"
+                    >
+                      {secondQuestion}
+                    </button>
+                  )}
+                </div>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }}
+                  className="flex gap-2.5 border-t border-[#DBD9CD] pt-4"
                 >
-                  <Send className="h-4 w-4" />
-                </button>
-              </form>
+                  <input
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder={remaining === 0 ? "Create an account to keep chatting" : "Ask your own question…"}
+                    disabled={remaining === 0}
+                    className="flex-1 bg-transparent border-b border-[#C3C0B0] px-0.5 py-2 text-[14px] text-[#1B211E] outline-none focus:border-[#2F5D4C] placeholder:text-[#8B8F84] disabled:opacity-50"
+                    data-testid="input-try-chat"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSending || !inputValue.trim() || remaining === 0}
+                    className="try-dossier-mono text-[11px] uppercase tracking-wide border border-[#1B211E] px-4 disabled:opacity-40 hover:bg-[#1B211E] hover:text-[#F2F1EC] transition-colors"
+                    data-testid="button-try-send"
+                  >
+                    {isSending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Ask"}
+                  </button>
+                </form>
+              </div>
             </div>
 
             <div className="text-center mt-10">

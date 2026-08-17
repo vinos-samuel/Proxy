@@ -176,14 +176,11 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <video
-                src="/priya-demo.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full border-b border-[#DBD9CD] block"
-              />
+              {/* No video here — priya-demo.mp4 is a recording of a
+                  discontinued "Twin Interface" UI that predates all 4
+                  current themes and doesn't match Executive. Dropped
+                  rather than ship stale content; a new recording of the
+                  real product is a separate follow-up. */}
 
               <div className="px-5 py-5">
                 <h3 className="hero-dossier-serif text-[17px] mb-1">Ask directly</h3>

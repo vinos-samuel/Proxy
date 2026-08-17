@@ -146,58 +146,91 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right column — demo video */}
-            <div className="border-[3px] border-black bg-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-              <div className="bg-black text-white p-3 flex items-center justify-between border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-[#22C55E] border-[2px] border-black flex items-center justify-center font-bold text-black text-sm">P</div>
-                  <span className="font-bold text-sm">Priya — VP, Talent Acquisition & Workforce Strategy</span>
+            {/* Right column — a live, scaled Executive-theme card. Same paper
+                background, serif headline, hairline borders and mono labels
+                as the real portfolio page, so what you see here is what you
+                get — not the landing page's own separate look. */}
+            <div className="border border-[#DBD9CD] bg-[#F2F1EC] text-[#1B211E]" style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif" }}>
+              <style>{`
+                .hero-dossier-serif { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif; }
+                .hero-dossier-mono { font-family: "SF Mono", "IBM Plex Mono", Menlo, Consolas, monospace; }
+              `}</style>
+
+              <div className="flex items-center justify-between px-5 py-3 border-b border-[#DBD9CD]">
+                <div className="hero-dossier-mono text-[11px] tracking-wide text-[#5B6158]">
+                  PROXY / EXECUTIVE PROFILE
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-[#22C55E] rounded-full animate-pulse"></div>
-                  <span className="mono text-xs text-white/60">LIVE</span>
+                <div className="hero-dossier-mono text-[11px] uppercase tracking-wider text-[#5B6158] flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2F5D4C] inline-block" />
+                  Published
                 </div>
               </div>
+
+              <div className="px-5 pt-5 pb-4 border-b border-[#DBD9CD]">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-[#2F5D4C] flex items-center justify-center hero-dossier-serif text-[#F2F1EC] text-lg shrink-0">P</div>
+                  <div>
+                    <div className="hero-dossier-serif text-[20px] leading-tight">Priya Anand</div>
+                    <div className="hero-dossier-mono text-[11px] text-[#5B6158] uppercase tracking-wide">VP, Talent Acquisition & Workforce Strategy</div>
+                  </div>
+                </div>
+              </div>
+
               <video
                 src="/priya-demo.mp4"
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-full"
+                className="w-full border-b border-[#DBD9CD] block"
               />
-              <div className="border-t border-white/10 p-4">
-                <p className="mono text-xs text-white/40 mb-2">// ask her something real, right now</p>
+
+              <div className="px-5 py-5">
+                <h3 className="hero-dossier-serif text-[17px] mb-1">Ask directly</h3>
+                <div className="hero-dossier-mono text-[10.5px] text-[#8B8F84] mb-4">Answered by her AI proxy, from her own record.</div>
+
+                {heroAnswer && (
+                  <div className="hero-dossier-serif text-[15px] leading-relaxed pl-4 border-l border-[#C3C0B0] mb-4" data-testid="text-hero-answer">
+                    {heroAnswer}
+                  </div>
+                )}
+                {heroAsking && (
+                  <div className="flex items-center gap-2 text-[#8B8F84] text-sm mb-4">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Answering…
+                  </div>
+                )}
+
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
                     askHeroDemo(heroQuestion);
                   }}
-                  className="flex gap-2 mb-2"
+                  className="flex gap-2.5 border-t border-[#DBD9CD] pt-4"
                 >
                   <input
                     value={heroQuestion}
                     onChange={(e) => setHeroQuestion(e.target.value)}
-                    placeholder="Ask about her experience..."
-                    className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white placeholder:text-white/50 focus:outline-none focus:border-[#22C55E]/50"
+                    placeholder="Ask about a project, a decision, or a result…"
+                    className="flex-1 bg-transparent border-b border-[#C3C0B0] px-0.5 py-2 text-[14px] text-[#1B211E] outline-none focus:border-[#2F5D4C] placeholder:text-[#8B8F84]"
                     data-testid="input-hero-chat"
                   />
                   <button
                     type="submit"
                     disabled={heroAsking || !heroQuestion.trim()}
-                    className="bg-[#22C55E] disabled:opacity-40 text-black px-3 py-2 rounded font-bold"
+                    className="hero-dossier-mono text-[11px] uppercase tracking-wide border border-[#1B211E] px-4 disabled:opacity-40 hover:bg-[#1B211E] hover:text-[#F2F1EC] transition-colors"
                     data-testid="button-hero-chat-send"
                   >
-                    {heroAsking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    {heroAsking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Ask"}
                   </button>
                 </form>
+
                 {!heroAnswer && !heroAsking && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mt-4">
                     {heroSuggestions.map((s, i) => (
                       <button
                         key={i}
                         onClick={() => { setHeroQuestion(s.q); askHeroDemo(s.q, s.fallback); }}
-                        className="text-xs text-white/50 border border-white/10 rounded-full px-3 py-1 hover:text-white hover:border-white/30"
+                        className="hero-dossier-mono text-[10.5px] text-[#5B6158] border border-[#C3C0B0] px-3 py-1.5 text-left hover:border-[#2F5D4C] hover:text-[#2F5D4C] transition-colors"
                         data-testid={`button-hero-suggestion-${i}`}
                       >
                         {s.q}
@@ -205,12 +238,10 @@ export default function LandingPage() {
                     ))}
                   </div>
                 )}
-                {heroAnswer && (
-                  <p className="text-sm text-white/90 leading-relaxed" data-testid="text-hero-answer">{heroAnswer}</p>
-                )}
-                <p className="mono text-xs text-white/30 mt-3 text-center">
+
+                <p className="hero-dossier-mono text-[10.5px] text-[#8B8F84] mt-4 text-center">
                   Real conversation ·{" "}
-                  <a href="https://myproxy.work/portfolio/priya" target="_blank" rel="noopener noreferrer" className="text-[#22C55E] hover:underline">see the full profile</a>
+                  <a href="https://myproxy.work/portfolio/priya" target="_blank" rel="noopener noreferrer" className="text-[#2F5D4C] hover:underline">see the full profile</a>
                 </p>
               </div>
             </div>

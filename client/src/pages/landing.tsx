@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { FileText, Zap, Rocket, X, Check, Send, Loader2 } from "lucide-react";
 import ProxyLogo from "@/components/ProxyLogo";
 import { getCsrfToken } from "@/lib/queryClient";
+import { renderAnswer } from "@/lib/renderAnswer";
 
 // Demo account the hero widget mirrors. Kept as one constant so the widget
 // and the "see the full profile" link can never point at different accounts.
@@ -267,7 +268,7 @@ export default function LandingPage() {
 
                 {heroAnswer && (
                   <div className="hero-dossier-serif text-[15px] leading-relaxed pl-4 border-l border-[#C3C0B0] mb-4" data-testid="text-hero-answer">
-                    {heroAnswer}
+                    {renderAnswer(heroAnswer)}
                   </div>
                 )}
                 {heroAsking && (

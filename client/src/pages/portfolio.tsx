@@ -3,6 +3,7 @@ import { useParams, useLocation, useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { Loader2, MessageSquare, Globe } from "lucide-react";
+import { renderAnswer } from "@/lib/renderAnswer";
 
 interface PortfolioData {
   profile: {
@@ -301,23 +302,6 @@ export default function PortfolioPage() {
   // possessive) or a fully generic line that drops the name entirely.
   const firstName = profile.displayName?.split(" ")[0] || "";
   const possessive = firstName ? `${firstName}'s` : "their";
-
-  const renderAnswer = (content: string) => (
-    <div className="space-y-3">
-      {content.split(/\n\n+/).map((paragraph, pi) => {
-        const parts = paragraph.split(/(\*\*[^*]+\*\*)/g);
-        return (
-          <p key={pi}>
-            {parts.map((part, partI) =>
-              part.startsWith("**") && part.endsWith("**")
-                ? <strong key={partI}>{part.slice(2, -2)}</strong>
-                : <span key={partI}>{part}</span>
-            )}
-          </p>
-        );
-      })}
-    </div>
-  );
 
   // Bolds the key figures and already-listed skills inside one achievement
   // line — mechanical, not AI-generated, so it's free, deterministic, and

@@ -4,6 +4,7 @@ import { Loader2, Upload, ArrowRight } from "lucide-react";
 import ProxyLogo from "@/components/ProxyLogo";
 import { getCsrfToken } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { renderAnswer } from "@/lib/renderAnswer";
 
 interface CareerTimelineEntry {
   company: string;
@@ -310,7 +311,7 @@ export default function TryPage() {
                       </div>
                     ) : (
                       <div key={i} className="try-dossier-serif text-[16px] leading-relaxed pl-4 border-l border-[#C3C0B0] max-w-[66ch]">
-                        {msg.content}
+                        {renderAnswer(msg.content)}
                       </div>
                     )
                   ))}

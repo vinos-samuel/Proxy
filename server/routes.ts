@@ -2019,7 +2019,7 @@ PASS if every specific claim traces back to the profile data, or if the response
   app.post("/api/admin/broadcast", requireAdmin, async (req: Request, res: Response) => {
     try {
       const { audience, subject, body } = req.body as {
-        audience: "all" | "free" | "paid";
+        audience: "all" | "free" | "paid" | "none" | "draft" | "ready" | "published_free" | "published_paid" | "theme_executive" | "theme_other";
         subject: string;
         body: string;
       };
@@ -2030,6 +2030,15 @@ PASS if every specific claim traces back to the profile data, or if the response
 
       const allCustomers = await storage.getCustomersWithProfiles();
       logger.info("[Admin] Broadcast customers loaded", { total: allCustomers.length, audience });
+
+      // Legacy theme values map onto the 4 current ones, same as portfolio.tsx's
+      // own rendering logic — keeps segmentation matching what the user actually sees.
+      const themeMap: Record<string, string> = {
+        executive: "executive", futurist: "tech", minimalist: "creative",
+        corporate: "corporate", tech: "tech", creative: "creative",
+      };
+      const resolvesToExecutive = (raw?: string | null) =>
+        (themeMap[(raw || "executive").toLowerCase()] || "executive") === "executive";
 
       const targets = allCustomers.filter((c) => {
         if (!c.emailVerified) return false; // only verified emails
@@ -2044,6 +2053,8 @@ PASS if every specific claim traces back to the profile data, or if the response
         if (audience === "ready")           return profileStatus === "ready";
         if (audience === "published_free")  return profileStatus === "published" && !isPaid;
         if (audience === "published_paid")  return profileStatus === "published" && isPaid;
+        if (audience === "theme_executive") return !!c.profile && resolvesToExecutive(c.profile.brandingTheme);
+        if (audience === "theme_other")     return !!c.profile && !resolvesToExecutive(c.profile.brandingTheme);
         return false;
       });
 

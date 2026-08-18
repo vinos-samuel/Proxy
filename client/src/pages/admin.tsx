@@ -573,10 +573,19 @@ function BlogTab() {
 
 function OutreachTab({ customers }: { customers: (Customer & { profile?: TwinProfile | null })[] }) {
   const { toast } = useToast();
-  const [audience, setAudience] = useState<"all" | "free" | "paid" | "none" | "draft" | "ready" | "published_free" | "published_paid">("free");
+  const [audience, setAudience] = useState<"all" | "free" | "paid" | "none" | "draft" | "ready" | "published_free" | "published_paid" | "theme_executive" | "theme_other">("free");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [confirming, setConfirming] = useState(false);
+
+  // Legacy theme values map onto the 4 current ones, same as portfolio.tsx's
+  // own rendering logic — keeps segmentation matching what the user actually sees.
+  const themeMap: Record<string, string> = {
+    executive: "executive", futurist: "tech", minimalist: "creative",
+    corporate: "corporate", tech: "tech", creative: "creative",
+  };
+  const resolvesToExecutive = (raw?: string | null) =>
+    (themeMap[(raw || "executive").toLowerCase()] || "executive") === "executive";
 
   const recipientCount = customers.filter((c) => {
     if (!c.emailVerified) return false;
@@ -591,6 +600,8 @@ function OutreachTab({ customers }: { customers: (Customer & { profile?: TwinPro
     if (audience === "ready")          return ps === "ready";
     if (audience === "published_free") return ps === "published" && !isPaid;
     if (audience === "published_paid") return ps === "published" && isPaid;
+    if (audience === "theme_executive") return !!c.profile && resolvesToExecutive(c.profile.brandingTheme);
+    if (audience === "theme_other")     return !!c.profile && !resolvesToExecutive(c.profile.brandingTheme);
     return false;
   }).length;
 
@@ -623,6 +634,8 @@ function OutreachTab({ customers }: { customers: (Customer & { profile?: TwinPro
     if (seg === "ready")          return ps === "ready";
     if (seg === "published_free") return ps === "published" && !isPaid;
     if (seg === "published_paid") return ps === "published" && isPaid;
+    if (seg === "theme_executive") return !!c.profile && resolvesToExecutive(c.profile.brandingTheme);
+    if (seg === "theme_other")     return !!c.profile && !resolvesToExecutive(c.profile.brandingTheme);
     return false;
   }).length;
 
@@ -632,6 +645,8 @@ function OutreachTab({ customers }: { customers: (Customer & { profile?: TwinPro
     { value: "ready",          label: "Ready (unpublished)", description: "Profile built, haven't gone live" },
     { value: "published_free", label: "Published (free)",  description: "Live on free tier — upgrade targets" },
     { value: "published_paid", label: "Published (paid)",  description: "Paying customers who are live" },
+    { value: "theme_executive", label: "Executive theme",  description: "Profiles on the Executive theme" },
+    { value: "theme_other",     label: "Dark/Tech/Creative", description: "Profiles on any other theme" },
     { value: "free",           label: "All free",          description: "Everyone who hasn't paid" },
     { value: "paid",           label: "All paid",          description: "All paying customers" },
     { value: "all",            label: "Everyone",          description: "All verified users" },

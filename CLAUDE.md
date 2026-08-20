@@ -8,39 +8,47 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-08-17 (Session 10)
-**Status:** Items 1–3 of the "theme picker previews → landing widget → /try rebuild" plan are code-complete and pushed to `main` (commits through `ec06c63`). **Not yet deployed** — production is still on the pre-session build as of last check. Items 4–5 (user email, LinkedIn post) not started.
+## Current Sprint — 2026-08-18 (Session 10)
+**Status:** All 5 items of the "theme picker previews → landing widget → /try rebuild → email → LinkedIn" plan are done. Deployed, verified on production, redesign email sent to all users, LinkedIn article posted.
 
 **This session completed:**
 - Theme picker previews (item 1): new `client/src/components/theme-preview-swatch.tsx`, wired into `questionnaire.tsx` step 10 — token-accurate mini mockups for all 4 themes, replacing text-only radio cards
 - Landing hero widget restyle (item 2): rebuilt to match real Executive theme (paper bg, serif headline, hairline borders, mono labels) instead of its own black brutalist card
-- Found and removed `priya-demo.mp4` — a stale screen recording of a discontinued "Twin Interface" UI that predated all 4 current themes; was invisible inside the old black chrome, exposed once the card went light
-- Found and fixed a deeper bug: the hero widget's "Priya" was fictional ("Priya Anand", invented Q&A) while the real demo account (`myproxy.work/portfolio/priya`) is Priya Sharma. Vinos switched her real profile to Executive theme; widget rebuilt to fetch her real name/role/photo/video/positioning-quote/suggested-questions live from `/api/portfolio/priya` — zero hardcoded content now, can't drift again
-- Added `console.error` diagnostics to both hero fetches (`/api/portfolio/priya`, `/api/chat/priya`) after a fallback-answer report from prod that couldn't be reproduced independently — confirmed the underlying endpoints work when tested directly
-- `/try` rebuild (item 3): draft preview card rebuilt in the same real-Executive-theme pattern — paper bg, serif, "By the numbers" stat grid, Q—/serif-answer chat instead of rounded bubbles. Nav/upload/error states left as Proxy's own site style (not profile content)
+- Found and removed `priya-demo.mp4` — a stale screen recording of a discontinued "Twin Interface" UI that predated all 4 current themes
+- Found and fixed a deeper bug: the hero widget's "Priya" was fictional ("Priya Anand", invented Q&A) while the real demo account (`myproxy.work/portfolio/priya`) is Priya Sharma. Vinos switched her real profile to Executive theme; widget rebuilt to fetch her real name/role/photo/video/positioning-quote/suggested-questions live from `/api/portfolio/priya` — zero hardcoded content, can't drift again
+- Root-caused a "chat fallback" bug Vinos saw on prod: he was testing on `worf.replit.dev` (workspace preview, separate DB) where the `priya` demo account doesn't exist — not a real bug. Confirmed working correctly on actual production
+- Fixed `**bold**` markdown rendering as literal asterisks in chat answers on the hero widget and `/try` — extracted portfolio.tsx's `renderAnswer()` into shared `client/src/lib/renderAnswer.tsx`, used by all 3 chat surfaces now
+- `/try` rebuild (item 3): draft preview card rebuilt in real-Executive-theme pattern, then expanded per feedback — added per-role achievement bullets and a Skills section (data was already returned by the backend, just never rendered), plus a callout explaining the full questionnaire sharpens the profile further
+- Added theme-based audience segmentation ("Executive theme" / "Dark/Tech/Creative") to the admin broadcast tool, resolving legacy theme values the same way portfolio.tsx's rendering does
+- Items 4–5: drafted and iterated email + LinkedIn copy through several rounds (corrected the underlying story twice based on Vinos's actual user feedback — first pass conflated "picker confusion" with the real issues, which were "themes looked generic" from existing users and "can't tell what I'd get" from dropped-off prospects), ran both through no-ai-slop and two other copywriting/storytelling skills. Generated real visual assets for both (theme-previews.png via Playwright screenshot of the actual shipped swatch component, plus a live screenshot of Priya's real profile) since Resend needed an actual image, not a mockup. Vinos sent the email via Resend (diagnosed a `[name]` merge-tag issue — Resend's Audience contact list is separate from Proxy's own DB and needs first names mapped on import) and posted the LinkedIn article. Both done.
 
 **Where we stopped:**
-- All code for items 1–3 is on `main`, pushed to GitHub. Vinos went to sleep before running the Replit pull/build/redeploy steps — production (`myproxy.work`) is confirmed still serving the pre-session bundle
-- The one live fallback-answer bug Vinos saw on prod was never independently reproduced — root cause unconfirmed, diagnostics added instead
+- All 5 planned items shipped and confirmed live. No open thread from this plan.
+- Discussed but explicitly declined: adding the 4 themes to the homepage for new users (Vinos: "leave the home page theme ask, do not build") — reasoning logged below in case it comes up again.
+- Discussed separately: a personal outreach video (Vinos explaining Proxy) for 1:1 email/LinkedIn outreach to individuals, staffing companies, and freelancers — advised yes with two conditions (one reusable video not per-prospect, separate scripts per audience segment) and to track reply rate before scaling. Not built (it's a Vinos-side recording task, not code).
+- Evaluated github.com/MadsLorentzen/ai-job-search as a possible fork for the CRM — verdict: don't fork (wrong stack for hosted SaaS, scrapes job boards which is a real ToS/legal risk at company scale). More importantly: discovered `server/job-search-agent.ts` (529 lines — research, outreach, follow-up, cover letter, role fit, interview prep, thank-you, negotiate, all using Twin profile data) is already fully built and wired into `job-search.tsx`, contradicting the stale "CRM Phase 2: not started" line in Known Pending Tasks below. The real open question is adoption, not capability — no PostHog wired yet, so usage of the agent panel is unmeasured.
 
-**What's next, in order:**
-1. Vinos: pull latest `main` on Replit, `npm run build`, redeploy — nothing else in this list can be verified until this happens
-2. Re-test the hero widget and `/try` on production once redeployed; check browser console for the new `[hero]` error logs if the chat-fallback bug recurs
-3. Email existing users about the redesign (segmented: Dark/Tech/Creative users vs. Executive users get different framing)
-4. LinkedIn post about the changes
+**What's next:**
+- No committed next item from this plan — ask Vinos what's next when picking this back up
+- If revisited: PostHog wiring (blocks both the pricing A/B test and answering whether the job-search agent panel is actually used)
+- Known Pending Tasks below has a stale line ("CRM Phase 2... not started") — the code exists; update that list next time it's touched
 
 **Architecture decisions made this session:**
 - Hero-widget-style "mini theme cards" (step 10 picker, landing hero, `/try` draft) all follow one pattern now: real theme color/font tokens, live-fetched real data where a real account exists, never hardcoded fictional content — extend this pattern rather than inventing a new one if another such card is needed
 - Landing page and `/try` page chrome (nav, CTAs, upload/loading/error states) stays in Proxy's own brutalist site style; only the content that represents an actual profile gets restyled to match its real theme — a deliberate scope boundary, not an oversight
 - `HERO_DEMO_USERNAME = "priya"` is now a single named constant in `landing.tsx` — every reference to the demo account routes through it, so the widget and the "see the full profile" link can never point at different accounts again
+- Chat-answer bold-markdown rendering lives in one shared place (`client/src/lib/renderAnswer.tsx`) — any new surface that shows a live AI answer should import it, not reimplement it
+- Homepage theme-picker fix (item 1) already covers "pick blind" — the real friction items 3–5 addressed were "themes looked generic" (existing users) and "can't tell what I'd get" (dropped-off prospects). These are two different problems; don't conflate them again in future messaging
+- Don't scrape job boards to reduce CRM friction (ToS/legal risk at company scale) — if job-discovery friction gets prioritized, the lower-risk version is a user-supplied job URL fetched server-side on request, not systematic crawling
 
-**Don't touch:** server/ai-processor.ts processQuestionnaire(), Stripe webhook flow, server/job-search-agent.ts
+**Don't touch:** server/ai-processor.ts processQuestionnaire(), Stripe webhook flow, server/job-search-agent.ts (fully built — see above, not a stub)
 **Pending decisions:**
 - Test $19/mo pricing alongside $49 — not actioned
-- PostHog session tracking for drop-off analysis — needed before A/B test
+- PostHog session tracking for drop-off analysis — needed before A/B test, and now also needed to measure job-search-agent adoption
 - Whether to backfill "roles you're targeting" for existing users, or leave it new-users-only permanently
 - Free tier limits — visitor question cap discussed, not implemented
-- Whether `/try`'s draft-preview pattern should also gain a real video slot (like the landing hero got this session) — not raised yet, parallel opportunity
+- Whether `/try`'s draft-preview pattern should also gain a real video slot — not raised yet, parallel opportunity
+- Homepage 4-theme showcase for new users — explicitly parked this session, not rejected outright
 
 ## What This Is
 Digital Twin / AI-powered career profile builder. Users upload a resume, fill an 11-step questionnaire, and get a public AI portfolio page with a chatbot that represents them.

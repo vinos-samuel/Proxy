@@ -581,3 +581,27 @@
 - Production still on pre-fix build — Vinos needs to redeploy (push done, Replit steps pending)
 - Chat-fallback bug seen once on prod, not reproduced; added console diagnostics for next check
 - Items 4–5 (user email, LinkedIn post) not started
+
+---
+
+## 2026-08-18
+
+**Tasks Completed**
+- Root-caused the chat-fallback report: Vinos was testing on the workspace preview (separate DB, no `priya` account there), not production — confirmed working on prod
+- Fixed `**bold**` markdown showing as literal asterisks in chat answers — shared `renderAnswer()` now used by portfolio.tsx, landing hero, and `/try`
+- Expanded `/try` per feedback: achievement bullets and a Skills section (data already existed server-side, wasn't rendered), plus a questionnaire-upsell callout
+- Added theme-based audience segmentation to the admin broadcast tool (Executive vs. Dark/Tech/Creative)
+- Drafted, corrected, and finalized the redesign announcement email and LinkedIn article (multiple rounds — corrected the underlying story to match Vinos's actual user feedback, ran through no-ai-slop + 2 other copywriting skills); generated real image assets (Playwright screenshot of the shipped theme-swatch component, live screenshot of Priya's profile) since Resend needed actual images
+- Diagnosed a `[name]` merge-tag bug in Resend (Audience contact list is separate from Proxy's DB, needs first names mapped on import) — not a code issue
+- Evaluated forking github.com/MadsLorentzen/ai-job-search for the CRM — declined (wrong stack, ToS/legal risk in scraping). Found `server/job-search-agent.ts` is already a complete AI agent (research/outreach/interview-prep/etc.) contradicting a stale roadmap line
+- Email sent to all users, LinkedIn article posted — both confirmed by Vinos
+
+**Files Modified**
+- `client/src/lib/renderAnswer.tsx` — new, shared bold-markdown renderer
+- `client/src/pages/portfolio.tsx`, `landing.tsx`, `try.tsx` — use shared renderer; try.tsx also gained achievements/skills/callout
+- `client/src/pages/admin.tsx`, `server/routes.ts` — theme-based broadcast audience segmentation
+
+**Blockers**
+- None. All 5 items from the redesign plan are shipped and verified
+- Known real gap for next session: no PostHog wired, so job-search-agent adoption and pricing A/B readiness are both still unmeasured
+- `CLAUDE.md` Known Pending Tasks list has a stale "CRM Phase 2 not started" line — update next time that file's touched

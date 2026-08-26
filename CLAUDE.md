@@ -8,7 +8,44 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-08-18 (Session 10)
+## Current Sprint — 2026-08-18 (Session 11)
+**Status:** Both workstreams (honest marketing copy + free-tier edit-window fix) are code-complete, typecheck/build clean, committed to branch `honest-copy-and-free-tier-fix`. **Not yet on `main`, not yet deployed** — Vinos needs to merge and run the deploy steps.
+
+**This session completed — Workstream A (honest copy):**
+- Hero rewritten: "Don't send a PDF. Send a link." + "Built for mid to senior professionals whose careers don't fit on two pages." Trust statement moved directly under the CTA buttons (was buried lower on the page). Priya hero widget untouched — still live-fetches `/api/portfolio/priya`, no homepage theme picker added (stays declined per session 10)
+- Cut fabricated/borrowed stats wherever found: the "8-minute conversation vs 6-second scan" pairing, "87% never reach a human," and the Laszlo Bock 5–10x referral stat (real, but about referrals generally — not Proxy's own data). Kept the real qualitative point each was making, just without the invented number
+- Stopped marketing Job Search Agent/CRM as a homepage feature: removed the Pro-tier bullet, the comparison-table row, and the CRM-focused testimonial (testimonial grid now 2 cols, not 3). The feature itself, `server/job-search-agent.ts`, is untouched and still explained honestly in FAQ, gated to Pro
+- Replaced the 5-item "what happens after" list and about.tsx's vague "Agents Coming" suite-pitch card with the same 3 plain-word uses: email signature, LinkedIn, send instead of a CV
+- Found and fixed a false FAQ claim while auditing ("recently shipped: session analytics via PostHog") — PostHog isn't wired (confirmed multiple times this project), only basic view/question counts are real and shipped. Corrected to describe what's actually there
+- portfolio.tsx: "Download CV" button now hidden on all 4 themes when `cvResumeUrl` is a literal placeholder string, not a real URL — Priya's flagship demo had a dead button before this
+- Dropped 2 "unlock" instances in dashboard.tsx per copy rules
+
+**This session completed — Workstream B (free tier stops being a trap):**
+- Real behavior change, not just copy: the free-tier edit gate in `PATCH /api/profile` now checks 7 days (168h) since `freePublishedAt`, not 48h. Drafts were already unrestricted before this (the gate only ever applied post-publish) and still are
+- `dashboard.tsx`'s `freeWindowExpired` check, `nudge-cron.ts`'s edit-window-closed email trigger (was 50h, now 170h), and `emails.ts`'s `nudgeEditWindowTemplate` copy all updated to match the new 7-day window
+- Copy fixed everywhere it said "1 edit within 48 hours": landing.tsx pricing card, PaymentGate.tsx tier list + publish-free confirmation modal, FAQ (both plainText and rendered), terms.tsx
+- No schema change — reused the existing `freePublishedAt` column, just changed the threshold
+
+**Where we stopped:**
+- Everything above is on branch `honest-copy-and-free-tier-fix`, not merged to `main`, not deployed. See deploy steps given to Vinos at end of session
+- Did not start a third workstream — job-search-agent.ts, ai-processor.ts, Stripe webhook, and job-search.tsx are all untouched as instructed
+
+**What's next:**
+- Vinos: merge branch to main, deploy, verify on production (see deploy steps)
+- Still open from session 10: PostHog wiring (now blocks even more — pricing A/B test, job-search-agent adoption, and this session surfaced a FAQ line that had to be walked back because of it)
+- Known Pending Tasks below still has the stale "CRM Phase 2 not started" line from before session 10's finding — someone should clean this up next time this file is touched for real, not just noted again
+
+**Architecture decisions made this session:**
+- "Make the product honest" now has a concrete standard: no stat on a public page unless it's Proxy's own data or explicitly attributed with a real source. Borrowed/generic industry stats (Laszlo Bock, "87%", "8 min vs 6 sec") read as Proxy's own performance claims to a visitor — cut them, keep the qualitative point
+- Marketing pages don't sell in-progress or under-demoed features. Job Search Agent/CRM is real and shipped, but it lives in FAQ (where a Pro user can find it) not the homepage, until it has its own public proof point
+- Free-tier edit windows are governed by one existing field (`freePublishedAt`) checked against `tier` — never add a second edit-tracking mechanism; change the threshold, not the approach
+- A placeholder value (e.g. `cvResumeUrl` still holding literal template text) must fail closed in the UI — hide the affected element rather than render a broken link, especially on demo/flagship accounts other people are actually looking at
+
+**Don't touch (this session, unchanged):** server/ai-processor.ts processQuestionnaire(), Stripe webhook flow, server/job-search-agent.ts and job-search.tsx, LinkedIn enrichment/Proxycurl, auth flows on worf.replit.dev
+
+---
+
+## Previous Sprint — 2026-08-18 (Session 10)
 **Status:** All 5 items of the "theme picker previews → landing widget → /try rebuild → email → LinkedIn" plan are done. Deployed, verified on production, redesign email sent to all users, LinkedIn article posted.
 
 **This session completed:**

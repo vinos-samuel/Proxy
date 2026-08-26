@@ -44,7 +44,7 @@ export default function TermsPage() {
             <h2 className="text-xl font-bold text-black mb-3">4. Payments</h2>
             <p className="text-black/70 leading-relaxed mb-3">Plans available:</p>
             <ul className="text-black/70 leading-relaxed space-y-2 list-disc list-inside">
-              <li><strong>Free:</strong> $0 — Published profile + chatbot, 1 edit within 48 hours</li>
+              <li><strong>Free:</strong> $0 — Published profile + chatbot, 7 days of edits after publishing</li>
               <li><strong>Pro:</strong> $49 USD — Unlimited edits, full analytics</li>
               <li><strong>Concierge:</strong> $499 USD — Personal discovery call, custom branding, hands-on optimization</li>
             </ul>

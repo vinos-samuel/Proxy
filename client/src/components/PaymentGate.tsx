@@ -20,7 +20,7 @@ const tiers = [
     features: [
       "AI_PORTFOLIO + CHATBOT",
       "PERSONAL_PAGE (myproxy.work/you)",
-      "1_EDIT WITHIN 48HRS",
+      "7_DAYS_OF_EDITS_AFTER_PUBLISH",
       "BASIC_VIEW_COUNT",
     ],
     useCase: "USE_CASE: Try it out | See your Twin in action",
@@ -201,7 +201,7 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
               <div className="bg-[#FEF3C7] border-[3px] border-black p-4">
                 <p className="mono text-sm text-black/80 font-bold mb-2">FREE PLAN — WHAT TO KNOW:</p>
                 <ul className="mono text-sm text-black/70 space-y-1">
-                  <li>&#8226; You'll have <strong>48 hours</strong> to make edits after publishing</li>
+                  <li>&#8226; You'll have <strong>7 days</strong> to make edits after publishing</li>
                   <li>&#8226; After that, upgrade to Pro ($49) for unlimited edits</li>
                   <li>&#8226; Make sure your questionnaire answers are detailed and accurate</li>
                 </ul>

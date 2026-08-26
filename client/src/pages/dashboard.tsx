@@ -96,7 +96,7 @@ export default function DashboardPage() {
   const profileStatus = profile ? statusMap[profile.status] || statusMap.draft : statusMap.draft;
   const isFree = profile?.tier === "free";
   const freeWindowExpired = isFree && profile?.freePublishedAt
-    ? (Date.now() - new Date(profile.freePublishedAt).getTime()) / (1000 * 60 * 60) > 48
+    ? (Date.now() - new Date(profile.freePublishedAt).getTime()) / (1000 * 60 * 60) > 24 * 7
     : false;
 
   const questionCount = analytics?.recentQuestions?.length ?? 0;
@@ -382,7 +382,7 @@ export default function DashboardPage() {
                     <h3 className="font-bold text-lg text-black/40">ACTIVITY</h3>
                   </div>
                   <p className="mono text-xs text-black/50 leading-relaxed">
-                    Once your profile is published, you'll see how many people visited and what they asked your Twin. Publish to unlock this.
+                    Once your profile is published, you'll see how many people visited and what they asked your Twin.
                   </p>
                 </div>
               )}
@@ -397,7 +397,7 @@ export default function DashboardPage() {
                       <p className="mono text-xs text-black/70 mt-1">
                         {viewCount > 0 || questionCount > 0
                           ? `${viewCount} people visited${questionCount > 0 ? ` and ${questionCount} asked questions` : ""}. Upgrade to Pro to keep refining your profile and see exactly what they asked.`
-                          : "Your free edit window has ended. Upgrade to Pro to keep editing, unlock analytics, and remove all limits."}
+                          : "Your 7-day free edit window has ended. Upgrade to Pro to keep editing and see full analytics."}
                       </p>
                     </div>
                   </div>

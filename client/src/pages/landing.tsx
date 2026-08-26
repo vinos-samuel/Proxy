@@ -156,13 +156,10 @@ export default function LandingPage() {
             {/* Left column */}
             <div>
               <h1 className="text-4xl lg:text-6xl font-bold leading-tight mb-3" data-testid="text-hero-headline">
-                Every candidate at your level has the same CV.
+                Don't send a PDF. Send a link.
               </h1>
-              <p className="text-2xl lg:text-3xl font-bold text-[#22C55E] mb-6">
-                Get more recruiter responses. Get to interview faster.
-              </p>
-              <p className="text-xl text-black/70 mb-8">
-                Give recruiters a way to know you better, before they speak with you. Share one link — your personalised bot explains what made your work matter, and gets you to the call already ahead.
+              <p className="text-xl lg:text-2xl font-bold text-black/70 mb-8">
+                Built for mid to senior professionals whose careers don't fit on two pages.
               </p>
               <div className="flex gap-4 flex-wrap">
                 <button
@@ -183,6 +180,11 @@ export default function LandingPage() {
                   <span className="text-xs text-black/50 font-normal normal-case tracking-normal mt-0.5">Try asking {heroProfile.displayName.split(" ")[0]}'s Bot a question</span>
                 </a>
               </div>
+              <div className="mt-4 bg-[#F0FDF4] border-[2px] border-[#22C55E] px-4 py-3">
+                <p className="text-sm text-black/80">
+                  🔒 <strong>Your data stays yours.</strong> Your profile is private until you publish it. We don't sell your data or use it to train AI models.
+                </p>
+              </div>
               <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 mono text-xs font-bold uppercase tracking-wider text-black/60">
                 <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> No account to try it</span>
                 <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Free to start</span>
@@ -197,11 +199,6 @@ export default function LandingPage() {
               <p className="text-base font-semibold text-black mt-5">
                 Professional enough to send to a headhunter. Personal enough to actually represent you.
               </p>
-              <div className="mt-4 bg-[#F0FDF4] border-[2px] border-[#22C55E] px-4 py-3">
-                <p className="text-sm text-black/80">
-                  🔒 <strong>Your data stays yours.</strong> Your profile is private until you publish it. We don't sell your data or use it to train AI models.
-                </p>
-              </div>
             </div>
 
             {/* Right column — a live, scaled Executive-theme card. Same paper
@@ -350,8 +347,8 @@ export default function LandingPage() {
               <h3 className="text-3xl font-bold mb-6 text-black/50">THE RESUME</h3>
               <div className="space-y-5">
                 {[
-                  { title: "6-second scan, then silence", desc: "One-way broadcast" },
-                  { title: "Lost in the ATS", desc: "87% never reach a human" },
+                  { title: "Skimmed in seconds, then silence", desc: "One-way broadcast" },
+                  { title: "Lost in the ATS", desc: "Filtered before a human sees it" },
                   { title: "Static — says what you did", desc: "Doesn't explain why it mattered" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-3">
@@ -369,7 +366,7 @@ export default function LandingPage() {
               <h3 className="text-3xl font-bold mb-6">YOUR PROXY</h3>
               <div className="space-y-5">
                 {[
-                  { title: "8-minute conversation, then a call", desc: "Two-way engagement" },
+                  { title: "A real conversation, then a call", desc: "Two-way engagement" },
                   { title: "Shared as a link, direct to a human", desc: "No ATS. Straight to the person." },
                   { title: "Dynamic — explains why it mattered", desc: "Your stories, your metrics, your voice" },
                 ].map((item, i) => (
@@ -465,16 +462,14 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right — what happens after */}
+            {/* Right — three ways to use it */}
             <div>
-              <h3 className="text-xl font-bold mb-6 mono uppercase tracking-wider">What happens after you create one</h3>
+              <h3 className="text-xl font-bold mb-6 mono uppercase tracking-wider">How people actually use it</h3>
               <div className="space-y-4">
                 {[
-                  { step: "01", text: "Share your link in LinkedIn DMs when reaching out to recruiters" },
-                  { step: "02", text: "Add it to job applications alongside your CV" },
-                  { step: "03", text: "Put it in your email signature — every email becomes a door" },
-                  { step: "04", text: "Recruiters ask your AI questions, get real answers in your voice" },
-                  { step: "05", text: "More qualified conversations. Fewer cold rejections." },
+                  { step: "01", text: "Put the link in your email signature" },
+                  { step: "02", text: "Put it on your LinkedIn" },
+                  { step: "03", text: "Send it instead of a CV when someone asks" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-4 border-[2px] border-black bg-white p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                     <div className="mono text-2xl font-bold text-[#22C55E] shrink-0">{item.step}</div>
@@ -491,18 +486,14 @@ export default function LandingPage() {
       <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
         <div className="max-w-7xl mx-auto">
           <div className="mono text-sm text-black/50 mb-6 uppercase tracking-widest">// the_referral_edge</div>
-          <div className="flex flex-col lg:flex-row gap-4 items-start mb-10">
-            <div className="text-8xl lg:text-9xl font-bold leading-none text-black">5–10x</div>
-            <div className="lg:pt-4 max-w-xl">
-              <p className="text-xl font-bold text-black mb-1">Referred candidates get hired 5 to 10 times more often than cold applications.</p>
-              <p className="mono text-sm text-black/50">— Laszlo Bock, former SVP People Operations, Google</p>
-            </div>
+          <div className="max-w-2xl mb-10">
+            <p className="text-3xl lg:text-4xl font-bold text-black leading-tight">Your network wants to help. They just don't have enough to go on.</p>
           </div>
           <div className="grid lg:grid-cols-2 gap-6">
             <div className="border-[3px] border-black p-8 bg-[#D1D1CC] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <h3 className="text-2xl font-bold mb-4 text-black/50">THE PROBLEM</h3>
               <div className="space-y-4 text-black/70 mono text-sm leading-relaxed">
-                <p>Your network wants to help. But "let me send over their CV" isn't enough to stake a professional reputation on.</p>
+                <p>"Let me send over their CV" isn't enough to stake a professional reputation on.</p>
                 <p>To make a real referral, someone needs to understand your work — what you've built, how you think, what makes you different. A PDF doesn't give them that.</p>
                 <p className="font-bold text-black">Most referrals don't happen because the goodwill is there, but the context isn't.</p>
               </div>
@@ -543,7 +534,6 @@ export default function LandingPage() {
                   { feature: "Answers a recruiter's follow-up question", proxy: "✓ 24/7", resume: "✗", linkedin: "✗", portfolio: "✗" },
                   { feature: "Explains why an achievement mattered", proxy: "✓", resume: "✗ Lists only", linkedin: "Partial", portfolio: "✗ Lists only" },
                   { feature: "One link, always current", proxy: "✓", resume: "✗", linkedin: "Partial", portfolio: "✓" },
-                  { feature: "Tracks your job search", proxy: "✓ Built-in CRM", resume: "✗", linkedin: "✗", portfolio: "✗" },
                   { feature: "Setup time", proxy: "~30 min", resume: "Redone per application", linkedin: "Ongoing upkeep", portfolio: "~2 min" },
                   { feature: "Cost", proxy: "Free to start · $49 once", resume: "$500–800 (writer)", linkedin: "Free", portfolio: "Often free" },
                 ].map((row, i) => (
@@ -569,7 +559,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// what_people_say</div>
           <h2 className="text-5xl font-bold mb-16">Real profiles. Real results.</h2>
-          <div className="grid lg:grid-cols-3 gap-8 items-start">
+          <div className="grid lg:grid-cols-2 gap-8 items-start">
             <div className="border-[3px] border-black bg-[#E8E8E3] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <p className="text-base text-black/80 mb-6 leading-relaxed">
                 "I honestly didn't expect the 45 minutes I spent building my Proxy profile to make such a difference. I went beyond my CV and talked about the projects I've worked on, the lessons I've learned, the decisions I've made and, importantly, how I actually work. That context <strong className="text-black">made the AI bot sound surprisingly like me — not like a generic career assistant.</strong> When someone is evaluating you for a senior role, that ability to communicate the story behind the experience is incredibly valuable."
@@ -583,13 +573,6 @@ export default function LandingPage() {
               </p>
               <div className="mono text-sm font-bold text-black">John Lima</div>
               <div className="mono text-xs text-black/50 uppercase tracking-wider mt-0.5">Portfolio Manager @ HSBC</div>
-            </div>
-            <div className="border-[3px] border-black bg-[#E8E8E3] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <p className="text-base text-black/80 mb-6 leading-relaxed">
-                "<strong className="text-black">The Job Search CRM is probably the feature I didn't know I needed.</strong> Once you're managing multiple conversations, applications, recruiters and follow-ups, it's surprisingly easy to lose track of things. Proxy gives me one place to organise the search and actually stay on top of it. The combination of the portfolio, AI assistant and CRM makes the whole process much more structured — I'm spending less time trying to remember what I need to do and more time actually moving opportunities forward."
-              </p>
-              <div className="mono text-sm font-bold text-black">Anthony Souza</div>
-              <div className="mono text-xs text-black/50 uppercase tracking-wider mt-0.5">Clinical Research Strategy @ J&J</div>
             </div>
           </div>
         </div>
@@ -621,7 +604,7 @@ export default function LandingPage() {
                 {[
                   "AI portfolio + chatbot",
                   "Personal page (myproxy.work/you)",
-                  "1 edit within 48hrs",
+                  "7 days of edits after publishing",
                   "Basic view count",
                 ].map((f, i) => (
                   <div key={i} className="flex gap-2 mono text-black/70">
@@ -655,7 +638,6 @@ export default function LandingPage() {
                   "Unlimited edits",
                   "Full analytics dashboard",
                   "Visitor questions feed",
-                  "Job Search Agent (CRM)",
                   "Priority processing",
                 ].map((f, i) => (
                   <div key={i} className="flex gap-2 mono text-black">

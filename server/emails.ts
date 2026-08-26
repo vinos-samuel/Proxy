@@ -178,7 +178,7 @@ export function nudgeEditWindowTemplate(name: string, upgradeUrl: string): strin
   const body = `
     <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your edit window has closed</h1>
     <p style="font-size:15px;color:#555555;margin:0 0 24px 0;line-height:1.6;">
-      Hi ${name}, your free Proxy profile is live — but your 48-hour edit window has now closed. You can no longer make changes on the free plan.
+      Hi ${name}, your free Proxy profile is live — but your 7-day edit window has now closed. You can no longer make changes on the free plan.
     </p>
 
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:24px;">

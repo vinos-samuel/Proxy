@@ -57,10 +57,10 @@ export default function FAQPage() {
     },
     {
       q: "How does Proxy help me get referrals?",
-      plainText: "Referred candidates get hired 5 to 10 times more often than cold applications. But getting referred requires someone who understands your work well enough to vouch for you — and most connections don't. They want to help, but they don't know enough to make a credible referral. Proxy fixes this. When someone offers to help, share your Proxy link instead of your CV. They can ask your AI anything — what you've built, how you work, what kind of problems you solve. They get a real picture of your capabilities in minutes, and can refer you with genuine confidence instead of a vague endorsement. Every published profile also gets a personal referral link on the dashboard — share it with your network and track how many people sign up from your recommendation.",
+      plainText: "Getting referred requires someone who understands your work well enough to vouch for you — and most connections don't. They want to help, but they don't know enough to make a credible referral. Proxy fixes this. When someone offers to help, share your Proxy link instead of your CV. They can ask your AI anything — what you've built, how you work, what kind of problems you solve. They get a real picture of your capabilities in minutes, and can refer you with genuine confidence instead of a vague endorsement. Every published profile also gets a personal referral link on the dashboard — share it with your network and track how many people sign up from your recommendation.",
       a: (
         <div className="space-y-4">
-          <p><strong className="text-black">Referred candidates get hired 5–10x more often</strong> than cold applications. But a referral only works if your connection understands your work well enough to stake their reputation on it.</p>
+          <p>A referral only works if your connection understands your work well enough to stake their reputation on it.</p>
           <p>Most people want to help — they just don't have the context to make a credible introduction. Sending a CV doesn't solve that. A two-page document can't answer follow-up questions or explain the nuance of what you've actually built.</p>
           <p>Share your Proxy link instead. Your connection can chat with your AI, ask about specific projects, understand how you think, and get a genuine sense of what you'd bring to a role. They go from "I vaguely know this person" to "I can genuinely vouch for this person" — and the referral actually happens.</p>
           <p className="border-l-[3px] border-[#22C55E] pl-4"><strong className="text-black">The ask:</strong> <em>"Here's my Proxy link — it'll give you a real sense of what I do. If it resonates, I'd love your thoughts on who I should be talking to."</em></p>
@@ -132,14 +132,14 @@ export default function FAQPage() {
     },
     {
       q: "How much does Proxy cost?",
-      plainText: "Proxy has three plans. Free gives you a published AI Digital Twin with chatbot and a personal page — no credit card needed. You get one edit within 48 hours to fine-tune your profile. Pro at $49 (one-time) gives you unlimited edits and a full analytics dashboard showing who's visiting and what they ask. Concierge at $499 (one-time) includes a personal discovery call, professional copywriting, custom branding, and hands-on optimization.",
+      plainText: "Proxy has three plans. Free gives you a published AI Digital Twin with chatbot and a personal page — no credit card needed. Drafts are unlimited edits before you publish. Once you publish free, you get 7 days of edits, then it's locked until you upgrade. Pro at $49 (one-time) gives you unlimited edits and a full analytics dashboard showing who's visiting and what they ask. Concierge at $499 (one-time) includes a personal discovery call, professional copywriting, custom branding, and hands-on optimization.",
       a: (
         <div className="space-y-4">
           <p>Start free, upgrade when you're ready:</p>
           <div className="space-y-3 ml-1">
             <div className="flex gap-3 items-start">
               <span className="bg-[#22C55E] text-black font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">FREE</span>
-              <span><strong className="text-black">Free</strong> — Published AI portfolio + chatbot + personal page. 1 edit within 48 hours. No credit card needed.</span>
+              <span><strong className="text-black">Free</strong> — Published AI portfolio + chatbot + personal page. Unlimited edits while in draft; 7 days of edits after you publish. No credit card needed.</span>
             </div>
             <div className="flex gap-3 items-start">
               <span className="bg-black text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">$49</span>
@@ -381,20 +381,20 @@ export default function FAQPage() {
     },
     {
       q: "What's coming next for Proxy?",
-      plainText: "Recently shipped: referral attribution (track signups from your personal referral link), session analytics via PostHog (real recruiter engagement data), tightened AI accuracy guardrails, and full blog SEO with structured data so articles rank on Google and get parsed by AI agents. Coming next: LinkedIn enrichment (automatically pulling your professional activity to enrich your profile), recruiter session tracking (see individual visit sessions and what each visitor asked your AI), and suggested question chips on portfolio pages to remove cold-start friction for recruiters. All existing members get early access to new features as they launch.",
+      plainText: "Recently shipped: referral attribution (track signups from your personal referral link), basic profile analytics (view counts and visitor questions), tightened AI accuracy guardrails, and full blog SEO with structured data so articles rank on Google and get parsed by AI agents. Coming next: LinkedIn enrichment (automatically pulling your professional activity to enrich your profile), deeper session tracking (see individual visit sessions and what each visitor asked your AI), and suggested question chips on portfolio pages to remove cold-start friction for recruiters. All existing members get early access to new features as they launch.",
       a: (
         <div className="space-y-4">
           <p><strong className="text-black">Recently shipped:</strong></p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Referral attribution</strong> — every published profile gets a personal referral link; track how many people sign up from your recommendation</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Session analytics</strong> — real engagement data showing time spent on your profile and chat interactions</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Basic profile analytics</strong> — view counts and the questions visitors ask your Twin, shown on your dashboard</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Tightened AI accuracy</strong> — stricter grounding rules, false premise correction, and explicit no-fabrication enforcement</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Suggested question chips</strong> — prompt cards on your portfolio page that help recruiters start the conversation instantly</span></li>
           </ul>
           <p><strong className="text-black">Coming next:</strong></p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">LinkedIn enrichment</strong> — automatically pulling your professional activity to enrich your profile</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Per-visit session tracking</strong> — see each individual recruiter visit, how long they stayed, and exactly what they asked your AI</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Deeper session tracking</strong> — see each individual recruiter visit, how long they stayed, and exactly what they asked your AI</span></li>
           </ul>
           <p>All existing members get <strong className="text-black">early access</strong> to new features as they launch.</p>
         </div>

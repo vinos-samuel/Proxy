@@ -689,11 +689,13 @@ export async function registerRoutes(
           return res.status(404).json({ message: "No profile found" });
         }
 
-        // Free tier edit gating — 48hr window
+        // Free tier edit gating — 7-day window after first publish. Never
+        // applies to unpublished drafts (freePublishedAt is only set on
+        // publish), so drafts always get unlimited edits.
         if (profile.tier === "free" && profile.freePublishedAt) {
           const hoursSincePublish = (Date.now() - new Date(profile.freePublishedAt).getTime()) / (1000 * 60 * 60);
-          if (hoursSincePublish > 48) {
-            return res.status(403).json({ message: "Free plan edit window has expired. Upgrade to Pro for unlimited edits." });
+          if (hoursSincePublish > 24 * 7) {
+            return res.status(403).json({ message: "Your 7-day free edit window has ended. Upgrade to Pro for unlimited edits." });
           }
         }
 

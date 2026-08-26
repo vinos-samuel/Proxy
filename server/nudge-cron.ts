@@ -20,8 +20,8 @@ export function startNudgeCron() {
         const hoursSincePublish = (now.getTime() - p.freePublishedAt.getTime()) / (1000 * 60 * 60);
         const upgradeUrl = "https://myproxy.work/dashboard";
 
-        // Nudge 1: edit window closed (50hrs after free publish)
-        if (hoursSincePublish >= 50 && !p.nudge1SentAt) {
+        // Nudge 1: edit window closed (7-day window + 2hr buffer after free publish)
+        if (hoursSincePublish >= 24 * 7 + 2 && !p.nudge1SentAt) {
           await resend.emails.send({
             from,
             to: p.email,

@@ -296,6 +296,10 @@ export default function PortfolioPage() {
   const dStats = (profile.stats || []).slice(0, 16);
   const dPositioning = (profile.positioning || "").split("\n\n").filter(Boolean);
   const dRoleLine = [profile.roleTitle, dCareer[0]?.company].filter(Boolean).join(" — ");
+  // Guards against showing a "Download CV" link that points at an unfilled
+  // placeholder value (e.g. "[EDIT: Link to your CV/Resume PDF]") instead of
+  // a real URL — a broken button on a published profile is worse than no button.
+  const hasCv = !!profile.cvResumeUrl && !profile.cvResumeUrl.trim().startsWith("[");
   const dRemainingQs = suggestedQs.filter((q) => !messages.some((m) => m.role === "user" && m.content === q)).slice(0, 3);
   // First name for the AI-disclosure line on each theme — "Priya's AI proxy",
   // not the ungendered-but-grammatically-broken "Priya AI proxy" (missing the
@@ -428,9 +432,9 @@ export default function PortfolioPage() {
                     LinkedIn
                   </a>
                 )}
-                {profile.cvResumeUrl && (
+                {hasCv && (
                   <a
-                    href={profile.cvResumeUrl}
+                    href={profile.cvResumeUrl!}
                     download
                     className="dossier-mono text-xs text-[#5B6158] border-b border-[#C3C0B0] pb-0.5 hover:text-[#1B211E] hover:border-[#5B6158] transition-colors"
                   >
@@ -801,8 +805,8 @@ export default function PortfolioPage() {
                 {portfolio.contact.linkedin && (
                   <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer" className="rpt-mono text-[11.5px] text-[#8A8F98] border-b border-[#33383F] pb-0.5 hover:text-[#E9E7DE] transition-colors">LinkedIn</a>
                 )}
-                {profile.cvResumeUrl && (
-                  <a href={profile.cvResumeUrl} download className="rpt-mono text-[11.5px] text-[#8A8F98] border-b border-[#33383F] pb-0.5 hover:text-[#E9E7DE] transition-colors">Download CV</a>
+                {hasCv && (
+                  <a href={profile.cvResumeUrl!} download className="rpt-mono text-[11.5px] text-[#8A8F98] border-b border-[#33383F] pb-0.5 hover:text-[#E9E7DE] transition-colors">Download CV</a>
                 )}
               </div>
             </div>
@@ -1039,7 +1043,7 @@ export default function PortfolioPage() {
               <div className="flex items-center gap-5 flex-wrap">
                 <button onClick={() => document.getElementById("trm-qa")?.scrollIntoView({ behavior: "smooth" })} className="text-[12.5px] font-bold bg-[#46C2B3] text-[#05201C] px-5 py-2.5 rounded-[3px]" data-testid="button-trm-ask">$ ask</button>
                 {portfolio.contact.linkedin && <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer" className="text-[12.5px] text-[#6E7885] border-b border-dotted border-[#2A333D]">linkedin</a>}
-                {profile.cvResumeUrl && <a href={profile.cvResumeUrl} download className="text-[12.5px] text-[#6E7885] border-b border-dotted border-[#2A333D]">download_cv</a>}
+                {hasCv && <a href={profile.cvResumeUrl!} download className="text-[12.5px] text-[#6E7885] border-b border-dotted border-[#2A333D]">download_cv</a>}
               </div>
             </div>
             {hasVideo && (
@@ -1219,7 +1223,7 @@ export default function PortfolioPage() {
             <div style={{ fontFamily: "-apple-system, sans-serif" }} className="flex items-center gap-5 flex-wrap text-[12.5px]">
               <button onClick={() => document.getElementById("mag-qa")?.scrollIntoView({ behavior: "smooth" })} className="bg-[#96AD86] text-[#1B2117] px-6 py-2.5" data-testid="button-mag-ask">Start the interview</button>
               {portfolio.contact.linkedin && <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer" className="text-[#A69C89] border-b border-[#4A4335]">LinkedIn</a>}
-              {profile.cvResumeUrl && <a href={profile.cvResumeUrl} download className="text-[#A69C89] border-b border-[#4A4335]">Download CV</a>}
+              {hasCv && <a href={profile.cvResumeUrl!} download className="text-[#A69C89] border-b border-[#4A4335]">Download CV</a>}
             </div>
           </div>
           {hasVideo && (

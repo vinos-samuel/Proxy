@@ -115,9 +115,9 @@ export default function AboutPage() {
               <div className="w-12 h-12 bg-[#22C55E] border-[3px] border-black flex items-center justify-center mb-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                 <Rocket className="text-black w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold mb-4">Agents Coming</h3>
+              <h3 className="text-2xl font-bold mb-4">One Link, Everywhere</h3>
               <p className="mono text-sm text-black/70 leading-relaxed">
-                Interview prep, job search strategy, personal brand — a full suite of AI tools built around the candidate.
+                Put it in your email signature, your LinkedIn, or send it instead of a CV when someone asks.
               </p>
             </div>
           </div>

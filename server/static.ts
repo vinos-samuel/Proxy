@@ -2,6 +2,7 @@ import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
 import { storage } from "./storage";
+import { getCustomerForPublicPortfolio, getProfileForPublicPortfolio, canonicalPublicUsername } from "./portfolio-alias";
 
 /** Strip characters that could break HTML attributes or the <title> tag */
 function sanitize(str: string): string {
@@ -172,16 +173,19 @@ export function serveStatic(app: Express) {
 
   // Portfolio page — full AEO/SEO: real profile data + JSON-LD Person schema
   app.get("/portfolio/:username", async (req, res) => {
+    if (req.params.username.toLowerCase() === "admin") {
+      return res.redirect(301, "/portfolio/vinos");
+    }
     if (indexHtml) {
       try {
         const [customer, profile] = await Promise.all([
-          storage.getCustomerByUsername(req.params.username),
-          storage.getProfileByUsername(req.params.username),
+          getCustomerForPublicPortfolio(req.params.username),
+          getProfileForPublicPortfolio(req.params.username),
         ]);
 
         if (customer && profile?.status === "published") {
           const name = profile.displayName || customer.name || req.params.username;
-          const url  = `https://myproxy.work/portfolio/${req.params.username}`;
+          const url  = `https://myproxy.work/portfolio/${canonicalPublicUsername(req.params.username)}`;
           const qd   = (profile.questionnaireData as any) || {};
 
           // Use real positioning as description, fall back to generic

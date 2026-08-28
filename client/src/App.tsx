@@ -1,4 +1,4 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, useLocation, Redirect } from "wouter";
 import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -31,7 +31,6 @@ import JobSearchPage from "@/pages/job-search";
 import PreviewDraftPage from "@/pages/preview-draft";
 import TryPage from "@/pages/try";
 import { Loader2 } from "lucide-react";
-import { Redirect } from "wouter";
 
 function ProtectedRoute({ component: Component }: { component: () => JSX.Element }) {
   const { user, isLoading } = useAuth();
@@ -107,6 +106,7 @@ function Router() {
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/terms" component={TermsPage} />
       <Route path="/pricing" component={LandingPage} />
+      <Route path="/portfolio/admin">{() => <Redirect to="/portfolio/vinos" />}</Route>
       <Route path="/portfolio/:username" component={PortfolioPage} />
       <Route component={NotFound} />
     </Switch>

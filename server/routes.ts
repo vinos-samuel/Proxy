@@ -14,6 +14,8 @@ import pgSession from "connect-pg-simple";
 import { pool } from "./db";
 import Fuse from "fuse.js";
 import { buildSystemPrompt } from "./system-prompt-builder";
+import { getCustomerForPublicPortfolio, canonicalPublicUsername, CANONICAL_VINOS_SLUG, LEGACY_VINOS_SLUG } from "./portfolio-alias";
+import { sanitizeChatAnswer } from "./chat-sanitize";
 import type { KnowledgeEntry } from "@shared/schema";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import Stripe from "stripe";
@@ -159,35 +161,6 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-// ─── Strip recruiter-facing questions from chat responses ────────────────────
-// Safety net: if the model ends with a question directed at the recruiter
-// (not an offer from the twin), strip it and replace with a safe closing.
-function stripRecruiterQuestion(text: string): string {
-  const trimmed = text.trim();
-  const parts = trimmed.split(/(?<=[.!?])\s+(?=[A-Z"'])/);
-  if (parts.length <= 1) return trimmed; // Single sentence — don't strip
-
-  const last = parts[parts.length - 1].trim();
-  if (!last.endsWith('?')) return trimmed; // No question at end — leave as-is
-
-  // These patterns are the twin offering to expand on its own data — allowed
-  const twinOffers = [
-    /^want me\b/i,
-    /^shall i\b/i,
-    /^would you like me\b/i,
-    /^i can (go|walk|take|give|share|break|run)\b/i,
-    /^happy to\b/i,
-    /^want to (hear|know|see)\b/i,
-  ];
-  if (twinOffers.some((p) => p.test(last))) return trimmed; // Allowed — keep
-
-  // Anything else ending with ? is recruiter-facing — strip and add safe close
-  const withoutQuestion = parts.slice(0, -1).join(' ').trim();
-  return withoutQuestion
-    ? withoutQuestion + '\n\nHappy to go deeper on any of this.'
-    : trimmed; // Edge case: nothing left — return original
-}
-
 async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   if (!req.session.customerId) {
     return res.status(401).json({ message: "Authentication required" });
@@ -226,6 +199,12 @@ export async function registerRoutes(
     }),
   );
 
+  // Vinos Samuel's public slug is /portfolio/vinos. Old /portfolio/admin links 301 there.
+  // Do not redirect /admin — that is the staff dashboard.
+  app.get("/portfolio/admin", (_req, res) => {
+    res.redirect(301, "/portfolio/vinos");
+  });
+
   // ==================== OBJECT STORAGE ====================
   registerObjectStorageRoutes(app);
 
@@ -245,6 +224,16 @@ export async function registerRoutes(
       const existingEmail = await storage.getCustomerByEmail(email);
       if (existingEmail) {
         return res.status(400).json({ message: "Email already registered" });
+      }
+
+      // "vinos" is reserved for the pending admin -> vinos slug rename (see
+      // portfolio-alias.ts). "admin" is already taken in the DB so this is
+      // belt-and-braces, but "vinos" itself is not registered yet — without
+      // this check anyone could squat it before the SQL rename runs and hijack
+      // the /portfolio/admin redirect target.
+      const normalizedUsername = username.toLowerCase();
+      if (normalizedUsername === CANONICAL_VINOS_SLUG || normalizedUsername === LEGACY_VINOS_SLUG) {
+        return res.status(400).json({ message: "Username already taken" });
       }
 
       const existingUsername = await storage.getCustomerByUsername(username);
@@ -1045,7 +1034,7 @@ export async function registerRoutes(
 
   app.get("/api/portfolio/:username", async (req: Request, res: Response) => {
     try {
-      const customer = await storage.getCustomerByUsername(req.params.username);
+      const customer = await getCustomerForPublicPortfolio(req.params.username);
       if (!customer) {
         return res.status(404).json({ message: "Portfolio not found" });
       }
@@ -1158,7 +1147,7 @@ export async function registerRoutes(
 
   app.post("/api/chat/:username", async (req: Request, res: Response) => {
     try {
-      const customer = await storage.getCustomerByUsername(req.params.username);
+      const customer = await getCustomerForPublicPortfolio(req.params.username);
       if (!customer) {
         return res.status(404).json({ message: "Not found" });
       }
@@ -1273,7 +1262,7 @@ export async function registerRoutes(
       const rawResponse = result.content[0].type === "text"
         ? result.content[0].text
         : "I'm not sure how to answer that. Could you rephrase?";
-      const responseText = stripRecruiterQuestion(rawResponse);
+      const responseText = sanitizeChatAnswer(rawResponse);
       res.json({ content: responseText });
 
       // Fire-and-forget: save question for analytics
@@ -1322,7 +1311,7 @@ PASS if every specific claim traces back to the profile data, or if the response
   // Public: increment view count when portfolio page loads
   app.post("/api/analytics/view/:username", async (req: Request, res: Response) => {
     try {
-      const customer = await storage.getCustomerByUsername(req.params.username);
+      const customer = await getCustomerForPublicPortfolio(req.params.username);
       if (!customer) return res.json({ ok: true });
       const profile = await storage.getProfileByCustomerId(customer.id);
       if (profile?.status === "published") {
@@ -2257,7 +2246,7 @@ PASS if every specific claim traces back to the profile data, or if the response
       for (const profile of profiles) {
         const lastmod = new Date(profile.updatedAt).toISOString().split("T")[0];
         xml += `  <url>
-    <loc>${baseUrl}/portfolio/${profile.username}</loc>
+    <loc>${baseUrl}/portfolio/${canonicalPublicUsername(profile.username)}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>

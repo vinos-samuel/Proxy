@@ -29,6 +29,7 @@ At the end of every session, update the "Current Sprint" block above with:
 - Decide: taxonomy (keep current live tabs vs match content-calendar pillars — my lean stated in the brief: keep live taxonomy, remap planning docs to it)
 - Decide: whether to build the dedicated "Sources" schema field, or leave inline links as the citation mechanism
 - Still open from session 11: PostHog wiring
+- **Queued (not started):** add a second share bar + email capture form near the top of the blog post page (currently both only appear after the post body). Vinos wants both positions — top and bottom — not top instead of bottom.
 
 **Architecture decisions made this session:**
 - CTA convention (`*[sentence with optional [link](url)]*`) is now a recognized block-level pattern in the markdown renderer, not just inline emphasis — any future content convention like this should get its own block-level case rather than trying to force it through inline regex alone

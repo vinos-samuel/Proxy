@@ -1801,6 +1801,29 @@ PASS if every specific claim traces back to the profile data, or if the response
     res.json(post);
   });
 
+  // POST /api/blog/subscribe — email capture from blog posts
+  const blogSubscribeSchema = z.object({
+    email: z.string().email("Valid email required"),
+    sourceSlug: z.string().optional(),
+  });
+  app.post("/api/blog/subscribe", async (req, res) => {
+    try {
+      const { email, sourceSlug } = blogSubscribeSchema.parse(req.body);
+      const existing = await storage.getBlogSubscriberByEmail(email);
+      if (existing) {
+        return res.json({ success: true, alreadySubscribed: true });
+      }
+      await storage.createBlogSubscriber({ email, sourceSlug });
+      res.json({ success: true });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Invalid email" });
+      }
+      logger.error("Blog subscribe error", { error: String(error) });
+      res.status(500).json({ message: "Failed to subscribe" });
+    }
+  });
+
   // ==================== ADMIN ====================
 
   app.delete(

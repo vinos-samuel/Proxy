@@ -2,10 +2,12 @@ import { db } from "./db";
 import { eq, desc, sql, count, and } from "drizzle-orm";
 import {
   customers, twinProfiles, factBanks, knowledgeEntries, chatUsage, payments, chatMessages, blogPosts,
+  blogSubscribers,
   jobCompanies, jobContacts, jobApplications,
   type Customer, type InsertCustomer, type TwinProfile, type InsertTwinProfile,
   type FactBank, type InsertFactBank, type KnowledgeEntry, type InsertKnowledgeEntry,
   type Payment, type BlogPost,
+  type BlogSubscriber, type InsertBlogSubscriber,
   type JobCompany, type InsertJobCompany,
   type JobContact, type InsertJobContact,
   type JobApplication, type InsertJobApplication,
@@ -76,6 +78,10 @@ export interface IStorage {
   updateBlogPost(id: string, data: any): Promise<void>;
   deleteBlogPost(id: string): Promise<void>;
   incrementBlogViewCount(id: string): Promise<void>;
+
+  // Blog Subscribers
+  createBlogSubscriber(data: InsertBlogSubscriber): Promise<BlogSubscriber>;
+  getBlogSubscriberByEmail(email: string): Promise<BlogSubscriber | undefined>;
 
   // Sitemap
   getPublishedProfileUsernames(): Promise<string[]>;
@@ -504,6 +510,17 @@ export class DatabaseStorage implements IStorage {
 
   async incrementBlogViewCount(id: string): Promise<void> {
     await db.update(blogPosts).set({ viewCount: sql`view_count + 1` }).where(eq(blogPosts.id, id));
+  }
+
+  // Blog Subscribers
+  async createBlogSubscriber(data: InsertBlogSubscriber): Promise<BlogSubscriber> {
+    const [subscriber] = await db.insert(blogSubscribers).values(data).returning();
+    return subscriber;
+  }
+
+  async getBlogSubscriberByEmail(email: string): Promise<BlogSubscriber | undefined> {
+    const [subscriber] = await db.select().from(blogSubscribers).where(eq(blogSubscribers.email, email));
+    return subscriber;
   }
 
   async getPublishedProfileUsernames(): Promise<string[]> {

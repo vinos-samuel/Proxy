@@ -137,6 +137,14 @@ export const blogPosts = pgTable("blog_posts", {
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// Blog subscribers — separate from customers, different lifecycle (no account, no password)
+export const blogSubscribers = pgTable("blog_subscribers", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: text("email").notNull().unique(),
+  sourceSlug: text("source_slug"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // Job Search CRM tables
 export const jobCompanies = pgTable("job_companies", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -208,6 +216,11 @@ export const insertFactBankSchema = createInsertSchema(factBanks).omit({
 
 export const insertKnowledgeEntrySchema = createInsertSchema(knowledgeEntries).omit({
   id: true,
+});
+
+export const insertBlogSubscriberSchema = createInsertSchema(blogSubscribers).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertJobCompanySchema = createInsertSchema(jobCompanies).omit({
@@ -296,6 +309,8 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type BlogPost = typeof blogPosts.$inferSelect;
 export type InsertBlogPost = typeof blogPosts.$inferInsert;
+export type BlogSubscriber = typeof blogSubscribers.$inferSelect;
+export type InsertBlogSubscriber = z.infer<typeof insertBlogSubscriberSchema>;
 export type JobCompany = typeof jobCompanies.$inferSelect;
 export type InsertJobCompany = z.infer<typeof insertJobCompanySchema>;
 export type JobContact = typeof jobContacts.$inferSelect;

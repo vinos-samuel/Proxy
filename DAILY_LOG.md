@@ -633,10 +633,14 @@
 - Fixed P0 blog bug: CTA paragraphs (`*[sentence [link](url)]*`) rendered with stray `*`/`[`/`]` visible — parser fix verified with a standalone test before touching the real component
 - Added blog email capture (new `blog_subscribers` table + CSRF-protected endpoint), copy-link/LinkedIn/X share bar, "Keep Reading" related posts, hardcoded author byline
 - Typecheck + build both clean (42 pre-existing errors unchanged, zero new)
+- Merged to `main`, deployed. Guided Vinos past a `drizzle-kit push` prompt that would have dropped the live `session` table (declined it) — created `blog_subscribers` on the workspace DB directly via `psql` instead. Production table already created manually per deploy steps
+- Vinos flagged: also want share/subscribe at the top of the post, not just the bottom — logged to `CLAUDE.md` as queued, not built
 
 **Files Modified**
 - `client/src/pages/blog-post.tsx` — CTA parser fix, share bar, email capture form, keep-reading section, byline
 - `shared/schema.ts`, `server/storage.ts`, `server/routes.ts` — `blog_subscribers` table + subscribe endpoint
+- `CLAUDE.md` — Current Sprint updated, top-of-page share/subscribe queued for next session
 
 **Blockers**
-- Committed to branch `blog-fixes-cta-capture-share`, not on `main`, not deployed. Schema change needs `db:push` + manual prod `ALTER TABLE`. Two questions flagged to Vinos, not decided: category taxonomy, dedicated "Sources" schema field
+- Two questions still open, not decided: category taxonomy, dedicated "Sources" schema field
+- Top-of-page share/subscribe not built yet — queued

@@ -605,3 +605,38 @@
 - None. All 5 items from the redesign plan are shipped and verified
 - Known real gap for next session: no PostHog wired, so job-search-agent adoption and pricing A/B readiness are both still unmeasured
 - `CLAUDE.md` Known Pending Tasks list has a stale "CRM Phase 2 not started" line — update next time that file's touched
+
+---
+
+## 2026-08-31
+
+**Tasks Completed**
+- Honest-copy pass: new hero headline/subline, cut fabricated stats (8-min/6-sec, 87%, Laszlo Bock 5-10x), dropped Job Search Agent/CRM from homepage marketing, fixed pricing/FAQ/terms copy, hid dead "Download CV" button on placeholder URLs
+- Free-tier edit window changed 48hrs → 7 days (drafts stay unlimited) — copy, cron trigger, and email template all updated
+- Deleted a hidden ARIA/SEO block in `client/index.html` still carrying the retired false stats (appeared on every route)
+- Applied `vinos-slug-and-ask-voice.patch`: admin→vinos public-slug aliasing, chat-answer sanitizer replacing leaked classifier labels. Fixed one pre-existing duplicate `Redirect` import collision the patch exposed
+
+**Files Modified**
+- `landing.tsx`, `faq.tsx`, `terms.tsx`, `about.tsx`, `dashboard.tsx`, `PaymentGate.tsx`, `portfolio.tsx` — copy/behavior fixes
+- `server/routes.ts`, `nudge-cron.ts`, `emails.ts` — 7-day edit window
+- `client/index.html` — hidden SEO block removed
+- `server/chat-sanitize.ts`, `server/portfolio-alias.ts` — new; `App.tsx`, `server/static.ts`, `system-prompt-builder.ts` — patch-applied
+
+**Blockers**
+- Honest-copy, free-tier, and SEO-block work are on `main` already. Slug-alias patch is committed to `main` locally but not pushed — Vinos pushes it himself. Nothing in this entry confirmed redeployed on Replit yet
+
+---
+
+## 2026-09-01
+
+**Tasks Completed**
+- Fixed P0 blog bug: CTA paragraphs (`*[sentence [link](url)]*`) rendered with stray `*`/`[`/`]` visible — parser fix verified with a standalone test before touching the real component
+- Added blog email capture (new `blog_subscribers` table + CSRF-protected endpoint), copy-link/LinkedIn/X share bar, "Keep Reading" related posts, hardcoded author byline
+- Typecheck + build both clean (42 pre-existing errors unchanged, zero new)
+
+**Files Modified**
+- `client/src/pages/blog-post.tsx` — CTA parser fix, share bar, email capture form, keep-reading section, byline
+- `shared/schema.ts`, `server/storage.ts`, `server/routes.ts` — `blog_subscribers` table + subscribe endpoint
+
+**Blockers**
+- Committed to branch `blog-fixes-cta-capture-share`, not on `main`, not deployed. Schema change needs `db:push` + manual prod `ALTER TABLE`. Two questions flagged to Vinos, not decided: category taxonomy, dedicated "Sources" schema field

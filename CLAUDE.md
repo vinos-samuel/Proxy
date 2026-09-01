@@ -8,7 +8,38 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-08-18 (Session 11)
+## Current Sprint — 2026-09-01 (Session 12)
+**Status:** P0 + all 4 P1 items code-complete, typecheck clean (42 pre-existing errors unchanged, none new), build clean. Committed to branch `blog-fixes-cta-capture-share`. **Not yet on `main`, not yet deployed** — Vinos needs to merge and run deploy steps (schema change, see below).
+
+**This session completed:**
+- P0 fixed: CTA blocks (`*[sentence. [link](url)]*`) were leaving stray `*`/`[`/`]` visible — the link regex swallowed the nested bracket, and there was no single-asterisk italic support at all. Added a block-level case in `renderMarkdown()` that strips the outer `*[ ]*` wrapper before parsing, added general single-asterisk italic to `inlineMarkdown()`, tightened the link regex so it can't span into a nested `[`. Verified with a standalone test script (5 cases incl. bold-inside-CTA and non-CTA regression checks) before touching the real component — all passed
+- P1.1 Email capture: new `blog_subscribers` table (`shared/schema.ts`) — separate from `customers`, no auth/lifecycle overlap. `POST /api/blog/subscribe` (dedup by email, existing CSRF pattern, no new rate limiter — general API limiter already covers it). Capture form on `blog-post.tsx` after post content + share bar
+- P1.2 Share bar: copy-link (clipboard API + 2s "Copied" state), LinkedIn share-intent link, X/Twitter share-intent link. Pure frontend, no backend
+- P1.3 Keep Reading: reuses existing `GET /api/blog` list client-side, same-category posts if ≥2 exist else most recent, excludes current post, caps at 3
+- P1.4 Byline: hardcoded "Written by Vinos Samuel" under the post title
+- P2.5 (source citations) partially covered for free: inline links inside post body now render correctly as a side effect of the P0 fix. Did NOT build the dedicated "Sources" schema field — that's stretch scope requiring a new column, per the brief's own instruction to confirm before adding one
+
+**Where we stopped:**
+- Did not touch the two "don't guess" open questions — category taxonomy mismatch and monospace body font — no code changes made for either, flagging both back to Vinos per the brief
+- Did not build a dedicated post-schema "Sources" block (P2 stretch) — needs a decision first
+- Did not attempt to remove any prose "forward this post" CTA line that may still live inside individual posts' stored `content` — that's per-post DB content, not code; the new Share bar is additive, nothing was deleted from post bodies
+
+**What's next:**
+- Vinos: merge `blog-fixes-cta-capture-share` to main, deploy (schema changed — see deploy steps), verify P0 fix + new sections on a live post
+- Decide: taxonomy (keep current live tabs vs match content-calendar pillars — my lean stated in the brief: keep live taxonomy, remap planning docs to it)
+- Decide: whether to build the dedicated "Sources" schema field, or leave inline links as the citation mechanism
+- Still open from session 11: PostHog wiring
+
+**Architecture decisions made this session:**
+- CTA convention (`*[sentence with optional [link](url)]*`) is now a recognized block-level pattern in the markdown renderer, not just inline emphasis — any future content convention like this should get its own block-level case rather than trying to force it through inline regex alone
+- `blog_subscribers` is intentionally separate from `customers` — no shared lifecycle, no password, just email capture. Don't merge these later without a real reason
+- Related-posts logic lives entirely client-side against the existing `GET /api/blog` endpoint — no new endpoint needed for a same-page, same-request-cycle feature like this
+
+**Don't touch (this session, unchanged):** server/ai-processor.ts, Stripe webhook flow
+
+---
+
+## Previous Sprint — 2026-08-18 (Session 11)
 **Status:** Both workstreams (honest marketing copy + free-tier edit-window fix) are code-complete, typecheck/build clean, committed to branch `honest-copy-and-free-tier-fix`. **Not yet on `main`, not yet deployed** — Vinos needs to merge and run the deploy steps.
 
 **This session completed — Workstream A (honest copy):**
@@ -45,7 +76,7 @@ At the end of every session, update the "Current Sprint" block above with:
 
 ---
 
-## Previous Sprint — 2026-08-18 (Session 10)
+## Sprint History — 2026-08-18 (Session 10)
 **Status:** All 5 items of the "theme picker previews → landing widget → /try rebuild → email → LinkedIn" plan are done. Deployed, verified on production, redesign email sent to all users, LinkedIn article posted.
 
 **This session completed:**

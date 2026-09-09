@@ -396,15 +396,22 @@ export async function registerRoutes(
         return res.status(400).json({ error: "This verification link is invalid or has expired." });
       }
 
+      // Captured before markEmailVerified — the token is no longer nulled on
+      // success (see storage.markEmailVerified), so a second hit on the same
+      // link within its 24h window lands here again instead of failing.
+      // Without this check that repeat hit would look identical to the first
+      // and re-send the one-time welcome email.
+      const alreadyVerified = customer.emailVerified;
+
       await storage.markEmailVerified(customer.id);
       req.session.customerId = customer.id;
       await new Promise<void>((resolve, reject) => {
         req.session.save((err) => (err ? reject(err) : resolve()));
       });
-      logger.info("Email verified", { customerId: customer.id });
+      logger.info("Email verified", { customerId: customer.id, alreadyVerified });
 
       // Send welcome email (fire and forget — don't block the response)
-      if (process.env.RESEND_API_KEY) {
+      if (!alreadyVerified && process.env.RESEND_API_KEY) {
         const { Resend } = await import("resend");
         const resend = new Resend(process.env.RESEND_API_KEY);
         const fromEmail = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;

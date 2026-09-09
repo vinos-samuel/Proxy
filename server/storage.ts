@@ -372,8 +372,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markEmailVerified(customerId: string): Promise<void> {
+    // Deliberately leaves emailVerificationToken/Expiry in place (does not
+    // null them) so a second hit on the same link — a real second click, a
+    // refresh, or an email client's link-prescanning — succeeds idempotently
+    // instead of failing with "invalid or expired" on an already-verified
+    // account. Expiry (24h) still governs how long the link works; a fresh
+    // resend still overwrites the token, superseding the old one either way.
     await db.update(customers)
-      .set({ emailVerified: true, emailVerificationToken: null, emailVerificationTokenExpiry: null })
+      .set({ emailVerified: true })
       .where(eq(customers.id, customerId));
   }
 

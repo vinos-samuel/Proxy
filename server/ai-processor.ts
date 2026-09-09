@@ -1201,13 +1201,14 @@ export async function generateQuestionnaireDraft(parsedResume: ParsedResume) {
 RESUME DATA:
 Name: ${sanitizeForPrompt(parsedResume.name, 100)}
 Title: ${sanitizeForPrompt(parsedResume.currentTitle, 100)}
+Location: ${sanitizeForPrompt(parsedResume.location, 100) || "(not stated in resume)"}
 Summary: ${sanitizeForPrompt(parsedResume.summary, 500)}
 Roles:
 ${rolesText}
 Skills: ${(parsedResume.skills || []).map((s) => sanitizeForPrompt(s, 80)).join(", ")}
 Key Achievements: ${(parsedResume.achievements || []).map((a) => sanitizeForPrompt(a, 200)).join(" | ")}
 
-TASK: Generate a complete questionnaire draft. Be specific using details from the resume. For war stories, Q&A, and objections, create realistic drafts — add [EDIT] wherever the person should personalise further with their own words/numbers.
+TASK: Generate a complete questionnaire draft. Be specific using details from the resume. For war stories, Q&A, and objections, create realistic drafts — add [EDIT] wherever the person should personalise further with their own words. Never invent a number, percentage, or dollar figure that isn't in the resume data above.
 
 REQUIRED OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
 {
@@ -1217,7 +1218,7 @@ REQUIRED OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
     "email": "string",
     "phone": "string",
     "linkedinUrl": "string",
-    "location": "string"
+    "location": "string (copy EXACTLY from the Location line in RESUME DATA above; if that line says \"(not stated in resume)\", output an empty string \"\" — never guess a city, and never use [EDIT] syntax for this field)"
   },
   "step2": {
     "professionalSummary": "string (2-3 sentences, first person, each anchored to a specific number, company, or timeframe — not generic positioning)",
@@ -1234,7 +1235,7 @@ REQUIRED OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
         "title": "string (short name for the story, e.g. 'Rebuilt the sales pipeline at [Company]')",
         "challenge": "string (what was the high-stakes problem or pressure?)",
         "approach": "string (what did you uniquely do — your specific actions and decisions?)",
-        "result": "string (quantified outcome — numbers where possible, add [EDIT] if unknown)"
+        "result": "string (quantified outcome — use a number ONLY if one appears in RESUME DATA for this specific achievement; if no number is given there, write \"[EDIT] Add the specific result or number here\" — never invent a percentage, dollar figure, or count that isn't in the source material)"
       }
     ]
   },

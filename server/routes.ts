@@ -1032,6 +1032,17 @@ export async function registerRoutes(
 
   // ==================== PORTFOLIO (PUBLIC) ====================
 
+  // Guards against an AI-draft field that was never personalised — the
+  // generator sometimes couldn't ground a value (e.g. no location on the
+  // resume) and left its own "[EDIT: ...]" marker in place. That's a correct,
+  // visible prompt inside the editable questionnaire, but must never reach a
+  // stranger reading the public/draft-preview page. Same pattern already used
+  // for cvResumeUrl in portfolio.tsx. Applied to every step1 contact field —
+  // all are single AI-guessed values with the same failure shape, not just
+  // the one field where the bug was first observed.
+  const stripPlaceholder = (v: unknown): string | null =>
+    typeof v === "string" && v.trim() && !v.trim().startsWith("[") ? v : null;
+
   app.get("/api/portfolio/:username", async (req: Request, res: Response) => {
     try {
       const customer = await getCustomerForPublicPortfolio(req.params.username);
@@ -1071,15 +1082,15 @@ export async function registerRoutes(
 
       const contact = questionnaireData?.step1
         ? {
-            email: questionnaireData.step1.email || null,
-            phone: questionnaireData.step1.phone || null,
-            linkedin: questionnaireData.step1.linkedinUrl || null,
-            location: questionnaireData.step1.location || null,
+            email: stripPlaceholder(questionnaireData.step1.email),
+            phone: stripPlaceholder(questionnaireData.step1.phone),
+            linkedin: stripPlaceholder(questionnaireData.step1.linkedinUrl),
+            location: stripPlaceholder(questionnaireData.step1.location),
           }
         : {
-            email: questionnaireData?.step4?.contactEmail || null,
-            phone: questionnaireData?.step4?.contactPhone || null,
-            linkedin: questionnaireData?.step4?.contactLinkedin || null,
+            email: stripPlaceholder(questionnaireData?.step4?.contactEmail),
+            phone: stripPlaceholder(questionnaireData?.step4?.contactPhone),
+            linkedin: stripPlaceholder(questionnaireData?.step4?.contactLinkedin),
             location: null,
           };
 

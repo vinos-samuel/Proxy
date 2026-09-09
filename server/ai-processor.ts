@@ -17,6 +17,17 @@ function sanitizeForPrompt(s: string | undefined | null, maxLen = 1000): string 
   return s.replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").trim().slice(0, maxLen);
 }
 
+// Defensive last line of defense — if a "[EDIT...]" placeholder from an
+// unfilled upstream field (e.g. a war story with no real result) ever makes
+// it into the fullInputData this function's prompts read from, this strips
+// it out of the generated positioning/impact-metrics text rather than let it
+// echo through verbatim onto the public page. Purely a string cleanup on
+// already-generated output — no prompt text changes.
+function stripEditMarkers(s: string | undefined | null): string {
+  if (!s) return "";
+  return s.replace(/\[EDIT[^\]]*\]/gi, "").replace(/\s{2,}/g, " ").trim();
+}
+
 // Single source of truth for banned hype language — used in every prose-generating
 // prompt below, and by script/check-prose.ts to verify generation output.
 export const BANNED_PHRASES = [
@@ -376,6 +387,27 @@ Return ONLY valid JSON, no markdown:
     portfolioData = extractJson(portfolioResponse.text) || {};
     skillsMatrixData = extractJson(skillsResponse.text);
     whereImMostUsefulData = extractJson(positioningResponse.text);
+
+    // Defensive strip only — see stripEditMarkers() above. Fields that get
+    // saved as public-facing positioning/persona/stats.
+    if (typeof portfolioData.heroDescription === "string") {
+      portfolioData.heroDescription = stripEditMarkers(portfolioData.heroDescription);
+    }
+    if (typeof portfolioData.chatbotPersona === "string") {
+      portfolioData.chatbotPersona = stripEditMarkers(portfolioData.chatbotPersona);
+    }
+    if (Array.isArray(portfolioData.impactMetrics)) {
+      portfolioData.impactMetrics = portfolioData.impactMetrics.map((m: any) => ({
+        ...m,
+        value: typeof m?.value === "string" ? stripEditMarkers(m.value) : m?.value,
+        label: typeof m?.label === "string" ? stripEditMarkers(m.label) : m?.label,
+      }));
+    }
+    if (Array.isArray(portfolioData.whyAiCv)) {
+      portfolioData.whyAiCv = portfolioData.whyAiCv.map((p: any) =>
+        typeof p === "string" ? stripEditMarkers(p) : p
+      );
+    }
 
     if (!Object.keys(portfolioData).length) {
       logger.info("[Portfolio Data] JSON parse failed after repair — falling back to raw summary", {

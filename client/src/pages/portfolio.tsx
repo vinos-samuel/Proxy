@@ -87,6 +87,10 @@ export default function PortfolioPage() {
   const { user } = useAuth();
   const search = useSearch();
   const isDraftMode = new URLSearchParams(search).get("draft") === "true";
+  // Used both to decide the "Not Ready Yet" CTA below and to gate the
+  // owner-profile fetch that backs it — computed once here rather than
+  // duplicated in the render branch.
+  const isOwnerViewingOwnProfile = !!user?.username && user.username.toLowerCase() === username?.toLowerCase();
   const isDemo = username === "test2" && new URLSearchParams(search).get("demo") === "true" && !user && !demoBannerDismissed;
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -112,6 +116,22 @@ export default function PortfolioPage() {
       return res.json();
     },
   });
+
+  // Only fetched for the owner, and only once the profile page has actually
+  // failed to load (i.e. we're about to render "Not Ready Yet") — reuses the
+  // same /api/profile endpoint the questionnaire already relies on, purely to
+  // read questionnaireData._aiDraft for the CTA below. Never fetched for an
+  // anonymous or non-owner viewer.
+  const { data: ownProfile } = useQuery({
+    queryKey: ["/api/profile", "not-ready-cta"],
+    queryFn: async () => {
+      const res = await fetch("/api/profile", { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: isOwnerViewingOwnProfile && !isLoading && (!!error || !portfolio),
+  });
+  const isAiDraft = (ownProfile?.questionnaireData as any)?._aiDraft === true;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -241,7 +261,6 @@ export default function PortfolioPage() {
     // actionable message instead of the generic "not found" a stranger gets —
     // same status gate on the server either way, this only changes what this
     // one viewer sees on that same failure.
-    const isOwnerViewingOwnProfile = !!user?.username && user.username.toLowerCase() === username?.toLowerCase();
     return (
       <div className="min-h-screen bg-[#18181b] flex items-center justify-center p-6 text-white">
         <div className="text-center">
@@ -253,10 +272,10 @@ export default function PortfolioPage() {
                 Your profile needs to be processed by AI before you can preview it.
               </p>
               <a
-                href="/onboarding-chat"
+                href={isAiDraft ? "/onboarding-chat" : "/questionnaire"}
                 className="inline-block bg-[#22C55E] text-black px-6 py-3 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider"
               >
-                Chat to finish your profile
+                {isAiDraft ? "Chat to finish your profile" : "Complete Questionnaire"}
               </a>
             </>
           ) : (

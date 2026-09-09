@@ -286,8 +286,8 @@ Generate a JSON object with the following structure:
 
 2. "heroSubtitle": Reframe their title into 3 positioning facets separated by " • ". Not "Director of Sales" but "Revenue Architecture • Market Expansion • Client Partnership".
 
-3. "impactMetrics": Extract EXACTLY 8 of their most impressive achievements. Return exactly 8 items, no more, no fewer. Each must have:
-   - "value": A short, badge-length headline — a number where one genuinely exists ("98%", "GBP 1.2M+", "3x", "18+"), or a compact non-numeric credential when the achievement isn't a number ("PMP Certified", "Board Appointee", "Patent Holder"). Either way, keep it to a few words — it renders in large bold type, so a full sentence here will break the layout. Put the detail in the label, not the value.
+3. "impactMetrics": Extract UP TO 8 of their most impressive achievements — fewer is correct and expected if the person doesn't have 8 genuinely quantifiable wins in their data. Never invent a number, percentage, or credential to pad the list up to 8. Each must have:
+   - "value": A short, badge-length headline — a number ONLY where one genuinely exists in the data above ("98%", "GBP 1.2M+", "3x", "18+"), or a compact non-numeric credential when the achievement isn't a number ("PMP Certified", "Board Appointee", "Patent Holder"). If neither a real number nor a real credential exists for an achievement, don't include it as a metric at all — a shorter, honest list beats a padded one. Either way, keep it to a few words — it renders in large bold type, so a full sentence here will break the layout. Put the detail in the label, not the value.
    - "label": What it represents IN ALL CAPS with comparison context where possible (e.g., "RETAINED MANDATE COMPLETION RATE", "NPS SCORE (VS 18% INDUSTRY AVG)")
    - "icon": One of "target", "chart", "users", "ribbon", "lightning", "globe"
    Prioritize business IMPACT over activity. Bad: "Managed 5 accounts". Good: "3x GROWTH ACROSS 5 KEY ACCOUNTS". If "Roles they're targeting next" is specified above, weight your selection toward the achievements most relevant to those roles, not just the most impressive achievements in isolation — someone moving from operations into strategy should see their strategic wins surfaced first, even if a purely operational metric is numerically bigger. If no target roles are specified, prioritize by career trajectory as before.
@@ -302,7 +302,7 @@ Generate a JSON object with the following structure:
 
 5. "whyAiCv": Write 4-5 short paragraphs (array of strings, one paragraph per item) explaining why this AI portfolio exists and what to ask it. This describes the TOOL, not the person — it is the field most likely to drift into generic AI-marketing language ("dynamic", "interactive", "innovative way to explore"), so be extra plain here: say what a visitor can do (ask it questions, get specific answers about this person's work) in concrete terms, not what kind of experience it is. Example line: "Ask it anything about my work — a past project, how I handle a specific situation, why I made a call the way I did. It answers from what's actually in my career history, not a script."
 
-6. "suggestedQuestions": Write 8 questions a HIRING MANAGER would ask, mapped to their war stories.
+6. "suggestedQuestions": Write 8 questions a HIRING MANAGER would ask, mapped to their war stories. A question may only cite a number if that exact figure appears elsewhere in the data above — if a story has no real number behind it, ask about it qualitatively instead of inventing a figure to make the question sound sharper.
 
 7. "chatbotPersona": Write a 2-3 sentence description of how the AI chatbot should BEHAVE and COMMUNICATE. This is NOT a career summary — it describes the chatbot's personality, tone, and conversational style. Example: "Speaks with quiet confidence about talent strategy, drawing on 15+ years across APAC markets. Uses real client examples rather than theory. Balances strategic insight with practical directness — no corporate jargon."
 
@@ -1304,7 +1304,7 @@ REQUIRED OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
     "cvResume": ""
   },
   "step11": {
-    "suggestedQuestions": "string (5 suggested questions a recruiter or client might ask, one per line)",
+    "suggestedQuestions": "string (5 suggested questions a recruiter or client might ask, one per line — a question may only cite a number if that exact figure appears elsewhere in this resume's data; if you can't ground a question in a real number, ask it qualitatively instead of inventing one)",
     "specialInstructions": "Keep answers concise and confident. If asked about compensation, say you prefer to discuss details directly. Always end with an invitation to connect.",
     "easterEgg": ""
   }

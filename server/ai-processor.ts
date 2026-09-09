@@ -165,7 +165,11 @@ function cleanAchievements(achievements: string[]): string[] {
     .filter(a => a && a.trim().length > 0)
     .filter(a => !['na', 'n/a', 'none', 'nil', 'null', '-', '—'].includes(a.toLowerCase().trim()))
     .map(a => a.replace(/^[\s•\-\*]+/, '').trim())
-    .filter(a => a.length > 0);
+    .filter(a => a.length > 0)
+    // Drops a bullet that's still just an unfilled [EDIT] marker — these
+    // render publicly as per-role achievement bullets, so a leaked
+    // placeholder must never reach a stranger reading the page.
+    .filter(a => !a.trim().startsWith("[EDIT"));
 }
 
 function formatAchievement(text: string): string {

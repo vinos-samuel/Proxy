@@ -1223,7 +1223,7 @@ REQUIRED OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
   "step2": {
     "professionalSummary": "string (2-3 sentences, first person, each anchored to a specific number, company, or timeframe — not generic positioning)",
     "careerHistory": [
-      { "company": "string", "title": "string", "years": "string", "achievements": "string (newline-separated bullet points)" }
+      { "company": "string", "title": "string", "years": "string", "achievements": "string (newline-separated bullet points — include a number only if it's actually present in the resume data for this role; otherwise state the achievement plainly, with no invented figure)" }
     ]
   },
   "step3": {
@@ -1240,7 +1240,7 @@ REQUIRED OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
     ]
   },
   "step5": {
-    "achievements": "string (5-8 quantified achievement statements, one per line starting with bullet •)"
+    "achievements": "string (5-8 achievement statements, one per line starting with bullet • — include a number only where the resume actually gives one, never invent a figure to make a statement sound more quantified)"
   },
   "step6": {
     "technicalSkills": "string (comma-separated list of all tools, platforms, languages, methodologies)"

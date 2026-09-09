@@ -18,6 +18,9 @@ export default function OnboardingChatPage() {
   const [readyToComplete, setReadyToComplete] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [done, setDone] = useState(false);
+  const [enrichedDraft, setEnrichedDraft] = useState<any>(null);
+  const [isGoingLive, setIsGoingLive] = useState(false);
+  const [goLiveError, setGoLiveError] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
 
@@ -90,7 +93,8 @@ export default function OnboardingChatPage() {
     setIsCompleting(true);
     try {
       const res = await apiRequest("POST", "/api/onboarding/complete");
-      await res.json();
+      const data = await res.json();
+      setEnrichedDraft(data.draft);
       setDone(true);
     } catch {
       setMessages((prev) => [...prev, {
@@ -98,6 +102,22 @@ export default function OnboardingChatPage() {
         content: "There was a problem saving your profile. Please try again.",
       }]);
       setIsCompleting(false);
+    }
+  };
+
+  // Sends the same enriched draft straight to the existing questionnaire
+  // submit pipeline — the same endpoint and AI processing the classic
+  // 11-step form uses, just triggered from chat completion instead of a
+  // separate long-form review + submit step.
+  const handleGoLive = async () => {
+    setIsGoingLive(true);
+    setGoLiveError(false);
+    try {
+      await apiRequest("POST", "/api/questionnaire/submit", enrichedDraft);
+      navigate("/dashboard");
+    } catch {
+      setGoLiveError(true);
+      setIsGoingLive(false);
     }
   };
 
@@ -152,17 +172,33 @@ export default function OnboardingChatPage() {
           </div>
           <h1 className="text-3xl font-bold mb-2">Profile Updated</h1>
           <p className="mono text-sm text-black/60 mb-6 leading-relaxed">
-            Everything you shared has been mapped to your profile. Review the sections below — fill in anything that's still empty, then hit Submit to build your Twin.
+            Everything you shared has been mapped to your profile. Go live now, or fine-tune your answers in the form first — either way, nothing here needs redoing.
           </p>
           <button
-            onClick={() => navigate("/questionnaire")}
-            className="w-full bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+            onClick={handleGoLive}
+            disabled={isGoingLive}
+            className="w-full bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] disabled:opacity-50 flex items-center justify-center gap-2 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
           >
-            Review & Submit →
+            {isGoingLive ? (
+              <><Loader2 className="h-4 w-4 animate-spin" /> Starting your Twin…</>
+            ) : (
+              "Go Live →"
+            )}
+          </button>
+          {goLiveError && (
+            <p className="mono text-xs text-red-600 mt-3">Something went wrong — try again.</p>
+          )}
+          <button
+            onClick={() => navigate("/questionnaire")}
+            disabled={isGoingLive}
+            className="w-full mt-3 bg-white text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider hover:bg-black/5 disabled:opacity-50 transition-colors"
+          >
+            Fine-Tune in the Form First
           </button>
           <button
             onClick={() => navigate("/dashboard")}
-            className="w-full mt-3 bg-white text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider hover:bg-black/5 transition-colors"
+            disabled={isGoingLive}
+            className="w-full mt-3 mono text-xs text-black/40 uppercase tracking-wider hover:text-black/60 disabled:opacity-50 transition-colors"
           >
             Back to Dashboard
           </button>

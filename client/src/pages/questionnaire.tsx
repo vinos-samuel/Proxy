@@ -158,6 +158,9 @@ export default function QuestionnairePage() {
   const [resumeFileName, setResumeFileName] = useState("");
   const [showAiDraftBanner, setShowAiDraftBanner] = useState(false);
   const [showPathChoice, setShowPathChoice] = useState(false);
+  // A stored headshot URL that fails to load should fall back to the upload
+  // button, never a visible broken-image icon.
+  const [headshotFailed, setHeadshotFailed] = useState(false);
   const [showVoiceReminder, setShowVoiceReminder] = useState(false);
   const [buildingProfile, setBuildingProfile] = useState(false);
   const [buildingStep, setBuildingStep] = useState(0);
@@ -169,6 +172,11 @@ export default function QuestionnairePage() {
       setCurrentStep(1);
     }
   }, []);
+
+  // Reset the broken-headshot fallback when the URL itself changes (a fresh
+  // upload, or a new draft loaded) — a stale failure must not persist past
+  // the value that caused it.
+  useEffect(() => { setHeadshotFailed(false); }, [data.step10.headshot]);
   const resumeInputRef = useRef<HTMLInputElement>(null);
 
   const headshotInputRef = useRef<HTMLInputElement>(null);
@@ -1378,9 +1386,9 @@ export default function QuestionnairePage() {
                         e.target.value = "";
                       }}
                     />
-                    {data.step10.headshot ? (
+                    {data.step10.headshot && !headshotFailed ? (
                       <div className="flex items-center gap-3">
-                        <img src={data.step10.headshot} alt="Headshot preview" className="h-16 w-16 border-2 border-black object-cover" />
+                        <img src={data.step10.headshot} alt="Headshot preview" className="h-16 w-16 border-2 border-black object-cover" onError={() => setHeadshotFailed(true)} />
                         <button
                           onClick={() => headshotInputRef.current?.click()}
                           disabled={isUploadingHeadshot}

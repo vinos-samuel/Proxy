@@ -78,6 +78,11 @@ export default function PortfolioPage() {
   // can all share one expand/collapse set without their entries colliding.
   const [expandedHighlights, setExpandedHighlights] = useState<Set<string>>(new Set());
   const [demoBannerDismissed, setDemoBannerDismissed] = useState(false);
+  // A stored photo/video URL that 404s or otherwise fails to load should
+  // degrade to "no photo uploaded" — never a visible broken-image icon or a
+  // video element stuck loading forever.
+  const [photoFailed, setPhotoFailed] = useState(false);
+  const [videoFailed, setVideoFailed] = useState(false);
   const [, navigate] = useLocation();
   const { user } = useAuth();
   const search = useSearch();
@@ -113,6 +118,12 @@ export default function PortfolioPage() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Reset the broken-media fallback when the underlying URL actually changes
+  // (a fresh upload, or navigating between profiles) — a stale failure must
+  // not persist past the value that caused it.
+  useEffect(() => { setPhotoFailed(false); }, [portfolio?.profile?.photoUrl]);
+  useEffect(() => { setVideoFailed(false); }, [portfolio?.profile?.videoUrl]);
 
   // Fire-and-forget: count this as a profile view
   useEffect(() => {
@@ -288,8 +299,8 @@ export default function PortfolioPage() {
     corporate: "corporate", tech: "tech", creative: "creative",
   };
   const brandingTheme = themeMap[rawTheme] || "executive";
-  const hasVideo = !!profile.videoUrl;
-  const hasPhoto = !!profile.photoUrl;
+  const hasVideo = !!profile.videoUrl && !videoFailed;
+  const hasPhoto = !!profile.photoUrl && !photoFailed;
 
   // Draft mode: use CV-specific questions, limit to 2
   const draftChatQuestions: string[] = (portfolio as any).draftChatQuestions || [];
@@ -418,6 +429,7 @@ export default function PortfolioPage() {
                     src={profile.photoUrl!}
                     alt={profile.displayName}
                     className="w-12 h-12 rounded-full object-cover border border-[#DBD9CD]"
+                    onError={() => setPhotoFailed(true)}
                   />
                 )}
                 {portfolio.contact.location && (
@@ -473,6 +485,7 @@ export default function PortfolioPage() {
                 controls
                 className="w-full border border-[#DBD9CD] md:mt-1"
                 data-testid="video-intro"
+                onError={() => setVideoFailed(true)}
               />
             )}
           </div>
@@ -802,6 +815,7 @@ export default function PortfolioPage() {
                     src={profile.photoUrl!}
                     alt={profile.displayName}
                     className="w-12 h-12 rounded-full object-cover border border-[#262B33]"
+                    onError={() => setPhotoFailed(true)}
                   />
                 )}
                 {portfolio.contact.location && (
@@ -834,7 +848,7 @@ export default function PortfolioPage() {
               </div>
             </div>
             {hasVideo && (
-              <video src={profile.videoUrl!} controls className="w-full border border-[#262B33] md:mt-1" data-testid="video-intro" />
+              <video src={profile.videoUrl!} controls className="w-full border border-[#262B33] md:mt-1" data-testid="video-intro" onError={() => setVideoFailed(true)} />
             )}
           </div>
         </section>
@@ -1044,7 +1058,7 @@ export default function PortfolioPage() {
             <div>
               <div className="text-[#6E7885] text-[13px] mb-2.5"><span className="text-[#46C2B3]">$</span> whoami</div>
               <div className="flex items-center gap-3 mb-5">
-                {hasPhoto && <img src={profile.photoUrl!} alt={profile.displayName} className="w-11 h-11 rounded-full border border-[#1B222A] object-cover shrink-0" />}
+                {hasPhoto && <img src={profile.photoUrl!} alt={profile.displayName} className="w-11 h-11 rounded-full border border-[#1B222A] object-cover shrink-0" onError={() => setPhotoFailed(true)} />}
                 <div>
                   <h1 className="text-[28px] font-bold text-[#EDF1F2] leading-tight">{profile.displayName}</h1>
                   {dRoleLine && (
@@ -1072,7 +1086,7 @@ export default function PortfolioPage() {
             {hasVideo && (
               <div className="bg-[#10151B] border border-[#1B222A] rounded-md md:mt-6 h-fit">
                 <div className="flex gap-1.5 px-3.5 py-2 border-b border-[#1B222A]"><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /><span className="w-2 h-2 rounded-full bg-[#232B34]" /></div>
-                <video src={profile.videoUrl!} controls className="w-full block" data-testid="video-intro" />
+                <video src={profile.videoUrl!} controls className="w-full block" data-testid="video-intro" onError={() => setVideoFailed(true)} />
               </div>
             )}
           </div>
@@ -1231,7 +1245,7 @@ export default function PortfolioPage() {
           <div className="max-w-[560px]">
             <div className="flex items-center gap-3 mb-3.5">
               {hasPhoto && (
-                <img src={profile.photoUrl!} alt={profile.displayName} className="w-10 h-10 rounded-full object-cover border border-[#322C22]" />
+                <img src={profile.photoUrl!} alt={profile.displayName} className="w-10 h-10 rounded-full object-cover border border-[#322C22]" onError={() => setPhotoFailed(true)} />
               )}
               {dRoleLine && <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11.5px] tracking-wide uppercase text-[#96AD86]">{dRoleLine}</div>}
             </div>
@@ -1250,7 +1264,7 @@ export default function PortfolioPage() {
             </div>
           </div>
           {hasVideo && (
-            <video src={profile.videoUrl!} controls className="w-full border border-[#322C22] h-fit" data-testid="video-intro" />
+            <video src={profile.videoUrl!} controls className="w-full border border-[#322C22] h-fit" data-testid="video-intro" onError={() => setVideoFailed(true)} />
           )}
         </div>
 

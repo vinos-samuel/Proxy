@@ -239,9 +239,9 @@ export default function DashboardPage() {
                         <strong>myproxy.work/portfolio/{user?.username}</strong>
                       </p>
                     </div>
-                    <Link href="/questionnaire?step=2">
+                    <Link href="/onboarding-chat">
                       <button className="bg-black text-white px-8 py-4 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none whitespace-nowrap flex items-center gap-2">
-                        Complete your profile <ArrowRight className="h-4 w-4" />
+                        Chat to finish your profile <ArrowRight className="h-4 w-4" />
                       </button>
                     </Link>
                   </div>

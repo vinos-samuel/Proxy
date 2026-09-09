@@ -253,10 +253,10 @@ export default function PortfolioPage() {
                 Your profile needs to be processed by AI before you can preview it.
               </p>
               <a
-                href="/questionnaire"
+                href="/onboarding-chat"
                 className="inline-block bg-[#22C55E] text-black px-6 py-3 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider"
               >
-                Complete Questionnaire
+                Chat to finish your profile
               </a>
             </>
           ) : (

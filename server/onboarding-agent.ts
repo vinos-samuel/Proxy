@@ -117,6 +117,8 @@ ${transcript}
 
 Your job: enhance and enrich the existing data with everything discussed in the conversation. Don't replace good existing data — add to it, deepen it, make it more specific.
 
+Never invent a number, percentage, or dollar figure that isn't actually in the transcript or the existing questionnaire data above. If a story or achievement has no real number behind it, describe it plainly (or write "[EDIT] Add the specific result or number here" for a step4 result) instead of making one up.
+
 Return ONLY valid JSON matching this exact structure. Keep all existing fields. Only update fields where the conversation added meaningful new information:
 
 {
@@ -130,7 +132,7 @@ Return ONLY valid JSON matching this exact structure. Keep all existing fields. 
   },
   "step2": {
     "professionalSummary": "string — updated if conversation revealed stronger positioning or clearer unique value",
-    "careerHistory": [{ "company": "string", "title": "string", "years": "string", "achievements": "string — enriched with specifics from conversation" }]
+    "careerHistory": [{ "company": "string", "title": "string", "years": "string", "achievements": "string — enriched with specifics from conversation; only include a number if it's actually in the transcript or existing data, otherwise state the achievement plainly with no invented figure" }]
   },
   "step3": { "resumeUrl": "string" },
   "step4": {
@@ -139,15 +141,14 @@ Return ONLY valid JSON matching this exact structure. Keep all existing fields. 
         "title": "string — short descriptive title",
         "challenge": "string — the situation and what was at stake",
         "approach": "string — what they specifically did",
-        "result": "string — the outcome, ideally with numbers or concrete impact"
+        "result": "string — the outcome; use a number ONLY if the person actually said one or it was already in the existing data — otherwise write \"[EDIT] Add the specific result or number here\", never invent one"
       }
     ]
   },
-  "step5": { "achievements": "string — specific quantified wins from the conversation" },
+  "step5": { "achievements": "string — specific wins from the conversation, with a number only where the person actually gave one" },
   "step6": { "technicalSkills": "string — skills mentioned in conversation, merged with existing" },
   "step7": {
     "communicationStyle": "string — one of: direct, warm, technical, strategic",
-    "brandingTheme": "string — one of: corporate, tech, creative",
     "wordsUsedOften": "string — phrases or words they used naturally in conversation",
     "wordsAvoided": "string — anything they pushed back on or seemed uncomfortable with"
   },
@@ -158,10 +159,10 @@ Return ONLY valid JSON matching this exact structure. Keep all existing fields. 
     "objections": [{ "objection": "string", "response": "string" }]
   },
   "step10": {
-    "resumeUrl": "string",
-    "headshotUrl": "string",
-    "videoUrl": "string",
-    "cvUrl": "string"
+    "brandingTheme": "string — one of: executive, corporate, tech, creative",
+    "headshot": "string — copy exactly from existing data, conversation cannot add a photo",
+    "introVideo": "string — copy exactly from existing data, conversation cannot add a video",
+    "cvResume": "string — copy exactly from existing data, conversation cannot add a file"
   },
   "step11": {
     "chatbotName": "string",
@@ -269,7 +270,24 @@ export async function extractAndSave(customerId: string): Promise<{
   try {
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      enrichedDraft = JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonMatch[0]);
+      // Merge per top-level key instead of a blind full replace — if the
+      // model's response omits or mis-shapes a field (e.g. a step10 media
+      // field, from a prompt drift like the one this fix corrects), the
+      // original value from session.draft survives instead of silently
+      // disappearing. Arrays (e.g. step4.stories) and non-object values are
+      // taken from the model's output directly since there's nothing
+      // sensible to merge them against.
+      enrichedDraft = { ...session.draft };
+      for (const key of Object.keys(parsed)) {
+        const existing = enrichedDraft[key];
+        const incoming = parsed[key];
+        enrichedDraft[key] =
+          existing && typeof existing === "object" && !Array.isArray(existing) &&
+          incoming && typeof incoming === "object" && !Array.isArray(incoming)
+            ? { ...existing, ...incoming }
+            : incoming;
+      }
     }
   } catch {
     // If parse fails, return original draft — don't lose data

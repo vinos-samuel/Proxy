@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation, useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
-import { Loader2, MessageSquare, Globe } from "lucide-react";
+import { Loader2, MessageSquare, Globe, Eye } from "lucide-react";
 import { renderAnswer } from "@/lib/renderAnswer";
 
 interface PortfolioData {
@@ -226,11 +226,34 @@ export default function PortfolioPage() {
   }
 
   if (error || !portfolio) {
+    // The owner visiting their own not-yet-ready URL sees a specific,
+    // actionable message instead of the generic "not found" a stranger gets —
+    // same status gate on the server either way, this only changes what this
+    // one viewer sees on that same failure.
+    const isOwnerViewingOwnProfile = !!user?.username && user.username.toLowerCase() === username?.toLowerCase();
     return (
       <div className="min-h-screen bg-[#18181b] flex items-center justify-center p-6 text-white">
         <div className="text-center">
-          <Globe className="h-12 w-12 text-zinc-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Portfolio Not Found</h2>
+          {isOwnerViewingOwnProfile ? (
+            <>
+              <Eye className="h-12 w-12 text-zinc-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Not Ready Yet</h2>
+              <p className="text-zinc-400 text-sm mb-6 max-w-sm">
+                Your profile needs to be processed by AI before you can preview it.
+              </p>
+              <a
+                href="/questionnaire"
+                className="inline-block bg-[#22C55E] text-black px-6 py-3 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider"
+              >
+                Complete Questionnaire
+              </a>
+            </>
+          ) : (
+            <>
+              <Globe className="h-12 w-12 text-zinc-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Portfolio Not Found</h2>
+            </>
+          )}
         </div>
         {isDemo && !demoBannerDismissed && (
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">

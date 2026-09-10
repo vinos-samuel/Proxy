@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Check, Loader2, Rocket, Star, Crown, Zap } from "lucide-react";
+import { Check, Loader2, Star, Crown, Zap } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
-import { buildLinkedInPost } from "@/lib/shareCopy";
+import InsiderKit from "@/components/InsiderKit";
 
 interface PaymentGateProps {
   profileId: string;
@@ -66,7 +66,6 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
   const [selectedTier, setSelectedTier] = useState<string>("free");
   const [published, setPublished] = useState(false);
   const [publishData, setPublishData] = useState<{ publicDomain?: string; username?: string; displayName?: string; roleTitle?: string } | null>(null);
-  const [copiedItem, setCopiedItem] = useState<string | null>(null);
   const [showFreeConfirm, setShowFreeConfirm] = useState(false);
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
@@ -109,13 +108,6 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
 
   if (published && publishData) {
     const profileUrl = `https://myproxy.work/portfolio/${publishData.username}`;
-    const linkedInPost = buildLinkedInPost(profileUrl);
-    const emailSignature = `${publishData.displayName || publishData.username}${publishData.roleTitle ? ` | ${publishData.roleTitle}` : ""}\nAsk my AI about my work: ${profileUrl}`;
-    const copyItem = (key: string, text: string) => {
-      navigator.clipboard.writeText(text);
-      setCopiedItem(key);
-      setTimeout(() => setCopiedItem(null), 2000);
-    };
     return (
       <div className="md:col-span-2 bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
         <div className="text-center space-y-6">
@@ -123,52 +115,17 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
             <Check className="h-8 w-8 text-black" />
           </div>
           <h2 className="text-3xl font-bold text-black" data-testid="text-publish-success">
-            YOUR TWIN IS LIVE
+            Your page is live.
           </h2>
-          <p className="mono text-sm text-black/60 uppercase tracking-wider">
-            Your Digital Twin is now live at <strong>myproxy.work/portfolio/{publishData.username}</strong>
+          <p className="mono text-sm text-black/60">
+            Public URL: <strong className="text-black">myproxy.work/portfolio/{publishData.username}</strong>
           </p>
 
-          {/* Share kit — a profile only works if people see it */}
-          <div className="text-left max-w-lg mx-auto space-y-4">
-            <p className="mono text-xs text-black/50 uppercase tracking-widest text-center">// now put it to work</p>
-
-            <div className="bg-[#E8E8E3] border-[3px] border-black p-4">
-              <p className="mono text-xs font-bold uppercase tracking-wider mb-2">1. Post it on LinkedIn</p>
-              <p className="mono text-xs text-black/60 mb-3 whitespace-pre-line max-h-28 overflow-hidden">{linkedInPost}</p>
-              <button
-                onClick={() => copyItem("post", linkedInPost)}
-                className="bg-black text-white px-4 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider"
-                data-testid="button-copy-linkedin-post"
-              >
-                {copiedItem === "post" ? "Copied!" : "Copy Post"}
-              </button>
-            </div>
-
-            <div className="bg-[#E8E8E3] border-[3px] border-black p-4">
-              <p className="mono text-xs font-bold uppercase tracking-wider mb-2">2. Add it to your email signature</p>
-              <p className="mono text-xs text-black/60 mb-3 whitespace-pre-line">{emailSignature}</p>
-              <button
-                onClick={() => copyItem("signature", emailSignature)}
-                className="bg-black text-white px-4 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider"
-                data-testid="button-copy-signature"
-              >
-                {copiedItem === "signature" ? "Copied!" : "Copy Signature"}
-              </button>
-            </div>
-
-            <div className="bg-[#E8E8E3] border-[3px] border-black p-4">
-              <p className="mono text-xs font-bold uppercase tracking-wider mb-2">3. Send it to your network</p>
-              <p className="mono text-xs text-black/60 mb-3">Anyone who offered to help your search — send them the link. Your Twin does the explaining.</p>
-              <button
-                onClick={() => copyItem("url", profileUrl)}
-                className="bg-black text-white px-4 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider"
-                data-testid="button-copy-url"
-              >
-                {copiedItem === "url" ? "Copied!" : "Copy Profile URL"}
-              </button>
-            </div>
-          </div>
+          <InsiderKit
+            profileUrl={profileUrl}
+            displayName={publishData.displayName}
+            roleTitle={publishData.roleTitle}
+          />
 
           {publishData.username && (
             <button
@@ -176,7 +133,7 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
               className="bg-[#22C55E] text-black px-8 py-4 font-bold border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
               data-testid="button-view-portfolio"
             >
-              VIEW YOUR TWIN &rarr;
+              Open your live page &rarr;
             </button>
           )}
         </div>
@@ -196,7 +153,7 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
             <h2 className="text-2xl font-bold text-black">REVIEW BEFORE PUBLISHING</h2>
             <div className="text-left max-w-lg mx-auto space-y-4">
               <p className="mono text-sm text-black/70 leading-relaxed">
-                Your profile will go live at <strong>myproxy.work/portfolio/{username}</strong>
+                This is still a draft. Publishing makes it public at <strong>myproxy.work/portfolio/{username}</strong>
               </p>
               <div className="bg-[#FEF3C7] border-[3px] border-black p-4">
                 <p className="mono text-sm text-black/80 font-bold mb-2">FREE PLAN — WHAT TO KNOW:</p>

@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import PaymentGate from "@/components/PaymentGate";
+import InsiderKit from "@/components/InsiderKit";
 import {
   ArrowLeft, Globe, Eye, Loader2, CheckCircle,
   Pencil, Save, X, ChevronDown, ChevronUp, Lock, Plus, Trash2
@@ -49,6 +50,7 @@ export default function PreviewPage() {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [iframeKey, setIframeKey] = useState(0);
   const [showPaymentGate, setShowPaymentGate] = useState(false);
+  const [justPublished, setJustPublished] = useState(false);
 
   const { data: profile, isLoading } = useQuery<TwinProfile | null>({
     queryKey: ["/api/profile"],
@@ -66,7 +68,8 @@ export default function PreviewPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-      toast({ title: "Published!", description: "Your Digital Twin is now live." });
+      setJustPublished(true);
+      toast({ title: "Published!", description: "Your page is live. Copy the public URL below." });
     },
     onError: (err: any) => {
       if (err.message?.includes("payment required") || err.message?.includes("Payment required")) {
@@ -305,15 +308,36 @@ export default function PreviewPage() {
             </div>
           )}
 
+          {justPublished && user?.username && (
+            <Card className="border-[3px] border-black bg-white mb-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <CardContent className="p-8 text-center" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                <h3 className="text-2xl font-bold mb-2" data-testid="text-publish-success">Your page is live.</h3>
+                <p className="mono text-sm text-black/60 mb-6">
+                  Public URL: <strong className="text-black">myproxy.work/portfolio/{user.username}</strong>
+                </p>
+                <InsiderKit
+                  profileUrl={`https://myproxy.work/portfolio/${user.username}`}
+                  displayName={profile.displayName || user?.name || undefined}
+                  roleTitle={profile.roleTitle || undefined}
+                />
+                <a href={`/portfolio/${user.username}`} target="_blank" rel="noreferrer" className="inline-block mt-6">
+                  <Button className="bg-[#22C55E] text-black hover:bg-[#16A34A] border-[3px] border-black font-bold px-8" data-testid="button-open-live">
+                    <Globe className="mr-2 h-4 w-4" /> Open your live page
+                  </Button>
+                </a>
+              </CardContent>
+            </Card>
+          )}
+
           {profile.status === "ready" && !editMode && (
-            <Card className="border-primary/20 bg-primary/5 mb-8">
-              <CardContent className="p-6 text-center">
-                <CheckCircle className="h-8 w-8 text-primary mx-auto mb-3" />
-                <h3 className="font-semibold mb-2">Your Digital Twin is Ready</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+            <Card className="border-[3px] border-black bg-[#FDE68A] mb-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <CardContent className="p-6 text-center" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                <CheckCircle className="h-8 w-8 text-black mx-auto mb-3" />
+                <h3 className="font-bold text-xl mb-2">Not live yet</h3>
+                <p className="text-sm text-black/70 mb-4 mono">
                   {profile.paymentStatus === 'paid'
-                    ? 'Review the preview below. Click "Edit Content" to tweak any AI-generated text, or "Publish Now" to go live.'
-                    : 'Review the preview below. Click "Edit Content" to tweak text, or "Select Plan to Publish" to choose a plan and go live.'}
+                    ? 'This preview is private. Click Publish Now to make myproxy.work/portfolio/' + (user?.username || "you") + ' public.'
+                    : 'This preview is private. Choose a plan and publish to get your public URL.'}
                 </p>
                 <div className="flex items-center justify-center gap-3">
                   <Button
@@ -322,6 +346,7 @@ export default function PreviewPage() {
                       startEditing();
                     }}
                     data-testid="button-edit-cta"
+                    className="border-[3px] border-black"
                   >
                     <Pencil className="mr-2 h-4 w-4" /> Edit Content
                   </Button>
@@ -329,7 +354,7 @@ export default function PreviewPage() {
                     <Button
                       onClick={() => publishMutation.mutate()}
                       disabled={publishMutation.isPending}
-                      className="px-8"
+                      className="px-8 bg-[#22C55E] text-black hover:bg-[#16A34A] border-[3px] border-black font-bold"
                       data-testid="button-publish-cta"
                     >
                       {publishMutation.isPending ? (
@@ -341,10 +366,10 @@ export default function PreviewPage() {
                   ) : (
                     <Button
                       onClick={() => setShowPaymentGate(true)}
-                      className="px-8"
+                      className="px-8 bg-[#22C55E] text-black hover:bg-[#16A34A] border-[3px] border-black font-bold"
                       data-testid="button-goto-payment"
                     >
-                      <Lock className="mr-2 h-4 w-4" /> Select Plan to Publish
+                      <Lock className="mr-2 h-4 w-4" /> Publish — choose a plan
                     </Button>
                   )}
                 </div>
@@ -638,9 +663,9 @@ export default function PreviewPage() {
                   </div>
                   <div className="flex-1 mx-4">
                     <div className="bg-muted rounded-md px-3 py-1 text-xs text-muted-foreground font-mono text-center">
-                      {profile?.paymentStatus === 'paid'
+                      {profile.status === "published"
                         ? `myproxy.work/portfolio/${user?.username}`
-                        : "Preview Mode — Publish to get your live URL"}
+                        : "Not live yet — publish to get your public URL"}
                     </div>
                   </div>
                 </div>

@@ -4,6 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { Loader2, MessageSquare, Globe, Eye } from "lucide-react";
 import { renderAnswer } from "@/lib/renderAnswer";
+import ProfileAvatar from "@/components/ProfileAvatar";
+import ShareInsideCue from "@/components/ShareInsideCue";
+import DraftNotLiveBanner from "@/components/DraftNotLiveBanner";
 
 interface PortfolioData {
   profile: {
@@ -52,6 +55,7 @@ interface PortfolioData {
     location: string | null;
   };
   suggestedQuestions: string[];
+  isLive?: boolean;
 }
 
 interface ChatMessage {
@@ -320,6 +324,9 @@ export default function PortfolioPage() {
   const brandingTheme = themeMap[rawTheme] || "executive";
   const hasVideo = !!profile.videoUrl && !videoFailed;
   const hasPhoto = !!profile.photoUrl && !photoFailed;
+  const isLive = portfolio.isLive === true;
+  const showDraftChrome = isDraftMode || !isLive;
+  const publicUrl = `${typeof window !== "undefined" ? window.location.origin : "https://myproxy.work"}/portfolio/${username}`;
 
   // Draft mode: use CV-specific questions, limit to 2
   const draftChatQuestions: string[] = (portfolio as any).draftChatQuestions || [];
@@ -429,28 +436,30 @@ export default function PortfolioPage() {
               PROXY / EXECUTIVE PROFILE
             </div>
             <div className="dossier-mono text-[11px] uppercase tracking-wider text-[#5B6158] flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#2F5D4C] inline-block" />
-              {isDraftMode ? "Draft preview — not live yet" : "Published"}
+              <span className={`w-1.5 h-1.5 rounded-full inline-block ${showDraftChrome ? "bg-[#C4B56A]" : "bg-[#2F5D4C]"}`} />
+              {showDraftChrome ? "Not live yet" : "Published"}
             </div>
           </div>
         </header>
 
+        {isOwnerViewingOwnProfile && showDraftChrome && <DraftNotLiveBanner isDraftPreview={isDraftMode} />}
+
         {/* Hero — video (when present) takes the prominent top-right slot, same
             job the landing page's own hero video does. The photo, when there
             is one, is just an identity marker next to the name — small and
-            circular, not competing with the video for space. */}
+            circular, not competing with the video for space. Empty headshot
+            keeps the same slot with initials so the page doesn't look deleted. */}
         <section className="py-14 px-6 border-b border-[#DBD9CD]">
           <div className={`max-w-[920px] mx-auto grid gap-10 ${hasVideo ? "md:grid-cols-[1fr_380px]" : ""}`}>
             <div>
               <div className="flex items-center gap-3 mb-5">
-                {hasPhoto && (
-                  <img
-                    src={profile.photoUrl!}
-                    alt={profile.displayName}
-                    className="w-12 h-12 rounded-full object-cover border border-[#DBD9CD]"
-                    onError={() => setPhotoFailed(true)}
-                  />
-                )}
+                <ProfileAvatar
+                  photoUrl={hasPhoto ? profile.photoUrl : null}
+                  displayName={profile.displayName}
+                  className="w-12 h-12 border border-[#DBD9CD]"
+                  fallbackClassName="bg-[#E8E6DC] text-[#2F5D4C] dossier-serif text-[13px]"
+                  onPhotoError={() => setPhotoFailed(true)}
+                />
                 {portfolio.contact.location && (
                   <div className="dossier-mono text-[12px] text-[#8B8F84]">Based in {portfolio.contact.location}</div>
                 )}
@@ -706,6 +715,8 @@ export default function PortfolioPage() {
           </section>
         )}
 
+        {isLive && !isDraftMode && <ShareInsideCue url={publicUrl} variant="executive" />}
+
         {/* Footer */}
         <footer className="py-8 px-6 border-t border-[#DBD9CD]">
           <div className="max-w-[920px] mx-auto flex justify-between items-center gap-4 flex-wrap">
@@ -799,11 +810,13 @@ export default function PortfolioPage() {
           <div className="max-w-[920px] mx-auto flex justify-between items-center gap-4 flex-wrap">
             <div className="rpt-mono text-[11px] tracking-wide uppercase text-[#AD8A4E]">Proxy / Career Report</div>
             <div className="rpt-mono text-[11px] uppercase tracking-wider text-[#8A8F98] flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#AD8A4E] inline-block" />
-              {isDraftMode ? "Draft preview — not live yet" : "Published"}
+              <span className={`w-1.5 h-1.5 rounded-full inline-block ${showDraftChrome ? "bg-[#8A8F98]" : "bg-[#AD8A4E]"}`} />
+              {showDraftChrome ? "Not live yet" : "Published"}
             </div>
           </div>
         </header>
+
+        {isOwnerViewingOwnProfile && showDraftChrome && <DraftNotLiveBanner isDraftPreview={isDraftMode} dark />}
 
         <div className="border-b border-[#262B33] py-3 px-6">
           <div className="max-w-[920px] mx-auto flex gap-7 flex-wrap">
@@ -829,14 +842,13 @@ export default function PortfolioPage() {
           <div className={`max-w-[920px] mx-auto grid gap-10 ${hasVideo ? "md:grid-cols-[1fr_380px]" : ""}`}>
             <div>
               <div className="flex items-center gap-3 mb-5">
-                {hasPhoto && (
-                  <img
-                    src={profile.photoUrl!}
-                    alt={profile.displayName}
-                    className="w-12 h-12 rounded-full object-cover border border-[#262B33]"
-                    onError={() => setPhotoFailed(true)}
-                  />
-                )}
+                <ProfileAvatar
+                  photoUrl={hasPhoto ? profile.photoUrl : null}
+                  displayName={profile.displayName}
+                  className="w-12 h-12 border border-[#262B33]"
+                  fallbackClassName="bg-[#161B22] text-[#AD8A4E] text-[13px]"
+                  onPhotoError={() => setPhotoFailed(true)}
+                />
                 {portfolio.contact.location && (
                   <div className="rpt-mono text-[12px] text-[#8A8F98]">Based in {portfolio.contact.location}</div>
                 )}
@@ -1010,6 +1022,8 @@ export default function PortfolioPage() {
           </section>
         )}
 
+        {isLive && !isDraftMode && <ShareInsideCue url={publicUrl} variant="corporate" />}
+
         <footer className="py-8 px-6 border-t border-[#262B33]">
           <div className="max-w-[920px] mx-auto flex justify-between items-center gap-5 flex-wrap">
             <div className="rpt-mono text-[11px] text-[#8A8F98]">{profile.displayName}{profile.roleTitle ? ` · ${profile.roleTitle}` : ""}</div>
@@ -1067,17 +1081,25 @@ export default function PortfolioPage() {
         <div className="flex justify-between items-center px-8 py-3 border-b border-[#1B222A] text-xs">
           <div className="text-[#46C2B3]">proxy://{username}</div>
           <div className="flex items-center gap-2 text-[#6E7885]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#46C2B3] inline-block" />
-            {isDraftMode ? "AI · DRAFT" : "AI · ONLINE"}
+            <span className={`w-1.5 h-1.5 rounded-full inline-block ${showDraftChrome ? "bg-[#6E7885]" : "bg-[#46C2B3]"}`} />
+            {showDraftChrome ? "AI · DRAFT" : "AI · ONLINE"}
           </div>
         </div>
+
+        {isOwnerViewingOwnProfile && showDraftChrome && <DraftNotLiveBanner isDraftPreview={isDraftMode} dark />}
 
         <div className="px-8 py-11 pb-8 border-b border-[#1B222A]">
           <div className={`grid gap-10 ${hasVideo ? "md:grid-cols-[1fr_380px]" : "max-w-[760px]"}`}>
             <div>
               <div className="text-[#6E7885] text-[13px] mb-2.5"><span className="text-[#46C2B3]">$</span> whoami</div>
               <div className="flex items-center gap-3 mb-5">
-                {hasPhoto && <img src={profile.photoUrl!} alt={profile.displayName} className="w-11 h-11 rounded-full border border-[#1B222A] object-cover shrink-0" onError={() => setPhotoFailed(true)} />}
+                <ProfileAvatar
+                  photoUrl={hasPhoto ? profile.photoUrl : null}
+                  displayName={profile.displayName}
+                  className="w-11 h-11 border border-[#1B222A]"
+                  fallbackClassName="bg-[#10151B] text-[#46C2B3] text-[12px]"
+                  onPhotoError={() => setPhotoFailed(true)}
+                />
                 <div>
                   <h1 className="text-[28px] font-bold text-[#EDF1F2] leading-tight">{profile.displayName}</h1>
                   {dRoleLine && (
@@ -1207,6 +1229,8 @@ export default function PortfolioPage() {
           </div>
         )}
 
+        {isLive && !isDraftMode && <ShareInsideCue url={publicUrl} variant="tech" />}
+
         <div className="flex justify-between items-center px-8 py-5 text-[12.5px]">
           {portfolio.contact.email ? (
             <button onClick={() => setShowEmailModal(true)} className="text-[#6E7885]" data-testid="button-trm-footer-email"><span className="text-[#46C2B3]">$</span> contact --email</button>
@@ -1257,15 +1281,21 @@ export default function PortfolioPage() {
       <div className="min-h-screen bg-[#17140F] text-[#EDE7DC]" style={{ fontFamily: 'ui-serif, "New York", "Times New Roman", Georgia, serif' }}>
         <div className="flex justify-between items-baseline px-11 py-5 border-b border-[#322C22]">
           <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] tracking-[0.14em] uppercase text-[#96AD86]">Profile</div>
-          <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] text-[#7A7568]">{isDraftMode ? "Draft preview — not live yet" : "Published"}</div>
+          <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] text-[#7A7568]">{showDraftChrome ? "Not live yet" : "Published"}</div>
         </div>
+
+        {isOwnerViewingOwnProfile && showDraftChrome && <DraftNotLiveBanner isDraftPreview={isDraftMode} dark />}
 
         <div className={`grid gap-10 px-11 py-12 border-b border-[#322C22] ${hasVideo ? "md:grid-cols-[1fr_420px]" : ""}`}>
           <div className="max-w-[560px]">
             <div className="flex items-center gap-3 mb-3.5">
-              {hasPhoto && (
-                <img src={profile.photoUrl!} alt={profile.displayName} className="w-10 h-10 rounded-full object-cover border border-[#322C22]" onError={() => setPhotoFailed(true)} />
-              )}
+              <ProfileAvatar
+                photoUrl={hasPhoto ? profile.photoUrl : null}
+                displayName={profile.displayName}
+                className="w-10 h-10 border border-[#322C22]"
+                fallbackClassName="bg-[#241F17] text-[#96AD86] text-[12px]"
+                onPhotoError={() => setPhotoFailed(true)}
+              />
               {dRoleLine && <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11.5px] tracking-wide uppercase text-[#96AD86]">{dRoleLine}</div>}
             </div>
             <h1 className="text-[38px] md:text-[42px] font-medium leading-[1.05] mb-4 tracking-tight">{profile.displayName}</h1>
@@ -1408,6 +1438,8 @@ export default function PortfolioPage() {
             </div>
           </div>
         )}
+
+        {isLive && !isDraftMode && <ShareInsideCue url={publicUrl} variant="creative" />}
 
         <div style={{ fontFamily: "-apple-system, sans-serif" }} className="flex justify-between items-center px-11 py-6 text-[12px] text-[#7A7568] flex-wrap gap-4">
           <div>{profile.displayName}{profile.roleTitle ? ` · ${profile.roleTitle}` : ""}</div>

@@ -10,3 +10,10 @@ So I built a page that answers that instead. Ask it about a specific project, a 
 
 ${profileUrl} — go on, try the Conversational Resume`;
 }
+
+/** Short note to paste to someone already inside a company. Soft inbound — not a pitch. */
+export function buildInsiderNote(profileUrl: string): string {
+  return `If you're open to passing this along inside, here's a page that answers questions about my work better than a CV:
+
+${profileUrl}`;
+}

@@ -328,7 +328,7 @@ export default function DashboardPage() {
                     <div className="w-12 h-12 bg-[#22C55E] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                       <BarChart3 className="h-6 w-6 text-black" />
                     </div>
-                    <h3 className="font-bold text-lg">YOUR TWIN'S ACTIVITY</h3>
+                    <h3 className="font-bold text-lg">YOUR PAGE'S ACTIVITY</h3>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4 mb-5">
                     <div className="border-[3px] border-black bg-[#E8E8E3] p-4">
@@ -356,7 +356,7 @@ export default function DashboardPage() {
                   {isFree && questionCount > 0 ? (
                     <div className="relative">
                       <div className="filter blur-sm select-none pointer-events-none opacity-50">
-                        <div className="mono text-xs uppercase tracking-wider text-black/50 mb-3">Questions visitors asked your Twin</div>
+                        <div className="mono text-xs uppercase tracking-wider text-black/50 mb-3">Questions visitors asked</div>
                         <div className="space-y-2">
                           {analytics!.recentQuestions.slice(0, 3).map((q, i) => (
                             <div key={i} className="flex items-start gap-3 border-l-[3px] border-[#22C55E] pl-3 py-1">
@@ -367,7 +367,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 border-[3px] border-black p-4 text-center">
                         <Lock className="h-5 w-5 mb-2" />
-                        <p className="font-bold text-sm mb-1">{questionCount} recruiters asked your Twin questions.</p>
+                        <p className="font-bold text-sm mb-1">{questionCount} recruiters asked questions.</p>
                         <p className="mono text-xs text-black/60 mb-3">Upgrade to Pro to see what they wanted to know.</p>
                         <button
                           onClick={() => document.getElementById("upgrade-section")?.scrollIntoView({ behavior: "smooth" })}
@@ -379,7 +379,7 @@ export default function DashboardPage() {
                     </div>
                   ) : !isFree && questionCount > 0 ? (
                     <div>
-                      <div className="mono text-xs uppercase tracking-wider text-black/50 mb-3">Questions visitors asked your Twin</div>
+                      <div className="mono text-xs uppercase tracking-wider text-black/50 mb-3">Questions visitors asked</div>
                       <div className="space-y-2">
                         {analytics!.recentQuestions.map((q, i) => (
                           <div key={i} className="flex items-start gap-3 border-l-[3px] border-[#22C55E] pl-3 py-1">
@@ -412,7 +412,7 @@ export default function DashboardPage() {
                     <h3 className="font-bold text-lg text-black/40">ACTIVITY</h3>
                   </div>
                   <p className="mono text-xs text-black/50 leading-relaxed">
-                    Once your profile is published, you'll see how many people visited and what they asked your Twin.
+                    Once your profile is published, you'll see how many people visited and what they asked.
                   </p>
                 </div>
               )}

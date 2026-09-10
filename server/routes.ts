@@ -1111,6 +1111,7 @@ export async function registerRoutes(
 
       res.json({
         isDraft: isDraftRequest && isOwner,
+        isLive: profile.status === "published" || profile.status === "reprocessing",
         draftChatQuestions: isDraftRequest ? ((profile.questionnaireData as any)?._draftChatQuestions || []) : [],
         profile: {
           displayName: profile.displayName,

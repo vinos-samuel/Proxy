@@ -114,7 +114,7 @@ export default function OnboardingChatPage() {
     setGoLiveError(false);
     try {
       await apiRequest("POST", "/api/questionnaire/submit", enrichedDraft);
-      navigate("/dashboard");
+      navigate("/dashboard#publish");
     } catch {
       setGoLiveError(true);
       setIsGoingLive(false);
@@ -170,17 +170,18 @@ export default function OnboardingChatPage() {
           <div className="w-16 h-16 bg-[#22C55E] border-[3px] border-black flex items-center justify-center mx-auto mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <CheckCircle2 className="h-8 w-8 text-black" />
           </div>
-          <h1 className="text-3xl font-bold mb-2">Profile Updated</h1>
+          <h1 className="text-3xl font-bold mb-2">Saved — not live yet</h1>
           <p className="mono text-sm text-black/60 mb-6 leading-relaxed">
-            Everything you shared has been mapped to your profile. Go live now, or fine-tune your answers in the form first — either way, nothing here needs redoing.
+            Your answers are in. Next we build the page, then you publish. Nothing is public until you click Publish and see your live URL.
           </p>
           <button
             onClick={handleGoLive}
             disabled={isGoingLive}
             className="w-full bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] disabled:opacity-50 flex items-center justify-center gap-2 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+            data-testid="button-go-live"
           >
             {isGoingLive ? (
-              <><Loader2 className="h-4 w-4 animate-spin" /> Starting your Twin…</>
+              <><Loader2 className="h-4 w-4 animate-spin" /> Building your page…</>
             ) : (
               "Go Live →"
             )}

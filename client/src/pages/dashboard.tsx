@@ -85,6 +85,14 @@ export default function DashboardPage() {
     }
   }, [profile?.status]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash !== "#publish") return;
+    const id = profile?.status === "ready" ? "publish" : profile?.status === "processing" || profile?.status === "reprocessing" ? "building" : "publish";
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [profile?.status]);
+
   const statusMap: Record<string, { label: string; color: string }> = {
     draft: { label: "DRAFT", color: "bg-[#FDE68A]" },
     processing: { label: "PROCESSING", color: "bg-[#93C5FD]" },
@@ -209,6 +217,13 @@ export default function DashboardPage() {
                     )}
                     {(profile?.status === "ready" || profile?.status === "published") && (
                       <>
+                        {profile.status === "ready" && (
+                          <Link href="/preview">
+                            <button className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-publish-ready">
+                              <span className="flex items-center gap-2"><Globe className="h-4 w-4" />PUBLISH — GO LIVE</span>
+                            </button>
+                          </Link>
+                        )}
                         <Link href="/preview">
                           <button className="bg-white text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-preview">
                             <span className="flex items-center gap-2"><Eye className="h-4 w-4" />PREVIEW</span>
@@ -227,6 +242,21 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {profile?.status === "ready" && (
+                <div id="publish" className="md:col-span-2 bg-[#FDE68A] border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-not-live-yet">
+                  <div className="mono text-xs text-black/60 uppercase tracking-widest mb-1">// not_live_yet</div>
+                  <h3 className="text-xl font-bold mb-1">Your page is ready. It is not public.</h3>
+                  <p className="mono text-sm text-black/70 mb-4">
+                    Only you can see it. Publish to get a public URL at myproxy.work/portfolio/{user?.username}.
+                  </p>
+                  <Link href="/preview">
+                    <button className="bg-[#22C55E] text-black px-8 py-4 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-publish-go-live">
+                      <span className="flex items-center gap-2">Publish — go live <ArrowRight className="h-4 w-4" /></span>
+                    </button>
+                  </Link>
+                </div>
+              )}
+
               {/* Draft ready nudge — show when AI draft exists but profile not yet complete */}
               {profile?.status === "draft" && (profile?.questionnaireData as any)?._aiDraft && (
                 <div className="md:col-span-2 bg-[#22C55E] border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
@@ -235,7 +265,7 @@ export default function DashboardPage() {
                       <div className="mono text-xs text-black/60 uppercase tracking-widest mb-1">// your_draft_is_ready</div>
                       <h3 className="text-xl font-bold mb-1">Your profile was built from your CV. Now make it yours.</h3>
                       <p className="mono text-sm text-black/70">
-                        Review the AI draft, add your stories, and claim your profile URL —&nbsp;
+                        Review the AI draft, add your stories, then publish — nothing is public until you do. Claim your URL:&nbsp;
                         <strong>myproxy.work/portfolio/{user?.username}</strong>
                       </p>
                     </div>
@@ -439,18 +469,18 @@ export default function DashboardPage() {
 
               {/* Processing state */}
               {(profile?.status === "processing" || profile?.status === "reprocessing") && (
-                <div className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                <div id="building" className="md:col-span-2 bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 bg-[#93C5FD] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                       <Loader2 className="h-6 w-6 text-black animate-spin" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg">BUILDING YOUR TWIN</h3>
-                      <div className="mono text-xs text-black/50 uppercase">AI is processing your profile</div>
+                      <h3 className="font-bold text-lg">BUILDING YOUR PAGE</h3>
+                      <div className="mono text-xs text-black/50 uppercase">Not live yet — you'll publish next</div>
                     </div>
                   </div>
                   <p className="mono text-sm text-black/60 mb-4">
-                    This usually takes 1–2 minutes. This page will update automatically — no need to refresh.
+                    This usually takes 1–2 minutes. This page will update automatically. When it's ready, Publish will be at the top — your page stays private until you click it.
                   </p>
                   <div className="flex items-center gap-2 px-3 py-1 bg-[#93C5FD] border-[3px] border-black mono text-xs uppercase tracking-wider font-bold w-fit">
                     <Loader2 className="h-3 w-3 animate-spin" />

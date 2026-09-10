@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useLocation, Link } from "wouter";
 import { Loader2, Upload, ArrowRight } from "lucide-react";
 import ProxyLogo from "@/components/ProxyLogo";
+import ProfileAvatar from "@/components/ProfileAvatar";
 import { getCsrfToken } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { renderAnswer } from "@/lib/renderAnswer";
@@ -231,8 +232,17 @@ export default function TryPage() {
               </div>
 
               <div className="px-6 pt-6 pb-5 border-b border-[#DBD9CD]">
-                {displayName && <h2 className="try-dossier-serif text-[28px] leading-tight mb-1">{displayName}</h2>}
-                {roleLine && <div className="try-dossier-mono text-[12px] text-[#5B6158] uppercase tracking-wide mb-4">{roleLine}</div>}
+                <div className="flex items-center gap-3 mb-3">
+                  <ProfileAvatar
+                    displayName={displayName || "You"}
+                    className="w-12 h-12 border border-[#DBD9CD]"
+                    fallbackClassName="bg-[#E8E6DC] text-[#2F5D4C] try-dossier-serif text-[13px]"
+                  />
+                  <div>
+                    {displayName && <h2 className="try-dossier-serif text-[28px] leading-tight mb-1">{displayName}</h2>}
+                    {roleLine && <div className="try-dossier-mono text-[12px] text-[#5B6158] uppercase tracking-wide">{roleLine}</div>}
+                  </div>
+                </div>
                 <div className="pl-4 border-l-2 border-[#2F5D4C] space-y-2.5">
                   {(positioningParagraphs.length > 0 ? positioningParagraphs : [preview.positioning]).map((para, i) => (
                     <p key={i} className={`try-dossier-serif ${i === 0 ? "italic text-[18px] leading-snug" : "text-[14px] not-italic text-[#5B6158] leading-relaxed"}`}>

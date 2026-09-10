@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { Loader2, CheckCircle, ExternalLink, Copy, ArrowRight, AlertCircle, Share2, Linkedin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { buildLinkedInPost } from "@/lib/shareCopy";
+import InsiderKit from "@/components/InsiderKit";
 
 declare global {
   interface Window {
@@ -148,6 +149,12 @@ export default function PaymentSuccessPage() {
                 {copied ? "Copied!" : "Copy"}
               </button>
             </div>
+          </div>
+        )}
+
+        {domain && (
+          <div className="border-[3px] border-black bg-white p-6 mb-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <InsiderKit profileUrl={profileUrl} />
           </div>
         )}
 

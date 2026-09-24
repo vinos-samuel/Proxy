@@ -302,7 +302,7 @@ export default function PreviewPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           {!editMode && (
             <div className="mb-6 text-center">
-              <h1 className="text-2xl font-bold mb-2">Preview Your Digital Twin</h1>
+              <h1 className="text-2xl font-bold mb-2">Preview Your Page</h1>
               <p className="text-muted-foreground text-sm">
                 Review your portfolio and make tweaks before publishing.
               </p>

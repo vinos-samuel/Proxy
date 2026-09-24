@@ -70,7 +70,7 @@ export function LoginPage() {
             </div>
           </Link>
           <h1 className="text-4xl font-bold mb-2 text-black/60">Welcome back</h1>
-          <p className="mono text-sm text-black/60 uppercase tracking-wider">Sign in to manage your Digital Twin</p>
+          <p className="mono text-sm text-black/60 uppercase tracking-wider">Sign in to manage your page</p>
         </div>
 
         <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">

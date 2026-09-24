@@ -62,7 +62,7 @@ function buildSystemPrompt(draft: any): string {
     ? `The CV gave us ${existingStories.length} career stories but they need more depth — specific context, what was at stake, what they actually did, real outcomes with numbers.`
     : "We don't have any detailed career stories yet — this is a key gap to explore.";
 
-  return `You are helping ${name} build their Digital Twin on Proxy — an AI-powered career profile that represents them to hiring managers, recruiters and professional contacts.
+  return `You are helping ${name} build their AI-powered career page on Proxy — a page with an AI proxy that represents them to hiring managers, recruiters and professional contacts.
 
 You've already read their CV. Here's what you know:
 - Current role: ${title}

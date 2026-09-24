@@ -1889,7 +1889,7 @@ PASS if every specific claim traces back to the profile data, or if the response
                     await resend.emails.send({
                       from: fromEmail,
                       to: customer.email,
-                      subject: "Your Digital Twin is live!",
+                      subject: "Your evidence page is live!",
                       html: profileLiveTemplate(customer.name, profileUrl),
                     });
                     logger.info("[Stripe] Profile live email sent", { to: customer.email });
@@ -2013,7 +2013,7 @@ PASS if every specific claim traces back to the profile data, or if the response
             resend.emails.send({
               from: fromEmail,
               to: customer.email,
-              subject: "Your Digital Twin is live!",
+              subject: "Your evidence page is live!",
               html: profileLiveTemplate(customer.name, profileUrl),
             }).catch(() => {});
             logger.info("[Admin] Profile live email queued", { to: customer.email });

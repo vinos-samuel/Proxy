@@ -40,8 +40,8 @@ export function startNudgeCron() {
             to: p.email,
             reply_to: "vinos@myproxy.work",
             subject: p.viewCount > 0
-              ? `Your Twin has had ${p.viewCount} visitor${p.viewCount === 1 ? "" : "s"}`
-              : "Your Digital Twin is live — upgrade to see engagement",
+              ? `Your page has had ${p.viewCount} visitor${p.viewCount === 1 ? "" : "s"}`
+              : "Your evidence page is live — upgrade to see engagement",
             html: nudgeEngagementTemplate(p.name, p.viewCount, upgradeUrl),
           }).catch(() => {});
           await storage.markNudgeSent(p.profileId, 2);

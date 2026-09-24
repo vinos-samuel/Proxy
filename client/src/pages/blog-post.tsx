@@ -372,7 +372,7 @@ export default function BlogPostPage() {
             <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
             <Link href="/#pricing"><span className="cursor-pointer hover:text-black">Pricing</span></Link>
             <a href="mailto:vinos@myproxy.work" className="cursor-pointer hover:text-black">vinos@myproxy.work</a>
-            <span>&copy; 2026 Digital Twin Studio</span>
+            <span>&copy; 2026 Proxy</span>
           </div>
         </div>
       </footer>

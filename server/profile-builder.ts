@@ -18,7 +18,7 @@ type Preview = {
 function cleanLines(value: string | undefined): string[] {
   return (value || "")
     .split("\n")
-    .map((line) => line.replace(/^[\s•*\-–—]+/, "").trim())
+    .map((line) => line.replace(/^[\s•*\-–—]+/, "").trim().slice(0, 500))
     .filter(Boolean)
     .slice(0, 8);
 }
@@ -54,16 +54,18 @@ export function buildProfileDocument(parsed: ParsedResume, preview: Preview): Pr
   const experience: ProfileDocument["experience"] = (parsed.roles || []).slice(0, 20).map((role, index) => {
     const sourceId = stableId("resume-role", index);
     const highlights = cleanLines(role.achievements);
+    const company = (role.company || "Company").slice(0, 160);
+    const title = (role.title || "Role").slice(0, 160);
     sources.push({
       id: sourceId,
       kind: "resume",
-      label: `${role.title || "Role"} at ${role.company || "Company"}`,
-      excerpt: [role.title, role.company, role.years, ...highlights].filter(Boolean).join(" — ").slice(0, 1200),
+      label: `${title} at ${company}`.slice(0, 160),
+      excerpt: [title, company, role.years, ...highlights].filter(Boolean).join(" — ").slice(0, 1200),
     });
     return {
       id: stableId("experience", index),
-      company: role.company || "Company",
-      title: role.title || "Role",
+      company,
+      title,
       period: role.years || undefined,
       highlights,
       sourceIds: [sourceId],
@@ -74,10 +76,12 @@ export function buildProfileDocument(parsed: ParsedResume, preview: Preview): Pr
   (parsed.roles || []).forEach((role, index) => {
     const highlights = cleanLines(role.achievements);
     if (!highlights.length || projects.length >= 3) return;
+    const company = (role.company || "Selected work").slice(0, 160);
+    const title = (role.title || "Professional contribution").slice(0, 160);
     projects.push({
       id: stableId("project", index),
-      title: `${role.company || "Selected work"}: ${role.title || "Professional contribution"}`,
-      company: role.company || undefined,
+      title: `${company}: ${title}`.slice(0, 180),
+      company: role.company ? company : undefined,
       contribution: highlights[0],
       sourceIds: [stableId("resume-role", index)],
     });
@@ -105,7 +109,7 @@ export function buildProfileDocument(parsed: ParsedResume, preview: Preview): Pr
     },
     projects,
     experience,
-    skills: (parsed.skills || []).map((skill) => skill.trim()).filter(Boolean).slice(0, 40),
+    skills: (parsed.skills || []).map((skill) => skill.trim().slice(0, 80)).filter(Boolean).slice(0, 40),
     contact: {
       email: normalizeEmail(parsed.email),
       linkedin: normalizeWebUrl(parsed.linkedin),
@@ -185,7 +189,7 @@ export function buildProfileDocumentFromLegacy(profile: any): ProfileDocument {
     },
     projects,
     experience,
-    skills: skillTags.map((item: unknown) => String(item).trim()).filter(Boolean).slice(0, 40),
+    skills: skillTags.map((item: unknown) => String(item).trim().slice(0, 80)).filter(Boolean).slice(0, 40),
     contact: {
       email: typeof contactEmail === "string" && contactEmail.includes("@") && !contactEmail.startsWith("[") ? contactEmail : null,
       linkedin: typeof contactLinkedin === "string" && /^https?:\/\//.test(contactLinkedin) ? contactLinkedin : null,

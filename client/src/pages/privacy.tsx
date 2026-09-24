@@ -31,7 +31,7 @@ export default function PrivacyPage() {
             <ul className="text-black/70 leading-relaxed space-y-2 list-disc list-inside">
               <li><strong>Account data:</strong> name, email address, password (hashed — we never store your plain password)</li>
               <li><strong>Career data:</strong> resume content, work history, skills, questionnaire responses</li>
-              <li><strong>Profile data:</strong> anything you add to your Digital Twin — war stories, achievements, communication style</li>
+              <li><strong>Profile data:</strong> anything you add to your page — war stories, achievements, communication style</li>
               <li><strong>Uploaded files:</strong> resume, CV, headshot photo, and intro video stored in Replit Object Storage</li>
               <li><strong>Chat data:</strong> questions asked by visitors to your Twin are saved for your analytics dashboard</li>
               <li><strong>Payment data:</strong> handled entirely by Stripe — we never see or store your card details</li>
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-bold text-black mb-3">3. How we use your data</h2>
             <ul className="text-black/70 leading-relaxed space-y-2 list-disc list-inside">
-              <li>To create and power your Digital Twin profile</li>
+              <li>To create and power your profile page</li>
               <li>To process your AI-generated career content via Google Gemini</li>
               <li>To send transactional emails (account verification, password reset, profile updates) via Resend</li>
               <li>To process payments via Stripe</li>
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
             <p className="text-black/70 leading-relaxed mb-2">Your data passes through:</p>
             <ul className="text-black/70 leading-relaxed space-y-2 list-disc list-inside">
               <li><strong>Google Gemini AI</strong> — to parse resumes and generate career content</li>
-              <li><strong>Anthropic Claude AI</strong> — to power the Digital Twin chat responses</li>
+              <li><strong>Anthropic Claude AI</strong> — to power your page's chat responses</li>
               <li><strong>Replit Object Storage</strong> — to store uploaded files (private, not publicly listable)</li>
               <li><strong>Stripe</strong> — to process payments securely</li>
               <li><strong>Resend</strong> — to send transactional emails</li>

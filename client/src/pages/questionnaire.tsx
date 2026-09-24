@@ -797,7 +797,7 @@ export default function QuestionnairePage() {
         <div className="mb-4 border-[3px] border-black bg-white p-4 flex items-center justify-between gap-4 flex-wrap">
           <p className="mono text-sm text-black/60">
             Please complete this form so we can build a personalised experience that represents you authentically.
-            Your own Digital Twin (AI CV). Do not rush, take your time.
+            Your own AI-powered career page. Do not rush, take your time.
           </p>
           <button
             onClick={() => setCurrentStep(0)}
@@ -1603,9 +1603,9 @@ export default function QuestionnairePage() {
                   <div className="border-[3px] border-black bg-[#E8E8E3] p-4">
                     <h4 className="font-bold mb-2">What happens next?</h4>
                     <ol className="list-decimal list-inside space-y-1 mono text-sm text-black/60">
-                      <li>AI processes your content to build your Digital Twin</li>
-                      <li>Your AI CV is generated (typically a few minutes)</li>
-                      <li>Preview your Digital Twin and make adjustments</li>
+                      <li>AI processes your content to build your page</li>
+                      <li>Your page is generated (typically a few minutes)</li>
+                      <li>Preview your page and make adjustments</li>
                       <li>Publish and share your link</li>
                     </ol>
                   </div>

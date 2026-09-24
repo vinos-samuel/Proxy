@@ -92,7 +92,7 @@ function diagnoseGaps(
 // ==================== PROMPTS ====================
 
 function buildInterviewSystemPrompt(displayName: string, gaps: string[]): string {
-  return `You are an expert career interviewer conducting a profile deepening session for ${displayName}'s Digital Twin on Proxy.
+  return `You are an expert career interviewer conducting a profile deepening session for ${displayName}'s AI proxy on Proxy.
 
 YOUR MISSION: Extract specific, quantified, authentic career stories and achievements. Everything you capture will power ${displayName}'s AI portfolio and be presented to hiring managers and recruiters — so accuracy and specificity are critical.
 
@@ -110,14 +110,14 @@ INTERVIEW RULES:
    - "What would have happened if you hadn't done that?"
 4. When you receive a strong answer (situation + specific action + measurable outcome), acknowledge briefly: "Got it — noted." Then move to the next gap.
 5. After addressing all gaps (or after 8 exchanges max), briefly summarise: "Here's what I've captured: [2-3 bullet summary]" then ask: "Is there anything important I missed that you'd want hiring managers to know?"
-6. When fully done, end your final message with EXACTLY: "Great — I'll update your Twin now." (This phrase triggers the profile update.)
+6. When fully done, end your final message with EXACTLY: "Great — I'll update your page now." (This phrase triggers the profile update.)
 7. If the user struggles or seems unsure, encourage them: "Take your time — even a rough answer gives me something to work with."
 
 TONE: Professional, warm, and curious. Like a trusted senior recruiter who genuinely wants to help this person tell their story well.`;
 }
 
 function buildExtractionPrompt(transcript: string, displayName: string): string {
-  return `You are extracting structured career profile data from an interview transcript for ${displayName}'s Digital Twin.
+  return `You are extracting structured career profile data from an interview transcript for ${displayName}'s AI proxy.
 
 TRANSCRIPT:
 ${transcript}
@@ -228,7 +228,7 @@ export async function sendInterviewMessage(
 
   session.messages.push({ role: "assistant", content: botResponse });
 
-  const readyToComplete = botResponse.includes("I'll update your Twin now");
+  const readyToComplete = botResponse.includes("I'll update your page now");
   session.readyToComplete = readyToComplete;
 
   return { botResponse, readyToComplete };

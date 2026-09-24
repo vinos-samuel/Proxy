@@ -19,7 +19,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-bold text-black mb-3">1. Service</h2>
             <p className="text-black/70 leading-relaxed">
-              Proxy (myproxy.work) provides AI-powered Digital Twin career profiles.
+              Proxy (myproxy.work) provides AI-powered career profile pages.
               By using this service you agree to these terms.
             </p>
           </section>

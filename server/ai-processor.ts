@@ -1318,7 +1318,7 @@ export async function generateQuestionnaireDraft(parsedResume: ParsedResume) {
     .map((r) => `- ${sanitizeForPrompt(r.title, 100)} at ${sanitizeForPrompt(r.company, 100)} (${sanitizeForPrompt(r.years, 50)}): ${sanitizeForPrompt(r.achievements, 500)}`)
     .join("\n");
 
-  const prompt = `You are an expert career profile writer. Based on the resume data below, generate a complete pre-filled questionnaire draft for a Digital Twin AI career profile.
+  const prompt = `You are an expert career profile writer. Based on the resume data below, generate a complete pre-filled questionnaire draft for an AI-powered career profile page.
 
 RESUME DATA:
 Name: ${sanitizeForPrompt(parsedResume.name, 100)}

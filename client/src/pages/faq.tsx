@@ -244,11 +244,11 @@ export default function FAQPage() {
     },
     {
       q: "Is this ATS-readable? Can it replace my resume?",
-      plainText: "No - and it's not designed to. Proxy is not a replacement for your resume or CV. Applicant Tracking Systems (ATS) require traditional document formats like PDF or Word. Your Digital Twin is a complementary tool that works alongside your resume. Think of it as the next step after someone receives your CV. Where to use your Proxy link: in your email signature alongside your LinkedIn URL, in outreach messages to recruiters and hiring managers, on your personal website or portfolio page, in cover letters as a 'learn more about me' link, in LinkedIn connection requests and messages, and on job applications where there's a portfolio or website field. The combination is powerful: your resume gets you through the ATS, your Proxy link gets you remembered.",
+      plainText: "No - and it's not designed to. Proxy is not a replacement for your resume or CV. Applicant Tracking Systems (ATS) require traditional document formats like PDF or Word. Your Proxy page is a complementary tool that works alongside your resume. Think of it as the next step after someone receives your CV. Where to use your Proxy link: in your email signature alongside your LinkedIn URL, in outreach messages to recruiters and hiring managers, on your personal website or portfolio page, in cover letters as a 'learn more about me' link, in LinkedIn connection requests and messages, and on job applications where there's a portfolio or website field. The combination is powerful: your resume gets you through the ATS, your Proxy link gets you remembered.",
       a: (
         <div className="space-y-4">
           <p><strong className="text-black">No — and it's not designed to.</strong> Proxy is not a replacement for your resume or CV. Applicant Tracking Systems (ATS) require traditional document formats like PDF or Word.</p>
-          <p>Your Digital Twin is a <strong className="text-black">complementary tool</strong> that works alongside your resume. Think of it as the next step after someone receives your CV.</p>
+          <p>Your Proxy page is a <strong className="text-black">complementary tool</strong> that works alongside your resume. Think of it as the next step after someone receives your CV.</p>
           <p><strong className="text-black">Where to use your Proxy link:</strong></p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>In your <strong className="text-black">email signature</strong> alongside your LinkedIn URL</span></li>
@@ -263,8 +263,8 @@ export default function FAQPage() {
       ),
     },
     {
-      q: "Can I edit my Digital Twin after it's published?",
-      plainText: "Yes. Once your profile is live, you can access your dashboard to edit your content at any time. You can update career stories, add new achievements, adjust your chatbot's tone, upload new photos or videos, and refine how your AI represents you. Changes are reflected on your public profile immediately. Your Digital Twin should evolve as your career does.",
+      q: "Can I edit my page after it's published?",
+      plainText: "Yes. Once your profile is live, you can access your dashboard to edit your content at any time. You can update career stories, add new achievements, adjust your chatbot's tone, upload new photos or videos, and refine how your AI represents you. Changes are reflected on your public profile immediately. Your page should evolve as your career does.",
       a: (
         <div className="space-y-4">
           <p><strong className="text-black">Yes.</strong> Once your profile is live, you can access your dashboard to edit your content at any time.</p>
@@ -275,16 +275,16 @@ export default function FAQPage() {
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Upload new photos or videos</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Refine how your AI represents you</span></li>
           </ul>
-          <p>Changes are reflected on your public profile <strong className="text-black">immediately</strong>. Your Digital Twin should evolve as your career does.</p>
+          <p>Changes are reflected on your public profile <strong className="text-black">immediately</strong>. Your page should evolve as your career does.</p>
         </div>
       ),
     },
     {
       q: "What analytics do I get about my profile?",
-      plainText: "Your dashboard shows key metrics about your Digital Twin's performance: total profile views showing how many people visited your page, questions asked showing what recruiters and visitors are asking your AI chatbot, and engagement patterns. This gives you insight into which aspects of your career are generating the most interest, helping you optimize your profile and understand what hiring managers care about most.",
+      plainText: "Your dashboard shows key metrics about your page's performance: total profile views showing how many people visited your page, questions asked showing what recruiters and visitors are asking your AI chatbot, and engagement patterns. This gives you insight into which aspects of your career are generating the most interest, helping you optimize your profile and understand what hiring managers care about most.",
       a: (
         <div className="space-y-4">
-          <p>Your dashboard shows key metrics about your Digital Twin's performance:</p>
+          <p>Your dashboard shows key metrics about your page's performance:</p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Profile views</strong> — how many people visited your page</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Questions asked</strong> — what recruiters and visitors are asking your AI chatbot</span></li>
@@ -296,10 +296,10 @@ export default function FAQPage() {
     },
     {
       q: "Is my information private and secure?",
-      plainText: "Your Digital Twin is accessible via your unique profile URL. You control who sees it by choosing when and where to share the link. We don't share your data with recruiters, job boards, or third parties. Your account is protected with encrypted passwords, email verification, and secure session management. We comply with Singapore PDPA data protection standards. You can read our full privacy policy at myproxy.work/privacy.",
+      plainText: "Your page is accessible via your unique profile URL. You control who sees it by choosing when and where to share the link. We don't share your data with recruiters, job boards, or third parties. Your account is protected with encrypted passwords, email verification, and secure session management. We comply with Singapore PDPA data protection standards. You can read our full privacy policy at myproxy.work/privacy.",
       a: (
         <div className="space-y-4">
-          <p>Your Digital Twin is accessible via your <strong className="text-black">unique profile URL</strong> — you control who sees it by choosing when and where to share the link.</p>
+          <p>Your page is accessible via your <strong className="text-black">unique profile URL</strong> — you control who sees it by choosing when and where to share the link.</p>
           <p>Security measures:</p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>We <strong className="text-black">don't share</strong> your data with recruiters, job boards, or third parties</span></li>
@@ -529,7 +529,7 @@ export default function FAQPage() {
             <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
             <Link href="/#pricing"><span className="cursor-pointer hover:text-black">Pricing</span></Link>
             <a href="mailto:vinos@myproxy.work" className="cursor-pointer hover:text-black">vinos@myproxy.work</a>
-            <span>© 2026 Digital Twin Studio</span>
+            <span>© 2026 Proxy</span>
           </div>
         </div>
       </footer>

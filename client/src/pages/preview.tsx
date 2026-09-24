@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { profileCreationPath } from "@/lib/profile-builder-rollout";
 import PaymentGate from "@/components/PaymentGate";
 import InsiderKit from "@/components/InsiderKit";
 import {
@@ -176,7 +177,7 @@ export default function PreviewPage() {
             <p className="text-muted-foreground text-sm mb-6">
               Your profile needs to be processed by AI before you can preview it.
             </p>
-            <Link href="/questionnaire">
+            <Link href={profileCreationPath}>
               <Button data-testid="button-goto-questionnaire">Complete Questionnaire</Button>
             </Link>
           </CardContent>

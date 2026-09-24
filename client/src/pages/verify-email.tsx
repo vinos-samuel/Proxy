@@ -5,6 +5,7 @@ import ProxyLogo from "@/components/ProxyLogo";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { queryClient } from "@/lib/queryClient";
+import { profileCreationPath } from "@/lib/profile-builder-rollout";
 
 export default function VerifyEmailPage() {
   const [, navigate] = useLocation();
@@ -26,7 +27,7 @@ export default function VerifyEmailPage() {
         if (d.success) {
           queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
           setStatus("success");
-          setTimeout(() => navigate("/dashboard"), 3000);
+          setTimeout(() => navigate(profileCreationPath), 3000);
         } else {
           setErrorMsg(d.error || "This verification link is invalid or has expired.");
           setStatus("error");
@@ -66,10 +67,10 @@ export default function VerifyEmailPage() {
             <div className="py-4">
               <CheckCircle className="h-12 w-12 text-[#22C55E] mx-auto mb-4" />
               <p className="font-bold text-black mono uppercase tracking-wider">Email Verified!</p>
-              <p className="text-sm text-black/60 mono mt-2">Your account is active. Redirecting to your dashboard...</p>
-              <Link href="/dashboard">
+              <p className="text-sm text-black/60 mono mt-2">Your account is active. Redirecting to your page builder...</p>
+              <Link href={profileCreationPath}>
                 <Button className="mt-6 w-full bg-black hover:bg-black/80 text-white font-bold py-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none">
-                  Go to Dashboard →
+                  Build my page →
                 </Button>
               </Link>
             </div>

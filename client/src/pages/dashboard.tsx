@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { profileCreationPath } from "@/lib/profile-builder-rollout";
 import { buildLinkedInPost } from "@/lib/shareCopy";
 import {
   Edit, Eye, Globe, LogOut,
@@ -175,7 +176,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <h2 className="text-2xl font-bold">
-                          {profile?.displayName || user?.name || "Your Digital Twin"}
+                          {profile?.displayName || user?.name || "Your evidence page"}
                         </h2>
                         <p className="mono text-sm text-black/60">
                           {profile?.roleTitle || "No role set yet"}
@@ -202,14 +203,14 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center gap-3 flex-wrap">
                     {!profile && (
-                      <Link href="/questionnaire">
+                      <Link href={profileCreationPath}>
                         <button className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-start-questionnaire">
-                          <span className="flex items-center gap-2"><FileText className="h-4 w-4" />START QUESTIONNAIRE</span>
+                          <span className="flex items-center gap-2"><FileText className="h-4 w-4" />BUILD MY PAGE</span>
                         </button>
                       </Link>
                     )}
                     {profile?.status === "draft" && (
-                      <Link href="/questionnaire">
+                      <Link href={profileCreationPath}>
                         <button className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-continue-questionnaire">
                           <span className="flex items-center gap-2"><Edit className="h-4 w-4" />CONTINUE SETUP</span>
                         </button>
@@ -278,24 +279,22 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* 2. Questionnaire + Deepen Your Twin — side by side */}
+              {/* 2. Page builder + legacy deepening tools — side by side */}
               <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 bg-[#E8A75D] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                     <FileText className="h-6 w-6 text-black" />
                   </div>
-                  <h3 className="font-bold text-lg">QUESTIONNAIRE</h3>
+                  <h3 className="font-bold text-lg">PAGE BUILDER</h3>
                 </div>
                 <p className="mono text-sm text-black/60 mb-4">
-                  {profile?.status === "draft"
-                    ? "Fill this in to build your Twin. It takes about 10 minutes — AI does the heavy lifting."
-                    : profile
-                    ? "Update your career information, stories, and answers."
-                    : "Tell us about your career to build your Digital Twin."}
+                  {profile
+                    ? "Review your page, improve selected sections, and control the version visitors see."
+                    : "Upload your CV and see a finished first page before answering more questions."}
                 </p>
-                <Link href="/questionnaire">
+                <Link href={profileCreationPath}>
                   <button className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none" data-testid="button-goto-questionnaire">
-                    <span className="flex items-center gap-2">{profile ? "EDIT ANSWERS" : "GET STARTED"}<ArrowRight className="h-3 w-3" /></span>
+                    <span className="flex items-center gap-2">{profile ? "OPEN BUILDER" : "GET STARTED"}<ArrowRight className="h-3 w-3" /></span>
                   </button>
                 </Link>
               </div>
@@ -306,12 +305,12 @@ export default function DashboardPage() {
                     <div className="w-12 h-12 bg-[#A78BFA] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                       <Mic className="h-6 w-6 text-black" />
                     </div>
-                    <h3 className="font-bold text-lg">DEEPEN YOUR TWIN</h3>
+                    <h3 className="font-bold text-lg">ADD MORE EVIDENCE</h3>
                   </div>
                   <p className="mono text-sm text-black/60 mb-4">
                     {(profile as any).lastDeepenedAt
-                      ? `Last deepened: ${new Date((profile as any).lastDeepenedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}. Go deeper to sharpen your Twin further — just speak, no typing needed.`
-                      : "Your Twin is only as good as the stories inside it. Speak naturally — no typing, no prep. A voice interview gives your Twin real depth and your actual voice."}
+                      ? `Last updated: ${new Date((profile as any).lastDeepenedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}. Add another specific story or decision by speaking naturally.`
+                      : "Add a specific story, decision, or result by speaking naturally. No typing or preparation is needed."}
                   </p>
                   <Link href="/interview">
                     <button className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">
@@ -446,9 +445,9 @@ export default function DashboardPage() {
                   <div className="mono text-xs text-black/60 uppercase tracking-widest mb-4">// how to publish</div>
                   <div className="grid grid-cols-3 gap-3 mb-5">
                     {[
-                      { step: "1", label: "Fill Questionnaire", done: true },
-                      { step: "2", label: "Submit → AI Builds Twin", done: false },
-                      { step: "3", label: "Publish Your Profile", done: false },
+                      { step: "1", label: "Upload Your CV", done: true },
+                      { step: "2", label: "Review Your Page", done: false },
+                      { step: "3", label: "Approve and Publish", done: false },
                     ].map(({ step, label, done }) => (
                       <div key={step} className={`border-[3px] border-black p-3 flex items-center gap-3 ${done ? "bg-white" : "bg-white/50"}`}>
                         <div className={`w-8 h-8 border-[2px] border-black flex items-center justify-center font-bold text-sm shrink-0 ${done ? "bg-[#22C55E]" : "bg-white"}`}>{step}</div>
@@ -457,11 +456,11 @@ export default function DashboardPage() {
                     ))}
                   </div>
                   <p className="mono text-sm text-black/70 mb-4">
-                    You're in step 1. Complete the questionnaire — it takes about 10 minutes. When you submit, AI builds your Twin.
+                    Open the builder to see your page, improve it if useful, and approve the exact version before publishing.
                   </p>
-                  <Link href="/questionnaire">
+                  <Link href={profileCreationPath}>
                     <button className="bg-black text-white px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-800 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
-                      <span className="flex items-center gap-2">Continue Questionnaire<ArrowRight className="h-4 w-4" /></span>
+                      <span className="flex items-center gap-2">Open Page Builder<ArrowRight className="h-4 w-4" /></span>
                     </button>
                   </Link>
                 </div>

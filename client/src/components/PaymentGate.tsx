@@ -18,12 +18,12 @@ const tiers = [
     price: "$0",
     icon: Zap,
     features: [
-      "AI_PORTFOLIO + CHATBOT",
+      "EVIDENCE_PAGE + OPTIONAL_AI_EXPLORER",
       "PERSONAL_PAGE (myproxy.work/you)",
       "7_DAYS_OF_EDITS_AFTER_PUBLISH",
       "BASIC_VIEW_COUNT",
     ],
-    useCase: "USE_CASE: Try it out | See your Twin in action",
+    useCase: "USE_CASE: Build and share your first evidence page",
   },
   {
     key: "pro",
@@ -160,11 +160,11 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
                 <ul className="mono text-sm text-black/70 space-y-1">
                   <li>&#8226; You'll have <strong>7 days</strong> to make edits after publishing</li>
                   <li>&#8226; After that, upgrade to Pro ($49) for unlimited edits</li>
-                  <li>&#8226; Make sure your questionnaire answers are detailed and accurate</li>
+                  <li>&#8226; Make sure the page wording is accurate and approved</li>
                 </ul>
               </div>
               <p className="mono text-xs text-black/50">
-                Tip: Go back and review your questionnaire if you want to refine anything before going live.
+                Tip: Go back to the builder if you want to refine anything before going live.
               </p>
             </div>
             <div className="flex gap-4 justify-center flex-wrap">
@@ -203,9 +203,9 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
   return (
     <div className="md:col-span-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
       <div className="text-center mb-8">
-        <div className="mono text-xs text-black/50 mb-2 uppercase tracking-widest">&#9698; Your Twin is Ready</div>
+        <div className="mono text-xs text-black/50 mb-2 uppercase tracking-widest">&#9698; Your Evidence Page is Ready</div>
         <h2 className="text-3xl font-bold mb-2 text-black" data-testid="text-payment-title">
-          PUBLISH YOUR DIGITAL TWIN
+          PUBLISH YOUR PAGE
         </h2>
         <p className="mono text-sm text-black/60 uppercase tracking-wider">
           Your personal page at <strong>myproxy.work/portfolio/{username || "yourname"}</strong>

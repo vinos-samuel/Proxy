@@ -10,7 +10,9 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "seed:test": "tsx script/seed-test.ts",
-    "check:prose": "tsx script/check-prose.ts"
+    "check:prose": "tsx script/check-prose.ts",
+    "test:profile-builder": "node --import tsx script/test-profile-builder.ts",
+    "eval:builder-judgments": "node --import tsx script/evaluate-builder-judgments.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
@@ -50,6 +52,7 @@
     "@types/compression": "^1.8.1",
     "@types/cookie-parser": "^1.4.10",
     "@types/multer": "^2.0.0",
+    "@typesafe-ai/sdk": "^0.6.0",
     "@uppy/aws-s3": "^5.1.0",
     "@uppy/core": "^5.2.0",
     "@uppy/dashboard": "^5.1.1",
@@ -91,6 +94,7 @@
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.2",
     "resend": "^6.9.3",
+    "sharp": "^0.35.4",
     "stripe": "^20.4.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",

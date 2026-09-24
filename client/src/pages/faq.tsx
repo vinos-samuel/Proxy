@@ -13,28 +13,27 @@ interface FaqItem {
 export default function FAQPage() {
   const faqs: FaqItem[] = [
     {
-      q: "What is an AI Digital Twin for your career?",
-      plainText: "A Digital Twin is a personalized AI-powered web page that represents your professional experience. It goes beyond a static resume or LinkedIn profile - it features an interactive AI chatbot trained on your career history, achievements, and communication style. Recruiters and hiring managers can visit your Digital Twin, ask questions in natural language, and get specific, accurate answers about your skills, projects, and results. Think of it as a 24/7 career representative that speaks in your voice.",
+      q: "What does Proxy make?",
+      plainText: "Proxy turns your CV and experience into a professional evidence page you can share with employers, clients, or people making introductions. You see a finished first page quickly, improve selected sections, approve the exact public version, and choose whether to enable an AI explorer.",
       a: (
         <div className="space-y-4">
-          <p>A Digital Twin is a <strong className="text-black">personalized AI-powered web page</strong> that represents your professional experience. It goes beyond a static resume or LinkedIn profile.</p>
-          <p>It features an <strong className="text-black">interactive AI chatbot</strong> trained on your career history, achievements, and communication style. Recruiters and hiring managers can visit your Digital Twin, ask questions in natural language, and get specific, accurate answers about your skills, projects, and results.</p>
-          <p>Think of it as a <strong className="text-black">24/7 career representative</strong> that speaks in your voice.</p>
+          <p>Proxy creates a <strong className="text-black">professional evidence page</strong> from your CV and the experience you choose to add.</p>
+          <p>You get a complete first version before answering more questions. You can improve one section at a time, edit it yourself, choose a design, and approve the exact version that becomes public.</p>
+          <p>The <strong className="text-black">Ask about my work</strong> AI explorer is optional and off by default.</p>
         </div>
       ),
     },
     {
       q: "How is Proxy different from LinkedIn or a traditional resume?",
-      plainText: "LinkedIn shows your job history. A resume lists your credentials in a static PDF. Proxy creates an interactive experience where people can have a real conversation with your career. Your AI Digital Twin answers specific questions, shares project details with real metrics, and represents your thinking and approach - not just your job titles. It's the difference between reading a menu and talking to the chef.",
+      plainText: "LinkedIn shows your job history and a resume lists credentials in a static PDF. Proxy turns supported facts from your CV into a designed evidence page that makes projects, decisions, and results easy to scan. You can also enable an optional AI explorer after you approve the public content it may use.",
       a: (
         <div className="space-y-4">
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">LinkedIn</strong> shows your job history</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">A resume</strong> lists your credentials in a static PDF</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Proxy</strong> creates an interactive experience where people can have a real conversation with your career</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Proxy</strong> turns supported experience into a designed page built around evidence</span></li>
           </ul>
-          <p>Your AI Digital Twin answers specific questions (<em>"Tell me about a time you scaled a team"</em>), shares project details with real metrics, and represents your thinking and approach — not just your job titles.</p>
-          <p>It's the difference between reading a menu and talking to the chef.</p>
+          <p>The page shows what you did, how you approached the work, and what changed. If you enable the optional AI explorer, visitors can ask follow-up questions using only the public information you approved.</p>
         </div>
       ),
     },
@@ -57,12 +56,12 @@ export default function FAQPage() {
     },
     {
       q: "How does Proxy help me get referrals?",
-      plainText: "Getting referred requires someone who understands your work well enough to vouch for you — and most connections don't. They want to help, but they don't know enough to make a credible referral. Proxy fixes this. When someone offers to help, share your Proxy link instead of your CV. They can ask your AI anything — what you've built, how you work, what kind of problems you solve. They get a real picture of your capabilities in minutes, and can refer you with genuine confidence instead of a vague endorsement. Every published profile also gets a personal referral link on the dashboard — share it with your network and track how many people sign up from your recommendation.",
+      plainText: "A useful referral requires enough evidence for someone to explain why you fit. Share your Proxy page so a connection can review specific projects, outcomes, and ways of working before making an introduction. If you enable the optional AI explorer, they can also ask follow-up questions using your approved public information.",
       a: (
         <div className="space-y-4">
           <p>A referral only works if your connection understands your work well enough to stake their reputation on it.</p>
-          <p>Most people want to help — they just don't have the context to make a credible introduction. Sending a CV doesn't solve that. A two-page document can't answer follow-up questions or explain the nuance of what you've actually built.</p>
-          <p>Share your Proxy link instead. Your connection can chat with your AI, ask about specific projects, understand how you think, and get a genuine sense of what you'd bring to a role. They go from "I vaguely know this person" to "I can genuinely vouch for this person" — and the referral actually happens.</p>
+          <p>Most people want to help, but they need enough context to make a credible introduction. A Proxy page gives them specific projects, outcomes, and ways of working they can point to.</p>
+          <p>If you enable the optional AI explorer, they can also ask follow-up questions using only the public information you approved.</p>
           <p className="border-l-[3px] border-[#22C55E] pl-4"><strong className="text-black">The ask:</strong> <em>"Here's my Proxy link — it'll give you a real sense of what I do. If it resonates, I'd love your thoughts on who I should be talking to."</em></p>
           <p>Every published profile also gets a <strong className="text-black">personal referral link</strong> on the dashboard. Share it with your network — you can see exactly how many people signed up from your recommendation.</p>
         </div>
@@ -70,76 +69,75 @@ export default function FAQPage() {
     },
     {
       q: "How does the AI resume upload work?",
-      plainText: "When you sign up, you can upload your CV or resume in PDF format. Proxy's AI reads your entire document and automatically pre-fills your 11-step questionnaire with your career history, key achievements, skills, and professional summary. Instead of typing everything from scratch, you simply review what the AI extracted, make corrections, and add your personal stories and voice. Most users complete the entire setup in around 10 minutes thanks to AI pre-fill.",
+      plainText: "Upload a PDF CV and Proxy builds a complete first page from the experience, achievements, and skills it can support from that document. You can then edit directly or answer optional targeted questions to improve selected sections. Nothing becomes public until you approve and publish it.",
       a: (
         <div className="space-y-4">
-          <p>When you sign up, you can upload your CV or resume <strong className="text-black">(PDF format)</strong>. Proxy's AI reads your entire document and automatically pre-fills your 11-step questionnaire with:</p>
+          <p>Upload your CV or resume <strong className="text-black">(PDF format)</strong>. Proxy uses it to build a finished first page with:</p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Career history and role details</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Key achievements and metrics</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Skills and competencies</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Professional summary</span></li>
           </ul>
-          <p>Instead of typing everything from scratch, you simply <strong className="text-black">review what the AI extracted</strong>, make corrections, and add your personal stories and voice.</p>
-          <p>Most users complete the entire setup in <strong className="text-black">around 10 minutes</strong> thanks to AI pre-fill.</p>
+          <p>You can <strong className="text-black">review and edit the page directly</strong>, or answer an optional question when one section needs stronger evidence.</p>
+          <p>Nothing becomes public until you approve the exact page and publish it.</p>
         </div>
       ),
     },
     {
-      q: "How long does it take to build my Digital Twin?",
-      plainText: "Most users complete their profile in around 10 minutes. After uploading your CV, you choose your path: fill the guided 11-step questionnaire, or have a conversation with the AI — it's read your CV and interviews you naturally. Either path covers career history, war stories, achievements, skills, and communication style. Then add a headshot and optional video. Once you submit, the AI processes your data and generates your portfolio within minutes. After payment, your Digital Twin goes live instantly.",
+      q: "How long does it take to see my page?",
+      plainText: "Proxy starts building the page as soon as your PDF CV is uploaded. Processing time depends on the document and service load, so Proxy does not promise a fixed time. You see the first usable page before any optional improvement questions and can publish without completing a questionnaire.",
       a: (
         <div className="space-y-4">
-          <p>Most users complete their profile in <strong className="text-black">around 10 minutes</strong>. After uploading your CV, you pick your path:</p>
+          <p>Proxy starts building as soon as you upload your CV. Processing time depends on the document and service load, so we do not promise a fixed time.</p>
           <div className="space-y-3 ml-1">
             <div className="flex gap-3">
               <span className="bg-[#22C55E] text-black font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">1</span>
-              <span><strong className="text-black">Upload your CV</strong> — AI pre-fills most of your data automatically</span>
+              <span><strong className="text-black">Upload your CV</strong> — Proxy extracts supported experience and skills</span>
             </div>
             <div className="flex gap-3">
               <span className="bg-[#22C55E] text-black font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">2</span>
-              <span><strong className="text-black">Choose your path</strong> — fill the guided questionnaire (11 steps) or chat with the AI. Same result, different experience.</span>
+              <span><strong className="text-black">See the page</strong> — review a finished first version before answering more questions</span>
             </div>
             <div className="flex gap-3">
               <span className="bg-[#22C55E] text-black font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">3</span>
-              <span><strong className="text-black">Add your media</strong> — headshot and optional 60-second video introduction</span>
+              <span><strong className="text-black">Improve if useful</strong> — edit directly or answer one targeted question</span>
             </div>
           </div>
-          <p>Once you submit, the AI processes your data and generates your portfolio page within minutes. After payment, your Digital Twin <strong className="text-black">goes live instantly</strong>.</p>
+          <p>You can stop when the page is useful. There is no mandatory question count.</p>
         </div>
       ),
     },
     {
-      q: "Can I build my Twin through a conversation instead of filling forms?",
-      plainText: "Yes. After uploading your CV, you choose between two paths: fill the guided questionnaire (11 structured steps) or chat with the AI. The conversation path feels like talking to a smart colleague who's already read your CV. It asks about your career, listens to your answers, and builds your profile from what you share naturally. No bullet points, no structured fields — just talk. Most people find it faster and less stressful. You can also start with the conversation and review the filled questionnaire afterwards.",
+      q: "Do I have to complete a questionnaire?",
+      plainText: "No. Proxy builds a complete first page from your CV before asking optional improvement questions. You can edit any wording directly, answer one useful question at a time, skip questions, or publish without answering more. Existing users can still access their earlier questionnaire content.",
       a: (
         <div className="space-y-4">
-          <p>Yes. After uploading your CV, you choose between two paths:</p>
+          <p><strong className="text-black">No.</strong> Proxy builds a complete first page from your CV before asking anything else.</p>
           <div className="space-y-3 ml-1">
             <div className="flex gap-3">
               <span className="bg-black text-white font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">A</span>
-              <span><strong className="text-black">Guided questionnaire</strong> — 11 structured steps, you fill in the fields</span>
+              <span><strong className="text-black">Edit directly</strong> — change any headline, summary, project, or role wording yourself</span>
             </div>
             <div className="flex gap-3">
               <span className="bg-[#22C55E] text-black font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">B</span>
-              <span><strong className="text-black">Conversation</strong> — the AI has read your CV and interviews you naturally. You just talk.</span>
+              <span><strong className="text-black">Answer one useful question</strong> — see the exact section improve, then keep, edit, skip, or undo</span>
             </div>
           </div>
-          <p>The conversation path feels like a smart colleague asking about your career — not a form, not a job interview. It asks about the real stuff: the decision you made under pressure, what the team you built actually looked like, what happened after that career move. The more naturally you talk, the better your Twin represents you.</p>
-          <p>Afterwards, you can review and edit the filled questionnaire before submitting.</p>
+          <p>You can stop answering whenever the page is useful. There is no required question count.</p>
         </div>
       ),
     },
     {
       q: "How much does Proxy cost?",
-      plainText: "Proxy has three plans. Free gives you a published AI Digital Twin with chatbot and a personal page — no credit card needed. Drafts are unlimited edits before you publish. Once you publish free, you get 7 days of edits, then it's locked until you upgrade. Pro at $49 (one-time) gives you unlimited edits and a full analytics dashboard showing who's visiting and what they ask. Concierge at $499 (one-time) includes a personal discovery call, professional copywriting, custom branding, and hands-on optimization.",
+      plainText: "Proxy has three plans. Free gives you a published professional page, with an optional AI explorer, and 7 days of edits after publishing. Pro at $49 one-time adds unlimited edits and full analytics. Concierge at $499 one-time adds a discovery call, professional copywriting, custom branding, and hands-on optimization.",
       a: (
         <div className="space-y-4">
           <p>Start free, upgrade when you're ready:</p>
           <div className="space-y-3 ml-1">
             <div className="flex gap-3 items-start">
               <span className="bg-[#22C55E] text-black font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">FREE</span>
-              <span><strong className="text-black">Free</strong> — Published AI portfolio + chatbot + personal page. Unlimited edits while in draft; 7 days of edits after you publish. No credit card needed.</span>
+              <span><strong className="text-black">Free</strong> — Published evidence page with an optional AI explorer. Unlimited edits while in draft; 7 days of edits after you publish. No credit card needed.</span>
             </div>
             <div className="flex gap-3 items-start">
               <span className="bg-black text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">$49</span>
@@ -209,50 +207,38 @@ export default function FAQPage() {
     },
     {
       q: "How does the AI chatbot on my profile work?",
-      plainText: "Your Digital Twin includes an AI chatbot powered by advanced language models, trained specifically on your career data. When someone visits your profile and asks a question, the AI responds in your voice, using your real examples, metrics, and stories. It handles general exploratory questions, specific project deep-dives, transferable skills queries, and gracefully redirects off-topic questions. The chatbot uses your chosen communication style and your actual vocabulary.",
+      plainText: "The AI explorer is optional and off by default. If you enable it, visitors can ask questions about the public page you approved. It does not receive your raw CV, private answers, or unapproved drafts. You can turn it off again from the builder.",
       a: (
         <div className="space-y-4">
-          <p>Your Digital Twin includes an <strong className="text-black">AI chatbot powered by advanced language models</strong>, trained specifically on your career data.</p>
-          <p>When someone visits your profile and asks a question — like <em>"What's your experience with team scaling?"</em> or <em>"Walk me through a challenging project"</em> — the AI responds in your voice, using your real examples, metrics, and stories.</p>
-          <p>The chatbot handles four types of questions:</p>
-          <ul className="space-y-2 ml-1">
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">General exploratory</strong> — overview of your capabilities</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Specific project deep-dives</strong> — detailed walkthroughs with metrics</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Transferable skills</strong> — honest about gaps, shows relevance</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Off-topic</strong> — graceful redirect to your expertise</span></li>
-          </ul>
-          <p>It uses your chosen communication style (direct, warm, technical, or casual) and your actual vocabulary.</p>
+          <p>The <strong className="text-black">Ask about my work</strong> explorer is optional and off by default.</p>
+          <p>If you turn it on, visitors can ask follow-up questions about the public page you approved. The explorer receives that approved public content only.</p>
+          <p>Your raw CV, private improvement answers, skipped questions, and unapproved drafts stay outside the public chat context. You can turn the explorer off again at any time.</p>
         </div>
       ),
     },
     {
-      q: "Can recruiters really have a conversation with my AI?",
-      plainText: "Yes. Your Digital Twin is a public web page with a built-in chat interface. You share the link in email signatures, LinkedIn messages, job applications, or direct outreach, and anyone who visits can ask questions and get instant, detailed responses about your career. It's designed to give recruiters and hiring managers a reason to engage with your profile rather than just filing it away. Every conversation is an opportunity to make an impression, even when you're not available.",
+      q: "Can recruiters ask questions about my work?",
+      plainText: "Yes, if you enable the optional AI explorer. The main product is the evidence page and it works without chat. When the explorer is on, visitors can ask follow-up questions grounded in the public content you approved.",
       a: (
         <div className="space-y-4">
-          <p><strong className="text-black">Yes.</strong> Your Digital Twin is a public web page with a built-in chat interface.</p>
-          <p>You share the link — in email signatures, LinkedIn messages, job applications, or direct outreach — and anyone who visits can <strong className="text-black">ask questions and get instant, detailed responses</strong> about your career.</p>
-          <p>It's designed to give recruiters and hiring managers a reason to <strong className="text-black">engage</strong> with your profile rather than just filing it away. Every conversation is an opportunity to make an impression, even when you're not available.</p>
+          <p><strong className="text-black">Yes, if you choose to enable it.</strong></p>
+          <p>The evidence page is complete without chat. When the optional explorer is on, a recruiter can ask follow-up questions grounded in the exact public version you approved.</p>
         </div>
       ),
     },
     {
       q: "What do I need to provide to get started?",
-      plainText: "At minimum, you need your CV/resume and around 10 minutes to complete the intake questionnaire. The questionnaire covers: professional summary and positioning, career history with key facts per role, 3 or more detailed war stories with challenge approach and result, key achievements with metrics, technical skills, communication style and vocabulary preferences, and chatbot personality settings. For best results, we also recommend a professional headshot and a 60-90 second video introduction.",
+      plainText: "You only need a PDF CV to see the first page. Proxy extracts supported experience, projects, results, and skills. After that, you can edit directly or answer optional targeted questions. A portrait is optional.",
       a: (
         <div className="space-y-4">
-          <p>At minimum: your <strong className="text-black">CV/resume</strong> and around <strong className="text-black">10 minutes</strong> to complete the intake questionnaire.</p>
-          <p>The questionnaire covers:</p>
+          <p>At minimum, you need a <strong className="text-black">PDF CV or resume</strong>.</p>
+          <p>Proxy uses supported information from it to create:</p>
           <ul className="space-y-2 ml-1">
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Professional summary and positioning</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Career history with key facts per role</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>3+ detailed war stories (challenge, approach, result)</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Key achievements with metrics</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Technical skills</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Communication style and vocabulary preferences</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Chatbot personality settings</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Your positioning and career history</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Selected projects, achievements, and supported results</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Your skills and a finished first design</span></li>
           </ul>
-          <p>For best results, we also recommend a <strong className="text-black">professional headshot</strong> and a <strong className="text-black">60-90 second video introduction</strong>.</p>
+          <p>After you see the page, you can edit it directly or answer optional questions that improve one section at a time. A portrait is optional.</p>
         </div>
       ),
     },
@@ -326,40 +312,40 @@ export default function FAQPage() {
       ),
     },
     {
-      q: "What makes a good AI Digital Twin?",
-      plainText: "The best Digital Twins have three things: specific stories with real metrics (not generic claims), a distinctive communication style that sounds like you (not corporate boilerplate), and enough detail for the AI to give substantive answers. The more specific your war stories, the better your AI performs. For example, instead of 'improved team performance', provide 'reduced delivery time by 35% across a 12-person engineering team by implementing sprint retrospectives and automated testing pipelines'. Numbers and specifics make your Twin credible and impressive.",
+      q: "What makes a strong evidence page?",
+      plainText: "A strong page uses specific supported examples, explains the decisions or approach behind the work, and states the result without inventing precision. Real numbers help when you have them. Clear qualitative outcomes are also valid evidence.",
       a: (
         <div className="space-y-4">
-          <p>The best Digital Twins have three things:</p>
+          <p>A strong evidence page has three things:</p>
           <div className="space-y-3 ml-1">
             <div className="flex gap-3">
               <span className="bg-[#22C55E] text-black font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">1</span>
-              <span><strong className="text-black">Specific stories with real metrics</strong> — not generic claims</span>
+              <span><strong className="text-black">Specific, supported examples</strong> — not generic claims</span>
             </div>
             <div className="flex gap-3">
               <span className="bg-[#22C55E] text-black font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">2</span>
-              <span><strong className="text-black">A distinctive communication style</strong> — that sounds like you, not corporate boilerplate</span>
+              <span><strong className="text-black">Your actual approach</strong> — the decisions and actions behind the result</span>
             </div>
             <div className="flex gap-3">
               <span className="bg-[#22C55E] text-black font-bold text-xs w-6 h-6 flex items-center justify-center border-[2px] border-black flex-shrink-0 mt-0.5">3</span>
-              <span><strong className="text-black">Enough detail</strong> — for the AI to give substantive answers</span>
+              <span><strong className="text-black">An honest outcome</strong> — quantitative when supported, qualitative when that is what the evidence shows</span>
             </div>
           </div>
           <p className="border-l-[3px] border-black/20 pl-4 text-sm">
             <strong className="text-black">Example:</strong> Instead of <em>"improved team performance"</em>, provide <em>"reduced delivery time by 35% across a 12-person engineering team by implementing sprint retrospectives and automated testing pipelines"</em>.
           </p>
-          <p>Numbers and specifics make your Twin credible and impressive.</p>
+          <p>Never add a number only to make the story sound stronger. Specificity builds trust; unsupported precision removes it.</p>
         </div>
       ),
     },
     {
       q: "Do I need technical skills to use Proxy?",
-      plainText: "No. Proxy is designed for non-technical professionals. The entire process is guided: upload your CV, answer questionnaire steps, upload photos, and publish. There's no coding, no design work, and no technical setup required. The AI handles all the complex work of building your interactive portfolio and training your personal chatbot.",
+      plainText: "No. Upload a PDF CV, review the first page, make any useful edits, approve it, and publish. Proxy handles the page structure and design. No coding or technical setup is required.",
       a: (
         <div className="space-y-4">
           <p><strong className="text-black">No.</strong> Proxy is designed for non-technical professionals.</p>
-          <p>The entire process is guided: upload your CV, answer questionnaire steps, upload photos, and publish. There's <strong className="text-black">no coding, no design work, and no technical setup</strong> required.</p>
-          <p>The AI handles all the complex work of building your interactive portfolio and training your personal chatbot.</p>
+          <p>Upload a PDF CV, review the first page, make any useful edits, approve it, and publish. There is <strong className="text-black">no coding, design work, or technical setup</strong> required.</p>
+          <p>Proxy handles the structure and design while you keep control of the exact public content.</p>
         </div>
       ),
     },
@@ -404,7 +390,7 @@ export default function FAQPage() {
 
   // Page title for SEO
   useEffect(() => {
-    document.title = "FAQ - Proxy | AI Digital Twin & Career Portfolio Questions";
+    document.title = "FAQ - Proxy | Professional Evidence Page Questions";
   }, []);
 
   // FAQ JSON-LD structured data for AEO (uses plainText for clean schema)
@@ -464,7 +450,7 @@ export default function FAQPage() {
               Questions & <span className="text-[#22C55E]">Answers</span>
             </h1>
             <p className="mono text-lg text-black/60 max-w-2xl mx-auto leading-relaxed">
-              Everything you need to know about building your AI Digital Twin with Proxy
+              Everything you need to know about building and sharing your professional evidence page
             </p>
           </motion.div>
         </div>
@@ -518,9 +504,9 @@ export default function FAQPage() {
       {/* CTA */}
       <section className="px-6 py-16 border-b-[3px] border-black bg-[#E8E8E3]">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4 uppercase tracking-tight">Ready to build your Digital Twin?</h2>
-          <p className="mono text-base text-black/60 mb-8">Join mid to senior professionals who are already using AI to represent their careers 24/7.</p>
-          <Link href="/register">
+          <h2 className="text-3xl font-bold mb-4 uppercase tracking-tight">Ready to prepare your evidence?</h2>
+          <p className="mono text-base text-black/60 mb-8">Upload your CV and see the page before you create an account.</p>
+          <Link href="/try">
             <button className="bg-black text-white px-8 py-4 font-bold text-sm uppercase tracking-widest border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)] hover:bg-[#22C55E] hover:text-black hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all">
               Get Started &rarr;
             </button>

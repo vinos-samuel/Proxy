@@ -1,10 +1,10 @@
 import { db } from "./db";
 import { eq, desc, sql, count, and } from "drizzle-orm";
 import {
-  customers, twinProfiles, factBanks, knowledgeEntries, chatUsage, payments, chatMessages, blogPosts,
+  customers, twinProfiles, profileDocuments, factBanks, knowledgeEntries, chatUsage, payments, chatMessages, blogPosts,
   blogSubscribers,
   jobCompanies, jobContacts, jobApplications,
-  type Customer, type InsertCustomer, type TwinProfile, type InsertTwinProfile,
+  type Customer, type InsertCustomer, type TwinProfile, type InsertTwinProfile, type ProfileDocumentRow,
   type FactBank, type InsertFactBank, type KnowledgeEntry, type InsertKnowledgeEntry,
   type Payment, type BlogPost,
   type BlogSubscriber, type InsertBlogSubscriber,
@@ -12,6 +12,7 @@ import {
   type JobContact, type InsertJobContact,
   type JobApplication, type InsertJobApplication,
 } from "@shared/schema";
+import type { ProfileDocument } from "@shared/profile-document";
 
 export interface IStorage {
   // Customers
@@ -30,6 +31,13 @@ export interface IStorage {
   updateProfileStatus(id: string, status: string): Promise<void>;
 
   updateProfileById(id: string, data: Partial<InsertTwinProfile>): Promise<void>;
+
+  // Page-first profile documents
+  getProfileDocumentByProfileId(profileId: string): Promise<ProfileDocumentRow | undefined>;
+  upsertProfileDocument(profileId: string, document: ProfileDocument): Promise<ProfileDocumentRow>;
+  updateWorkingProfileDocument(profileId: string, revision: number, document: ProfileDocument): Promise<ProfileDocumentRow | undefined>;
+  publishProfileDocument(profileId: string, revision: number): Promise<ProfileDocumentRow | undefined>;
+  restorePreviousProfileDocument(profileId: string, revision: number): Promise<ProfileDocumentRow | undefined>;
 
   // Fact Banks
   getFactBanksByProfileId(profileId: string): Promise<FactBank[]>;
@@ -293,6 +301,103 @@ export class DatabaseStorage implements IStorage {
 
   async updateProfileById(id: string, data: Partial<InsertTwinProfile>): Promise<void> {
     await db.update(twinProfiles).set({ ...data, updatedAt: new Date() }).where(eq(twinProfiles.id, id));
+  }
+
+  async getProfileDocumentByProfileId(profileId: string): Promise<ProfileDocumentRow | undefined> {
+    const [document] = await db
+      .select()
+      .from(profileDocuments)
+      .where(eq(profileDocuments.twinProfileId, profileId));
+    return document;
+  }
+
+  async upsertProfileDocument(profileId: string, document: ProfileDocument): Promise<ProfileDocumentRow> {
+    const [row] = await db
+      .insert(profileDocuments)
+      .values({
+        twinProfileId: profileId,
+        workingDocument: document,
+        schemaVersion: document.schemaVersion,
+      })
+      .onConflictDoUpdate({
+        target: profileDocuments.twinProfileId,
+        set: {
+          workingDocument: document,
+          schemaVersion: document.schemaVersion,
+          revision: sql`${profileDocuments.revision} + 1`,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return row;
+  }
+
+  async updateWorkingProfileDocument(
+    profileId: string,
+    revision: number,
+    document: ProfileDocument,
+  ): Promise<ProfileDocumentRow | undefined> {
+    const [row] = await db
+      .update(profileDocuments)
+      .set({
+        workingDocument: document,
+        schemaVersion: document.schemaVersion,
+        revision: sql`${profileDocuments.revision} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(profileDocuments.twinProfileId, profileId),
+        eq(profileDocuments.revision, revision),
+      ))
+      .returning();
+    return row;
+  }
+
+  async publishProfileDocument(profileId: string, revision: number): Promise<ProfileDocumentRow | undefined> {
+    const [row] = await db
+      .update(profileDocuments)
+      .set({
+        previousPublishedDocument: profileDocuments.publishedDocument,
+        publishedDocument: profileDocuments.workingDocument,
+        publishedRevision: revision,
+        publishedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(profileDocuments.twinProfileId, profileId),
+        eq(profileDocuments.revision, revision),
+      ))
+      .returning();
+    return row;
+  }
+
+  async restorePreviousProfileDocument(profileId: string, revision: number): Promise<ProfileDocumentRow | undefined> {
+    const [current] = await db
+      .select()
+      .from(profileDocuments)
+      .where(and(
+        eq(profileDocuments.twinProfileId, profileId),
+        eq(profileDocuments.revision, revision),
+      ));
+    if (!current?.previousPublishedDocument) return undefined;
+
+    const [row] = await db
+      .update(profileDocuments)
+      .set({
+        workingDocument: current.previousPublishedDocument,
+        previousPublishedDocument: current.publishedDocument,
+        publishedDocument: current.previousPublishedDocument,
+        revision: sql`${profileDocuments.revision} + 1`,
+        publishedRevision: sql`${profileDocuments.revision} + 1`,
+        publishedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(profileDocuments.twinProfileId, profileId),
+        eq(profileDocuments.revision, revision),
+      ))
+      .returning();
+    return row;
   }
 
   async getFactBanksByProfileId(profileId: string): Promise<FactBank[]> {

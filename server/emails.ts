@@ -91,9 +91,9 @@ export function verifyEmailTemplate(name: string, verifyUrl: string): string {
 
 export function welcomeEmailTemplate(name: string, dashboardUrl: string): string {
   const body = `
-    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">You're in. Let's build your Digital Twin.</h1>
+    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">You're in. Let's prepare your evidence page.</h1>
     <p style="font-size:15px;color:#555555;margin:0 0 28px 0;line-height:1.6;">
-      Welcome, ${name}. Your account is verified and ready. Your Digital Twin is a public AI profile that represents you — answering questions, sharing your story, and working for you 24/7.
+      Welcome, ${name}. Upload your CV and Proxy will build a finished first page. You decide what to improve, approve, and publish.
     </p>
 
     <!-- Steps -->
@@ -104,7 +104,7 @@ export function welcomeEmailTemplate(name: string, dashboardUrl: string): string
         </td>
         <td style="padding:14px 16px;background:#f5f5f0;border:2px solid #000000;border-left:0;border-bottom:0;">
           <strong style="font-size:14px;color:#000000;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Upload your CV</strong>
-          <span style="font-size:13px;color:#666666;">AI reads your resume and pre-fills your entire profile in seconds.</span>
+          <span style="font-size:13px;color:#666666;">Proxy reads your resume and builds the first page from your experience.</span>
         </td>
       </tr>
       <tr>
@@ -112,8 +112,8 @@ export function welcomeEmailTemplate(name: string, dashboardUrl: string): string
           <span style="font-weight:900;font-size:18px;color:#22C55E;font-family:monospace;">2</span>
         </td>
         <td style="padding:14px 16px;background:#ffffff;border:2px solid #000000;border-left:0;border-bottom:0;">
-          <strong style="font-size:14px;color:#000000;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Review &amp; personalise</strong>
-          <span style="font-size:13px;color:#666666;">Go through 11 short sections. Add your stories, skills, and voice.</span>
+          <strong style="font-size:14px;color:#000000;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Improve what matters</strong>
+          <span style="font-size:13px;color:#666666;">Edit directly or answer an optional question to strengthen one section.</span>
         </td>
       </tr>
       <tr>
@@ -121,15 +121,15 @@ export function welcomeEmailTemplate(name: string, dashboardUrl: string): string
           <span style="font-weight:900;font-size:18px;color:#22C55E;font-family:monospace;">3</span>
         </td>
         <td style="padding:14px 16px;background:#f5f5f0;border:2px solid #000000;border-left:0;">
-          <strong style="font-size:14px;color:#000000;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Go live</strong>
-          <span style="font-size:13px;color:#666666;">Publish your Twin at myproxy.work/username and share the link.</span>
+          <strong style="font-size:14px;color:#000000;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Approve and share</strong>
+          <span style="font-size:13px;color:#666666;">Approve the exact version, publish it at myproxy.work/username, and share the link.</span>
         </td>
       </tr>
     </table>
 
     ${ctaButton(dashboardUrl, "Start Building →")}
     <p style="font-size:13px;color:#888888;margin:0;line-height:1.6;">
-      Takes about 15–20 minutes. Your AI does most of the heavy lifting.
+      Your page stays private until you publish it.
     </p>
   `;
   return baseTemplate(body);
@@ -139,9 +139,9 @@ export function welcomeEmailTemplate(name: string, dashboardUrl: string): string
 
 export function profileLiveTemplate(name: string, profileUrl: string): string {
   const body = `
-    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your Digital Twin is live 🚀</h1>
+    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your evidence page is live 🚀</h1>
     <p style="font-size:15px;color:#555555;margin:0 0 24px 0;line-height:1.6;">
-      Congratulations, ${name}! Your AI-powered career profile is now published and ready to share with the world.
+      Congratulations, ${name}! Your professional evidence page is now published and ready to share.
     </p>
 
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:24px;">
@@ -158,15 +158,15 @@ export function profileLiveTemplate(name: string, profileUrl: string): string {
       <tr>
         <td style="padding:8px 0;font-size:14px;color:#555555;line-height:1.6;">
           <strong style="color:#22C55E;">→</strong> Share your link on LinkedIn, email signatures, and job applications<br>
-          <strong style="color:#22C55E;">→</strong> Ask colleagues to chat with your Twin and give feedback<br>
-          <strong style="color:#22C55E;">→</strong> Check your dashboard for visitor analytics and questions asked
+          <strong style="color:#22C55E;">→</strong> Ask trusted colleagues whether the page makes your strongest evidence clear<br>
+          <strong style="color:#22C55E;">→</strong> Check your dashboard for visitor activity
         </td>
       </tr>
     </table>
 
     ${ctaButton(profileUrl, "View My Profile →")}
     <p style="font-size:13px;color:#888888;margin:0;line-height:1.6;">
-      Your Twin is now working for you 24/7. Every visitor interaction shows up in your dashboard analytics.
+      You control the public version. Return to the builder whenever you want to prepare and approve an update.
     </p>
   `;
   return baseTemplate(body);

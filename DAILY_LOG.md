@@ -644,3 +644,29 @@
 **Blockers**
 - Two questions still open, not decided: category taxonomy, dedicated "Sources" schema field
 - Top-of-page share/subscribe not built yet — queued
+
+---
+
+## 2026-09-23 — Proxy page-first experience plan
+
+**Completed:** Planned the agreed positioning and creation redesign; no application code or schema changed. Inspected existing anonymous preview, registration claim, routing, profile storage, generation and publication. Saved `docs/proxy-next/IMPLEMENTATION_PLAN.md`, `docs/proxy-next/START_HERE.md`, and the generated visual reference under `docs/proxy-next/assets/`. Updated Current Sprint for continuity.
+
+**Decisions:** Same builder for `/try` and direct signup. CV produces a finished-looking page before optional targeted questions; answers propose section changes with keep/edit/undo. Editorial, Modern and Expressive compositions must work without images. Existing public URLs/designs/content and paid access are preserved. Private drafts separate from approved public snapshots. Public bot optional, new profiles default off. Jev for evaluated text judgments; no claim of visual input. No pricing change, consultants-only pivot or artwork dependency.
+
+**Next:** Execute with GPT-5.6 Sol, high reasoning, using START_HERE and Stages 0–5. Terra suitable for bounded follow-ups. Validate proposed schema/publication adapter against current code before migration. Provide screenshot evidence and a complete upload-to-publish flow for both entry routes.
+
+**Validation/scope:** Documentation/reference files only. No build, tests, migrations, production actions, external messages or Jev calls run. Production SQL and deployment remain Vinos's steps after implementation. Preserve the session table when reviewing Drizzle diffs.
+
+---
+
+## 2026-09-23 — Proxy page-first experience implementation
+
+**Completed:** Implemented the full page-first workflow from the PRD. `/try` and authenticated `/builder` now share the same workspace. CV upload creates a finished evidence page before optional questions. Added section proposals with keep/edit/skip/undo, direct editing, honest save states, three responsive styles, guest claim, revision safety, approval, public snapshots, optional approved-content-only AI, rollback, deterministic social cards, selected contact controls and funnel events. Updated landing, FAQ, dashboard and emails to the new positioning. Legacy public profiles, URLs, entitlements, Stripe webhook and `processQuestionnaire()` remain intact.
+
+**Jev:** Added guarded TypeSafe question ranking. Deterministic evaluation passed 20/20. The guarded live policy passed 20/20 and selected Jev once; provider failure or a missing key falls back without blocking the builder.
+
+**Validation:** Builder checks 20/20. Judgment cases 20/20. Production build passed. Visual QA completed at desktop, tablet and mobile widths across all three styles, including sparse/no-image, portrait and broken-image states. TypeScript remains at 42 known pre-existing errors, with none in the new builder code. `git diff --check` passed.
+
+**Next:** Commit/push local `main`, configure Replit secrets, create `profile_documents` in workspace and production using `docs/proxy-next/DEPLOYMENT.md`, build, redeploy and complete the smoke checks. Then pilot with five active candidates and five consultants. No production migration, deployment or outreach was performed in this session.
+
+**Audit follow-up:** Independent Claude audit confirmed the privacy, revision, publishing, payment, CSRF and AI-grounding architecture. Fixed its rollout findings: ready/published dashboard Publish and Preview return to `/preview`; the unfinished-owner recovery CTA follows the rollout flag. Added reduced-motion handling for the mobile builder panel and explicit focus-visible rings. Both `VITE_PROFILE_BUILDER_ROLLOUT=false npm run build` and the normal production build pass. Pre-existing PDF MIME-only validation and unused anonymous endpoints remain separate cleanup work.

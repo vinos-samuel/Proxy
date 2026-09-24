@@ -1,6 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 import { storage } from "./storage";
 import { logger } from "./logger";
+import { randomUUID } from "crypto";
+import type { ImprovementProposal, ImprovementQuestion, ProfileDocument } from "@shared/profile-document";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY!,
@@ -1074,7 +1076,7 @@ Return ONLY valid JSON. No markdown code fences, no explanations, no preamble.`;
 
 // ==================== QUESTIONNAIRE DRAFT GENERATOR ====================
 
-interface ParsedResume {
+export interface ParsedResume {
   name?: string;
   currentTitle?: string;
   email?: string;
@@ -1109,11 +1111,11 @@ Key Achievements: ${(parsedResume.achievements || []).map((a) => sanitizeForProm
 
 Generate:
 
-1. "positioning": A single JSON string containing EXACTLY 2 paragraphs, separated by a literal blank line — two newline characters ("\n\n") inside the string, nothing else on that line. First paragraph: ONE sentence, max 140 characters — a concrete positioning statement anchored to their actual domain, scope, and experience, not a slogan. Second paragraph: a specific proof story with concrete metrics, max 3 sentences. Example value (note the "\n\n" between paragraphs): "I run supply-chain ops for consumer brands — 18 years, 3 markets, $200M budgets.\n\nAt Acme Corp I cut freight costs 22% in 18 months by renegotiating carrier contracts across 3 regions, saving $4M a year."
+1. "positioning": A single JSON string containing EXACTLY 2 paragraphs, separated by a literal blank line — two newline characters ("\n\n") inside the string, nothing else on that line. First paragraph: ONE sentence, max 140 characters — a concrete positioning statement anchored to their actual domain, scope, and experience, not a slogan. Second paragraph: one specific proof story, max 3 sentences. Use metrics only when they are present in the supplied resume. A qualitative outcome is valid. Never invent a number, scope, employer, client, or result.
 
 2. "heroSubtitle": Reframe their title into 3 positioning facets separated by " • ". Not "Director of Sales" but "Revenue Architecture • Market Expansion • Client Partnership". Max 80 chars total.
 
-3. "stats": Extract EXACTLY 4 most impressive quantifiable achievements. Each must have:
+3. "stats": Extract up to 4 real quantifiable achievements. Return an empty array when the CV contains no reliable number. Each included item must have:
    - "value": The number with context (e.g., "98%", "$60M+", "3x", "15+")
    - "label": What it represents IN ALL CAPS (e.g., "COST SAVINGS DELIVERED", "MARKETS ACROSS APAC")
    - "icon": one of: "target", "chart", "users", "ribbon", "lightning", "globe"
@@ -1122,6 +1124,7 @@ Generate:
 
 ${WRITING_RULES}
 - Use first person ("I") for positioning only
+- Every factual claim must be supported by the resume data above
 - Return ONLY valid JSON, no markdown:
 
 {"positioning": "string", "heroSubtitle": "string", "stats": [{"value": "string", "label": "string", "icon": "string"}], "draftChatQuestions": ["string", "string"]}`;
@@ -1150,7 +1153,7 @@ ${WRITING_RULES}
       return {
         positioning: parsed.positioning || parsedResume.summary || "",
         heroSubtitle: parsed.heroSubtitle || parsedResume.currentTitle || "",
-        stats: Array.isArray(parsed.stats) ? parsed.stats.slice(0, 6) : [],
+        stats: Array.isArray(parsed.stats) ? parsed.stats.slice(0, 4) : [],
         careerTimeline: groupedCareer,
         draftChatQuestions: Array.isArray(parsed.draftChatQuestions) ? parsed.draftChatQuestions.slice(0, 2) : [],
       };
@@ -1177,6 +1180,89 @@ ${WRITING_RULES}
     stats: [],
     careerTimeline: groupedCareer,
     draftChatQuestions: [],
+  };
+}
+
+export async function generateProfileImprovement(
+  document: ProfileDocument,
+  question: ImprovementQuestion,
+  answer: string,
+  revision: number,
+): Promise<ImprovementProposal> {
+  const project = question.section === "project"
+    ? document.projects.find((item) => item.id === question.targetId)
+    : undefined;
+  const role = question.section === "experience"
+    ? document.experience.find((item) => item.id === question.targetId)
+    : undefined;
+  const current = question.section === "headline"
+    ? document.identity.headline
+    : question.section === "summary"
+      ? document.identity.summary
+      : question.section === "project"
+        ? project?.[question.field as "challenge" | "contribution" | "outcome"] || ""
+        : role?.summary || "";
+
+  const context = question.section === "project"
+    ? JSON.stringify({
+        title: project?.title,
+        company: project?.company,
+        challenge: project?.challenge,
+        contribution: project?.contribution,
+        outcome: project?.outcome,
+      })
+    : question.section === "experience"
+      ? JSON.stringify(role || {})
+      : JSON.stringify({
+          name: document.identity.name,
+          title: document.identity.title,
+          headline: document.identity.headline,
+          summary: document.identity.summary,
+        });
+
+  const prompt = `Improve one field of a professional profile using the person's answer.
+
+SECTION CONTEXT: ${sanitizeForPrompt(context, 3000)}
+QUESTION: ${sanitizeForPrompt(question.question, 400)}
+ANSWER FROM THE PERSON: ${sanitizeForPrompt(answer, 2500)}
+CURRENT FIELD: ${sanitizeForPrompt(current, 2500)}
+FIELD TO WRITE: ${question.field}
+
+Write one concise replacement field. Preserve useful existing detail when it does not conflict with the answer. Use only facts in the section context or answer. Do not invent numbers, employers, clients, outcomes, responsibilities, or confidential detail. Do not add labels such as "Challenge:". First person is acceptable when natural. Maximum 700 characters.
+
+${WRITING_RULES}
+
+Return only JSON: {"proposed":"replacement text"}`;
+
+  let proposed = answer.trim().slice(0, 700);
+  try {
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: { temperature: 0.2 },
+    });
+    const parsed = extractJson(result.text);
+    if (typeof parsed?.proposed === "string" && parsed.proposed.trim()) {
+      proposed = stripEditMarkers(parsed.proposed).slice(0, 700);
+    }
+  } catch (error) {
+    logger.info("[Profile Builder] Improvement generation fell back to the user's answer", {
+      error: String(error),
+      questionId: question.id,
+    });
+  }
+
+  return {
+    id: randomUUID(),
+    questionId: question.id,
+    section: question.section,
+    targetId: question.targetId,
+    field: question.field,
+    question: question.question,
+    answer: answer.trim().slice(0, 2500),
+    before: current,
+    proposed,
+    baseRevision: revision,
   };
 }
 

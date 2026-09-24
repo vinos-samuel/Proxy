@@ -30,6 +30,7 @@ import OnboardingChatPage from "@/pages/onboarding-chat";
 import JobSearchPage from "@/pages/job-search";
 import PreviewDraftPage from "@/pages/preview-draft";
 import TryPage from "@/pages/try";
+import BuilderPage from "@/pages/builder";
 import { Loader2 } from "lucide-react";
 
 function ProtectedRoute({ component: Component }: { component: () => JSX.Element }) {
@@ -91,6 +92,7 @@ function Router() {
       <Route path="/login">{() => <GuestRoute component={LoginPage} />}</Route>
       <Route path="/register">{() => <GuestRoute component={RegisterPage} />}</Route>
       <Route path="/dashboard">{() => <ProtectedRoute component={DashboardPage} />}</Route>
+      <Route path="/builder">{() => <ProtectedRoute component={BuilderPage} />}</Route>
       <Route path="/questionnaire">{() => <ProtectedRoute component={QuestionnairePage} />}</Route>
       <Route path="/preview">{() => <ProtectedRoute component={PreviewPage} />}</Route>
       <Route path="/admin">{() => <ProtectedRoute component={AdminPage} />}</Route>

@@ -7,6 +7,9 @@ import { renderAnswer } from "@/lib/renderAnswer";
 import ProfileAvatar from "@/components/ProfileAvatar";
 import ShareInsideCue from "@/components/ShareInsideCue";
 import DraftNotLiveBanner from "@/components/DraftNotLiveBanner";
+import ProfileDocumentView from "@/components/profile-document-view";
+import { profileCreationPath } from "@/lib/profile-builder-rollout";
+import type { ProfileDocument } from "@shared/profile-document";
 
 interface PortfolioData {
   profile: {
@@ -56,11 +59,18 @@ interface PortfolioData {
   };
   suggestedQuestions: string[];
   isLive?: boolean;
+  profileDocument?: ProfileDocument | null;
 }
 
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+}
+
+function capturePublicEvent(event: string, username: string, properties: Record<string, unknown> = {}) {
+  if (typeof window.gtag === "function") window.gtag("event", event, { profile: username, ...properties });
+  const posthog = (window as any).posthog;
+  if (posthog?.capture) posthog.capture(event, { username, ...properties });
 }
 
 // The four branding themes a profile can pick — each one is a fully
@@ -78,6 +88,8 @@ export default function PortfolioPage() {
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showProfileChat, setShowProfileChat] = useState(false);
+  const [copiedProfileLink, setCopiedProfileLink] = useState(false);
   // Keyed by string, not index, so Executive/Dark/Creative's career sections
   // can all share one expand/collapse set without their entries colliding.
   const [expandedHighlights, setExpandedHighlights] = useState<Set<string>>(new Set());
@@ -88,14 +100,15 @@ export default function PortfolioPage() {
   const [photoFailed, setPhotoFailed] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
   const [, navigate] = useLocation();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const search = useSearch();
   const isDraftMode = new URLSearchParams(search).get("draft") === "true";
   // Used both to decide the "Not Ready Yet" CTA below and to gate the
   // owner-profile fetch that backs it — computed once here rather than
   // duplicated in the render branch.
   const isOwnerViewingOwnProfile = !!user?.username && user.username.toLowerCase() === username?.toLowerCase();
-  const isDemo = username === "test2" && new URLSearchParams(search).get("demo") === "true" && !user && !demoBannerDismissed;
+  const isDemoVisit = username === "test2" && new URLSearchParams(search).get("demo") === "true" && !user;
+  const isDemo = isDemoVisit && !demoBannerDismissed;
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasAutoFiredRef = useRef(false);
@@ -151,14 +164,14 @@ export default function PortfolioPage() {
 
   // Fire-and-forget: count this as a profile view
   useEffect(() => {
-    if (username) {
+    if (username && !authLoading) {
       fetch(`/api/analytics/view/${username}`, { method: "POST" }).catch(() => {});
       // PostHog: track portfolio view with username for per-profile analytics
       if (typeof (window as any).posthog !== "undefined") {
-        (window as any).posthog.capture("portfolio_viewed", { username });
+        (window as any).posthog.capture("portfolio_viewed", { username, owner: isOwnerViewingOwnProfile, demo: isDemoVisit });
       }
     }
-  }, [username]);
+  }, [username, authLoading, isOwnerViewingOwnProfile, isDemoVisit]);
 
   // JSON-LD structured data for AEO — Person schema on every public profile
   useEffect(() => {
@@ -243,7 +256,7 @@ export default function PortfolioPage() {
   // an empty chat box to type into. Skipped in draft mode, where the chat is a
   // locked teaser, not a live conversation.
   useEffect(() => {
-    if (!portfolio || isDraftMode || hasAutoFiredRef.current) return;
+    if (!portfolio || isDraftMode || hasAutoFiredRef.current || portfolio.profileDocument) return;
     const firstQuestion =
       portfolio.suggestedQuestions?.[0] || portfolio.profile.portfolioSuggestedQuestions?.[0];
     if (!firstQuestion) return;
@@ -276,10 +289,10 @@ export default function PortfolioPage() {
                 Your profile needs to be processed by AI before you can preview it.
               </p>
               <a
-                href={isAiDraft ? "/onboarding-chat" : "/questionnaire"}
+                href={isAiDraft ? "/onboarding-chat" : profileCreationPath}
                 className="inline-block bg-[#22C55E] text-black px-6 py-3 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider"
               >
-                {isAiDraft ? "Chat to finish your profile" : "Complete Questionnaire"}
+                {isAiDraft ? "Chat to finish your profile" : "Build your page"}
               </a>
             </>
           ) : (
@@ -309,6 +322,43 @@ export default function PortfolioPage() {
                 ×
               </button>
             </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (portfolio.profileDocument) {
+    const page = portfolio.profileDocument;
+    return (
+      <div className="new-profile-public">
+        <ProfileDocumentView document={page} publicMode onAsk={() => setShowProfileChat(true)} onContact={(kind) => capturePublicEvent("profile_contact_clicked", username, { kind })} />
+        <footer className="new-profile-public__footer">
+          <span>Built with Proxy</span>
+          <div>
+            <button onClick={async () => {
+              await navigator.clipboard.writeText(window.location.href);
+              setCopiedProfileLink(true);
+              window.setTimeout(() => setCopiedProfileLink(false), 2000);
+              capturePublicEvent("profile_link_copied", username);
+            }}>{copiedProfileLink ? "Copied" : "Copy link"}</button>
+            <a href="/try">Prepare your evidence</a>
+          </div>
+        </footer>
+        {showProfileChat && page.publicBotEnabled && (
+          <div className="new-profile-chat" role="dialog" aria-modal="true" aria-label={`Ask about ${page.identity.name}'s work`}>
+            <button className="new-profile-chat__close" onClick={() => setShowProfileChat(false)} aria-label="Close">×</button>
+            <p>Ask about {page.identity.name.split(" ")[0]}'s work</p>
+            <small>AI answers from information approved on this page.</small>
+            <div className="new-profile-chat__messages" ref={scrollRef}>
+              {messages.length === 0 && <p className="new-profile-chat__empty">Ask about experience, projects, or strengths.</p>}
+              {messages.map((message, index) => <div key={index} className={`new-profile-chat__message new-profile-chat__message--${message.role}`}>{renderAnswer(message.content)}</div>)}
+              {isStreaming && <Loader2 className="animate-spin" />}
+            </div>
+            <form onSubmit={(event) => { event.preventDefault(); handleSendMessage(); }}>
+              <input ref={inputRef} value={inputValue} onChange={(event) => setInputValue(event.target.value)} placeholder="Ask a question" aria-label="Your question" />
+              <button type="submit" disabled={!inputValue.trim() || isStreaming}>Send</button>
+            </form>
           </div>
         )}
       </div>

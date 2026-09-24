@@ -156,10 +156,10 @@ export default function LandingPage() {
             {/* Left column */}
             <div>
               <h1 className="text-4xl lg:text-6xl font-bold leading-tight mb-3" data-testid="text-hero-headline">
-                Don't send a PDF. Send a link.
+                Prepare convincing evidence for your next opportunity.
               </h1>
               <p className="text-xl lg:text-2xl font-bold text-black/70 mb-8">
-                Built for mid to senior professionals whose careers don't fit on two pages.
+                Turn your CV and real work into a professional page you feel confident sharing.
               </p>
               <div className="flex gap-4 flex-wrap">
                 <button
@@ -177,7 +177,7 @@ export default function LandingPage() {
                   data-testid="button-view-demo"
                 >
                   <span className="uppercase tracking-wider text-sm">See a live example &rarr;</span>
-                  <span className="text-xs text-black/50 font-normal normal-case tracking-normal mt-0.5">Try asking {heroProfile.displayName.split(" ")[0]}'s Bot a question</span>
+                  <span className="text-xs text-black/50 font-normal normal-case tracking-normal mt-0.5">See how real experience can read as a page</span>
                 </a>
               </div>
               <div className="mt-4 bg-[#F0FDF4] border-[2px] border-[#22C55E] px-4 py-3">
@@ -197,7 +197,7 @@ export default function LandingPage() {
                 Already sure? Create an account directly &rarr;
               </button>
               <p className="text-base font-semibold text-black mt-5">
-                Professional enough to send to a headhunter. Personal enough to actually represent you.
+                See a finished page first. Improve only the parts that need more evidence.
               </p>
             </div>
 
@@ -398,10 +398,10 @@ export default function LandingPage() {
                 <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center shrink-0">
                   <FileText className="h-6 w-6" />
                 </div>
-                <span className="mono text-xs font-bold border-[2px] border-black bg-white px-2 py-1 uppercase tracking-wider">~30 min</span>
+                <span className="mono text-xs font-bold border-[2px] border-black bg-white px-2 py-1 uppercase tracking-wider">First draft</span>
               </div>
               <h3 className="text-2xl font-bold mt-4 mb-3">Upload your CV</h3>
-              <p className="mono text-sm text-black/70 leading-relaxed">AI writes the first draft — your experience, your roles, your language. You review, correct anything that feels off, and add the stories only you know. Most people are done in 30 minutes. Worth it once to stand out from every other candidate at your level.</p>
+              <p className="mono text-sm text-black/70 leading-relaxed">Proxy reads your PDF and builds a polished first page from the experience already in it. No questionnaire before you see the result.</p>
             </div>
 
             <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
@@ -411,10 +411,10 @@ export default function LandingPage() {
                 <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center shrink-0">
                   <Rocket className="h-6 w-6" />
                 </div>
-                <span className="mono text-xs font-bold border-[2px] border-black bg-white px-2 py-1 uppercase tracking-wider">Automatic</span>
+                <span className="mono text-xs font-bold border-[2px] border-black bg-white px-2 py-1 uppercase tracking-wider">Optional</span>
               </div>
-              <h3 className="text-2xl font-bold mt-4 mb-3">Your profile goes live</h3>
-              <p className="mono text-sm text-black/70 leading-relaxed">A personal page at myproxy.work/you — with an AI chatbot trained on your exact background, available 24/7.</p>
+              <h3 className="text-2xl font-bold mt-4 mb-3">Strengthen one section</h3>
+              <p className="mono text-sm text-black/70 leading-relaxed">Answer a useful question about a project or result. See the exact section change, then keep it, edit it, skip it, or undo it.</p>
             </div>
 
             <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
@@ -424,10 +424,10 @@ export default function LandingPage() {
                 <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center shrink-0">
                   <Zap className="h-6 w-6" />
                 </div>
-                <span className="mono text-xs font-bold border-[2px] border-black bg-white px-2 py-1 uppercase tracking-wider">24/7</span>
+                <span className="mono text-xs font-bold border-[2px] border-black bg-white px-2 py-1 uppercase tracking-wider">Your choice</span>
               </div>
-              <h3 className="text-2xl font-bold mt-4 mb-3">Recruiters engage</h3>
-              <p className="mono text-sm text-black/70 leading-relaxed">They ask questions, get real answers from your AI, and reach out already knowing why you're a fit.</p>
+              <h3 className="text-2xl font-bold mt-4 mb-3">Approve, publish, share</h3>
+              <p className="mono text-sm text-black/70 leading-relaxed">Choose a design, approve the exact version, and share one clear link. The AI explorer is optional and uses approved public information only.</p>
             </div>
           </div>
         </div>
@@ -501,7 +501,7 @@ export default function LandingPage() {
             <div className="border-[3px] border-black p-8 bg-[#22C55E] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <h3 className="text-2xl font-bold mb-4">THE PROXY EDGE</h3>
               <div className="space-y-4 mono text-sm leading-relaxed">
-                <p>Share your Proxy link with anyone who's offered to help. They chat with your AI, ask real questions, and get a genuine picture of what you've done.</p>
+                <p>Share your Proxy link with anyone who's offered to help. They can review specific work and understand what you have actually done.</p>
                 <p>They go from "I vaguely know this person" to "I can genuinely vouch for this person" — in minutes, not months.</p>
                 <p className="font-bold">The referral happens because they actually understood you.</p>
               </div>
@@ -531,10 +531,10 @@ export default function LandingPage() {
               </thead>
               <tbody className="mono text-sm">
                 {[
-                  { feature: "Answers a recruiter's follow-up question", proxy: "✓ 24/7", resume: "✗", linkedin: "✗", portfolio: "✗" },
+                  { feature: "Shows evidence behind an achievement", proxy: "✓", resume: "Limited", linkedin: "Partial", portfolio: "Varies" },
                   { feature: "Explains why an achievement mattered", proxy: "✓", resume: "✗ Lists only", linkedin: "Partial", portfolio: "✗ Lists only" },
                   { feature: "One link, always current", proxy: "✓", resume: "✗", linkedin: "Partial", portfolio: "✓" },
-                  { feature: "Setup time", proxy: "~30 min", resume: "Redone per application", linkedin: "Ongoing upkeep", portfolio: "~2 min" },
+                  { feature: "First useful result", proxy: "After CV upload", resume: "Redone per application", linkedin: "Ongoing upkeep", portfolio: "Manual setup" },
                   { feature: "Cost", proxy: "Free to start · $49 once", resume: "$500–800 (writer)", linkedin: "Free", portfolio: "Often free" },
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-black/10 last:border-b-0">
@@ -549,7 +549,7 @@ export default function LandingPage() {
             </table>
           </div>
           <p className="mono text-xs text-black/50 mt-4">
-            Yes, a bare portfolio link is faster to set up. It also can't answer a single question about your work after someone reads it.
+            Proxy starts from your existing CV, then lets you improve only the sections that need more evidence.
           </p>
         </div>
       </section>
@@ -582,7 +582,7 @@ export default function LandingPage() {
       <section id="pricing" className="px-6 py-20 border-t-[3px] border-black bg-[#D1D1CC]">
         <div className="max-w-7xl mx-auto">
           <div className="mono text-xs text-black/50 mb-4 uppercase tracking-widest">// pricing</div>
-          <p className="text-lg text-black/70 mb-6 max-w-2xl">Resume writers charge $500–$800 to reword your CV. Proxy builds you a living profile with an AI that represents you 24/7 — for $49, once.</p>
+          <p className="text-lg text-black/70 mb-6 max-w-2xl">Start with a complete evidence page from your CV. Upgrade when you want ongoing edits and deeper control.</p>
           <div className="flex flex-wrap items-center gap-4 mb-6">
             <h2 className="text-5xl font-bold">CHOOSE YOUR PLAN</h2>
             <div className="bg-black text-[#22C55E] px-4 py-2 font-bold mono text-sm border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(34,197,94,1)] uppercase tracking-wider" data-testid="badge-launch-special">
@@ -602,7 +602,7 @@ export default function LandingPage() {
               </div>
               <div className="space-y-3 mb-8 text-sm">
                 {[
-                  "AI portfolio + chatbot",
+                  "Professional evidence page",
                   "Personal page (myproxy.work/you)",
                   "7 days of edits after publishing",
                   "Basic view count",
@@ -707,7 +707,7 @@ export default function LandingPage() {
             Your career deserves<br />
             a better first impression.
           </h2>
-          <p className="mono text-xl text-black/60 mb-10">Free to start. Takes 10 minutes.</p>
+          <p className="mono text-xl text-black/60 mb-10">Free to start. See your first page before answering more questions.</p>
           <button
             onClick={() => navigate("/register")}
             className="bg-[#22C55E] hover:bg-[#16A34A] text-black px-16 py-5 text-xl font-bold mono border-[3px] border-black uppercase tracking-wider shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"

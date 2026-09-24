@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { pgTable, text, varchar, integer, timestamp, uuid, jsonb, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import type { ProfileDocument } from "./profile-document";
 
 export const customers = pgTable("customers", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -69,6 +70,22 @@ export const twinProfiles = pgTable("twin_profiles", {
   digestViewCount: integer("digest_view_count").default(0),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// Page-first profiles keep private working changes separate from the approved
+// public snapshot. Legacy twin_profiles fields remain the source for existing themes.
+export const profileDocuments = pgTable("profile_documents", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  twinProfileId: uuid("twin_profile_id").notNull().unique().references(() => twinProfiles.id, { onDelete: "cascade" }),
+  workingDocument: jsonb("working_document").$type<ProfileDocument>().notNull(),
+  publishedDocument: jsonb("published_document").$type<ProfileDocument>(),
+  previousPublishedDocument: jsonb("previous_published_document").$type<ProfileDocument>(),
+  revision: integer("revision").notNull().default(1),
+  schemaVersion: integer("schema_version").notNull().default(1),
+  publishedRevision: integer("published_revision"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  publishedAt: timestamp("published_at"),
 });
 
 export const factBanks = pgTable("fact_banks", {
@@ -210,6 +227,12 @@ export const insertTwinProfileSchema = createInsertSchema(twinProfiles).omit({
   createdAt: true,
 });
 
+export const insertProfileDocumentSchema = createInsertSchema(profileDocuments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertFactBankSchema = createInsertSchema(factBanks).omit({
   id: true,
 });
@@ -300,6 +323,8 @@ export type Customer = typeof customers.$inferSelect;
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 export type TwinProfile = typeof twinProfiles.$inferSelect;
 export type InsertTwinProfile = z.infer<typeof insertTwinProfileSchema>;
+export type ProfileDocumentRow = typeof profileDocuments.$inferSelect;
+export type InsertProfileDocument = typeof profileDocuments.$inferInsert;
 export type FactBank = typeof factBanks.$inferSelect;
 export type InsertFactBank = z.infer<typeof insertFactBankSchema>;
 export type KnowledgeEntry = typeof knowledgeEntries.$inferSelect;

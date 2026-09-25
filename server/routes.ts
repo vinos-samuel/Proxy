@@ -1814,9 +1814,14 @@ PASS if every specific claim traces back to the profile data, or if the response
         });
 
         res.json({ url: session.url });
-      } catch (error) {
+      } catch (error: any) {
         logger.error("[Stripe] Checkout error", { error: String(error) });
-        res.status(500).json({ message: "Failed to create checkout session" });
+        // This endpoint requires the account owner's own session, and a
+        // Stripe API error message ("No such price", "Invalid API Key
+        // provided", etc.) is diagnostic, not a secret — showing it here
+        // beats sending someone hunting through deployment logs for it.
+        const detail = error?.message ? ` (${error.message})` : "";
+        res.status(500).json({ message: `Failed to create checkout session${detail}` });
       }
     },
   );

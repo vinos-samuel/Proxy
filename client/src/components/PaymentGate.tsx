@@ -87,9 +87,17 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
           throw new Error("No checkout URL returned");
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Publish error:", error);
-      alert("Something went wrong. Please try again.");
+      // apiRequest throws "<status>: <raw response body>" — the body is
+      // usually {"message": "..."} from the server, so pull that out
+      // instead of showing an opaque alert every time this fails.
+      let detail = error?.message || "Something went wrong. Please try again.";
+      const bodyStart = detail.indexOf("{");
+      if (bodyStart >= 0) {
+        try { detail = JSON.parse(detail.slice(bodyStart)).message || detail; } catch { /* keep raw text */ }
+      }
+      alert(detail);
     } finally {
       setLoading(false);
     }

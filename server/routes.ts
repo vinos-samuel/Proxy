@@ -1787,13 +1787,18 @@ PASS if every specific claim traces back to the profile data, or if the response
 
         const customer = await storage.getCustomer(req.session.customerId!);
         const stripe = getStripe();
+        // Same fix as the verification-email links below: without this,
+        // Stripe always sends the browser back to production regardless of
+        // where checkout was started, stranding a workspace test payment.
+        const appUrl = process.env.APP_URL ||
+          `${req.headers["x-forwarded-proto"] || "https"}://${req.headers["x-forwarded-host"] || req.headers.host}`;
 
         const session = await stripe.checkout.sessions.create({
           payment_method_types: ["card"],
           line_items: [{ price: STRIPE_PRICE_IDS[tier], quantity: 1 }],
           mode: "payment",
-          success_url: `https://myproxy.work/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `https://myproxy.work/payment/cancelled`,
+          success_url: `${appUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${appUrl}/payment/cancelled`,
           customer_email: customer?.email,
           metadata: {
             profileId: profile.id,

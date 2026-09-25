@@ -58,15 +58,16 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
-  const handlePublish = async () => {
-    if (selectedTier === "free" && !showFreeConfirm) {
+  const handlePublish = async (tierKey: string) => {
+    setSelectedTier(tierKey);
+    if (tierKey === "free" && !showFreeConfirm) {
       setShowFreeConfirm(true);
       return;
     }
 
     setLoading(true);
     try {
-      if (selectedTier === "free") {
+      if (tierKey === "free") {
         const response = await apiRequest("POST", "/api/publish-free");
         const data = await response.json();
         if (data.success) {
@@ -76,7 +77,7 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
         }
       } else {
         const response = await apiRequest("POST", "/api/create-checkout-session", {
-          tier: selectedTier,
+          tier: tierKey,
           profileId,
         });
         const data = await response.json();
@@ -165,7 +166,7 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
                 &larr; GO BACK
               </button>
               <button
-                onClick={handlePublish}
+                onClick={() => handlePublish("free")}
                 disabled={loading}
                 className="bg-[#22C55E] text-black px-8 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50"
               >
@@ -210,24 +211,19 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
         </Link>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
+      <div className={`grid gap-6 ${visibleTiers.length > 1 ? "md:grid-cols-2" : "max-w-sm mx-auto"}`}>
         {visibleTiers.map((tier) => {
           const Icon = tier.icon;
-          const isSelected = selectedTier === tier.key;
           const isPopular = tier.popular;
+          const isBusy = loading && selectedTier === tier.key;
           return (
             <div
               key={tier.key}
-              className={`brutal-card border-black cursor-pointer relative p-8 ${
-                isPopular && isSelected
-                  ? "bg-[#22C55E] transform lg:scale-105 lg:-mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
-                  : isSelected
-                  ? "bg-[#22C55E] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
-                  : isPopular
-                  ? "bg-white transform lg:scale-105 lg:-mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+              className={`brutal-card border-black relative p-8 flex flex-col ${
+                isPopular
+                  ? "bg-[#22C55E] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
                   : "bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
               }`}
-              onClick={() => setSelectedTier(tier.key)}
               data-testid={`card-tier-${tier.key}`}
             >
               {tier.popular && (
@@ -256,38 +252,32 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
               </div>
               <div className="space-y-3 mb-6 text-sm">
                 {tier.features.map((feature, i) => (
-                  <div key={i} className={`flex gap-2 mono ${isSelected ? "text-black" : "text-black/70"}`}>
-                    <span className={`font-bold shrink-0 ${isSelected ? "text-black" : "text-[#22C55E]"}`}>&#10003;</span> {feature}
+                  <div key={i} className="flex gap-2 mono text-black">
+                    <span className="font-bold shrink-0 text-black">&#10003;</span> {feature}
                   </div>
                 ))}
               </div>
-              {isSelected && (
-                <div className="mono text-xs text-black/60 mt-4 pt-4 border-t-2 border-black/20">
-                  {tier.useCase}
-                </div>
-              )}
+              <div className="mono text-xs text-black/60 mb-6">{tier.useCase}</div>
+              <button
+                className={`mt-auto w-full py-4 font-bold mono border-[3px] border-black uppercase tracking-wider transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isPopular ? "bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.35)]" : "bg-[#22C55E] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                }`}
+                onClick={() => handlePublish(tier.key)}
+                disabled={loading}
+                data-testid={`button-checkout-${tier.key}`}
+              >
+                {isBusy ? (
+                  <span className="flex items-center justify-center gap-2"><Loader2 className="h-5 w-5 animate-spin" /> PROCESSING...</span>
+                ) : tier.key === "free" ? (
+                  "PUBLISH FREE →"
+                ) : (
+                  `GET ${tier.name} — ${tier.price} →`
+                )}
+              </button>
             </div>
           );
         })}
       </div>
-
-      <button
-        className="w-full bg-[#22C55E] text-black py-4 font-bold mono border-[3px] border-black uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
-        onClick={handlePublish}
-        disabled={loading}
-        data-testid="button-checkout"
-      >
-        {loading ? (
-          <span className="flex items-center justify-center gap-2">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            PROCESSING...
-          </span>
-        ) : selectedTier === "free" ? (
-          "PUBLISH FREE →"
-        ) : (
-          `GET ${tiers.find((t) => t.key === selectedTier)?.name} — ${tiers.find((t) => t.key === selectedTier)?.price} →`
-        )}
-      </button>
     </div>
   );
 }

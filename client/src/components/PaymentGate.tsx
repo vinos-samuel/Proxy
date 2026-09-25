@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Loader2, Star, Crown, Zap } from "lucide-react";
+import { Check, Loader2, Star, Zap } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
@@ -45,23 +45,6 @@ const tiers = [
       "PRIORITY_PROCESSING",
     ],
     useCase: "USE_CASE: Active job search | Career pivot",
-  },
-  {
-    key: "concierge",
-    name: "CONCIERGE",
-    tierLabel: "PREMIUM",
-    price: "$499",
-    originalPrice: "$999",
-    icon: Crown,
-    features: [
-      "EVERYTHING_IN_PRO",
-      "PERSONAL_DISCOVERY_CALL",
-      "PRO_COPYWRITING",
-      "CUSTOM_BRANDING",
-      "HANDS_ON_OPTIMIZATION",
-      "PRIORITY_SUPPORT",
-    ],
-    useCase: "USE_CASE: Executive positioning | Brand building",
   },
 ];
 
@@ -227,7 +210,7 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
         </Link>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
         {visibleTiers.map((tier) => {
           const Icon = tier.icon;
           const isSelected = selectedTier === tier.key;

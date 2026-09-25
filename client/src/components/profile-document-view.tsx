@@ -31,14 +31,20 @@ function EditButton({ label, onClick }: { label: string; onClick?: () => void })
   return <button className="proxy-page__edit" type="button" onClick={onClick}><Pencil aria-hidden="true" /> {label}</button>;
 }
 
-function HeroMedia({ document }: { document: ProfileDocument }) {
+// Photo and video are two different slots now, not one falling back to the
+// other: a small circular avatar sits next to the name (like the rest of
+// the identity line), and video — when present — takes the larger hero
+// slot on its own. Adding a video no longer hides an already-uploaded photo.
+function NameAvatar({ document }: { document: ProfileDocument }) {
   const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [document.identity.photoUrl, document.identity.videoUrl]);
-  if (document.identity.showVideo && document.identity.videoUrl) {
-    return <video className="proxy-page__portrait" src={document.identity.videoUrl} controls playsInline preload="metadata" />;
-  }
+  useEffect(() => setFailed(false), [document.identity.photoUrl]);
   if (!document.identity.showPhoto || !document.identity.photoUrl || failed) return null;
-  return <img className="proxy-page__portrait" src={document.identity.photoUrl} alt={document.identity.name} onError={() => setFailed(true)} />;
+  return <img className="proxy-page__avatar" src={document.identity.photoUrl} alt={document.identity.name} onError={() => setFailed(true)} />;
+}
+
+function HeroVideo({ document }: { document: ProfileDocument }) {
+  if (!document.identity.showVideo || !document.identity.videoUrl) return null;
+  return <video className="proxy-page__portrait" src={document.identity.videoUrl} controls playsInline preload="metadata" />;
 }
 
 function ImpactStats({ document, onEdit }: Pick<Props, "document" | "onEdit">) {
@@ -156,8 +162,8 @@ export default function ProfileDocumentView({ document, proposal, onAsk, onConta
     <header className="proxy-page__hero">
       <div className="proxy-page__identity">
         <div className="proxy-page__identity-top">
-          <div><p className="proxy-page__eyebrow">{document.identity.title}</p><h1>{document.identity.name}</h1>{document.identity.location && <p className="proxy-page__location">{document.identity.location}</p>}</div>
-          <HeroMedia document={document} />
+          <div><p className="proxy-page__eyebrow">{document.identity.title}</p><div className="proxy-page__name-row"><NameAvatar document={document} /><h1>{document.identity.name}</h1></div>{document.identity.location && <p className="proxy-page__location">{document.identity.location}</p>}</div>
+          <HeroVideo document={document} />
         </div>
         <div className={headline.active ? "proxy-page__changed" : ""}><Suggested active={headline.active} /><h2>{headline.value}</h2></div>
         <div className={summary.active ? "proxy-page__changed" : ""}><Suggested active={summary.active} /><p className="proxy-page__lede">{shownSummary}</p>{summaryIsLong && <button className="proxy-page__read-more" type="button" aria-expanded={summaryExpanded} onClick={() => setSummaryExpanded((value) => !value)}>{summaryExpanded ? "Show less" : "Read more"}</button>}</div>

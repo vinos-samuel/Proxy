@@ -534,7 +534,7 @@ export default function DashboardPage() {
                     </button>
                     <button
                       onClick={() => {
-                        const signature = `${profile?.displayName || user?.name || user?.username}${profile?.roleTitle ? ` | ${profile.roleTitle}` : ""}\nAsk my AI about my work: ${window.location.origin}/portfolio/${user?.username}`;
+                        const signature = `${profile?.displayName || user?.name || user?.username}${profile?.roleTitle ? ` | ${profile.roleTitle}` : ""}\nAsk about my work: ${window.location.origin}/portfolio/${user?.username}`;
                         navigator.clipboard.writeText(signature);
                       }}
                       className="flex items-center gap-2 bg-white/10 text-white px-5 py-3 font-bold border-[3px] border-white/30 mono text-xs uppercase tracking-wider hover:bg-white/20 active:translate-x-[1px] active:translate-y-[1px] transition-all"

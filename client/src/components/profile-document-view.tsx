@@ -53,7 +53,7 @@ function ImpactStats({ document, onEdit }: Pick<Props, "document" | "onEdit">) {
 function HowIWork({ document, onEdit }: Pick<Props, "document" | "onEdit">) {
   if (!document.howIWork?.trim()) return null;
   return <section className="proxy-page__section proxy-page__how-i-work">
-    <div className="proxy-page__section-heading"><div><p className="proxy-page__section-kicker">Approach</p><h3>How I work</h3></div><EditButton label="Edit" onClick={onEdit ? () => onEdit("howIWork") : undefined} /></div>
+    <div className="proxy-page__section-heading"><div><p className="proxy-page__section-kicker">Approach</p><h3>My approach</h3></div><EditButton label="Edit" onClick={onEdit ? () => onEdit("howIWork") : undefined} /></div>
     <p>{document.howIWork}</p>
   </section>;
 }

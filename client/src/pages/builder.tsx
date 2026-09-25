@@ -619,7 +619,7 @@ export default function BuilderPage() {
                   <button onClick={() => setEditTarget({ section: "projects" })}><span><b>Selected work</b><small>{document.projects.length} examples · add, reorder or remove</small></span><ChevronRight /></button>
                   <button onClick={() => setEditTarget({ section: "impactStats" })}><span><b>Impact numbers</b><small>{document.impactStats.length} entries · shown once you add at least 2</small></span><ChevronRight /></button>
                   <button onClick={() => setEditTarget({ section: "experience" })}><span><b>Experience</b><small>{document.experience.length} roles with full detail</small></span><ChevronRight /></button>
-                  <button onClick={() => setEditTarget({ section: "howIWork" })}><span><b>How I work</b><small>{document.howIWork ? "Written · edit or regenerate" : "Not written yet"}</small></span><ChevronRight /></button>
+                  <button onClick={() => setEditTarget({ section: "howIWork" })}><span><b>My approach</b><small>{document.howIWork ? "Written · edit or regenerate" : "Not written yet · shown on your page"}</small></span><ChevronRight /></button>
                   <button onClick={() => setEditTarget({ section: "skills" })}><span><b>Strengths</b><small>{document.skills.length} capabilities</small></span><ChevronRight /></button>
                   <button onClick={() => setEditTarget({ section: "details" })}><span><b>Background</b><small>Education, certifications and recognition</small></span><ChevronRight /></button>
                   <button onClick={() => setEditTarget({ section: "more" })}><span><b>Private authoring notes</b><small>Working style, direction and voice</small></span><ChevronRight /></button>
@@ -647,8 +647,8 @@ export default function BuilderPage() {
               {editTarget.section === "howIWork" && (() => {
                 const eligibleProjects = document.projects.filter((project) => [project.challenge, project.contribution, project.outcome].some((value) => Boolean(value && value.trim().length >= 10))).length;
                 return <fieldset>
-                  <legend>How I work</legend>
-                  <p className="builder-private-note">Written from your own answered project questions in Improve — never an invented framework. Needs at least 2 answered projects; you have {eligibleProjects}.</p>
+                  <legend>My approach</legend>
+                  <p className="builder-private-note">Shown on your public page as "My approach." Written from your own answered project questions in Improve — never an invented framework. Needs at least 2 answered projects; you have {eligibleProjects}. (Different from "How you work" under Private authoring notes — that one is private and shapes your own drafting, not shown to visitors.)</p>
                   <textarea value={document.howIWork || ""} maxLength={900} placeholder="Generate a first draft, or write your own." onChange={(event) => { const value = event.target.value; editLocal((current) => ({ ...current, howIWork: value })); }} onBlur={saveCurrent} />
                   <button className="builder-add" disabled={Boolean(busy) || eligibleProjects < 2} onClick={async () => { const result = await mutate<{ document: ProfileDocument; revision: number }>("how-i-work", "/api/builder/synthesize-how-i-work", { revision }); if (result) capture("builder_how_i_work_generated"); }}>{busy === "how-i-work" ? <Loader2 className="animate-spin" /> : <Sparkles />} {document.howIWork ? "Regenerate" : "Generate a draft"}</button>
                 </fieldset>;

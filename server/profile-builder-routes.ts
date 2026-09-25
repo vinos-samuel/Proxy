@@ -520,7 +520,7 @@ export function registerProfileBuilderRoutes(app: Express) {
     const row = await storage.getProfileDocumentByProfileId(profile.id);
     if (!row || row.revision !== parsed.data.revision) return res.status(409).json({ message: "Your page changed. Reload before publishing." });
     if (!row.publishedDocument || row.publishedRevision !== row.revision) {
-      return res.status(409).json({ message: "Approve this version before publishing" });
+      return res.status(409).json({ message: "You've edited since you last approved. Click \"Review & approve\" above, then Publish." });
     }
 
     const access = getPublicationAccess(profile);

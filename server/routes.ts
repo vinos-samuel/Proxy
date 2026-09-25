@@ -1775,7 +1775,7 @@ PASS if every specific claim traces back to the profile data, or if the response
         }
         const documentRow = await storage.getProfileDocumentByProfileId(profile.id);
         if (documentRow && (!documentRow.publishedDocument || documentRow.publishedRevision !== documentRow.revision)) {
-          return res.status(409).json({ message: "Approve this version before choosing a publishing plan" });
+          return res.status(409).json({ message: "You've edited your page since you last approved it. Open the Page Builder, click \"Review & approve,\" then come back to choose a plan." });
         }
         // Bind a first-time paid publication to the exact reviewed snapshot
         // before Stripe. Approval can continue without changing this inactive

@@ -76,8 +76,15 @@ function GuestRoute({ component: Component }: { component: () => JSX.Element }) 
 // share the same account and drift out of sync silently.
 function LegacyRoute({ component: Component }: { component: () => JSX.Element }) {
   const { user, isLoading } = useAuth();
+  // A distinct key and staleTime: 0, deliberately not sharing the
+  // dashboard's ["/api/profile"] cache entry. The app default is
+  // staleTime: Infinity, so a profile fetched once on an earlier page
+  // (e.g. before this account had a page) would otherwise be served
+  // forever and never notice hasProfileDocument flipping to true — this
+  // check has to be fresh every time or it silently lets the old pages
+  // back in, which is exactly the bug this route exists to prevent.
   const { data: profile, isLoading: isProfileLoading } = useQuery<{ hasProfileDocument?: boolean } | null>({
-    queryKey: ["/api/profile"],
+    queryKey: ["/api/profile", "legacy-route-guard"],
     queryFn: async () => {
       const res = await fetch("/api/profile", { credentials: "include" });
       if (res.status === 404) return null;
@@ -85,6 +92,7 @@ function LegacyRoute({ component: Component }: { component: () => JSX.Element })
       return res.json();
     },
     enabled: Boolean(user),
+    staleTime: 0,
   });
 
   if (isLoading || (user && isProfileLoading)) {

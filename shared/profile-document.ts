@@ -196,6 +196,23 @@ export function normalizeProfileDocument(document: ProfileDocument): ProfileDocu
   };
 }
 
+// Material the owner explicitly wrote for visitor questions (sample Q&A,
+// anticipated concerns) plus how they want the bot to sound. Distinct from
+// toPublicProfileDocument/normalizeProfileDocument: those control what
+// renders on the page or ships to the client; this never goes to the
+// client — only into a server-side prompt for answering a question, and
+// only the owner's own words, never invented.
+export function approvedBotBackground(document: ProfileDocument): { qaText: string; tone?: string } {
+  const parts = [
+    ...document.privateContext.questions.map((item) => `Q: ${item.question}\nA: ${item.answer}`),
+    ...document.privateContext.concerns.map((item) => `Possible concern: ${item.concern}\nHow to address it: ${item.response}`),
+  ];
+  return {
+    qaText: parts.join("\n\n"),
+    tone: document.privateContext.voiceNotes?.trim() || undefined,
+  };
+}
+
 export const improvementQuestionSchema = z.object({
   id: boundedText(100),
   section: z.enum(["headline", "summary", "project", "experience"]),

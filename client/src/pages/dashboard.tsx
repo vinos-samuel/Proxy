@@ -67,6 +67,11 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error("Failed to fetch profile");
       return res.json();
     },
+    // The app default is staleTime: Infinity. This page decides where
+    // Preview/Publish/Add Evidence send you based on hasProfileDocument —
+    // a cached answer from before that flipped true would silently route
+    // back into the old pages, so this one has to check fresh on every load.
+    staleTime: 0,
   });
 
   useEffect(() => {

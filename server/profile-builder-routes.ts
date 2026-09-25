@@ -10,6 +10,7 @@ import {
   profileDocumentSchema,
   revisionSchema,
   toPublicProfileDocument,
+  approvedBotBackground,
   type ProfileDocument,
 } from "@shared/profile-document";
 import { parseResumeWithGemini, generatePortfolioPreview, generateProfileImprovement, generateApprovedProfileAnswer, generateHowIWorkSynthesis, InsufficientContentError } from "./ai-processor";
@@ -376,8 +377,9 @@ export function registerProfileBuilderRoutes(app: Express) {
     const state = await loadBuilder(req);
     if (!state) return res.status(404).json({ message: "No page draft found" });
     try {
-      const approvedOnly = toPublicProfileDocument(profileDocumentSchema.parse(state.document));
-      const content = await generateApprovedProfileAnswer(approvedOnly, parsed.data.message);
+      const fullDocument = profileDocumentSchema.parse(state.document);
+      const approvedOnly = toPublicProfileDocument(fullDocument);
+      const content = await generateApprovedProfileAnswer(approvedOnly, parsed.data.message, approvedBotBackground(fullDocument));
       req.session.builderTestChats = { count: budget.count + 1, resetAt: budget.resetAt };
       await saveSession(req);
       return res.json({ content });

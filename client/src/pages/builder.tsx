@@ -102,7 +102,9 @@ export default function BuilderPage() {
   const saveSequenceRef = useRef(0);
   const fixtureMode = import.meta.env.DEV && new URLSearchParams(window.location.search).get("fixture") === "1";
 
-  const document = state.document;
+  const document = state.document && !state.document.details
+    ? { ...state.document, details: { education: [], certifications: [], awards: [], interests: [], showEducation: false, showCertifications: false, showAwards: false, showInterests: false } }
+    : state.document;
   const revision = state.revision;
 
   useEffect(() => { stateRef.current = state; }, [state]);

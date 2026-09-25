@@ -93,7 +93,7 @@ export default function ProfileDocumentView({ document, proposal, onAsk, onConta
   const shownSummary = summaryIsLong && !summaryExpanded
     ? (summary.value || "").split(/\s+/).slice(0, 70).join(" ") + "…"
     : summary.value;
-  const details = document.details;
+  const details = document.details || { education: [], certifications: [], awards: [], interests: [], showEducation: false, showCertifications: false, showAwards: false, showInterests: false };
   const hasDetails = Boolean(
     (details.showEducation && details.education.length) ||
     (details.showCertifications && details.certifications.length) ||

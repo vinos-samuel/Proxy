@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { ArrowDown, ArrowLeft, ArrowUp, Check, ChevronRight, Eye, Loader2, Menu, MessageCircle, Plus, RotateCcw, Send, Sparkles, Trash2, Upload, X } from "lucide-react";
 import type { ImprovementQuestion, ProfileDocument, ProfileStyle } from "@shared/profile-document";
+import { normalizeProfileDocument } from "@shared/profile-document";
 import ProfileDocumentView from "@/components/profile-document-view";
 import PaymentGate from "@/components/PaymentGate";
 import ProxyLogo from "@/components/ProxyLogo";
@@ -102,9 +103,7 @@ export default function BuilderPage() {
   const saveSequenceRef = useRef(0);
   const fixtureMode = import.meta.env.DEV && new URLSearchParams(window.location.search).get("fixture") === "1";
 
-  const document = state.document && !state.document.details
-    ? { ...state.document, details: { education: [], certifications: [], awards: [], interests: [], showEducation: false, showCertifications: false, showAwards: false, showInterests: false } }
-    : state.document;
+  const document = state.document ? normalizeProfileDocument(state.document) : state.document;
   const revision = state.revision;
 
   useEffect(() => { stateRef.current = state; }, [state]);

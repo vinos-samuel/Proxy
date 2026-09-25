@@ -132,6 +132,53 @@ export const profileDocumentSchema = z.object({
 export type ProfileDocument = z.infer<typeof profileDocumentSchema>;
 export type ImprovementProposal = z.infer<typeof improvementProposalSchema>;
 
+// A page saved before a field existed comes back from storage without it.
+// Fill every optional section with its empty shape so old pages open
+// instead of crashing on the first missing field a renderer touches.
+// Deliberately not the zod schema itself: profileDocumentSchema's
+// superRefine cross-checks source references, which a genuinely old
+// document can legitimately fail even though it's still safe to render.
+export function normalizeProfileDocument(document: ProfileDocument): ProfileDocument {
+  return {
+    ...document,
+    projects: document.projects || [],
+    experience: document.experience || [],
+    employerContributions: document.employerContributions || [],
+    skills: document.skills || [],
+    sources: document.sources || [],
+    skippedQuestionIds: document.skippedQuestionIds || [],
+    answeredQuestionIds: document.answeredQuestionIds || [],
+    undoStack: document.undoStack || [],
+    pendingProposal: document.pendingProposal ?? null,
+    publicBotEnabled: document.publicBotEnabled ?? false,
+    contact: {
+      email: document.contact?.email ?? null,
+      linkedin: document.contact?.linkedin ?? null,
+      website: document.contact?.website ?? null,
+      showEmail: document.contact?.showEmail ?? false,
+      showLinkedin: document.contact?.showLinkedin ?? false,
+      showWebsite: document.contact?.showWebsite ?? false,
+    },
+    details: {
+      education: document.details?.education ?? [],
+      certifications: document.details?.certifications ?? [],
+      awards: document.details?.awards ?? [],
+      interests: document.details?.interests ?? [],
+      showEducation: document.details?.showEducation ?? false,
+      showCertifications: document.details?.showCertifications ?? false,
+      showAwards: document.details?.showAwards ?? false,
+      showInterests: document.details?.showInterests ?? false,
+    },
+    privateContext: {
+      workingStyle: document.privateContext?.workingStyle,
+      careerDirection: document.privateContext?.careerDirection,
+      voiceNotes: document.privateContext?.voiceNotes,
+      questions: document.privateContext?.questions ?? [],
+      concerns: document.privateContext?.concerns ?? [],
+    },
+  };
+}
+
 export const improvementQuestionSchema = z.object({
   id: boundedText(100),
   section: z.enum(["headline", "summary", "project", "experience"]),

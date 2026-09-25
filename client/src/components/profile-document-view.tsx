@@ -45,8 +45,8 @@ function ImpactStats({ document, onEdit }: Pick<Props, "document" | "onEdit">) {
   const stats = document.impactStats.filter((stat) => stat.label.trim() && stat.value.trim());
   if (stats.length < 2) return null;
   return <section className="proxy-page__section proxy-page__stats">
-    <EditButton label="Edit" onClick={onEdit ? () => onEdit("impactStats") : undefined} />
-    <div className="proxy-page__stat-grid">{stats.map((stat) => <div key={stat.id}><strong>{stat.value}</strong><span>{stat.label}</span></div>)}</div>
+    <div className="proxy-page__section-heading"><div><p className="proxy-page__section-kicker">Impact</p></div><EditButton label="Edit" onClick={onEdit ? () => onEdit("impactStats") : undefined} /></div>
+    <div className="proxy-page__stat-grid">{stats.map((stat) => <div key={stat.id}><h4>{stat.value}</h4><span>{stat.label}</span></div>)}</div>
   </section>;
 }
 

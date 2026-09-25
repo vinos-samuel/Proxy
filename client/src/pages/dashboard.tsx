@@ -298,7 +298,9 @@ export default function DashboardPage() {
                   <h3 className="font-bold text-lg">PAGE BUILDER</h3>
                 </div>
                 <p className="mono text-sm text-black/60 mb-4">
-                  {profile
+                  {profile?.hasProfileDocument
+                    ? "Review your page, add another example of your work, answer a question to sharpen it, and control the version visitors see."
+                    : profile
                     ? "Review your page, improve selected sections, and control the version visitors see."
                     : "Upload your CV and see a finished first page before answering more questions."}
                 </p>
@@ -309,7 +311,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              {(profile?.status === "ready" || profile?.status === "published") && (
+              {(profile?.status === "ready" || profile?.status === "published") && !profile?.hasProfileDocument && (
                 <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 bg-[#A78BFA] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
@@ -318,15 +320,13 @@ export default function DashboardPage() {
                     <h3 className="font-bold text-lg">ADD MORE EVIDENCE</h3>
                   </div>
                   <p className="mono text-sm text-black/60 mb-4">
-                    {profile?.hasProfileDocument
-                      ? "Add another example of your work, or answer a question to sharpen what's there."
-                      : (profile as any).lastDeepenedAt
+                    {(profile as any).lastDeepenedAt
                       ? `Last updated: ${new Date((profile as any).lastDeepenedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}. Add another specific story or decision by speaking naturally.`
                       : "Add a specific story, decision, or result by speaking naturally. No typing or preparation is needed."}
                   </p>
-                  <Link href={profile?.hasProfileDocument ? profileCreationPath : "/interview"}>
+                  <Link href="/interview">
                     <button className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">
-                      <span className="flex items-center gap-2">{profile?.hasProfileDocument ? "OPEN BUILDER" : (profile as any).lastDeepenedAt ? "GO DEEPER" : "START INTERVIEW"}<ArrowRight className="h-3 w-3" /></span>
+                      <span className="flex items-center gap-2">{(profile as any).lastDeepenedAt ? "GO DEEPER" : "START INTERVIEW"}<ArrowRight className="h-3 w-3" /></span>
                     </button>
                   </Link>
                 </div>

@@ -240,7 +240,11 @@ export function registerProfileBuilderRoutes(app: Express) {
       return res.json({ document: guest.workingDocument, revision: guest.revision, hasPublished: false, source: "guest" });
     } catch (error: any) {
       logger.error("[Profile Builder] Upload failed", { error: String(error) });
-      return res.status(500).json({ message: error.message || "Could not build your page" });
+      // A Postgres error (5-char SQLSTATE code, e.g. missing table/column) is
+      // an infrastructure problem, not something the CV or the visitor did —
+      // don't echo raw schema details like a relation name to the browser.
+      const isDbError = typeof error?.code === "string" && /^[0-9A-Z]{5}$/.test(error.code);
+      return res.status(500).json({ message: isDbError ? "Could not build your page. Try again in a moment." : (error.message || "Could not build your page") });
     }
   });
 

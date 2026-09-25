@@ -589,7 +589,7 @@ export default function BuilderPage() {
             }}>Use the guest draft instead</button></div>}
             {panel === "improve" && <>
               <p className="builder-panel-kicker"><Sparkles /> Make your bot know more about your work</p>
-              <p className="builder-panel-subtitle">Type or tap the mic and talk — every answer sharpens your page and what "Ask about my work" can say.</p>
+              <p className="builder-panel-subtitle">Type or tap the mic and talk — every answer sharpens your page and what "Ask about my work" can say. {!document.publicBotEnabled && <button type="button" className="builder-text-button" onClick={() => setPanel("settings")}>Turn it on under Settings →</button>}</p>
               <div className="builder-conversation-controls"><button type="button" onClick={() => setChoosingTopic((value) => !value)}>Choose another topic <ChevronRight /></button><button type="button" onClick={() => setPanel("edit")}>Finish for now</button></div>
               {choosingTopic && <div className="builder-topic-picker">{([
                 ["all", "Best next question"], ["work", "Selected work"], ["experience", "Career experience"], ["about", "Working style and direction"],

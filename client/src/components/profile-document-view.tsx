@@ -8,7 +8,7 @@ type Props = {
   publicMode?: boolean;
   onAsk?: () => void;
   onContact?: (kind: "email" | "linkedin" | "website") => void;
-  onEdit?: (section: "introduction" | "project" | "experience" | "skills" | "details", id?: string) => void;
+  onEdit?: (section: "introduction" | "project" | "experience" | "skills" | "details" | "impactStats" | "howIWork", id?: string) => void;
 };
 
 function proposedValue(
@@ -31,11 +31,31 @@ function EditButton({ label, onClick }: { label: string; onClick?: () => void })
   return <button className="proxy-page__edit" type="button" onClick={onClick}><Pencil aria-hidden="true" /> {label}</button>;
 }
 
-function Portrait({ document }: { document: ProfileDocument }) {
+function HeroMedia({ document }: { document: ProfileDocument }) {
   const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [document.identity.photoUrl]);
-  if (!document.identity.photoUrl || failed) return null;
+  useEffect(() => setFailed(false), [document.identity.photoUrl, document.identity.videoUrl]);
+  if (document.identity.showVideo && document.identity.videoUrl) {
+    return <video className="proxy-page__portrait" src={document.identity.videoUrl} controls playsInline preload="metadata" />;
+  }
+  if (!document.identity.showPhoto || !document.identity.photoUrl || failed) return null;
   return <img className="proxy-page__portrait" src={document.identity.photoUrl} alt={document.identity.name} onError={() => setFailed(true)} />;
+}
+
+function ImpactStats({ document, onEdit }: Pick<Props, "document" | "onEdit">) {
+  const stats = document.impactStats.filter((stat) => stat.label.trim() && stat.value.trim());
+  if (stats.length < 2) return null;
+  return <section className="proxy-page__section proxy-page__stats">
+    <EditButton label="Edit" onClick={onEdit ? () => onEdit("impactStats") : undefined} />
+    <div className="proxy-page__stat-grid">{stats.map((stat) => <div key={stat.id}><strong>{stat.value}</strong><span>{stat.label}</span></div>)}</div>
+  </section>;
+}
+
+function HowIWork({ document, onEdit }: Pick<Props, "document" | "onEdit">) {
+  if (!document.howIWork?.trim()) return null;
+  return <section className="proxy-page__section proxy-page__how-i-work">
+    <div className="proxy-page__section-heading"><div><p className="proxy-page__section-kicker">Approach</p><h3>How I work</h3></div><EditButton label="Edit" onClick={onEdit ? () => onEdit("howIWork") : undefined} /></div>
+    <p>{document.howIWork}</p>
+  </section>;
 }
 
 function ContactActions({ document, onAsk, onContact }: Pick<Props, "document" | "onAsk" | "onContact">) {
@@ -137,7 +157,7 @@ export default function ProfileDocumentView({ document, proposal, onAsk, onConta
       <div className="proxy-page__identity">
         <div className="proxy-page__identity-top">
           <div><p className="proxy-page__eyebrow">{document.identity.title}</p><h1>{document.identity.name}</h1>{document.identity.location && <p className="proxy-page__location">{document.identity.location}</p>}</div>
-          <Portrait document={document} />
+          <HeroMedia document={document} />
         </div>
         <div className={headline.active ? "proxy-page__changed" : ""}><Suggested active={headline.active} /><h2>{headline.value}</h2></div>
         <div className={summary.active ? "proxy-page__changed" : ""}><Suggested active={summary.active} /><p className="proxy-page__lede">{shownSummary}</p>{summaryIsLong && <button className="proxy-page__read-more" type="button" aria-expanded={summaryExpanded} onClick={() => setSummaryExpanded((value) => !value)}>{summaryExpanded ? "Show less" : "Read more"}</button>}</div>
@@ -145,6 +165,8 @@ export default function ProfileDocumentView({ document, proposal, onAsk, onConta
         <EditButton label="Edit introduction" onClick={onEdit ? () => onEdit("introduction") : undefined} />
       </div>
     </header>
+
+    <ImpactStats document={document} onEdit={onEdit} />
 
     {(document.projects.length > 0 || onEdit) && <section className="proxy-page__section proxy-page__work" id="selected-work">
       <div className="proxy-page__section-heading">
@@ -199,6 +221,8 @@ export default function ProfileDocumentView({ document, proposal, onAsk, onConta
         </article>;
       })}</div>
     </section>}
+
+    <HowIWork document={document} onEdit={onEdit} />
 
     {document.skills.length > 0 && <section className="proxy-page__section proxy-page__skills">
       <div className="proxy-page__section-heading"><div><p className="proxy-page__section-kicker">Capabilities</p><h3>Areas of strength</h3></div><EditButton label="Edit" onClick={onEdit ? () => onEdit("skills") : undefined} /></div>

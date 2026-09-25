@@ -521,6 +521,12 @@
 .proxy-page__detail-grid h4 { margin-bottom: 10px; font-size: 17px; }
 .proxy-page__detail-grid ul { display: grid; gap: 8px; margin: 0; padding-left: 18px; }
 .proxy-page__empty { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px; border: 1px dashed color-mix(in srgb,currentColor 35%,transparent); color: color-mix(in srgb,currentColor 70%,transparent); }
+.proxy-page__stats { position: relative; padding: clamp(28px,4cqw,44px) 0; border-bottom: 1px solid color-mix(in srgb,currentColor 22%,transparent); }
+.proxy-page__stats .proxy-page__edit { position: absolute; top: clamp(28px,4cqw,44px); right: 0; }
+.proxy-page__stat-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 24px 20px; }
+.proxy-page__stat-grid strong { display: block; font-size: clamp(24px,3.4cqw,34px); line-height: 1.1; }
+.proxy-page__stat-grid span { display: block; margin-top: 6px; color: color-mix(in srgb,currentColor 62%,transparent); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.proxy-page__how-i-work p { max-width: 720px; color: color-mix(in srgb,currentColor 80%,transparent); font-size: clamp(16px,2cqw,18px); line-height: 1.65; }
 
 .proxy-page--executive { background: #f6f2e9; color: #172019; }
 .proxy-page--executive :is(h1,h2,h3,h4) { font-family: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; font-weight: 500; }
@@ -834,6 +840,12 @@
 .builder-contact-setting>label:first-child>span { display: block; margin-bottom: 5px; color: #596258; font-size: 11px; font-weight: 750; }
 .builder-contact-setting>label:first-child input { width: 100%; border: 1px solid #b9beb6; margin: 0; padding: 9px; background: #fff; }
 .builder-contact-setting>label:last-child { display: flex; align-items: center; gap: 8px; padding-top: 5px; }
+.builder-media-setting { display: grid; gap: 8px; padding: 13px 0; border-top: 1px solid #e0e1dc; }
+.builder-media-setting>div:first-child { display: flex; align-items: baseline; gap: 8px; }
+.builder-media-actions { display: flex; gap: 8px; }
+.builder-media-actions button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #b9beb6; background: #fff; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.builder-media-actions button.danger { border-color: #c0574a; color: #c0574a; }
+.builder-media-setting>label { display: flex; align-items: center; gap: 8px; }
 
 @media (max-width: 900px) {
   .builder-preview-mode>.proxy-page { margin-top: 0; }

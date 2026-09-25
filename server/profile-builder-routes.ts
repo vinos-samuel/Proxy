@@ -12,7 +12,7 @@ import {
   toPublicProfileDocument,
   type ProfileDocument,
 } from "@shared/profile-document";
-import { parseResumeWithGemini, generatePortfolioPreview, generateProfileImprovement, generateApprovedProfileAnswer } from "./ai-processor";
+import { parseResumeWithGemini, generatePortfolioPreview, generateProfileImprovement, generateApprovedProfileAnswer, generateHowIWorkSynthesis, InsufficientContentError } from "./ai-processor";
 import {
   applyProposal,
   buildProfileDocument,
@@ -411,6 +411,26 @@ export function registerProfileBuilderRoutes(app: Express) {
     const saved = await saveWorking(req, state, next);
     if (!saved) return res.status(409).json({ message: "Your page changed while the suggestion was prepared. Try again." });
     return res.json({ ...saved, proposal });
+  });
+
+  app.post("/api/builder/synthesize-how-i-work", async (req: Request, res: Response) => {
+    const parsed = revisionSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Invalid revision" });
+    const state = await loadBuilder(req);
+    if (!state) return res.status(404).json({ message: "No page draft found" });
+    if (state.revision !== parsed.data.revision) return res.status(409).json({ message: "Your page changed. Reload and try again." });
+    try {
+      const text = await generateHowIWorkSynthesis(state.document);
+      const next = structuredClone(state.document);
+      next.howIWork = text;
+      const saved = await saveWorking(req, state, next);
+      if (!saved) return res.status(409).json({ message: "Your page changed while this was generated. Try again." });
+      return res.json(saved);
+    } catch (error) {
+      if (error instanceof InsufficientContentError) return res.status(400).json({ message: error.message });
+      logger.error("[Profile Builder] How-I-work synthesis failed", { error: String(error) });
+      return res.status(500).json({ message: "Could not generate this right now. Try again in a moment." });
+    }
   });
 
   app.post("/api/builder/keep", async (req: Request, res: Response) => {

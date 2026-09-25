@@ -82,6 +82,9 @@ export const profileDocumentSchema = z.object({
     headline: boundedText(240),
     summary: boundedText(1800),
     photoUrl: mediaUrl.nullable().default(null),
+    videoUrl: mediaUrl.nullable().default(null),
+    showPhoto: z.boolean().default(true),
+    showVideo: z.boolean().default(true),
   }),
   projects: z.array(profileProjectSchema).max(8).default([]),
   experience: z.array(profileExperienceSchema).max(20).default([]),
@@ -89,6 +92,12 @@ export const profileDocumentSchema = z.object({
   skills: z.array(boundedText(80)).max(40).default([]),
   contact: profileContactSchema,
   publicBotEnabled: z.boolean().default(false),
+  impactStats: z.array(z.object({
+    id: boundedText(80),
+    label: boundedText(120),
+    value: boundedText(80),
+  })).max(6).default([]),
+  howIWork: optionalText(900),
   details: z.object({
     education: z.array(boundedText(500)).max(12).default([]),
     certifications: z.array(boundedText(500)).max(12).default([]),
@@ -151,6 +160,14 @@ export function normalizeProfileDocument(document: ProfileDocument): ProfileDocu
     undoStack: document.undoStack || [],
     pendingProposal: document.pendingProposal ?? null,
     publicBotEnabled: document.publicBotEnabled ?? false,
+    impactStats: document.impactStats || [],
+    howIWork: document.howIWork,
+    identity: {
+      ...document.identity,
+      videoUrl: document.identity?.videoUrl ?? null,
+      showPhoto: document.identity?.showPhoto ?? true,
+      showVideo: document.identity?.showVideo ?? true,
+    },
     contact: {
       email: document.contact?.email ?? null,
       linkedin: document.contact?.linkedin ?? null,

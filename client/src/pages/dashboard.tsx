@@ -508,12 +508,12 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="bg-white/10 border border-white/20 p-4 mb-4 mono text-xs text-white/80 leading-relaxed whitespace-pre-line">
-                    {buildLinkedInPost(`https://myproxy.work/portfolio/${user?.username}`)}
+                    {buildLinkedInPost(`${window.location.origin}/portfolio/${user?.username}`)}
                   </div>
                   <div className="flex gap-3 flex-wrap">
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(buildLinkedInPost(`https://myproxy.work/portfolio/${user?.username}`));
+                        navigator.clipboard.writeText(buildLinkedInPost(`${window.location.origin}/portfolio/${user?.username}`));
                       }}
                       className="flex items-center gap-2 bg-[#22C55E] text-black px-5 py-3 font-bold border-[3px] border-[#22C55E] mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)] hover:bg-[#16A34A] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
                     >
@@ -521,7 +521,7 @@ export default function DashboardPage() {
                       Copy LinkedIn Post
                     </button>
                     <button
-                      onClick={() => navigator.clipboard.writeText(`https://myproxy.work/portfolio/${user?.username}`)}
+                      onClick={() => navigator.clipboard.writeText(`${window.location.origin}/portfolio/${user?.username}`)}
                       className="flex items-center gap-2 bg-white/10 text-white px-5 py-3 font-bold border-[3px] border-white/30 mono text-xs uppercase tracking-wider hover:bg-white/20 active:translate-x-[1px] active:translate-y-[1px] transition-all"
                     >
                       <Copy className="h-3.5 w-3.5" />
@@ -529,7 +529,7 @@ export default function DashboardPage() {
                     </button>
                     <button
                       onClick={() => {
-                        const signature = `${profile?.displayName || user?.name || user?.username}${profile?.roleTitle ? ` | ${profile.roleTitle}` : ""}\nAsk my AI about my work: https://myproxy.work/portfolio/${user?.username}`;
+                        const signature = `${profile?.displayName || user?.name || user?.username}${profile?.roleTitle ? ` | ${profile.roleTitle}` : ""}\nAsk my AI about my work: ${window.location.origin}/portfolio/${user?.username}`;
                         navigator.clipboard.writeText(signature);
                       }}
                       className="flex items-center gap-2 bg-white/10 text-white px-5 py-3 font-bold border-[3px] border-white/30 mono text-xs uppercase tracking-wider hover:bg-white/20 active:translate-x-[1px] active:translate-y-[1px] transition-all"

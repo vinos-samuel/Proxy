@@ -8,6 +8,10 @@ import InsiderKit from "@/components/InsiderKit";
 interface PaymentGateProps {
   profileId: string;
   username?: string;
+  // Set when this is shown because the free window is already spent (the new
+  // builder only opens this once /api/builder/publish says free isn't
+  // available) — offering "free" again here is misleading, so hide it.
+  hideFree?: boolean;
 }
 
 const tiers = [
@@ -61,9 +65,10 @@ const tiers = [
   },
 ];
 
-export default function PaymentGate({ profileId, username }: PaymentGateProps) {
+export default function PaymentGate({ profileId, username, hideFree }: PaymentGateProps) {
   const [loading, setLoading] = useState(false);
-  const [selectedTier, setSelectedTier] = useState<string>("free");
+  const [selectedTier, setSelectedTier] = useState<string>(hideFree ? "pro" : "free");
+  const visibleTiers = hideFree ? tiers.filter((tier) => tier.key !== "free") : tiers;
   const [published, setPublished] = useState(false);
   const [publishData, setPublishData] = useState<{ publicDomain?: string; username?: string; displayName?: string; roleTitle?: string } | null>(null);
   const [showFreeConfirm, setShowFreeConfirm] = useState(false);
@@ -107,7 +112,9 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
   };
 
   if (published && publishData) {
-    const profileUrl = `https://myproxy.work/portfolio/${publishData.username}`;
+    // window.location.origin so this reads correctly when tested on a
+    // Replit workspace preview, not just on the production domain.
+    const profileUrl = `${window.location.origin}/portfolio/${publishData.username}`;
     return (
       <div className="md:col-span-2 bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
         <div className="text-center space-y-6">
@@ -221,7 +228,7 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 mb-8">
-        {tiers.map((tier) => {
+        {visibleTiers.map((tier) => {
           const Icon = tier.icon;
           const isSelected = selectedTier === tier.key;
           const isPopular = tier.popular;

@@ -10,6 +10,7 @@ import { getCsrfToken } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
 import { visualProfileFixture } from "@/lib/profile-document-fixtures";
 import { mergeProfileDocuments, setDocumentPath, type DocumentConflict } from "@/lib/profile-document-merge";
+import { useUpload } from "@/hooks/use-upload";
 
 type BuilderState = {
   document?: ProfileDocument;
@@ -30,7 +31,7 @@ type QuestionState = {
 
 type Panel = "improve" | "edit" | "style" | "settings";
 type ConversationTopic = "all" | "work" | "experience" | "about";
-type EditTarget = { section: "outline" | "introduction" | "projects" | "project" | "experience" | "role" | "employer" | "skills" | "more" | "details"; id?: string };
+type EditTarget = { section: "outline" | "introduction" | "projects" | "project" | "experience" | "role" | "employer" | "skills" | "more" | "details" | "impactStats" | "howIWork"; id?: string };
 type ConflictReview = {
   latest: BuilderState;
   merged: ProfileDocument;
@@ -101,6 +102,8 @@ export default function BuilderPage() {
   const localEditVersionRef = useRef(0);
   const saveQueueRef = useRef<Promise<unknown>>(Promise.resolve());
   const saveSequenceRef = useRef(0);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const fixtureMode = import.meta.env.DEV && new URLSearchParams(window.location.search).get("fixture") === "1";
 
   const document = state.document ? normalizeProfileDocument(state.document) : state.document;
@@ -279,6 +282,13 @@ export default function BuilderPage() {
     saveQueueRef.current = operation;
     return operation;
   };
+
+  const { uploadFile: uploadPhoto, isUploading: isUploadingPhoto } = useUpload({
+    onSuccess: (response) => { const current = stateRef.current.document; if (current) void saveDocument({ ...current, identity: { ...current.identity, photoUrl: response.objectPath, showPhoto: true } }, "builder_photo_uploaded"); },
+  });
+  const { uploadFile: uploadVideo, isUploading: isUploadingVideo } = useUpload({
+    onSuccess: (response) => { const current = stateRef.current.document; if (current) void saveDocument({ ...current, identity: { ...current.identity, videoUrl: response.objectPath, showVideo: true } }, "builder_video_uploaded"); },
+  });
 
   const chooseStyle = (style: ProfileStyle) => {
     const current = stateRef.current.document;
@@ -550,10 +560,11 @@ export default function BuilderPage() {
       </header>
       <div className="builder-workspace">
         <section className="builder-canvas" aria-label="Page preview">
-          <div className="builder-browser"><span /><span /><span /><small>myproxy.work/portfolio/{user?.username || "your-name"}</small></div>
+          <div className="builder-browser"><span /><span /><span /><small>{window.location.host}/portfolio/{user?.username || "your-name"}</small></div>
           <ProfileDocumentView document={document} proposal={proposal} onAsk={document.publicBotEnabled ? () => setTestChat(true) : undefined} onEdit={(section, id) => {
             setPanel("edit");
             if (section === "project" && !id) setEditTarget({ section: "projects" });
+            else if (section === "impactStats" || section === "howIWork") setEditTarget({ section });
             else setEditTarget({ section: section === "introduction" ? "introduction" : section === "project" ? "project" : section === "experience" ? (document.employerContributions.some((item) => item.id === id) ? "employer" : "role") : section === "details" ? "details" : "skills", id });
             setMobilePanel(true);
           }} />
@@ -606,7 +617,9 @@ export default function BuilderPage() {
                 <div className="builder-section-list">
                   <button onClick={() => setEditTarget({ section: "introduction" })}><span><b>Introduction</b><small>Name, role, headline and summary</small></span><ChevronRight /></button>
                   <button onClick={() => setEditTarget({ section: "projects" })}><span><b>Selected work</b><small>{document.projects.length} examples · add, reorder or remove</small></span><ChevronRight /></button>
+                  <button onClick={() => setEditTarget({ section: "impactStats" })}><span><b>Impact numbers</b><small>{document.impactStats.length} entries · shown once you add at least 2</small></span><ChevronRight /></button>
                   <button onClick={() => setEditTarget({ section: "experience" })}><span><b>Experience</b><small>{document.experience.length} roles with full detail</small></span><ChevronRight /></button>
+                  <button onClick={() => setEditTarget({ section: "howIWork" })}><span><b>How I work</b><small>{document.howIWork ? "Written · edit or regenerate" : "Not written yet"}</small></span><ChevronRight /></button>
                   <button onClick={() => setEditTarget({ section: "skills" })}><span><b>Strengths</b><small>{document.skills.length} capabilities</small></span><ChevronRight /></button>
                   <button onClick={() => setEditTarget({ section: "details" })}><span><b>Background</b><small>Education, certifications and recognition</small></span><ChevronRight /></button>
                   <button onClick={() => setEditTarget({ section: "more" })}><span><b>Private authoring notes</b><small>Working style, direction and voice</small></span><ChevronRight /></button>
@@ -620,8 +633,26 @@ export default function BuilderPage() {
                     ? <textarea value={document.identity[field] || ""} maxLength={field === "headline" ? 240 : 1800} onChange={(event) => { const value = event.target.value; editLocal((current) => ({ ...current, identity: { ...current.identity, [field]: value } })); }} onBlur={saveCurrent} />
                     : <input value={document.identity[field] || ""} onChange={(event) => { const value = event.target.value; editLocal((current) => ({ ...current, identity: { ...current.identity, [field]: value } })); }} onBlur={saveCurrent} />}
                 </label>)}
-                <label><span>Portrait URL (optional)</span><input type="url" value={document.identity.photoUrl || ""} placeholder="https://…" onChange={(event) => { const photoUrl = event.target.value || null; editLocal((current) => ({ ...current, identity: { ...current.identity, photoUrl } })); }} onBlur={saveCurrent} /></label>
+                <p className="builder-private-note">Photo and video live under Settings, next to Email and LinkedIn.</p>
               </fieldset>}
+              {editTarget.section === "impactStats" && <>
+                <div className="builder-editor-heading"><h2>Impact numbers</h2><p>Short label plus a value — a number, or something like "PMP Certified." Only shows on your page once you have at least 2.</p></div>
+                <div className="builder-item-list">{document.impactStats.map((stat) => <div key={stat.id}>
+                  <input value={stat.label} placeholder="Label, e.g. Client retention" onChange={(event) => { const label = event.target.value; editLocal((current) => ({ ...current, impactStats: current.impactStats.map((item) => item.id === stat.id ? { ...item, label } : item) })); }} onBlur={saveCurrent} />
+                  <input value={stat.value} placeholder="Value, e.g. 94%" onChange={(event) => { const value = event.target.value; editLocal((current) => ({ ...current, impactStats: current.impactStats.map((item) => item.id === stat.id ? { ...item, value } : item) })); }} onBlur={saveCurrent} />
+                  <button className="danger" type="button" aria-label="Remove" onClick={() => saveDocument({ ...document, impactStats: document.impactStats.filter((item) => item.id !== stat.id) })}><Trash2 /></button>
+                </div>)}</div>
+                <button className="builder-add" disabled={document.impactStats.length >= 6} onClick={() => saveDocument({ ...document, impactStats: [...document.impactStats, { id: `stat-${Date.now()}`, label: "", value: "" }] })}><Plus /> Add a number</button>
+              </>}
+              {editTarget.section === "howIWork" && (() => {
+                const eligibleProjects = document.projects.filter((project) => [project.challenge, project.contribution, project.outcome].some((value) => Boolean(value && value.trim().length >= 10))).length;
+                return <fieldset>
+                  <legend>How I work</legend>
+                  <p className="builder-private-note">Written from your own answered project questions in Improve — never an invented framework. Needs at least 2 answered projects; you have {eligibleProjects}.</p>
+                  <textarea value={document.howIWork || ""} maxLength={900} placeholder="Generate a first draft, or write your own." onChange={(event) => { const value = event.target.value; editLocal((current) => ({ ...current, howIWork: value })); }} onBlur={saveCurrent} />
+                  <button className="builder-add" disabled={Boolean(busy) || eligibleProjects < 2} onClick={async () => { const result = await mutate<{ document: ProfileDocument; revision: number }>("how-i-work", "/api/builder/synthesize-how-i-work", { revision }); if (result) capture("builder_how_i_work_generated"); }}>{busy === "how-i-work" ? <Loader2 className="animate-spin" /> : <Sparkles />} {document.howIWork ? "Regenerate" : "Generate a draft"}</button>
+                </fieldset>;
+              })()}
               {editTarget.section === "projects" && <>
                 <div className="builder-editor-heading"><h2>Selected work</h2><p>Keep the page compact. Open one example to edit its full story.</p></div>
                 <div className="builder-item-list">{document.projects.map((project, index) => <div key={project.id}><button onClick={() => setEditTarget({ section: "project", id: project.id })}><span><b>{project.title}</b><small>{project.company || "No company added"}</small></span><ChevronRight /></button><div><button disabled={index === 0} onClick={() => moveProject(project.id, -1)} aria-label={`Move ${project.title} up`}><ArrowUp /></button><button disabled={index === document.projects.length - 1} onClick={() => moveProject(project.id, 1)} aria-label={`Move ${project.title} down`}><ArrowDown /></button></div></div>)}</div>
@@ -665,6 +696,28 @@ export default function BuilderPage() {
 
             {panel === "settings" && <div className="builder-settings">
               <section><h2>AI explorer</h2><p>Let visitors ask questions about the information on your published page. AI answers may be incomplete.</p><button className="builder-test-bot" onClick={() => setTestChat(true)}><MessageCircle /> Test with this private preview</button><label><input type="checkbox" checked={document.publicBotEnabled} onChange={(event) => { const current = stateRef.current.document; if (current) void saveDocument({ ...current, publicBotEnabled: event.target.checked }, "builder_bot_setting_changed"); }} /><span><b>Show “Ask about my work” after publishing</b><small>Uses approved public content only. Private answers and CV text stay excluded.</small></span></label></section>
+              <section><h2>Photo &amp; video</h2>
+                {!user ? <p className="builder-private-note">Create a free account to add a photo or video.</p> : <>
+                  <div className="builder-media-setting">
+                    <div><span><b>Photo</b></span>{document.identity.photoUrl ? <small>Uploaded</small> : <small>Not added</small>}</div>
+                    <div className="builder-media-actions">
+                      <input ref={photoInputRef} type="file" accept="image/*" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadPhoto(file); event.target.value = ""; }} />
+                      <button type="button" disabled={isUploadingPhoto} onClick={() => photoInputRef.current?.click()}>{isUploadingPhoto ? <Loader2 className="animate-spin" /> : <Upload />} {document.identity.photoUrl ? "Replace" : "Upload"}</button>
+                      {document.identity.photoUrl && <button type="button" className="danger" onClick={() => saveDocument({ ...document, identity: { ...document.identity, photoUrl: null } })}><Trash2 /> Remove</button>}
+                    </div>
+                    <label><input type="checkbox" checked={document.identity.showPhoto} disabled={!document.identity.photoUrl} onChange={(event) => saveDocument({ ...document, identity: { ...document.identity, showPhoto: event.target.checked } })} /><span><b>Show photo</b></span></label>
+                  </div>
+                  <div className="builder-media-setting">
+                    <div><span><b>Video</b></span>{document.identity.videoUrl ? <small>Uploaded</small> : <small>Not added</small>}</div>
+                    <div className="builder-media-actions">
+                      <input ref={videoInputRef} type="file" accept="video/mp4,video/webm" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadVideo(file); event.target.value = ""; }} />
+                      <button type="button" disabled={isUploadingVideo} onClick={() => videoInputRef.current?.click()}>{isUploadingVideo ? <Loader2 className="animate-spin" /> : <Upload />} {document.identity.videoUrl ? "Replace" : "Upload"}</button>
+                      {document.identity.videoUrl && <button type="button" className="danger" onClick={() => saveDocument({ ...document, identity: { ...document.identity, videoUrl: null } })}><Trash2 /> Remove</button>}
+                    </div>
+                    <label><input type="checkbox" checked={document.identity.showVideo} disabled={!document.identity.videoUrl} onChange={(event) => saveDocument({ ...document, identity: { ...document.identity, showVideo: event.target.checked } })} /><span><b>Show video</b></span></label>
+                  </div>
+                </>}
+              </section>
               <section><h2>Contact details</h2>{([
                 ["email", "Email", "showEmail", "name@example.com"],
                 ["linkedin", "LinkedIn", "showLinkedin", "https://linkedin.com/in/your-name"],
@@ -689,7 +742,7 @@ export default function BuilderPage() {
         document.projects[0] ? `What did ${document.identity.name.split(" ")[0]} contribute to ${document.projects[0].title}?` : "What experience stands out?",
         "What would be useful to discuss in a first conversation?",
       ].map((starter) => <button key={starter} type="button" onClick={() => setTestQuestion(starter)}>{starter}</button>)}</div><div className="builder-test-messages">{testMessages.length === 0 && <p>Choose a starter or ask your own question.</p>}{testMessages.map((message, index) => <div key={index} className={message.role}>{message.content}</div>)}</div><form onSubmit={(event) => { event.preventDefault(); void sendTestQuestion(); }}><input value={testQuestion} onChange={(event) => setTestQuestion(event.target.value)} maxLength={500} placeholder="Ask a visitor question" /><button disabled={busy === "test-chat" || !testQuestion.trim()} aria-label="Send question"><Send /></button></form></div></div>}
-      {showPlans && <div className="builder-plan-modal"><div><button className="builder-modal-close" onClick={() => setShowPlans(false)} aria-label="Close plans"><X /></button><PaymentGate profileId="current" username={user?.username} /></div></div>}
+      {showPlans && <div className="builder-plan-modal"><div><button className="builder-modal-close" onClick={() => setShowPlans(false)} aria-label="Close plans"><X /></button><PaymentGate profileId="current" username={user?.username} hideFree /></div></div>}
     </main>
   );
 }

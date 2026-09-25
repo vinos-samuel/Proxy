@@ -33,7 +33,7 @@ export default function PrivacyPage() {
               <li><strong>Career data:</strong> resume content, work history, skills, questionnaire responses</li>
               <li><strong>Profile data:</strong> anything you add to your page — war stories, achievements, communication style</li>
               <li><strong>Uploaded files:</strong> resume, CV, headshot photo, and intro video stored in Replit Object Storage</li>
-              <li><strong>Chat data:</strong> questions asked by visitors to your Twin are saved for your analytics dashboard</li>
+              <li><strong>Chat data:</strong> questions asked by visitors through your page are saved for your analytics dashboard</li>
               <li><strong>Payment data:</strong> handled entirely by Stripe — we never see or store your card details</li>
               <li><strong>Usage data:</strong> pages visited, session info, IP address</li>
             </ul>
@@ -46,7 +46,7 @@ export default function PrivacyPage() {
               <li>To process your AI-generated career content via Google Gemini</li>
               <li>To send transactional emails (account verification, password reset, profile updates) via Resend</li>
               <li>To process payments via Stripe</li>
-              <li>To show you analytics on who is visiting and engaging with your Twin</li>
+              <li>To show you analytics on who is visiting and engaging with your page</li>
               <li>To improve the service</li>
             </ul>
           </section>

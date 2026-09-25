@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { motion } from "framer-motion";
 import ProxyLogo from "@/components/ProxyLogo";
@@ -181,6 +181,27 @@ export function RegisterPage() {
     defaultValues: { email: "", password: "", name: "", username: "" },
   });
 
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/builder", { credentials: "include" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((state) => {
+        const draftName = state?.document?.identity?.name?.trim();
+        if (cancelled || !draftName || form.getValues("name") || form.getValues("username")) return;
+        const suggestedUsername = draftName
+          .toLowerCase()
+          .normalize("NFKD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 40);
+        form.setValue("name", draftName);
+        if (suggestedUsername) form.setValue("username", suggestedUsername);
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [form]);
+
   const onSubmit = async (data: z.infer<typeof registerSchema>) => {
     try {
       await apiRequest("POST", "/api/auth/register", data);
@@ -206,8 +227,8 @@ export function RegisterPage() {
               <ProxyLogo />
             </div>
           </Link>
-          <h1 className="text-4xl font-bold mb-2 text-black/60">Initialize Your Twin</h1>
-          <p className="mono text-sm text-black/60 uppercase tracking-wider">Start building your AI career agent</p>
+          <h1 className="text-4xl font-bold mb-2 text-black/60">Save your page. Make it yours.</h1>
+          <p className="mono text-sm text-black/60 uppercase tracking-wider">Prepare convincing evidence for your next opportunity</p>
         </div>
 
         <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
@@ -215,7 +236,7 @@ export function RegisterPage() {
             <div className="text-center py-4">
               <Mail className="h-12 w-12 text-[#22C55E] mx-auto mb-4" />
               <p className="font-bold text-black mono uppercase tracking-wider">Check Your Email</p>
-              <p className="text-sm text-black/60 mono mt-2">We sent a verification link to <strong>{registeredEmail}</strong>. Click it to activate your account.</p>
+              <p className="text-sm text-black/60 mono mt-2">We sent a verification link to <strong>{registeredEmail}</strong>. Verify it to return to your saved page.</p>
               <p className="text-xs text-black/40 mono mt-4">Didn't get it? Check your spam folder or{" "}
                 <Link href="/login" className="underline text-black/60">go to sign in</Link> to resend.
               </p>
@@ -238,7 +259,7 @@ export function RegisterPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="username" className="mono text-xs uppercase tracking-wider text-black/60">Username</Label>
-              <div className="relative">
+              <div>
                 <Input
                   id="username"
                   placeholder="john-doe"
@@ -246,9 +267,7 @@ export function RegisterPage() {
                   className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black text-black"
                   {...form.register("username")}
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs mono text-black/40">
-                  .myproxy.work
-                </span>
+                <p className="mt-2 text-xs mono text-black/40">Your link: myproxy.work/portfolio/{form.watch("username") || "your-name"}</p>
               </div>
               {form.formState.errors.username && (
                 <p className="mono text-xs text-destructive">{form.formState.errors.username.message}</p>

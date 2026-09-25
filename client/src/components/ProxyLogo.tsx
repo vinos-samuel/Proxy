@@ -29,7 +29,7 @@ export default function ProxyLogo({ className = "" }: ProxyLogoProps) {
           PROXY
         </span>
         <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: "10px", color: "#555", letterSpacing: "0.02em", marginTop: "3px" }}>
-          Your resume is not working. Proxy is.
+          Prepare convincing evidence for your next opportunity.
         </span>
       </div>
     </div>

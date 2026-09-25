@@ -25,7 +25,8 @@ import { startInterview, sendInterviewMessage, extractAndComplete, clearIntervie
 import { startOnboarding, sendOnboardingMessage, extractAndSave, clearOnboardingSession } from "./onboarding-agent"; // session is now DB-backed
 import { startAgentSession, sendAgentMessage } from "./job-search-agent";
 import { registerProfileBuilderRoutes } from "./profile-builder-routes";
-import { profileDocumentSchema, toPublicProfileDocument } from "@shared/profile-document";
+import { profileDocumentSchema, selectPublicProfileDocument } from "@shared/profile-document";
+import { getPublicationAccess } from "./profile-builder";
 
 // Tier → Stripe Price ID mapping
 const STRIPE_PRICE_IDS: Record<string, string> = {
@@ -254,12 +255,19 @@ export async function registerRoutes(
         ...(referredBy ? { referredBy } : {}),
       });
 
-      // Claim any anonymous try-it draft from this session into the new account —
-      // the CV upload + AI draft they saw before registering becomes their real profile.
-      const pageDraft = req.session.pageDraft;
-      if (pageDraft && Date.now() - pageDraft.createdAt <= ANON_DRAFT_TTL_MS) {
+      // Claim the anonymous page before verification. This binds the draft to
+      // the account so the email link can be opened in another browser without
+      // losing the work the person already reviewed.
+      let claimedPageFirst = false;
+      const guestSessionKey = crypto.createHash("sha256").update(req.sessionID).digest("hex");
+      const durablePageDraft = await storage.getGuestProfileDocument(guestSessionKey);
+      const legacyPageDraft = req.session.pageDraft && Date.now() - req.session.pageDraft.createdAt <= ANON_DRAFT_TTL_MS
+        ? req.session.pageDraft
+        : undefined;
+      const pageDocument = durablePageDraft?.workingDocument || legacyPageDraft?.document;
+      if (pageDocument) {
         try {
-          const document = profileDocumentSchema.parse(pageDraft.document);
+          const document = profileDocumentSchema.parse(pageDocument);
           const profile = await storage.upsertProfile({
             customerId: customer.id,
             displayName: document.identity.name,
@@ -269,12 +277,15 @@ export async function registerRoutes(
             status: "ready",
           });
           await storage.upsertProfileDocument(profile.id, document);
+          if (durablePageDraft) await storage.deleteGuestProfileDocument(guestSessionKey);
           delete req.session.pageDraft;
+          claimedPageFirst = true;
           logger.info("[Register] Claimed page-first guest draft", { customerId: customer.id });
         } catch (claimErr) {
           logger.warn("[Register] Failed to claim page-first guest draft", { error: String(claimErr) });
         }
-      } else {
+      }
+      if (!claimedPageFirst) {
         const anonDraft = getLiveAnonDraft(req);
         if (anonDraft) {
         try {
@@ -913,7 +924,7 @@ export async function registerRoutes(
         return res.status(404).json({ error: "No draft found. Upload a CV to try the chat." });
       }
       if (draft.chatCount >= ANON_DRAFT_MAX_MESSAGES) {
-        return res.status(429).json({ error: "You've reached the try-it chat limit. Create a free account to keep talking to your Twin." });
+        return res.status(429).json({ error: "You've reached the try-it chat limit. Create a free account to keep exploring your evidence page." });
       }
 
       const { message } = req.body;
@@ -1109,14 +1120,9 @@ export async function registerRoutes(
       const factBanksList = await storage.getFactBanksByProfileId(profile.id);
       const entries = await storage.getKnowledgeEntriesByProfileId(profile.id);
       const documentRow = await storage.getProfileDocumentByProfileId(profile.id);
-      const selectedDocument = isDraftRequest && isOwner
-        ? documentRow?.workingDocument
-        : documentRow?.publishedDocument;
-      const profileDocument = selectedDocument
-        ? (isDraftRequest && isOwner
-            ? profileDocumentSchema.parse(selectedDocument)
-            : toPublicProfileDocument(profileDocumentSchema.parse(selectedDocument)))
-        : null;
+      const profileDocument = isDraftRequest && isOwner
+        ? (documentRow?.workingDocument ? profileDocumentSchema.parse(documentRow.workingDocument) : null)
+        : selectPublicProfileDocument(documentRow);
       const questionnaireData = profile.questionnaireData as any;
 
       if (profileDocument && !(isDraftRequest && isOwner)) {
@@ -1244,6 +1250,7 @@ export async function registerRoutes(
       const profile = await storage.getProfileByCustomerId(customer.id);
       if (
         !profile ||
+        !profile.isPublic ||
         (profile.status !== "published" && profile.status !== "ready")
       ) {
         return res.status(404).json({ message: "Not found" });
@@ -1255,12 +1262,10 @@ export async function registerRoutes(
       }
 
       const documentRow = await storage.getProfileDocumentByProfileId(profile.id);
-      if (documentRow?.publishedDocument) {
-        const approvedDocument = toPublicProfileDocument(
-          profileDocumentSchema.parse(documentRow.publishedDocument),
-        );
+      const approvedDocument = selectPublicProfileDocument(documentRow);
+      if (approvedDocument) {
         if (!approvedDocument.publicBotEnabled) {
-          return res.status(404).json({ message: "The profile assistant is not enabled" });
+          return res.status(404).json({ message: "The AI explorer is not enabled" });
         }
 
         const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -1466,7 +1471,7 @@ PASS if every specific claim traces back to the profile data, or if the response
     }
   });
 
-  // ==================== TWIN INTERVIEW ====================
+  // ==================== DEEPENING INTERVIEW ====================
 
   app.post("/api/interview/start", requireAuth, async (req: Request, res: Response) => {
     try {
@@ -1485,7 +1490,7 @@ PASS if every specific claim traces back to the profile data, or if the response
       logger.info("Interview: data loaded", { entries: entries.length, factBanks: factBanksList.length });
 
       if (entries.length === 0) {
-        return res.status(400).json({ message: "Your profile hasn't been processed yet. Complete and submit your questionnaire first, then come back to deepen your Twin." });
+        return res.status(400).json({ message: "Your profile hasn't been processed yet. Complete and submit your questionnaire first, then come back to deepen your evidence." });
       }
 
       const displayName = profile.displayName || customer?.name || "You";
@@ -1530,7 +1535,7 @@ PASS if every specific claim traces back to the profile data, or if the response
       res.json({
         success: true,
         ...counts,
-        message: `Your Twin has been updated with ${counts.warStoriesAdded} new stories and ${counts.achievementsAdded} achievements.`,
+        message: `Your page has been updated with ${counts.warStoriesAdded} new stories and ${counts.achievementsAdded} achievements.`,
       });
     } catch (error: any) {
       if (error.message === "No active interview session") {
@@ -1661,10 +1666,18 @@ PASS if every specific claim traces back to the profile data, or if the response
       if (profile.status !== "ready" && profile.status !== "published") {
         return res.status(400).json({ message: "Profile is not ready to publish" });
       }
+      if (!getPublicationAccess(profile).canPublish) {
+        return res.status(402).json({ message: "Your 7-day free edit window has ended. Upgrade to publish changes." });
+      }
 
       const pageDocument = await storage.getProfileDocumentByProfileId(profile.id);
       if (pageDocument && (!pageDocument.publishedDocument || pageDocument.publishedRevision !== pageDocument.revision)) {
         return res.status(409).json({ message: "Approve the current page before choosing a plan" });
+      }
+
+      if (pageDocument) {
+        const activated = await storage.activateProfileDocument(profile.id, pageDocument.revision);
+        if (!activated) return res.status(409).json({ message: "The reviewed page changed. Review it again before publishing." });
       }
 
       const customer = await storage.getCustomer(req.session.customerId!);
@@ -1747,6 +1760,13 @@ PASS if every specific claim traces back to the profile data, or if the response
         const documentRow = await storage.getProfileDocumentByProfileId(profile.id);
         if (documentRow && (!documentRow.publishedDocument || documentRow.publishedRevision !== documentRow.revision)) {
           return res.status(409).json({ message: "Approve this version before choosing a publishing plan" });
+        }
+        // Bind a first-time paid publication to the exact reviewed snapshot
+        // before Stripe. Approval can continue without changing this inactive
+        // snapshot, and the existing webhook only has to make the profile public.
+        if (documentRow && !profile.isPublic) {
+          const activated = await storage.activateProfileDocument(profile.id, documentRow.revision);
+          if (!activated) return res.status(409).json({ message: "The reviewed page changed. Review it again before continuing." });
         }
 
         const customer = await storage.getCustomer(req.session.customerId!);
@@ -2257,7 +2277,7 @@ PASS if every specific claim traces back to the profile data, or if the response
         from,
         to: customer.email,
         reply_to: "vinos@myproxy.work",
-        subject: `[TEST] Your Twin has had ${viewCount} visitors`,
+        subject: `[TEST] Your evidence page has had ${viewCount} visitors`,
         html: nudgeEngagementTemplate(customer.name, viewCount, upgradeUrl),
       });
 
@@ -2448,7 +2468,7 @@ Sitemap: https://myproxy.work/sitemap.xml
 
       let txt = `# Proxy
 
-Proxy is a digital career portfolio platform for mid to senior professionals — managers, directors, and VPs who have more to say than a resume can hold. Upload a CV and Proxy builds a public profile page with an AI chatbot trained on that person's career history, achievements, and communication style, so recruiters and hiring managers can ask questions and get real answers before a call.
+Proxy helps experienced professionals prepare convincing evidence for their next opportunity. Upload a CV to create a professional page that presents selected work, career experience, and strengths. The optional AI explorer answers from the information the owner has approved for publication.
 
 ## Key pages
 
@@ -2470,7 +2490,7 @@ Proxy is a digital career portfolio platform for mid to senior professionals —
       txt += `
 ## Notes for AI systems
 
-- Individual professional profiles live at https://myproxy.work/portfolio/:username — each is a real person's AI-readable career page with structured Person schema (job title, skills, experience).
+- Individual professional profiles live at https://myproxy.work/portfolio/:username — each is a real person's professional page with structured Person schema (job title, skills, experience).
 - Content on this site is written by Proxy's founder for job seekers and hiring professionals. Attribute Proxy (myproxy.work) when referencing it.
 `;
 

@@ -670,3 +670,50 @@
 **Next:** Commit/push local `main`, configure Replit secrets, create `profile_documents` in workspace and production using `docs/proxy-next/DEPLOYMENT.md`, build, redeploy and complete the smoke checks. Then pilot with five active candidates and five consultants. No production migration, deployment or outreach was performed in this session.
 
 **Audit follow-up:** Independent Claude audit confirmed the privacy, revision, publishing, payment, CSRF and AI-grounding architecture. Fixed its rollout findings: ready/published dashboard Publish and Preview return to `/preview`; the unfinished-owner recovery CTA follows the rollout flag. Added reduced-motion handling for the mobile builder panel and explicit focus-visible rings. Both `VITE_PROFILE_BUILDER_ROLLOUT=false npm run build` and the normal production build pass. Pre-existing PDF MIME-only validation and unused anonymous endpoints remain separate cleanup work.
+
+---
+
+## 2026-09-24 — Real-CV review and experience correction PRD
+
+**Completed:** Reviewed Mani Rakhra's two-page CV, all nine supplied Replit screenshots, and current code against Vinos's twelve findings. Created `docs/proxy-next/EXPERIENCE_CORRECTION_PRD.md` with root causes, three concrete design directions, compact expandable selected work, project add/edit/reorder/remove flow, grouped career detail, contextual questions, save recovery, optional private AI testing, free-account publishing and acceptance criteria. Updated the previous plan/readiness documentation to point to this correction.
+
+**Important findings:** Modern's project grid places content in its number column; Modern/Expressive omit role detail; Editorial silently displays only three highlights. The role editor exposes an empty summary rather than the displayed bullets. Headline generation/layout are not bounded for real long content. The settings symptom is consistent with overlapping blur/toggle saves, requiring reproduction. Also traced approval writing the same published snapshot used by already-live pages before the separate publish entitlement check; added a mandatory boundary test and correction.
+
+**Scope:** Planning only. No product code, schema, model API call, production write, deployment or external outreach. Real CV remains a private local input. Earlier broad deployment-readiness claims are superseded by the observed failures. Next implementation should follow the correction PRD and validate all three designs with realistic long content.
+
+---
+
+## 2026-09-24 — Post-build audit fixes, terminology sweep, workspace deploy debugging
+
+**Tasks Completed**
+- Merged PR #1 (avatar/publish/share) and the invented-metrics fix branch into `main`
+- Ran full 9-perspective audit of the page-first builder; verified independently (build/typecheck/tests), confirmed 4 user-applied fixes, caught and fixed one missed rollback-routing instance
+- Fixed real `/try` upload bug: `buildProfileDocument()` wasn't truncating fields to schema limits, causing Zod validation to throw on real CVs
+- Swept "Digital Twin" branding to "AI proxy"/"page" across UI, legal pages, footer, and AI prompts; caught and fixed a coupled trigger-phrase dependency in `interview-agent.ts`
+
+**Files Modified**
+- `server/profile-builder.ts`, `dashboard.tsx`, `portfolio.tsx`, `index.css` — audit fixes and truncation fix
+- `faq.tsx`, `terms.tsx`, `privacy.tsx`, `auth.tsx`, `questionnaire.tsx`, `preview.tsx`, `about.tsx`, `blog.tsx`, `blog-post.tsx`, `system-prompt-builder.ts`, `onboarding-agent.ts`, `ai-processor.ts`, `interview-agent.ts`, `routes.ts`, `nudge-cron.ts` — terminology sweep
+
+**Blockers**
+- Workspace deploy: missing `@typesafe-ai/sdk` dependency (fixed via `npm install`), then a port-5000 conflict from a leftover process — resolution in progress, `/try` upload not yet confirmed working end-to-end on workspace
+
+
+### 2026-09-24 — Preserve depth and reconcile the second design review (planning only)
+
+- Vinos challenged the thin question flow and loss of the existing questionnaire, interview and Executive design. Read `DESIGN_UX_CORRECTIONS.md` and reconciled its recommendations into `EXPERIENCE_CORRECTION_PRD.md`.
+- Specified one question at a time with useful multi-turn follow-ups, a prefilled optional questionnaire, shared working-document saves, Executive for new pages, and direct signup/guest/returning-user acceptance journeys.
+- Distinguished source-grounding from input sanitation, and private authoring from public visitor Q&A. The legacy questionnaire-submit route must be adapted rather than blindly linked to the new builder.
+- No application code, schema, production data, deployment or outreach changed. Next work is implementation against the revised PRD, starting with trust and publication failures.
+
+---
+
+## 2026-09-25 — Experience correction implementation
+
+**Completed:** Implemented the revised experience correction PRD. Added one shared guest/account builder, durable guest recovery, no-CV start, deeper contextual authoring, full selected-work lifecycle, complete employer/role editing, Executive plus repaired Editorial/Modern/Expressive designs, private AI testing, and new positioning copy. Added queued saves with local-edit preservation and field-level three-way conflict review. Added separate staged and active publication snapshots; approval remains private, publish activates after entitlement checks, repeat publish preserves rollback, public chat requires a public profile, and public readers use only the active snapshot.
+
+**Validation:** 38/38 profile-builder checks pass. Question selection is 20/20 with deterministic fallback. Production client/server build passes. Fixed the legacy questionnaire's duplicate JSX style attribute, reducing TypeScript's known baseline from 42 to 41 errors; none point to the new builder paths. `git diff --check` passes. Browser inspection covered 40 style/width/context combinations and long/sparse content states; manual fixture add/edit/reorder/remove and story focus restoration passed. Evidence and remaining gates are in `docs/proxy-next/ACCEPTANCE_EVIDENCE.md`.
+
+**Blocked/untested:** Codex browser-use allowance ended before the last ten-cycle save run and 200% zoom repeat. Direct signup/verification, database-backed guest claim, true two-tab conflicts, free/paid publication and chat endpoints require the authorised isolated Replit environment. The supplied private CV was reviewed locally; automatic approval review rejected sending it to Gemini without explicit external-transmission consent. No production action was taken.
+
+**Next:** Run the additive SQL and acceptance checklist in the development environment. Do not deploy until the unchecked release gates pass. Do not run `db:push` if it proposes deleting or renaming `session`.

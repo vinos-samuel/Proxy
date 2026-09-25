@@ -1,5 +1,7 @@
 # Visual verification
 
+**24 September correction:** These results cover the limited fictional fixture and were not sufficient to establish readiness. Vinos's real-CV Replit screenshots show an oversized hero, broken narrow Modern project columns, Expressive date/title collisions, and excessive skills text. All three styles need the container-width and long-content acceptance matrix in `EXPERIENCE_CORRECTION_PRD.md`. Do not use the observations below as a release sign-off.
+
 Date: 23 September 2026. Fixture: fictional `Maya Ramanathan` profile in `client/src/lib/profile-document-fixtures.ts`. The fixture is available only when Vite runs in development and is never sent through an upload or API route.
 
 Verified with the shared production renderer in `client/src/components/profile-document-view.tsx`:

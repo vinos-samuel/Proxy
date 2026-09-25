@@ -763,7 +763,7 @@ function ApplicationsTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t:
                         <button
                           onClick={() => onOpenAgent("interview-prep", "application", entityLabel, entityData)}
                           className={btnAgent}
-                          title="Interview prep using your Twin profile"
+                          title="Interview prep using your approved profile"
                         >
                           <Bot className="h-3 w-3" /> INTERVIEW
                         </button>
@@ -966,7 +966,7 @@ export default function JobSearchPage() {
           <div className="border-[4px] border-black bg-[#FDE68A] p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center max-w-xl mx-auto mt-12">
             <AlertCircle className="h-10 w-10 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-3">PRO FEATURE</h2>
-            <p className="text-black/70 mb-6">The Job Search CRM is available to Pro members. Upgrade to track companies, contacts, and applications — all connected to your Twin.</p>
+            <p className="text-black/70 mb-6">The Job Search CRM is available to Pro members. Upgrade to track companies, contacts, and applications connected to your evidence page.</p>
             <button onClick={() => navigate("/dashboard")} className={btnPrimary + " text-base px-8 py-3"}>
               UPGRADE TO PRO → $49
             </button>

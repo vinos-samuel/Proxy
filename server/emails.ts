@@ -206,11 +206,11 @@ export function nudgeEditWindowTemplate(name: string, upgradeUrl: string): strin
 
 export function nudgeEngagementTemplate(name: string, viewCount: number, upgradeUrl: string): string {
   const visitorText = viewCount > 0
-    ? `Your Twin has already had <strong>${viewCount} visitor${viewCount === 1 ? "" : "s"}</strong>.`
-    : "Your Twin is live and ready to be discovered.";
+    ? `Your evidence page has already had <strong>${viewCount} visitor${viewCount === 1 ? "" : "s"}</strong>.`
+    : "Your evidence page is live and ready to share.";
 
   const body = `
-    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your Twin is working for you</h1>
+    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your evidence page is live</h1>
     <p style="font-size:15px;color:#555555;margin:0 0 24px 0;line-height:1.6;">
       Hi ${name}, it's been 3 days since you published your Proxy profile. ${visitorText}
     </p>
@@ -220,7 +220,7 @@ export function nudgeEngagementTemplate(name: string, viewCount: number, upgrade
         <td style="background:#f5f5f0;border:2px solid #000000;padding:18px 20px;">
           <strong style="font-size:12px;color:#888888;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px;">Pro unlocks</strong>
           <p style="font-size:14px;color:#555555;margin:0;line-height:1.8;">
-            <strong style="color:#22C55E;">→</strong> See every question visitors asked your Twin<br>
+            <strong style="color:#22C55E;">→</strong> See every question visitors asked through your page<br>
             <strong style="color:#22C55E;">→</strong> Unlimited profile edits<br>
             <strong style="color:#22C55E;">→</strong> Full analytics dashboard
           </p>
@@ -251,7 +251,7 @@ export function weeklyDigestTemplate(
     ? `<strong>${newViews} ${newViews === 1 ? "person" : "people"}</strong> viewed your profile this week.`
     : "";
   const questionLine = questions.length > 0
-    ? `Visitors asked your Twin <strong>${questions.length} question${questions.length === 1 ? "" : "s"}</strong>.`
+    ? `Visitors asked through your page <strong>${questions.length} question${questions.length === 1 ? "" : "s"}</strong>.`
     : "";
 
   const questionBlock = questions.length > 0
@@ -270,7 +270,7 @@ export function weeklyDigestTemplate(
           <tr>
             <td style="background:#f5f5f0;border:2px solid #000000;padding:18px 20px;">
               <p style="font-size:14px;color:#555555;margin:0;line-height:1.6;">
-                Upgrade to Pro to see exactly what visitors asked your Twin.
+                Upgrade to Pro to see exactly what visitors asked through your page.
               </p>
             </td>
           </tr>
@@ -278,7 +278,7 @@ export function weeklyDigestTemplate(
     : "";
 
   const body = `
-    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your Twin was busy this week</h1>
+    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your evidence page this week</h1>
     <p style="font-size:15px;color:#555555;margin:0 0 24px 0;line-height:1.6;">
       Hi ${firstName} — a quick update on your Proxy profile. ${viewLine} ${questionLine}
     </p>
@@ -349,8 +349,8 @@ export function tipsEmailTemplate(name: string, dashboardUrl: string): string {
     <p style="font-size:15px;color:#333333;margin:0 0 20px 0;line-height:1.6;">Your profile is live. Here's how to make it work harder for you.</p>
 
     <div style="border-left:4px solid #22C55E;padding:12px 16px;margin:0 0 20px 0;background:#f9fafb;">
-      <p style="font-size:14px;font-weight:700;color:#000;margin:0 0 4px 0;">1. Make your Twin sound like you</p>
-      <p style="font-size:14px;color:#555;margin:0;line-height:1.6;">Go to your profile → Edit → Voice & Style. Paste a few sentences you've written — a LinkedIn post, a message to a colleague, anything in your own words. Your Twin will mirror your tone instead of sounding generic.</p>
+      <p style="font-size:14px;font-weight:700;color:#000;margin:0 0 4px 0;">1. Make the page sound like you</p>
+      <p style="font-size:14px;color:#555;margin:0;line-height:1.6;">Go to your profile → Edit → Voice & Style. Paste a few sentences you've written — a LinkedIn post, a message to a colleague, anything in your own words. Proxy will use that tone when it helps you prepare page content.</p>
     </div>
 
     <div style="border-left:4px solid #22C55E;padding:12px 16px;margin:0 0 20px 0;background:#f9fafb;">

@@ -594,10 +594,10 @@ export default function PreviewPage() {
                         </>
                       ))}
 
-                      {renderSection("persona", "Chatbot Personality", (
+                      {renderSection("persona", "AI Explorer Voice", (
                         <>
                           <div>
-                            <label className="text-xs text-muted-foreground block mb-1">How should your AI chatbot behave and communicate?</label>
+                            <label className="text-xs text-muted-foreground block mb-1">How should the optional AI explorer communicate?</label>
                             <Textarea
                               value={editState.persona}
                               onChange={(e) => setEditState(prev => ({ ...prev, persona: e.target.value }))}

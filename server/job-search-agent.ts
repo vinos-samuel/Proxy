@@ -44,7 +44,7 @@ const agentSessions = new Map<string, AgentSession>();
 
 async function buildProfileContext(customerId: string): Promise<string> {
   const profile = await storage.getProfileByCustomerId(customerId);
-  if (!profile) return "No Twin profile found. Proceed with general advice.";
+  if (!profile) return "No professional profile found. Proceed with general advice.";
 
   const qd = profile.questionnaireData as any;
   const name         = sanitizeForPrompt(qd?.step1?.fullName || profile.displayName, 100);

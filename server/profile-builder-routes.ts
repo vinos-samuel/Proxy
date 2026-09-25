@@ -1,5 +1,6 @@
 import type { Express, Request, Response } from "express";
 import multer from "multer";
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import { storage } from "./storage";
 import { logger } from "./logger";
@@ -8,17 +9,20 @@ import {
   profileDocumentPatchSchema,
   profileDocumentSchema,
   revisionSchema,
+  toPublicProfileDocument,
   type ProfileDocument,
 } from "@shared/profile-document";
-import { parseResumeWithGemini, generatePortfolioPreview, generateProfileImprovement } from "./ai-processor";
+import { parseResumeWithGemini, generatePortfolioPreview, generateProfileImprovement, generateApprovedProfileAnswer } from "./ai-processor";
 import {
   applyProposal,
   buildProfileDocument,
   buildProfileDocumentFromLegacy,
   getImprovementCandidates,
+  getPublicationAccess,
   undoLastChange,
 } from "./profile-builder";
 import { selectImprovementQuestion } from "./typesafe-judgments";
+import { refineBuilderQuestion } from "./onboarding-agent";
 
 declare module "express-session" {
   interface SessionData {
@@ -28,6 +32,7 @@ declare module "express-session" {
       extractedData: unknown;
       document: ProfileDocument;
     };
+    builderTestChats?: { count: number; resetAt: number };
   }
 }
 
@@ -41,6 +46,12 @@ const improveSchema = improvementAnswerSchema.extend({});
 const skipSchema = revisionSchema.extend({ questionId: z.string().min(1).max(100) });
 const proposalEditSchema = revisionSchema.extend({ proposed: z.string().trim().min(2).max(2500) });
 const adoptGuestSchema = z.object({ confirmReplace: z.boolean().default(false) });
+const manualStartSchema = z.object({
+  name: z.string().trim().min(2).max(160),
+  title: z.string().trim().min(2).max(180),
+  work: z.string().trim().min(10).max(900),
+});
+const testChatSchema = z.object({ message: z.string().trim().min(2).max(500) });
 
 type LoadedBuilder = {
   profileId: string | null;
@@ -51,20 +62,49 @@ type LoadedBuilder = {
   source: "account" | "guest";
 };
 
-function getGuestDraft(req: Request) {
-  const draft = req.session.pageDraft;
-  if (!draft) return undefined;
-  if (Date.now() - draft.createdAt > GUEST_DRAFT_TTL_MS) {
-    delete req.session.pageDraft;
-    return undefined;
-  }
-  return draft;
-}
-
 async function saveSession(req: Request): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     req.session.save((error) => error ? reject(error) : resolve());
   });
+}
+
+function guestSessionKey(req: Request): string {
+  return createHash("sha256").update(req.sessionID).digest("hex");
+}
+
+async function getGuestDraft(req: Request) {
+  const durable = await storage.getGuestProfileDocument(guestSessionKey(req));
+  if (durable) {
+    return {
+      createdAt: durable.updatedAt.getTime(),
+      revision: durable.revision,
+      extractedData: durable.extractedData,
+      document: profileDocumentSchema.parse(durable.workingDocument),
+    };
+  }
+
+  // One-time compatibility bridge for drafts created before durable guest rows.
+  const legacy = req.session.pageDraft;
+  if (!legacy) return undefined;
+  if (Date.now() - legacy.createdAt > GUEST_DRAFT_TTL_MS) {
+    delete req.session.pageDraft;
+    await saveSession(req);
+    return undefined;
+  }
+  const row = await storage.upsertGuestProfileDocument(
+    guestSessionKey(req),
+    profileDocumentSchema.parse(legacy.document),
+    legacy.extractedData,
+    new Date(Date.now() + GUEST_DRAFT_TTL_MS),
+  );
+  delete req.session.pageDraft;
+  await saveSession(req);
+  return {
+    createdAt: row.updatedAt.getTime(),
+    revision: row.revision,
+    extractedData: row.extractedData,
+    document: profileDocumentSchema.parse(row.workingDocument),
+  };
 }
 
 async function loadBuilder(req: Request): Promise<LoadedBuilder | null> {
@@ -78,14 +118,14 @@ async function loadBuilder(req: Request): Promise<LoadedBuilder | null> {
           document: profileDocumentSchema.parse(row.workingDocument),
           revision: row.revision,
           publishedRevision: row.publishedRevision,
-          hasPublished: Boolean(row.publishedDocument),
+          hasPublished: Boolean(profile.isPublic),
           source: "account",
         };
       }
     }
   }
 
-  const guest = getGuestDraft(req);
+  const guest = await getGuestDraft(req);
   if (!guest) return null;
   return {
     profileId: null,
@@ -105,14 +145,14 @@ async function saveWorking(req: Request, state: LoadedBuilder, document: Profile
     return { document: profileDocumentSchema.parse(row.workingDocument), revision: row.revision };
   }
 
-  const guest = getGuestDraft(req);
-  if (!guest || guest.revision !== state.revision) return null;
-  guest.document = parsed;
-  guest.revision += 1;
-  guest.createdAt = Date.now();
-  req.session.pageDraft = guest;
-  await saveSession(req);
-  return { document: parsed, revision: guest.revision };
+  const guest = await storage.updateGuestProfileDocument(
+    guestSessionKey(req),
+    state.revision,
+    parsed,
+    new Date(Date.now() + GUEST_DRAFT_TTL_MS),
+  );
+  if (!guest) return null;
+  return { document: profileDocumentSchema.parse(guest.workingDocument), revision: guest.revision };
 }
 
 function stateResponse(state: LoadedBuilder, extra: Record<string, unknown> = {}) {
@@ -131,7 +171,7 @@ export function registerProfileBuilderRoutes(app: Express) {
     try {
       const state = await loadBuilder(req);
       if (state) {
-        const guestAvailable = Boolean(req.session.customerId && getGuestDraft(req));
+        const guestAvailable = Boolean(req.session.customerId && await getGuestDraft(req));
         return res.json(stateResponse(state, { guestAvailable }));
       }
       if (req.session.customerId) {
@@ -180,28 +220,66 @@ export function registerProfileBuilderRoutes(app: Express) {
         return res.json({
           document: row.workingDocument,
           revision: row.revision,
-          hasPublished: Boolean(row.publishedDocument),
+          hasPublished: Boolean(profile.isPublic),
           source: "account",
         });
       }
 
-      req.session.pageDraft = {
-        createdAt: Date.now(),
-        revision: 1,
-        extractedData,
+      const guest = await storage.upsertGuestProfileDocument(
+        guestSessionKey(req),
         document,
-      };
-      await saveSession(req);
+        extractedData,
+        new Date(Date.now() + GUEST_DRAFT_TTL_MS),
+      );
       logger.info("[Profile Builder] Guest page generated", {
         parseMs: parsedAt - startedAt,
         generationMs: generatedAt - parsedAt,
         totalMs: Date.now() - startedAt,
       });
-      return res.json({ document, revision: 1, hasPublished: false, source: "guest" });
+      return res.json({ document: guest.workingDocument, revision: guest.revision, hasPublished: false, source: "guest" });
     } catch (error: any) {
       logger.error("[Profile Builder] Upload failed", { error: String(error) });
       return res.status(500).json({ message: error.message || "Could not build your page" });
     }
+  });
+
+  app.post("/api/builder/start-manual", async (req: Request, res: Response) => {
+    const parsed = manualStartSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Add your name, role, and one example of your work" });
+    const sourceId = "user-starting-work";
+    const document = profileDocumentSchema.parse({
+      schemaVersion: 1,
+      style: "executive",
+      identity: {
+        name: parsed.data.name,
+        title: parsed.data.title,
+        headline: parsed.data.title,
+        summary: parsed.data.work,
+        photoUrl: null,
+      },
+      projects: [{ id: "project-1", title: "A piece of work I want to show", summary: parsed.data.work, contribution: parsed.data.work, sourceIds: [sourceId] }],
+      experience: [],
+      skills: [],
+      contact: { email: null, linkedin: null, website: null, showEmail: false, showLinkedin: false, showWebsite: false },
+      publicBotEnabled: false,
+      details: { education: [], certifications: [], awards: [], interests: [], showEducation: true, showCertifications: true, showAwards: true, showInterests: false },
+      privateContext: { questions: [], concerns: [] },
+      sources: [{ id: sourceId, kind: "user", label: "Starting description", excerpt: parsed.data.work }],
+      skippedQuestionIds: [], answeredQuestionIds: [], pendingProposal: null, undoStack: [],
+    });
+
+    if (req.session.customerId) {
+      const profile = await storage.upsertProfile({ customerId: req.session.customerId, displayName: parsed.data.name, roleTitle: parsed.data.title, positioning: parsed.data.work, heroSubtitle: parsed.data.title, status: "ready" });
+      const row = await storage.upsertProfileDocument(profile.id, document);
+      return res.json({ document: row.workingDocument, revision: row.revision, hasPublished: Boolean(profile.isPublic), source: "account" });
+    }
+    const guest = await storage.upsertGuestProfileDocument(
+      guestSessionKey(req),
+      document,
+      null,
+      new Date(Date.now() + GUEST_DRAFT_TTL_MS),
+    );
+    return res.json({ document: guest.workingDocument, revision: guest.revision, hasPublished: false, source: "guest" });
   });
 
   app.post("/api/builder/adopt-existing", async (req: Request, res: Response) => {
@@ -222,7 +300,7 @@ export function registerProfileBuilderRoutes(app: Express) {
 
   app.post("/api/builder/adopt-guest", async (req: Request, res: Response) => {
     if (!req.session.customerId) return res.status(401).json({ message: "Sign in first" });
-    const guest = getGuestDraft(req);
+    const guest = await getGuestDraft(req);
     if (!guest) return res.status(404).json({ message: "Your guest draft has expired" });
     try {
       const request = adoptGuestSchema.safeParse(req.body || {});
@@ -243,6 +321,7 @@ export function registerProfileBuilderRoutes(app: Express) {
         status: "ready",
       });
       const row = await storage.upsertProfileDocument(profile.id, guest.document);
+      await storage.deleteGuestProfileDocument(guestSessionKey(req));
       delete req.session.pageDraft;
       await saveSession(req);
       return res.json({ document: row.workingDocument, revision: row.revision, source: "account" });
@@ -269,8 +348,38 @@ export function registerProfileBuilderRoutes(app: Express) {
     if (state.document.pendingProposal) {
       return res.json({ question: null, pendingProposal: state.document.pendingProposal });
     }
-    const selection = await selectImprovementQuestion(state.document, getImprovementCandidates(state.document));
-    return res.json(selection);
+    const topic = typeof req.query.topic === "string" ? req.query.topic : "all";
+    const candidates = getImprovementCandidates(state.document).filter((candidate) => {
+      if (topic === "work") return candidate.section === "project";
+      if (topic === "experience") return candidate.section === "experience";
+      if (topic === "about") return candidate.section === "summary" || candidate.section === "headline";
+      return true;
+    });
+    const selection = await selectImprovementQuestion(state.document, candidates);
+    if (!selection.question) return res.json(selection);
+    const question = await refineBuilderQuestion(state.document, selection.question);
+    return res.json({ ...selection, question });
+  });
+
+  app.post("/api/builder/test-chat", async (req: Request, res: Response) => {
+    const parsed = testChatSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Add a short question" });
+    const now = Date.now();
+    const currentBudget = req.session.builderTestChats;
+    const budget = !currentBudget || currentBudget.resetAt <= now
+      ? { count: 0, resetAt: now + 60 * 60 * 1000 }
+      : currentBudget;
+    const limit = req.session.customerId ? 20 : 5;
+    if (budget.count >= limit) {
+      return res.status(429).json({ message: `Private AI test limit reached (${limit} per hour). Your page editing is still available.` });
+    }
+    const state = await loadBuilder(req);
+    if (!state) return res.status(404).json({ message: "No page draft found" });
+    const approvedOnly = toPublicProfileDocument(profileDocumentSchema.parse(state.document));
+    const content = await generateApprovedProfileAnswer(approvedOnly, parsed.data.message);
+    req.session.builderTestChats = { count: budget.count + 1, resetAt: budget.resetAt };
+    await saveSession(req);
+    return res.json({ content });
   });
 
   app.post("/api/builder/improve", async (req: Request, res: Response) => {
@@ -284,7 +393,16 @@ export function registerProfileBuilderRoutes(app: Express) {
     if (!question) return res.status(400).json({ message: "That question is no longer relevant" });
     const proposal = await generateProfileImprovement(state.document, question, parsed.data.answer, state.revision);
     proposal.baseRevision = state.revision + 1;
-    const next = { ...state.document, pendingProposal: proposal };
+    const answerSourceId = `answer-${proposal.id}`;
+    const next = structuredClone(state.document);
+    next.pendingProposal = proposal;
+    next.sources.push({ id: answerSourceId, kind: "user", label: proposal.question, excerpt: proposal.answer });
+    next.privateContext.questions = [
+      ...next.privateContext.questions,
+      { question: proposal.question, answer: proposal.answer },
+    ].slice(-12);
+    if (question.id === "identity:working-style") next.privateContext.workingStyle = parsed.data.answer;
+    if (question.id === "identity:career-direction") next.privateContext.careerDirection = parsed.data.answer;
     const saved = await saveWorking(req, state, next);
     if (!saved) return res.status(409).json({ message: "Your page changed while the suggestion was prepared. Try again." });
     return res.json({ ...saved, proposal });
@@ -374,15 +492,17 @@ export function registerProfileBuilderRoutes(app: Express) {
       return res.status(409).json({ message: "Approve this version before publishing" });
     }
 
-    const isPaid = profile.paymentStatus === "paid" && profile.tier !== "free";
-    const isEditableFree = profile.tier === "free" && profile.freePublishedAt &&
-      Date.now() - new Date(profile.freePublishedAt).getTime() <= 7 * 24 * 60 * 60 * 1000;
-    if (!isPaid && !isEditableFree) {
+    const access = getPublicationAccess(profile);
+    if (!access.canPublish) {
       return res.status(402).json({ message: "Choose a publishing plan", code: "PLAN_REQUIRED", profileId: profile.id });
     }
 
+    const activated = await storage.activateProfileDocument(profile.id, row.revision);
+    if (!activated) return res.status(409).json({ message: "The reviewed version changed. Review it again before publishing." });
+
     const customer = await storage.getCustomer(req.session.customerId);
     await storage.updateProfileById(profile.id, {
+      ...(access.isFirstFreePublish ? { paymentStatus: "paid", tier: "free", freePublishedAt: new Date() } : {}),
       isPublic: true,
       publicDomain: `myproxy.work/portfolio/${customer?.username}`,
     });
@@ -396,6 +516,9 @@ export function registerProfileBuilderRoutes(app: Express) {
     if (!parsed.success) return res.status(400).json({ message: "Invalid revision" });
     const profile = await storage.getProfileByCustomerId(req.session.customerId);
     if (!profile) return res.status(404).json({ message: "No profile found" });
+    if (!getPublicationAccess(profile).canChangeLivePage) {
+      return res.status(402).json({ message: "Choose a publishing plan", code: "PLAN_REQUIRED", profileId: profile.id });
+    }
     const restored = await storage.restorePreviousProfileDocument(profile.id, parsed.data.revision);
     if (!restored) return res.status(400).json({ message: "No previous published version is available" });
     return res.json({ document: restored.workingDocument, revision: restored.revision });

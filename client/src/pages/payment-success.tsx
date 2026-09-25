@@ -95,7 +95,7 @@ export default function PaymentSuccessPage() {
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#22C55E] mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-2">Confirming Payment...</h1>
-          <p className="text-black/60 mono text-sm uppercase tracking-wider">Setting up your profile</p>
+          <p className="text-black/60 mono text-sm uppercase tracking-wider">Publishing your approved page</p>
         </div>
       </div>
     );
@@ -129,9 +129,9 @@ export default function PaymentSuccessPage() {
             <CheckCircle className="h-8 w-8 text-black" />
           </div>
           <div className="mono text-xs text-black/50 uppercase tracking-widest mb-3">// profile_live</div>
-          <h1 className="text-4xl font-bold mb-3">Your profile is live.</h1>
+          <h1 className="text-4xl font-bold mb-3">Your page is live.</h1>
           <p className="text-black/60 text-lg">
-            Recruiters and AI sourcing tools can now find and explore your career.
+            Share the link when you want someone to understand your work beyond a CV.
           </p>
         </div>
 
@@ -171,7 +171,7 @@ export default function PaymentSuccessPage() {
           </div>
 
           <p className="text-white/70 text-sm mb-4">
-            Every share puts your AI-ready profile in front of recruiters and their networks. We've written the post — just copy and paste.
+            Share your approved page with people who can introduce, hire, or work with you. We have written a starting post you can edit.
           </p>
 
           {/* Pre-written post */}
@@ -194,7 +194,7 @@ export default function PaymentSuccessPage() {
           <div className="space-y-3">
             {[
               "Add your profile link to your email signature",
-              "Test your AI chatbot — ask it about your career",
+              "Test the optional AI explorer with a visitor question",
               "Send your link to anyone in your network who has offered to help",
               "Check your dashboard to see who's viewed your profile",
             ].map((step, i) => (

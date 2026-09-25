@@ -201,7 +201,7 @@ export default function TwinInterviewPage() {
           <div className="w-16 h-16 bg-[#22C55E] border-[3px] border-black flex items-center justify-center mx-auto mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <CheckCircle2 className="h-8 w-8 text-black" />
           </div>
-          <h1 className="text-3xl font-bold mb-2">Twin Updated</h1>
+          <h1 className="text-3xl font-bold mb-2">Page Updated</h1>
           <p className="mono text-sm text-black/60 mb-6">
             Your profile has been deepened with real career data.
           </p>
@@ -227,7 +227,7 @@ export default function TwinInterviewPage() {
             </p>
           ) : (
             <p className="mono text-sm text-black/60 mb-6">
-              Your Twin's responses will be noticeably more specific and credible now.
+              Your page and optional visitor answers can now be more specific and credible.
             </p>
           )}
 
@@ -285,7 +285,7 @@ export default function TwinInterviewPage() {
               <Sparkles className="h-4 w-4 text-black" />
             </div>
             <div>
-              <div className="font-bold text-sm leading-tight">DEEPEN YOUR TWIN</div>
+              <div className="font-bold text-sm leading-tight">DEEPEN YOUR EVIDENCE</div>
               <div className="mono text-xs text-black/50 uppercase tracking-wider">Profile Interview</div>
             </div>
           </div>
@@ -297,7 +297,7 @@ export default function TwinInterviewPage() {
       <div className="max-w-3xl mx-auto px-6 pt-6 w-full">
         <div className="bg-[#22C55E] border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4">
           <p className="mono text-xs text-black leading-relaxed">
-            <strong>No need to type.</strong>{speechSupported ? " Tap the mic, speak like you're explaining something to a colleague, tap again to stop. " : " "}Don't worry about grammar or sentence structure — just talk naturally. The interviewer will ask follow-up questions to pull out the specifics. Your Twin updates when you're done.
+            <strong>No need to type.</strong>{speechSupported ? " Tap the mic, speak like you're explaining something to a colleague, tap again to stop. " : " "}Don't worry about grammar or sentence structure. The interviewer will ask follow-up questions to pull out useful specifics. Your page updates when you're done.
           </p>
         </div>
       </div>
@@ -346,11 +346,11 @@ export default function TwinInterviewPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Update Twin CTA */}
+        {/* Update page CTA */}
         {readyToComplete && !isLoading && (
           <div className="mb-4 bg-white border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <p className="mono text-xs text-black/60 mb-3 uppercase tracking-wider">
-              Interview complete — ready to update your Twin
+              Interview complete — ready to update your page
             </p>
             <button
               onClick={handleComplete}
@@ -360,12 +360,12 @@ export default function TwinInterviewPage() {
               {isCompleting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Updating Your Twin…
+                  Updating Your Page…
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="h-4 w-4" />
-                  Update My Twin Now
+                  Update My Page Now
                 </>
               )}
             </button>

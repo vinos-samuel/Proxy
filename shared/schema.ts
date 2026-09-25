@@ -79,6 +79,9 @@ export const profileDocuments = pgTable("profile_documents", {
   twinProfileId: uuid("twin_profile_id").notNull().unique().references(() => twinProfiles.id, { onDelete: "cascade" }),
   workingDocument: jsonb("working_document").$type<ProfileDocument>().notNull(),
   publishedDocument: jsonb("published_document").$type<ProfileDocument>(),
+  // Active public output is separate from a reviewed/staged document.
+  // Deployment backfills existing published snapshots before this code goes live.
+  activeDocument: jsonb("active_document").$type<ProfileDocument>(),
   previousPublishedDocument: jsonb("previous_published_document").$type<ProfileDocument>(),
   revision: integer("revision").notNull().default(1),
   schemaVersion: integer("schema_version").notNull().default(1),
@@ -86,6 +89,19 @@ export const profileDocuments = pgTable("profile_documents", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   publishedAt: timestamp("published_at"),
+});
+
+// Guest drafts use their own optimistic revision row. Keeping them in a
+// durable table prevents simultaneous requests from silently overwriting the
+// session JSON while preserving the four-hour guest lifetime.
+export const guestProfileDocuments = pgTable("guest_profile_documents", {
+  sessionKey: text("session_key").primaryKey(),
+  workingDocument: jsonb("working_document").$type<ProfileDocument>().notNull(),
+  extractedData: jsonb("extracted_data"),
+  revision: integer("revision").notNull().default(1),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
 });
 
 export const factBanks = pgTable("fact_banks", {
@@ -325,6 +341,7 @@ export type TwinProfile = typeof twinProfiles.$inferSelect;
 export type InsertTwinProfile = z.infer<typeof insertTwinProfileSchema>;
 export type ProfileDocumentRow = typeof profileDocuments.$inferSelect;
 export type InsertProfileDocument = typeof profileDocuments.$inferInsert;
+export type GuestProfileDocumentRow = typeof guestProfileDocuments.$inferSelect;
 export type FactBank = typeof factBanks.$inferSelect;
 export type InsertFactBank = z.infer<typeof insertFactBankSchema>;
 export type KnowledgeEntry = typeof knowledgeEntries.$inferSelect;

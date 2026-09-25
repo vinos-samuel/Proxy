@@ -1,5 +1,7 @@
 # Start the Proxy implementation
 
+**24 September update:** The first implementation exposed design and authoring failures with real CV content. Use [EXPERIENCE_CORRECTION_PRD.md](EXPERIENCE_CORRECTION_PRD.md) and its implementation prompt for the next build. The original prompt below is historical context; do not restart the initial build or treat its previous readiness assessment as current.
+
 Select **GPT-5.6 Sol**, high reasoning, in this project's Codex task. Copy the prompt below. Use the existing local repository; do not start a separate product or rewrite the app from scratch.
 
 > Implement `docs/proxy-next/IMPLEMENTATION_PLAN.md`. Read it completely and inspect `docs/proxy-next/assets/workspace-concept.png` before coding. Read the current project instructions and verify the actual files, routes, branch and baseline; historical sprint notes may be stale. Preserve existing user work, public URLs, published designs, payment behavior and entitlements.

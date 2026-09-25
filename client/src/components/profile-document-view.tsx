@@ -1,5 +1,5 @@
-import { Globe2, Linkedin, Mail, MessageCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ChevronDown, Globe2, Linkedin, Mail, MessageCircle, Pencil, Plus } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ImprovementProposal, ProfileDocument } from "@shared/profile-document";
 
 type Props = {
@@ -8,6 +8,7 @@ type Props = {
   publicMode?: boolean;
   onAsk?: () => void;
   onContact?: (kind: "email" | "linkedin" | "website") => void;
+  onEdit?: (section: "introduction" | "project" | "experience" | "skills" | "details", id?: string) => void;
 };
 
 function proposedValue(
@@ -25,164 +26,182 @@ function Suggested({ active }: { active: boolean }) {
   return active ? <span className="proxy-page__suggested">Suggested change</span> : null;
 }
 
-function Portrait({ document, className, fallback = true }: { document: ProfileDocument; className: string; fallback?: boolean }) {
+function EditButton({ label, onClick }: { label: string; onClick?: () => void }) {
+  if (!onClick) return null;
+  return <button className="proxy-page__edit" type="button" onClick={onClick}><Pencil aria-hidden="true" /> {label}</button>;
+}
+
+function Portrait({ document }: { document: ProfileDocument }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [document.identity.photoUrl]);
-  if (document.identity.photoUrl && !failed) {
-    return <img className={className} src={document.identity.photoUrl} alt={document.identity.name} onError={() => setFailed(true)} />;
-  }
-  if (!fallback) return null;
-  return <div className="proxy-page__monogram" aria-hidden="true">{document.identity.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</div>;
+  if (!document.identity.photoUrl || failed) return null;
+  return <img className="proxy-page__portrait" src={document.identity.photoUrl} alt={document.identity.name} onError={() => setFailed(true)} />;
 }
 
 function ContactActions({ document, onAsk, onContact }: Pick<Props, "document" | "onAsk" | "onContact">) {
   const { contact } = document;
-  return (
-    <div className="proxy-page__actions">
-      {contact.showEmail && contact.email && (
-        <a className="proxy-page__primary-action" href={`mailto:${contact.email}`} onClick={() => onContact?.("email")}>
-          <Mail aria-hidden="true" /> Get in touch
-        </a>
-      )}
-      {contact.showLinkedin && contact.linkedin && (
-        <a className="proxy-page__secondary-action" href={contact.linkedin} target="_blank" rel="noreferrer" onClick={() => onContact?.("linkedin")}>
-          <Linkedin aria-hidden="true" /> LinkedIn
-        </a>
-      )}
-      {contact.showWebsite && contact.website && (
-        <a className="proxy-page__secondary-action" href={contact.website} target="_blank" rel="noreferrer" onClick={() => onContact?.("website")}>
-          <Globe2 aria-hidden="true" /> Website
-        </a>
-      )}
-      {document.publicBotEnabled && onAsk && (
-        <button className="proxy-page__secondary-action" type="button" onClick={onAsk}>
-          <MessageCircle aria-hidden="true" /> Ask about my work · AI
-        </button>
-      )}
-    </div>
+  const hasActions = Boolean(
+    (contact.showEmail && contact.email) ||
+    (contact.showLinkedin && contact.linkedin) ||
+    (contact.showWebsite && contact.website) ||
+    (document.publicBotEnabled && onAsk),
   );
+  if (!hasActions) return null;
+  return <div className="proxy-page__actions">
+    {contact.showEmail && contact.email && <a className="proxy-page__primary-action" href={`mailto:${contact.email}`} onClick={() => onContact?.("email")}><Mail aria-hidden="true" /> Get in touch</a>}
+    {contact.showLinkedin && contact.linkedin && <a className="proxy-page__secondary-action" href={contact.linkedin} target="_blank" rel="noreferrer" onClick={() => onContact?.("linkedin")}><Linkedin aria-hidden="true" /> LinkedIn</a>}
+    {contact.showWebsite && contact.website && <a className="proxy-page__secondary-action" href={contact.website} target="_blank" rel="noreferrer" onClick={() => onContact?.("website")}><Globe2 aria-hidden="true" /> Website</a>}
+    {document.publicBotEnabled && onAsk && <button className="proxy-page__secondary-action" type="button" onClick={onAsk}><MessageCircle aria-hidden="true" /> Ask about my work <small>AI</small></button>}
+  </div>;
 }
 
-function Editorial({ document, proposal, onAsk, onContact }: Props) {
+function groupExperience(document: ProfileDocument) {
+  const groups: Array<{ company: string; roles: ProfileDocument["experience"] }> = [];
+  for (const role of document.experience) {
+    const existing = groups.find((group) => group.company.trim().toLowerCase() === role.company.trim().toLowerCase());
+    if (existing) existing.roles.push(role);
+    else groups.push({ company: role.company, roles: [role] });
+  }
+  return groups;
+}
+
+function DetailGroup({ title, items }: { title: string; items: string[] }) {
+  if (!items.length) return null;
+  return <div><h4>{title}</h4><ul>{items.map((item) => <li key={item}>{item}</li>)}</ul></div>;
+}
+
+export default function ProfileDocumentView({ document, proposal, onAsk, onContact, onEdit }: Props) {
+  const [openProject, setOpenProject] = useState<string | null>(null);
+  const [showAllProjects, setShowAllProjects] = useState(false);
+  const [openEmployers, setOpenEmployers] = useState<string[]>([]);
+  const [showAllSkills, setShowAllSkills] = useState(false);
+  const [summaryExpanded, setSummaryExpanded] = useState(false);
+  const projectButtons = useRef(new Map<string, HTMLButtonElement>());
   const headline = proposedValue(proposal, "headline", "headline", null, document.identity.headline);
   const summary = proposedValue(proposal, "summary", "summary", null, document.identity.summary);
-  return (
-    <div className="proxy-page proxy-page--editorial">
-      <header className="proxy-page__hero proxy-page__hero--editorial">
-        <div className="proxy-page__identity">
-          <p className="proxy-page__eyebrow">{document.identity.title}</p>
-          <h1>{document.identity.name}</h1>
-          <div className={headline.active ? "proxy-page__changed" : ""}>
-            <Suggested active={headline.active} />
-            <h2>{headline.value}</h2>
-          </div>
-          <div className={summary.active ? "proxy-page__changed" : ""}>
-            <Suggested active={summary.active} />
-            <p className="proxy-page__lede">{summary.value}</p>
-          </div>
-          <ContactActions document={document} onAsk={onAsk} onContact={onContact} />
+  const employers = useMemo(() => groupExperience(document), [document.experience]);
+  const firstEmployerId = employers.length ? `${employers[0].company}-0` : "";
+
+  useEffect(() => {
+    if (firstEmployerId) setOpenEmployers((current) => current.length ? current : [firstEmployerId]);
+  }, [firstEmployerId]);
+
+  const visibleProjects = showAllProjects ? document.projects : document.projects.slice(0, 3);
+  const selectedProject = document.projects.find((project) => project.id === openProject);
+  const visibleSkills = showAllSkills ? document.skills : document.skills.slice(0, 8);
+  const summaryIsLong = (summary.value || "").split(/\s+/).filter(Boolean).length > 75;
+  const shownSummary = summaryIsLong && !summaryExpanded
+    ? (summary.value || "").split(/\s+/).slice(0, 70).join(" ") + "…"
+    : summary.value;
+  const details = document.details;
+  const hasDetails = Boolean(
+    (details.showEducation && details.education.length) ||
+    (details.showCertifications && details.certifications.length) ||
+    (details.showAwards && details.awards.length) ||
+    (details.showInterests && details.interests.length),
+  );
+
+  const toggleEmployer = (id: string) => {
+    setOpenEmployers((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
+  };
+  const closeStory = () => {
+    const id = openProject;
+    setOpenProject(null);
+    if (id) requestAnimationFrame(() => projectButtons.current.get(id)?.focus());
+  };
+  const renderStoryPanel = (project: ProfileDocument["projects"][number], placement: "inline" | "wide") => {
+    const challenge = proposedValue(proposal, "project", "challenge", project.id, project.challenge);
+    const contribution = proposedValue(proposal, "project", "contribution", project.id, project.contribution);
+    const outcome = proposedValue(proposal, "project", "outcome", project.id, project.outcome);
+    return <div className={`proxy-page__story-panel proxy-page__story-panel--${placement}`}>
+      <div className="proxy-page__story-panel-head"><div><p>{project.company || "Selected work"}</p><h4>{project.title}</h4></div><button type="button" onClick={closeStory}>Close story</button></div>
+      <div className="proxy-page__story">
+        {challenge.value && <div className={challenge.active ? "proxy-page__changed" : ""}><Suggested active={challenge.active} /><span>Context</span><p>{challenge.value}</p></div>}
+        {contribution.value && <div className={contribution.active ? "proxy-page__changed" : ""}><Suggested active={contribution.active} /><span>What I did</span><p>{contribution.value}</p></div>}
+        {outcome.value && <div className={outcome.active ? "proxy-page__changed" : ""}><Suggested active={outcome.active} /><span>What changed</span><p>{outcome.value}</p></div>}
+      </div>
+    </div>;
+  };
+
+  return <article className={`proxy-page proxy-page--${document.style}`}>
+    <header className="proxy-page__hero">
+      <div className="proxy-page__identity">
+        <div className="proxy-page__identity-top">
+          <div><p className="proxy-page__eyebrow">{document.identity.title}</p><h1>{document.identity.name}</h1>{document.identity.location && <p className="proxy-page__location">{document.identity.location}</p>}</div>
+          <Portrait document={document} />
         </div>
-        <Portrait document={document} className="proxy-page__portrait" />
-      </header>
-
-      {document.projects.length > 0 && (
-        <section className="proxy-page__section" id="selected-work">
-          <div className="proxy-page__section-heading">
-            <h3>Selected work</h3><p>Real projects. Meaningful contribution.</p>
-          </div>
-          <div className="proxy-page__project-grid">
-            {document.projects.map((project, index) => {
-              const challenge = proposedValue(proposal, "project", "challenge", project.id, project.challenge);
-              const contribution = proposedValue(proposal, "project", "contribution", project.id, project.contribution);
-              const outcome = proposedValue(proposal, "project", "outcome", project.id, project.outcome);
-              return (
-                <article className="proxy-page__project" key={project.id}>
-                  <p className="proxy-page__project-number">{String(index + 1).padStart(2, "0")}</p>
-                  <h4>{project.title}</h4>
-                  {challenge.value && <div className={challenge.active ? "proxy-page__changed" : ""}><Suggested active={challenge.active} /><span>The situation</span><p>{challenge.value}</p></div>}
-                  {contribution.value && <div className={contribution.active ? "proxy-page__changed" : ""}><Suggested active={contribution.active} /><span>My contribution</span><p>{contribution.value}</p></div>}
-                  {outcome.value && <div className={outcome.active ? "proxy-page__changed" : ""}><Suggested active={outcome.active} /><span>What changed</span><p>{outcome.value}</p></div>}
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      <section className="proxy-page__section proxy-page__experience">
-        <div className="proxy-page__section-heading"><h3>Experience</h3></div>
-        {document.experience.map((role) => {
-          const summary = proposedValue(proposal, "experience", "summary", role.id, role.summary);
-          return (
-            <article key={role.id}>
-              <div><h4>{role.title}</h4><p>{role.company}</p></div>
-              <div><time>{role.period}</time>{summary.value && <p className={summary.active ? "proxy-page__changed" : ""}><Suggested active={summary.active} />{summary.value}</p>}{role.highlights.slice(0, 3).map((item) => <p className="proxy-page__highlight" key={item}>{item}</p>)}</div>
-            </article>
-          );
-        })}
-      </section>
-
-      {document.skills.length > 0 && <section className="proxy-page__section proxy-page__skills"><h3>Areas of strength</h3><div>{document.skills.map((skill) => <span key={skill}>{skill}</span>)}</div></section>}
-    </div>
-  );
-}
-
-function Modern({ document, proposal, onAsk, onContact }: Props) {
-  const headline = proposedValue(proposal, "headline", "headline", null, document.identity.headline);
-  const summary = proposedValue(proposal, "summary", "summary", null, document.identity.summary);
-  return (
-    <div className="proxy-page proxy-page--modern">
-      <header className="proxy-page__modern-header">
-        <div className="proxy-page__modern-name"><span>{document.identity.name}</span><small>{document.identity.title}</small></div>
-        <ContactActions document={document} onAsk={onAsk} onContact={onContact} />
-      </header>
-      <section className={`proxy-page__modern-intro ${document.identity.photoUrl ? "proxy-page__modern-intro--portrait" : ""}`}>
-        <p className="proxy-page__eyebrow">Professional profile / {document.identity.location || "Selected work"}</p>
-        <div className={headline.active ? "proxy-page__changed" : ""}><Suggested active={headline.active} /><h1>{headline.value}</h1></div>
-        <div className={`proxy-page__modern-summary ${summary.active ? "proxy-page__changed" : ""}`}><Suggested active={summary.active} /><p>{summary.value}</p></div>
-        <Portrait document={document} className="proxy-page__modern-portrait" fallback={false} />
-      </section>
-      {document.projects.length > 0 && <section className="proxy-page__modern-work"><p className="proxy-page__side-label">Selected work</p><div>{document.projects.map((project, index) => {
-        const challenge = proposedValue(proposal, "project", "challenge", project.id, project.challenge);
-        const contribution = proposedValue(proposal, "project", "contribution", project.id, project.contribution);
-        const outcome = proposedValue(proposal, "project", "outcome", project.id, project.outcome);
-        return <article key={project.id}><p className="proxy-page__project-number">0{index + 1}</p><h2>{project.title}</h2>{challenge.value && <div className={challenge.active ? "proxy-page__changed" : ""}><Suggested active={challenge.active} /><span>Context</span><p>{challenge.value}</p></div>}{contribution.value && <div className={contribution.active ? "proxy-page__changed" : ""}><Suggested active={contribution.active} /><span>Contribution</span><p>{contribution.value}</p></div>}{outcome.value && <div className={outcome.active ? "proxy-page__changed" : ""}><Suggested active={outcome.active} /><span>Outcome</span><p>{outcome.value}</p></div>}</article>;
-      })}</div></section>}
-      <section className="proxy-page__modern-bottom">
-        <div><p className="proxy-page__side-label">Experience</p>{document.experience.map((role) => <article key={role.id}><h3>{role.title}</h3><p>{role.company}</p><time>{role.period}</time></article>)}</div>
-        {document.skills.length > 0 && <div><p className="proxy-page__side-label">Capabilities</p><div className="proxy-page__modern-skills">{document.skills.map((skill) => <span key={skill}>{skill}</span>)}</div></div>}
-      </section>
-    </div>
-  );
-}
-
-function Expressive({ document, proposal, onAsk, onContact }: Props) {
-  const headline = proposedValue(proposal, "headline", "headline", null, document.identity.headline);
-  const summary = proposedValue(proposal, "summary", "summary", null, document.identity.summary);
-  return (
-    <div className="proxy-page proxy-page--expressive">
-      <header className={`proxy-page__expressive-hero ${document.identity.photoUrl ? "proxy-page__expressive-hero--portrait" : ""}`}>
-        <div className="proxy-page__expressive-mark" aria-hidden="true"><span /><span /></div>
-        <p className="proxy-page__eyebrow">{document.identity.title}</p>
-        <h1>{document.identity.name}</h1>
         <div className={headline.active ? "proxy-page__changed" : ""}><Suggested active={headline.active} /><h2>{headline.value}</h2></div>
-        <div className={summary.active ? "proxy-page__changed" : ""}><Suggested active={summary.active} /><p>{summary.value}</p></div>
+        <div className={summary.active ? "proxy-page__changed" : ""}><Suggested active={summary.active} /><p className="proxy-page__lede">{shownSummary}</p>{summaryIsLong && <button className="proxy-page__read-more" type="button" aria-expanded={summaryExpanded} onClick={() => setSummaryExpanded((value) => !value)}>{summaryExpanded ? "Show less" : "Read more"}</button>}</div>
         <ContactActions document={document} onAsk={onAsk} onContact={onContact} />
-        <Portrait document={document} className="proxy-page__expressive-portrait" fallback={false} />
-      </header>
-      {document.projects.length > 0 && <section className="proxy-page__expressive-work"><div className="proxy-page__section-heading"><h3>Selected work</h3><p>Context, contribution, change.</p></div>{document.projects.map((project, index) => {
-        const challenge = proposedValue(proposal, "project", "challenge", project.id, project.challenge);
-        const contribution = proposedValue(proposal, "project", "contribution", project.id, project.contribution);
-        const outcome = proposedValue(proposal, "project", "outcome", project.id, project.outcome);
-        return <article key={project.id}><div><span>{String(index + 1).padStart(2, "0")}</span><h4>{project.title}</h4></div><div>{challenge.value && <div className={challenge.active ? "proxy-page__changed" : ""}><Suggested active={challenge.active} /><b>The situation</b><p>{challenge.value}</p></div>}{contribution.value && <div className={contribution.active ? "proxy-page__changed" : ""}><Suggested active={contribution.active} /><b>My contribution</b><p>{contribution.value}</p></div>}{outcome.value && <div className={outcome.active ? "proxy-page__changed" : ""}><Suggested active={outcome.active} /><b>What changed</b><p>{outcome.value}</p></div>}</div></article>;
-      })}</section>}
-      <section className="proxy-page__expressive-bottom"><div><h3>Career</h3>{document.experience.map((role) => <article key={role.id}><time>{role.period}</time><h4>{role.title}</h4><p>{role.company}</p></article>)}</div>{document.skills.length > 0 && <div><h3>Strengths</h3><p>{document.skills.join(" / ")}</p></div>}</section>
-    </div>
-  );
-}
+        <EditButton label="Edit introduction" onClick={onEdit ? () => onEdit("introduction") : undefined} />
+      </div>
+    </header>
 
-export default function ProfileDocumentView(props: Props) {
-  if (props.document.style === "modern") return <Modern {...props} />;
-  if (props.document.style === "expressive") return <Expressive {...props} />;
-  return <Editorial {...props} />;
+    {(document.projects.length > 0 || onEdit) && <section className="proxy-page__section proxy-page__work" id="selected-work">
+      <div className="proxy-page__section-heading">
+        <div><p className="proxy-page__section-kicker">Evidence</p><h3>Selected work</h3></div>
+        <div className="proxy-page__section-actions"><p>Specific work. Clear contribution.</p>{onEdit && <button type="button" onClick={() => onEdit("project")}><Plus aria-hidden="true" /> Add work</button>}</div>
+      </div>
+      {document.projects.length === 0 ? <div className="proxy-page__empty"><p>Add one piece of work that shows how you make a difference.</p><button type="button" onClick={() => onEdit?.("project")}><Plus aria-hidden="true" /> Add selected work</button></div> : <>
+        <div className="proxy-page__project-grid">{visibleProjects.map((project, index) => {
+          const challenge = proposedValue(proposal, "project", "challenge", project.id, project.challenge);
+          const contribution = proposedValue(proposal, "project", "contribution", project.id, project.contribution);
+          const outcome = proposedValue(proposal, "project", "outcome", project.id, project.outcome);
+          const preview = project.summary || outcome.value || contribution.value || challenge.value;
+          return <article className={`proxy-page__project ${openProject === project.id ? "is-selected" : ""}`} key={project.id}>
+            <div className="proxy-page__project-head"><p className="proxy-page__project-number">{String(index + 1).padStart(2, "0")}</p><div><h4>{project.title}</h4>{project.company && <p>{project.company}</p>}</div></div>
+            {preview && <p className="proxy-page__project-preview">{preview}</p>}
+            <div className="proxy-page__card-actions">
+              <button ref={(node) => { if (node) projectButtons.current.set(project.id, node); }} type="button" aria-expanded={openProject === project.id} onClick={() => setOpenProject(openProject === project.id ? null : project.id)}>{openProject === project.id ? "Hide story" : "View story"}<ChevronDown aria-hidden="true" /></button>
+              <EditButton label="Edit" onClick={onEdit ? () => onEdit("project", project.id) : undefined} />
+            </div>
+            {openProject === project.id && renderStoryPanel(project, "inline")}
+          </article>;
+        })}</div>
+        {document.projects.length > 3 && <button className="proxy-page__disclosure" type="button" aria-expanded={showAllProjects} onClick={() => setShowAllProjects((value) => !value)}>{showAllProjects ? "Show featured work only" : `See all work (${document.projects.length})`}<ChevronDown aria-hidden="true" /></button>}
+        {selectedProject && renderStoryPanel(selectedProject, "wide")}
+      </>}
+    </section>}
+
+    {document.experience.length > 0 && <section className="proxy-page__section proxy-page__experience" id="experience">
+      <div className="proxy-page__section-heading"><div><p className="proxy-page__section-kicker">Career</p><h3>Experience</h3></div></div>
+      <div className="proxy-page__employers">{employers.map((employer, groupIndex) => {
+        const groupId = `${employer.company}-${groupIndex}`;
+        const expanded = openEmployers.includes(groupId) || employer.roles.length === 1;
+        const periods = employer.roles.map((role) => role.period).filter(Boolean);
+        return <article className="proxy-page__employer" key={groupId}>
+          <div className="proxy-page__employer-head"><div><h4>{employer.company}</h4>{periods.length > 0 && <p>{periods.at(-1)}{periods.length > 1 ? ` – ${periods[0]}` : ""}</p>}</div>{employer.roles.length > 1 && <button type="button" aria-expanded={expanded} onClick={() => toggleEmployer(groupId)}>{expanded ? "Hide roles" : `Show ${employer.roles.length} roles`}<ChevronDown aria-hidden="true" /></button>}</div>
+          {expanded && <div className="proxy-page__roles">{employer.roles.map((role) => {
+            const roleSummary = proposedValue(proposal, "experience", "summary", role.id, role.summary);
+            return <div className="proxy-page__role" key={role.id}>
+              <div><h5>{role.title}</h5><time>{role.period}</time></div>
+              {roleSummary.value && <p className={roleSummary.active ? "proxy-page__changed" : ""}><Suggested active={roleSummary.active} />{roleSummary.value}</p>}
+              {role.highlights.length > 0 && <ul>{role.highlights.map((item, itemIndex) => <li key={`${role.id}-${itemIndex}`}>{item}</li>)}</ul>}
+              <EditButton label="Edit role" onClick={onEdit ? () => onEdit("experience", role.id) : undefined} />
+            </div>;
+          })}{(() => {
+            const evidence = document.employerContributions.find((item) => item.company.trim().toLowerCase() === employer.company.trim().toLowerCase());
+            if (!evidence?.contributions.length) return null;
+            return <div className="proxy-page__employer-contributions"><div><p>Selected contributions</p><ul>{evidence.contributions.map((item, index) => <li key={`${evidence.id}-${index}`}>{item}</li>)}</ul></div><EditButton label="Edit contributions" onClick={onEdit ? () => onEdit("experience", evidence.id) : undefined} /></div>;
+          })()}</div>}
+        </article>;
+      })}</div>
+    </section>}
+
+    {document.skills.length > 0 && <section className="proxy-page__section proxy-page__skills">
+      <div className="proxy-page__section-heading"><div><p className="proxy-page__section-kicker">Capabilities</p><h3>Areas of strength</h3></div><EditButton label="Edit" onClick={onEdit ? () => onEdit("skills") : undefined} /></div>
+      <div className="proxy-page__skill-list">{visibleSkills.map((skill, index) => <span key={`${skill}-${index}`}>{skill}</span>)}</div>
+      {document.skills.length > 8 && <button className="proxy-page__disclosure" type="button" aria-expanded={showAllSkills} onClick={() => setShowAllSkills((value) => !value)}>{showAllSkills ? "Show fewer strengths" : `Show all strengths (${document.skills.length})`}<ChevronDown aria-hidden="true" /></button>}
+    </section>}
+
+    {(hasDetails || onEdit) && <section className="proxy-page__section proxy-page__details">
+      <div className="proxy-page__section-heading"><div><p className="proxy-page__section-kicker">Background</p><h3>More about me</h3></div><EditButton label="Edit" onClick={onEdit ? () => onEdit("details") : undefined} /></div>
+      {hasDetails ? <div className="proxy-page__detail-grid">
+        {details.showEducation && <DetailGroup title="Education" items={details.education} />}
+        {details.showCertifications && <DetailGroup title="Certifications" items={details.certifications} />}
+        {details.showAwards && <DetailGroup title="Recognition" items={details.awards} />}
+        {details.showInterests && <DetailGroup title="Beyond work" items={details.interests} />}
+      </div> : <div className="proxy-page__empty"><p>Add education, certifications or recognition if they help a visitor understand your background.</p></div>}
+    </section>}
+  </article>;
 }

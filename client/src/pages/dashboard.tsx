@@ -422,7 +422,7 @@ export default function DashboardPage() {
                   <div className="flex items-start gap-3">
                     <Lock className="h-5 w-5 text-black mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="font-bold text-sm">Your Twin is live and working.</p>
+                      <p className="font-bold text-sm">Your evidence page is live.</p>
                       <p className="mono text-xs text-black/70 mt-1">
                         {viewCount > 0 || questionCount > 0
                           ? `${viewCount} people visited${questionCount > 0 ? ` and ${questionCount} asked questions` : ""}. Upgrade to Pro to keep refining your profile and see exactly what they asked.`

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { ArrowDown, ArrowLeft, ArrowUp, Check, ChevronRight, Eye, Loader2, Menu, MessageCircle, Plus, RotateCcw, Send, Sparkles, Trash2, Upload, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Check, ChevronRight, Eye, Loader2, Menu, MessageCircle, Mic, Plus, RotateCcw, Send, Sparkles, Trash2, Upload, X } from "lucide-react";
 import type { ImprovementQuestion, ProfileDocument, ProfileStyle } from "@shared/profile-document";
 import { normalizeProfileDocument } from "@shared/profile-document";
 import ProfileDocumentView from "@/components/profile-document-view";
@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { visualProfileFixture } from "@/lib/profile-document-fixtures";
 import { mergeProfileDocuments, setDocumentPath, type DocumentConflict } from "@/lib/profile-document-merge";
 import { useUpload } from "@/hooks/use-upload";
+import { useSpeechInput } from "@/hooks/use-speech-input";
 import { renderAnswer } from "@/lib/renderAnswer";
 
 type BuilderState = {
@@ -80,6 +81,7 @@ export default function BuilderPage() {
   const [question, setQuestion] = useState<QuestionState | null>(null);
   const [questionLoading, setQuestionLoading] = useState(false);
   const [answer, setAnswer] = useState("");
+  const { isListening: isListeningAnswer, speechSupported: answerSpeechSupported, toggleListening: toggleAnswerListening } = useSpeechInput(setAnswer);
   const [conversationTopic, setConversationTopic] = useState<ConversationTopic>("all");
   const [choosingTopic, setChoosingTopic] = useState(false);
   const [panel, setPanel] = useState<Panel>("improve");
@@ -586,7 +588,8 @@ export default function BuilderPage() {
               if (result) setState((current) => ({ ...current, guestAvailable: false }));
             }}>Use the guest draft instead</button></div>}
             {panel === "improve" && <>
-              <p className="builder-panel-kicker"><Sparkles /> Make this page yours</p>
+              <p className="builder-panel-kicker"><Sparkles /> Make your bot know more about your work</p>
+              <p className="builder-panel-subtitle">Type or tap the mic and talk — every answer sharpens your page and what "Ask about my work" can say.</p>
               <div className="builder-conversation-controls"><button type="button" onClick={() => setChoosingTopic((value) => !value)}>Choose another topic <ChevronRight /></button><button type="button" onClick={() => setPanel("edit")}>Finish for now</button></div>
               {choosingTopic && <div className="builder-topic-picker">{([
                 ["all", "Best next question"], ["work", "Selected work"], ["experience", "Career experience"], ["about", "Working style and direction"],
@@ -605,7 +608,10 @@ export default function BuilderPage() {
                 <span>{question.question.label}</span>
                 {question.question.sourceExcerpt && <p className="builder-source-context"><b>{question.question.sourceKind === "resume" ? "From your CV" : "You added"}</b>{question.question.sourceExcerpt}</p>}
                 <h2>{question.question.question}</h2>
-                <textarea value={answer} maxLength={2500} onChange={(event) => setAnswer(event.target.value)} placeholder="A few honest sentences are enough." />
+                <div className="builder-answer-input">
+                  <textarea value={answer} maxLength={2500} onChange={(event) => setAnswer(event.target.value)} placeholder="A few honest sentences are enough." />
+                  {answerSpeechSupported && <button type="button" className={`builder-mic ${isListeningAnswer ? "is-listening" : ""}`} onClick={toggleAnswerListening} aria-label={isListeningAnswer ? "Stop talking" : "Talk instead of typing"} title={isListeningAnswer ? "Stop" : "Talk instead of typing"}><Mic /></button>}
+                </div>
                 <button className="builder-primary" disabled={Boolean(busy) || answer.trim().length < 2} onClick={improve}>{busy === "improve" ? <Loader2 className="animate-spin" /> : <Sparkles />} Show the improvement</button>
                 <div className="builder-question-secondary"><button className="builder-text-button" disabled={Boolean(busy)} onClick={async () => { const result = await mutate("skip", "/api/builder/skip", { revision, questionId: question.question!.id }); if (result) capture("builder_improvement_skipped", { section: question.question!.section }); }}>Skip this question</button><button className="builder-text-button" disabled={Boolean(busy)} onClick={async () => { const result = await mutate("skip", "/api/builder/skip", { revision, questionId: question.question!.id }); if (result) capture("builder_improvement_unsure", { section: question.question!.section }); }}>I’m not sure</button></div>
               </div> : <div className="builder-complete"><Check /><h2>No more suggestions for this section right now.</h2><p>You can add another example, choose a section to edit, or preview your page.</p><button className="builder-primary" onClick={() => { setPanel("edit"); setEditTarget({ section: "projects" }); }}>Add or edit selected work</button><button className="builder-text-button" onClick={() => setPreviewMode(true)}>Preview your page</button></div>}

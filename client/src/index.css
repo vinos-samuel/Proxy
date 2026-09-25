@@ -511,7 +511,7 @@
 .proxy-page__role time { display: block; margin-top: 5px; color: color-mix(in srgb,currentColor 58%,transparent); font-size: 12px; }
 .proxy-page__role>p,.proxy-page__role>ul { grid-column: 2; }
 .proxy-page__role ul { display: grid; gap: 8px; margin: 0; padding-left: 19px; color: color-mix(in srgb,currentColor 78%,transparent); }
-.proxy-page__role>.proxy-page__edit { position: absolute; top: 12px; right: 0; }
+.proxy-page__role div>.proxy-page__edit { margin-top: 10px; padding-inline: 0; }
 .proxy-page__employer-contributions { position: relative; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 20px; margin-top: 8px; padding: 24px; background: color-mix(in srgb,#fff 42%,transparent); }
 .proxy-page__employer-contributions>div>p { margin-bottom: 10px; font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
 .proxy-page__employer-contributions ul { display: grid; gap: 8px; margin: 0; padding-left: 19px; }
@@ -570,7 +570,6 @@
   .proxy-page__detail-grid { grid-template-columns: 1fr; }
   .proxy-page__role { grid-template-columns: 1fr; padding-right: 0; }
   .proxy-page__role>p,.proxy-page__role>ul { grid-column: 1; }
-  .proxy-page__role>.proxy-page__edit { position: static; width: fit-content; }
   .proxy-page__employer-head { display: block; }
   .proxy-page--expressive .proxy-page__hero { margin: -28px -20px 0; padding: 42px 20px 54px; }
 }

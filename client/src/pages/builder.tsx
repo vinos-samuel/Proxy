@@ -384,7 +384,11 @@ export default function BuilderPage() {
       await saveQueueRef.current;
       const result = await requestJson<{ content: string }>("/api/builder/test-chat", { method: "POST", body: JSON.stringify({ message }) });
       setTestMessages((items) => [...items, { role: "assistant", content: result.content }]);
-    } catch (cause: any) { setError(cause.message); }
+    } catch (cause: any) {
+      // The dialog has no other visible surface for errors — without this
+      // the request fails silently and looks like the bot never responded.
+      setTestMessages((items) => [...items, { role: "assistant", content: cause.message || "Something went wrong answering that." }]);
+    }
     finally { setBusy(null); }
   };
 
@@ -666,7 +670,7 @@ export default function BuilderPage() {
                 ["linkedin", "LinkedIn", "showLinkedin", "https://linkedin.com/in/your-name"],
                 ["website", "Website", "showWebsite", "https://your-site.com"],
               ] as const).map(([field, label, toggle, placeholder]) => <div className="builder-contact-setting" key={field}><label><span>{label}</span><input type={field === "email" ? "email" : "url"} value={document.contact[field] || ""} placeholder={placeholder} onChange={(event) => { const value = event.target.value || null; editLocal((current) => ({ ...current, contact: { ...current.contact, [field]: value } })); }} onBlur={saveCurrent} /></label><label><input type="checkbox" checked={document.contact[toggle]} disabled={!document.contact[field]} onChange={(event) => saveDocument({ ...stateRef.current.document!, contact: { ...stateRef.current.document!.contact, [toggle]: event.target.checked } })} /><span><b>Show {label}</b></span></label></div>)}</section>
-              <section><h2>Publishing</h2><p>{state.hasPublished ? "Your edits stay private until you review and publish this version." : "Preview and edit for free. A verified free account is required to own and publish the link. No card required."}</p></section>
+              <section><h2>Publishing</h2><p>{state.hasPublished ? "Your edits stay private until you review and publish this version." : "Preview and edit for free. A verified free account is required to own and publish the link. No card required."}</p><p className="builder-trust">Your link stays live for good once published. The free plan gives you 7 days to edit it after that — the page itself doesn't expire.</p></section>
               {state.hasPublished && <button className="builder-rollback" disabled={Boolean(busy)} onClick={async () => {
                 const result = await mutate<{ document: ProfileDocument; revision: number }>("rollback", "/api/builder/rollback", { revision });
                 if (result) capture("builder_previous_version_restored");

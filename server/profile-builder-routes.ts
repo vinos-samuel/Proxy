@@ -375,11 +375,16 @@ export function registerProfileBuilderRoutes(app: Express) {
     }
     const state = await loadBuilder(req);
     if (!state) return res.status(404).json({ message: "No page draft found" });
-    const approvedOnly = toPublicProfileDocument(profileDocumentSchema.parse(state.document));
-    const content = await generateApprovedProfileAnswer(approvedOnly, parsed.data.message);
-    req.session.builderTestChats = { count: budget.count + 1, resetAt: budget.resetAt };
-    await saveSession(req);
-    return res.json({ content });
+    try {
+      const approvedOnly = toPublicProfileDocument(profileDocumentSchema.parse(state.document));
+      const content = await generateApprovedProfileAnswer(approvedOnly, parsed.data.message);
+      req.session.builderTestChats = { count: budget.count + 1, resetAt: budget.resetAt };
+      await saveSession(req);
+      return res.json({ content });
+    } catch (error) {
+      logger.error("[Profile Builder] Test chat failed", { error: String(error) });
+      return res.status(500).json({ message: "Could not get an answer right now. Try again in a moment." });
+    }
   });
 
   app.post("/api/builder/improve", async (req: Request, res: Response) => {

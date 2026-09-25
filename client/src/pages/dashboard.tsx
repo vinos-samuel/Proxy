@@ -13,6 +13,7 @@ import {
   FileText, Sparkles, ExternalLink, ArrowRight, Copy, BarChart3, MessageSquare, Lock, Trash2, Mic, Loader2
 } from "lucide-react";
 import type { TwinProfile } from "@shared/schema";
+type DashboardProfile = TwinProfile & { hasProfileDocument?: boolean };
 import PaymentGate from "@/components/PaymentGate";
 
 export default function DashboardPage() {
@@ -58,7 +59,7 @@ export default function DashboardPage() {
     enabled: !!user,
   });
 
-  const { data: profile, isLoading } = useQuery<TwinProfile | null>({
+  const { data: profile, isLoading } = useQuery<DashboardProfile | null>({
     queryKey: ["/api/profile"],
     queryFn: async () => {
       const res = await fetch("/api/profile", { credentials: "include" });
@@ -102,6 +103,10 @@ export default function DashboardPage() {
     published: { label: "PUBLISHED", color: "bg-[#22C55E]" },
   };
 
+  // A profile built through the CV-upload page builder has a profile_documents
+  // row and doesn't understand the legacy questionnaire's /preview, /interview
+  // or PaymentGate flow — send those accounts back into the builder instead.
+  const previewPath = profile?.hasProfileDocument ? profileCreationPath : "/preview";
   const profileStatus = profile ? statusMap[profile.status] || statusMap.draft : statusMap.draft;
   const isFree = profile?.tier === "free";
   const freeWindowExpired = isFree && profile?.freePublishedAt
@@ -219,13 +224,13 @@ export default function DashboardPage() {
                     {(profile?.status === "ready" || profile?.status === "published") && (
                       <>
                         {profile.status === "ready" && (
-                          <Link href="/preview">
+                          <Link href={previewPath}>
                             <button className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-publish-ready">
                               <span className="flex items-center gap-2"><Globe className="h-4 w-4" />PUBLISH — GO LIVE</span>
                             </button>
                           </Link>
                         )}
-                        <Link href="/preview">
+                        <Link href={previewPath}>
                           <button className="bg-white text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-preview">
                             <span className="flex items-center gap-2"><Eye className="h-4 w-4" />PREVIEW</span>
                           </button>
@@ -250,7 +255,7 @@ export default function DashboardPage() {
                   <p className="mono text-sm text-black/70 mb-4">
                     Only you can see it. Publish to get a public URL at myproxy.work/portfolio/{user?.username}.
                   </p>
-                  <Link href="/preview">
+                  <Link href={previewPath}>
                     <button className="bg-[#22C55E] text-black px-8 py-4 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-publish-go-live">
                       <span className="flex items-center gap-2">Publish — go live <ArrowRight className="h-4 w-4" /></span>
                     </button>
@@ -308,13 +313,15 @@ export default function DashboardPage() {
                     <h3 className="font-bold text-lg">ADD MORE EVIDENCE</h3>
                   </div>
                   <p className="mono text-sm text-black/60 mb-4">
-                    {(profile as any).lastDeepenedAt
+                    {profile?.hasProfileDocument
+                      ? "Add another example of your work, or answer a question to sharpen what's there."
+                      : (profile as any).lastDeepenedAt
                       ? `Last updated: ${new Date((profile as any).lastDeepenedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}. Add another specific story or decision by speaking naturally.`
                       : "Add a specific story, decision, or result by speaking naturally. No typing or preparation is needed."}
                   </p>
-                  <Link href="/interview">
+                  <Link href={profile?.hasProfileDocument ? profileCreationPath : "/interview"}>
                     <button className="bg-black text-white px-5 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-800 transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">
-                      <span className="flex items-center gap-2">{(profile as any).lastDeepenedAt ? "GO DEEPER" : "START INTERVIEW"}<ArrowRight className="h-3 w-3" /></span>
+                      <span className="flex items-center gap-2">{profile?.hasProfileDocument ? "OPEN BUILDER" : (profile as any).lastDeepenedAt ? "GO DEEPER" : "START INTERVIEW"}<ArrowRight className="h-3 w-3" /></span>
                     </button>
                   </Link>
                 </div>

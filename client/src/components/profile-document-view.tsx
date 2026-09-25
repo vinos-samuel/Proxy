@@ -76,7 +76,9 @@ export default function ProfileDocumentView({ document, proposal, onAsk, onConta
   const [openEmployers, setOpenEmployers] = useState<string[]>([]);
   const [showAllSkills, setShowAllSkills] = useState(false);
   const [summaryExpanded, setSummaryExpanded] = useState(false);
+  const [expandedHighlights, setExpandedHighlights] = useState<string[]>([]);
   const projectButtons = useRef(new Map<string, HTMLButtonElement>());
+  const storyPanelRef = useRef<HTMLDivElement>(null);
   const headline = proposedValue(proposal, "headline", "headline", null, document.identity.headline);
   const summary = proposedValue(proposal, "summary", "summary", null, document.identity.summary);
   const employers = useMemo(() => groupExperience(document), [document.experience]);
@@ -85,6 +87,13 @@ export default function ProfileDocumentView({ document, proposal, onAsk, onConta
   useEffect(() => {
     if (firstEmployerId) setOpenEmployers((current) => current.length ? current : [firstEmployerId]);
   }, [firstEmployerId]);
+
+  // The wide story panel renders once, below the whole grid, not beside the
+  // card that was clicked — without this it opens off-screen and looks like
+  // nothing happened.
+  useEffect(() => {
+    if (openProject) storyPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [openProject]);
 
   const visibleProjects = showAllProjects ? document.projects : document.projects.slice(0, 3);
   const selectedProject = document.projects.find((project) => project.id === openProject);
@@ -113,7 +122,7 @@ export default function ProfileDocumentView({ document, proposal, onAsk, onConta
     const challenge = proposedValue(proposal, "project", "challenge", project.id, project.challenge);
     const contribution = proposedValue(proposal, "project", "contribution", project.id, project.contribution);
     const outcome = proposedValue(proposal, "project", "outcome", project.id, project.outcome);
-    return <div className={`proxy-page__story-panel proxy-page__story-panel--${placement}`}>
+    return <div ref={placement === "wide" ? storyPanelRef : undefined} className={`proxy-page__story-panel proxy-page__story-panel--${placement}`}>
       <div className="proxy-page__story-panel-head"><div><p>{project.company || "Selected work"}</p><h4>{project.title}</h4></div><button type="button" onClick={closeStory}>Close story</button></div>
       <div className="proxy-page__story">
         {challenge.value && <div className={challenge.active ? "proxy-page__changed" : ""}><Suggested active={challenge.active} /><span>Context</span><p>{challenge.value}</p></div>}
@@ -173,11 +182,14 @@ export default function ProfileDocumentView({ document, proposal, onAsk, onConta
           <div className="proxy-page__employer-head"><div><h4>{employer.company}</h4>{periods.length > 0 && <p>{periods.at(-1)}{periods.length > 1 ? ` – ${periods[0]}` : ""}</p>}</div>{employer.roles.length > 1 && <button type="button" aria-expanded={expanded} onClick={() => toggleEmployer(groupId)}>{expanded ? "Hide roles" : `Show ${employer.roles.length} roles`}<ChevronDown aria-hidden="true" /></button>}</div>
           {expanded && <div className="proxy-page__roles">{employer.roles.map((role) => {
             const roleSummary = proposedValue(proposal, "experience", "summary", role.id, role.summary);
-            return <div className="proxy-page__role" key={role.id}>
-              <div><h5>{role.title}</h5><time>{role.period}</time></div>
+            const roleId = role.id;
+            const highlightsExpanded = expandedHighlights.includes(roleId) || role.highlights.length <= 3;
+            const visibleHighlights = highlightsExpanded ? role.highlights : role.highlights.slice(0, 3);
+            return <div className="proxy-page__role" key={roleId}>
+              <div><h5>{role.title}</h5><time>{role.period}</time><EditButton label="Edit role" onClick={onEdit ? () => onEdit("experience", roleId) : undefined} /></div>
               {roleSummary.value && <p className={roleSummary.active ? "proxy-page__changed" : ""}><Suggested active={roleSummary.active} />{roleSummary.value}</p>}
-              {role.highlights.length > 0 && <ul>{role.highlights.map((item, itemIndex) => <li key={`${role.id}-${itemIndex}`}>{item}</li>)}</ul>}
-              <EditButton label="Edit role" onClick={onEdit ? () => onEdit("experience", role.id) : undefined} />
+              {role.highlights.length > 0 && <ul>{visibleHighlights.map((item, itemIndex) => <li key={`${roleId}-${itemIndex}`}>{item}</li>)}</ul>}
+              {role.highlights.length > 3 && <button className="proxy-page__disclosure" type="button" aria-expanded={highlightsExpanded} onClick={() => setExpandedHighlights((current) => current.includes(roleId) ? current.filter((id) => id !== roleId) : [...current, roleId])}>{highlightsExpanded ? "Show fewer contributions" : `Show all contributions (${role.highlights.length})`}<ChevronDown aria-hidden="true" /></button>}
             </div>;
           })}{(() => {
             const evidence = document.employerContributions.find((item) => item.company.trim().toLowerCase() === employer.company.trim().toLowerCase());

@@ -649,7 +649,8 @@ export async function registerRoutes(
     if (!profile) {
       return res.status(404).json({ message: "No profile found" });
     }
-    res.json(profile);
+    const document = await storage.getProfileDocumentByProfileId(profile.id);
+    res.json({ ...profile, hasProfileDocument: Boolean(document) });
   });
 
   app.post(

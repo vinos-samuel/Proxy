@@ -447,7 +447,7 @@ export default function DashboardPage() {
 
               {showUpgrade && (
                 <div id="upgrade-section" className="md:col-span-2">
-                  <PaymentGate profileId={profile!.id} username={user?.username} />
+                  <PaymentGate profileId={profile!.id} username={user?.username} hideFree={profile?.status === "published"} />
                 </div>
               )}
 

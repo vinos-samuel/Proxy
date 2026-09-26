@@ -290,6 +290,13 @@ export default function DashboardPage() {
               )}
 
               {/* 2. Page builder + legacy deepening tools — side by side */}
+              {(profile?.status === "ready" || profile?.status === "published") && !profile?.hasProfileDocument && (
+                <div className="md:col-span-2 bg-[#F5F5F0] border-[3px] border-black p-4">
+                  <p className="mono text-xs text-black/70 leading-relaxed">
+                    <strong>These are two different tools.</strong> "Add More Evidence" adds a story to your current live page as it is today. "Page Builder" moves you to Proxy's new page design — your live page stays exactly as-is until you review and publish from there.
+                  </p>
+                </div>
+              )}
               <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 bg-[#E8A75D] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">

@@ -83,6 +83,11 @@ async function loadBuilder(req: Request): Promise<LoadedBuilder | null> {
         };
       }
     }
+    // Logged-in users never silently inherit a stray guest draft left in their
+    // session (e.g. from browsing /try before or without logging in) — that
+    // content belongs to nobody's account until explicitly adopted via
+    // /api/builder/adopt-guest.
+    return null;
   }
 
   const guest = getGuestDraft(req);
@@ -136,7 +141,11 @@ export function registerProfileBuilderRoutes(app: Express) {
       }
       if (req.session.customerId) {
         const profile = await storage.getProfileByCustomerId(req.session.customerId);
-        return res.json({ needsUpload: !profile, legacyAvailable: Boolean(profile) });
+        return res.json({
+          needsUpload: !profile,
+          legacyAvailable: Boolean(profile),
+          guestAvailable: Boolean(getGuestDraft(req)),
+        });
       }
       return res.json({ needsUpload: true, guestExpiresInHours: 4 });
     } catch (error) {
@@ -150,6 +159,17 @@ export function registerProfileBuilderRoutes(app: Express) {
       if (!req.file) return res.status(400).json({ message: "Choose a CV to upload" });
       if (req.file.mimetype !== "application/pdf") {
         return res.status(400).json({ message: "Only PDF CVs are supported" });
+      }
+
+      const confirmReplace = req.body?.confirmReplace === "true";
+      if (req.session.customerId && !confirmReplace) {
+        const existingProfile = await storage.getProfileByCustomerId(req.session.customerId);
+        if (existingProfile) {
+          return res.status(409).json({
+            message: "You already have a Proxy profile. Uploading a new CV replaces your current working draft here — it will not touch your published page unless you publish again. Continue?",
+            needsConfirm: true,
+          });
+        }
       }
 
       const startedAt = Date.now();

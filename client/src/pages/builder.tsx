@@ -37,7 +37,7 @@ async function requestJson<T>(url: string, init: RequestInit = {}): Promise<T> {
   }
   const response = await fetch(url, { ...init, headers, credentials: "include" });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.message || "Something went wrong");
+  if (!response.ok) throw Object.assign(new Error(data.message || "Something went wrong"), data);
   return data;
 }
 
@@ -124,9 +124,10 @@ export default function BuilderPage() {
     }
   };
 
-  const upload = async (file: File) => {
+  const upload = async (file: File, confirmReplace = false) => {
     const data = new FormData();
     data.append("resume", file);
+    if (confirmReplace) data.append("confirmReplace", "true");
     setBusy("upload");
     setError("");
     capture("builder_upload_started", { sizeBand: file.size < 1_000_000 ? "under_1mb" : file.size < 3_000_000 ? "1_to_3mb" : "3_to_5mb" });
@@ -137,10 +138,18 @@ export default function BuilderPage() {
       capture("builder_upload_completed", { source: next.source });
       capture("builder_first_page", { seconds: Math.round((performance.now() - startedAt) / 100) / 10, source: next.source });
     } catch (cause: any) {
-      setError(cause.message);
-    } finally {
       setBusy(null);
+      if (cause.needsConfirm) {
+        if (window.confirm(cause.message)) {
+          upload(file, true);
+          return;
+        }
+        return;
+      }
+      setError(cause.message);
+      return;
     }
+    setBusy(null);
   };
 
   const saveDocument = async (next: ProfileDocument, event?: string) => {
@@ -246,6 +255,10 @@ export default function BuilderPage() {
             const result = await mutate<{ document: ProfileDocument; revision: number }>("import", "/api/builder/adopt-existing", {});
             if (result) capture("builder_legacy_imported");
           }}>Use my existing Proxy profile <ChevronRight /></button>}
+          {state.guestAvailable && user && <button className="builder-text-button" onClick={async () => {
+            const result = await mutate<{ document: ProfileDocument; revision: number }>("adopt", "/api/builder/adopt-guest", { confirmReplace: false });
+            if (result) { setState((current) => ({ ...current, source: "account" })); capture("builder_guest_adopted_from_empty"); }
+          }}>Use a recent draft from this browser <ChevronRight /></button>}
           {error && <p className="builder-error" role="alert">{error}</p>}
           <p className="builder-trust">Your CV stays private. Guest drafts are kept for 4 hours. Create an account to keep yours longer.</p>
         </section>

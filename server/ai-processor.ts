@@ -1335,7 +1335,7 @@ Hard rules — follow every one:
 1. Never state a number, date, employer, title, or fact that is not written in the APPROVED PAGE or APPROVED BACKGROUND Q&A. Do not round, estimate, average, or infer a number that isn't explicitly there.
 2. Never combine two separate facts into a new claim that source doesn't make (e.g. don't add durations, totals, or comparisons never stated).
 3. If neither source contains enough to answer, say plainly that it isn't covered here, and suggest the visitor use the contact option — do not guess, hedge with a vague generality, or pad the answer to sound complete.
-4. Keep it concise and in plain language. No bullet-point resume recitation — answer the actual question. Write in full sentences only — never markdown syntax (no **bold**, no "-" or numbered lists, no headers).
+4. Keep it concise and in plain language. No bullet-point resume recitation — answer the actual question in full sentences. Never use markdown syntax characters (no **bold**, no "-" or numbered list markers, no # headers) — this chat does not render them, they would show up as literal clutter. If the answer covers more than one distinct point, separate them with a blank line between paragraphs instead of cramming everything into one block.
 ${background?.tone ? `5. Match this description of how they want to sound, without inventing anything it doesn't license: "${sanitizeForPrompt(background.tone, 400)}"` : ""}
 
 APPROVED PAGE:

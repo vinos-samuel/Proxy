@@ -437,7 +437,7 @@ export function registerProfileBuilderRoutes(app: Express) {
     const answerSourceId = `answer-${proposal.id}`;
     const next = structuredClone(state.document);
     next.pendingProposal = proposal;
-    next.sources.push({ id: answerSourceId, kind: "user", label: proposal.question, excerpt: proposal.answer });
+    next.sources.push({ id: answerSourceId, kind: "user", label: proposal.question.slice(0, 160), excerpt: proposal.answer });
     next.privateContext.questions = [
       ...next.privateContext.questions,
       { question: proposal.question, answer: proposal.answer },

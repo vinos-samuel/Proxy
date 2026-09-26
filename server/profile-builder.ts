@@ -462,19 +462,25 @@ export function applyProposal(document: ProfileDocument, proposal: ImprovementPr
     priority: 1,
   });
 
-  if (proposal.section === "headline") next.identity.headline = proposal.proposed;
-  if (proposal.section === "summary") next.identity.summary = proposal.proposed;
+  // proposal.proposed is bounded to 2500 chars generically, but every field
+  // it can be written into has a much smaller limit in profileDocumentSchema
+  // (headline 240, project fields 900, experience summary 800) — a detailed
+  // CV routinely produces a proposed rewrite long enough to exceed these,
+  // which previously threw an uncaught ZodError on save. Clamp to the real
+  // target field's limit at each assignment site.
+  if (proposal.section === "headline") next.identity.headline = proposal.proposed.slice(0, 240);
+  if (proposal.section === "summary") next.identity.summary = proposal.proposed.slice(0, 1800);
   if (proposal.section === "project") {
     const project = next.projects.find((item) => item.id === proposal.targetId);
     if (project) {
-      project[proposal.field as "challenge" | "contribution" | "outcome"] = proposal.proposed;
+      project[proposal.field as "challenge" | "contribution" | "outcome"] = proposal.proposed.slice(0, 900);
       project.sourceIds = Array.from(new Set([...project.sourceIds, answerSourceId]));
     }
   }
   if (proposal.section === "experience") {
     const role = next.experience.find((item) => item.id === proposal.targetId);
     if (role) {
-      role.summary = proposal.proposed;
+      role.summary = proposal.proposed.slice(0, 800);
       role.sourceIds = Array.from(new Set([...role.sourceIds, answerSourceId]));
     }
   }

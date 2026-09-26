@@ -343,7 +343,7 @@ export default function PortfolioPage() {
               window.setTimeout(() => setCopiedProfileLink(false), 2000);
               capturePublicEvent("profile_link_copied", username);
             }}>{copiedProfileLink ? "Copied" : "Copy link"}</button>
-            <a href="/try">Prepare your evidence</a>
+            {isOwnerViewingOwnProfile ? <a href="/dashboard">Back to dashboard</a> : <a href="/try">Prepare your evidence</a>}
           </div>
         </footer>
         {showProfileChat && page.publicBotEnabled && (

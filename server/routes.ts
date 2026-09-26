@@ -451,11 +451,16 @@ export async function registerRoutes(
         const fromEmail = `Proxy <${process.env.FROM_EMAIL || "noreply@myproxy.work"}>`;
         const appUrl = process.env.APP_URL ||
           `https://${req.hostname}`;
+        // Registration already claims a page-first guest draft into a real
+        // profile before verification — if that happened, this person has
+        // already uploaded a CV and built a page, so the email must not tell
+        // them to do that again.
+        const existingProfile = await storage.getProfileByCustomerId(customer.id);
         resend.emails.send({
           from: fromEmail,
           to: customer.email,
           subject: "You're verified — build your evidence page",
-          html: welcomeEmailTemplate(customer.name, `${appUrl}/builder`),
+          html: welcomeEmailTemplate(customer.name, `${appUrl}/builder`, Boolean(existingProfile)),
         }).then(({ error }) => {
           if (error) logger.error("Failed to send welcome email", { error: JSON.stringify(error), to: customer.email });
           else logger.info("Welcome email sent", { to: customer.email });

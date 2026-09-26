@@ -89,7 +89,53 @@ export function verifyEmailTemplate(name: string, verifyUrl: string): string {
 
 // ─── Welcome Email (sent after email is verified) ───────────────────────────
 
-export function welcomeEmailTemplate(name: string, dashboardUrl: string): string {
+export function welcomeEmailTemplate(name: string, dashboardUrl: string, hasStartedPage = false): string {
+  if (hasStartedPage) {
+    const body = `
+      <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">You're in. Your page is already started.</h1>
+      <p style="font-size:15px;color:#555555;margin:0 0 28px 0;line-height:1.6;">
+        Welcome, ${name}. The page you built from your CV is saved to your account now. Pick up where you left off — improve what matters, then approve and publish.
+      </p>
+
+      <!-- Steps -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:28px;">
+        <tr>
+          <td style="padding:14px 16px;background:#f5f5f0;border:2px solid #000000;border-bottom:0;vertical-align:top;width:32px;">
+            <span style="font-weight:900;font-size:18px;color:#22C55E;font-family:monospace;">1</span>
+          </td>
+          <td style="padding:14px 16px;background:#f5f5f0;border:2px solid #000000;border-left:0;border-bottom:0;">
+            <strong style="font-size:14px;color:#000000;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Review your page</strong>
+            <span style="font-size:13px;color:#666666;">Your CV is already turned into a first draft — take a look.</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:14px 16px;background:#ffffff;border:2px solid #000000;border-bottom:0;vertical-align:top;">
+            <span style="font-weight:900;font-size:18px;color:#22C55E;font-family:monospace;">2</span>
+          </td>
+          <td style="padding:14px 16px;background:#ffffff;border:2px solid #000000;border-left:0;border-bottom:0;">
+            <strong style="font-size:14px;color:#000000;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Improve what matters</strong>
+            <span style="font-size:13px;color:#666666;">Edit directly or answer an optional question to strengthen one section.</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:14px 16px;background:#f5f5f0;border:2px solid #000000;vertical-align:top;">
+            <span style="font-weight:900;font-size:18px;color:#22C55E;font-family:monospace;">3</span>
+          </td>
+          <td style="padding:14px 16px;background:#f5f5f0;border:2px solid #000000;border-left:0;">
+            <strong style="font-size:14px;color:#000000;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Approve and share</strong>
+            <span style="font-size:13px;color:#666666;">Approve the exact version, publish it at myproxy.work/username, and share the link.</span>
+          </td>
+        </tr>
+      </table>
+
+      ${ctaButton(dashboardUrl, "Continue My Page →")}
+      <p style="font-size:13px;color:#888888;margin:0;line-height:1.6;">
+        Your page stays private until you publish it.
+      </p>
+    `;
+    return baseTemplate(body);
+  }
+
   const body = `
     <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">You're in. Let's prepare your evidence page.</h1>
     <p style="font-size:15px;color:#555555;margin:0 0 28px 0;line-height:1.6;">

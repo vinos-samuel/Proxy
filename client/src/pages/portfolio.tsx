@@ -333,6 +333,12 @@ export default function PortfolioPage() {
     const page = normalizeProfileDocument(portfolio.profileDocument);
     return (
       <div className="new-profile-public">
+        {isOwnerViewingOwnProfile && (
+          <div className="new-profile-public__owner-bar">
+            <a href="/dashboard">← Back to dashboard</a>
+            <span>This is your live page</span>
+          </div>
+        )}
         <ProfileDocumentView document={page} publicMode onAsk={() => setShowProfileChat(true)} onContact={(kind) => capturePublicEvent("profile_contact_clicked", username, { kind })} />
         <footer className="new-profile-public__footer">
           <span>Built with Proxy</span>

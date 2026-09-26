@@ -741,6 +741,8 @@
 .new-profile-public__footer a { color: white; text-decoration: underline; }
 .new-profile-public__footer>div { display: flex; align-items: center; gap: 18px; }
 .new-profile-public__footer button { border: 1px solid #899288; padding: 7px 10px; background: transparent; color: white; cursor: pointer; }
+.new-profile-public__owner-bar { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 12px clamp(20px,5vw,70px); background: #171c18; color: #cdd4cb; font: 12px/1.4 Inter,system-ui,sans-serif; }
+.new-profile-public__owner-bar a { color: white; text-decoration: underline; font-weight: 600; }
 .new-profile-chat { position: fixed; z-index: 60; right: 20px; bottom: 20px; width: min(410px,calc(100vw - 24px)); height: min(610px,calc(100vh - 40px)); display: flex; flex-direction: column; padding: 22px; border: 1px solid #a9afa6; border-radius: 10px; background: #fbfbf8; box-shadow: 0 24px 70px rgba(15,20,15,.28); color: #1c241c; font-family: Inter,system-ui,sans-serif; }
 .new-profile-chat>p { margin: 0; font: 600 22px/1.2 Georgia,serif; }
 .new-profile-chat>small { margin: 6px 30px 14px 0; color: #6a7368; }

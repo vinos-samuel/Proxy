@@ -483,7 +483,7 @@ export function applyProposal(document: ProfileDocument, proposal: ImprovementPr
     next.sources.push({
       id: answerSourceId,
       kind: "user",
-      label: proposal.question,
+      label: proposal.question.slice(0, 160),
       excerpt: proposal.answer,
     });
   }

@@ -197,13 +197,17 @@ app.use((req, res, next) => {
 
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    // A raw ZodError's .message is the JSON-stringified issues array — never
+    // send that to the client, log it server-side and show a plain message.
+    const isZodError = err?.name === "ZodError" || Array.isArray(err?.issues);
+    const message = isZodError ? "Something on this page didn't save correctly" : (err.message || "Internal Server Error");
 
-    logger.error(message, {
+    logger.error(isZodError ? "Unhandled validation error" : message, {
       status,
       path: req.path,
       method: req.method,
       stack: err.stack,
+      ...(isZodError ? { issues: err.issues } : {}),
     });
 
     if (res.headersSent) {

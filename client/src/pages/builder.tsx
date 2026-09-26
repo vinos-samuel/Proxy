@@ -535,7 +535,17 @@ export default function BuilderPage() {
       <main className="builder-empty">
         <header><Link href="/"><ProxyLogo /></Link>{user && <Link href="/dashboard">Dashboard</Link>}</header>
         <section>
-          <p className="builder-kicker">Prepare convincing evidence for your next opportunity.</p>
+          {state.legacyAvailable && user && (
+            <div className="builder-legacy-banner">
+              <b>We found your existing Proxy profile.</b>
+              <p>Bring it into the new page design — nothing changes on your live page until you review and publish.</p>
+              <button className="builder-primary" disabled={Boolean(busy)} onClick={async () => {
+                const result = await mutate<{ document: ProfileDocument; revision: number }>("import", "/api/builder/adopt-existing", {});
+                if (result) capture("builder_legacy_imported");
+              }}>{busy === "import" ? <Loader2 className="animate-spin" /> : <Sparkles />} Continue with my existing profile</button>
+            </div>
+          )}
+          <p className="builder-kicker">{state.legacyAvailable && user ? "Or start over from a CV instead" : "Prepare convincing evidence for your next opportunity."}</p>
           <h1>Turn your CV into a page worth sharing.</h1>
           <p>Upload a PDF for the fastest start. You will see a finished first version, then you can deepen it through conversation or guided editing.</p>
           <label className="builder-upload">
@@ -551,10 +561,6 @@ export default function BuilderPage() {
             <label><span>Describe one piece of work you are proud of</span><textarea value={manual.work} onChange={(event) => setManual({ ...manual, work: event.target.value })} placeholder="What did you do, and why did it matter? Plain language is fine." /></label>
             <button className="builder-primary" disabled={Boolean(busy) || manual.name.trim().length < 2 || manual.title.trim().length < 2 || manual.work.trim().length < 10} onClick={startWithoutCv}>{busy === "manual" ? <Loader2 className="animate-spin" /> : <Sparkles />} Build my starting page</button>
           </div>}
-          {state.legacyAvailable && user && <button className="builder-text-button" onClick={async () => {
-            const result = await mutate<{ document: ProfileDocument; revision: number }>("import", "/api/builder/adopt-existing", {});
-            if (result) capture("builder_legacy_imported");
-          }}>Use my existing Proxy profile <ChevronRight /></button>}
           {state.guestAvailable && user && <button className="builder-text-button" onClick={async () => {
             const result = await mutate<{ document: ProfileDocument; revision: number }>("adopt", "/api/builder/adopt-guest", { confirmReplace: false });
             if (result) { setState((current) => ({ ...current, source: "account" })); capture("builder_guest_adopted_from_empty"); }

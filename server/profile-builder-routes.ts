@@ -252,6 +252,11 @@ export function registerProfileBuilderRoutes(app: Express) {
         extractedData,
         new Date(Date.now() + GUEST_DRAFT_TTL_MS),
       );
+      // The guest draft is keyed by a hash of req.sessionID, but that session
+      // is never otherwise touched — without an explicit save, express-session
+      // (saveUninitialized: false) never sends the cookie, so the next request
+      // gets a fresh sessionID and the draft becomes unreachable.
+      await saveSession(req);
       logger.info("[Profile Builder] Guest page generated", {
         parseMs: parsedAt - startedAt,
         generationMs: generatedAt - parsedAt,

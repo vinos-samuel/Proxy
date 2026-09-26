@@ -177,7 +177,7 @@ export default function ProfileDocumentView({ document, proposal, onAsk, onConta
     {(document.projects.length > 0 || onEdit) && <section className="proxy-page__section proxy-page__work" id="selected-work">
       <div className="proxy-page__section-heading">
         <div><p className="proxy-page__section-kicker">Evidence</p><h3>Selected work</h3></div>
-        <div className="proxy-page__section-actions"><p>Specific work. Clear contribution.</p>{onEdit && <button type="button" onClick={() => onEdit("project")}><Plus aria-hidden="true" /> Add work</button>}</div>
+        <div className="proxy-page__section-actions"><p>Specific work. Clear contribution.</p>{onEdit && document.projects.length > 0 && <button type="button" onClick={() => onEdit("project")}><Plus aria-hidden="true" /> Add work</button>}</div>
       </div>
       {document.projects.length === 0 ? <div className="proxy-page__empty"><p>Add one piece of work that shows how you make a difference.</p><button type="button" onClick={() => onEdit?.("project")}><Plus aria-hidden="true" /> Add selected work</button></div> : <>
         <div className="proxy-page__project-grid">{visibleProjects.map((project, index) => {

@@ -396,7 +396,7 @@ export function tipsEmailTemplate(name: string, dashboardUrl: string): string {
 
     <div style="border-left:4px solid #22C55E;padding:12px 16px;margin:0 0 20px 0;background:#f9fafb;">
       <p style="font-size:14px;font-weight:700;color:#000;margin:0 0 4px 0;">1. Make the page sound like you</p>
-      <p style="font-size:14px;color:#555;margin:0;line-height:1.6;">Go to your profile → Edit → Voice & Style. Paste a few sentences you've written — a LinkedIn post, a message to a colleague, anything in your own words. Proxy will use that tone when it helps you prepare page content.</p>
+      <p style="font-size:14px;color:#555;margin:0;line-height:1.6;">Go to your profile → Edit → Private authoring notes → "How you want to sound". Paste a few sentences you've written — a LinkedIn post, a message to a colleague, anything in your own words. Proxy uses that tone when your "Ask about my work" bot answers visitors.</p>
     </div>
 
     <div style="border-left:4px solid #22C55E;padding:12px 16px;margin:0 0 20px 0;background:#f9fafb;">

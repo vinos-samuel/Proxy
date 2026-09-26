@@ -10,6 +10,7 @@ import DraftNotLiveBanner from "@/components/DraftNotLiveBanner";
 import ProfileDocumentView from "@/components/profile-document-view";
 import { profileCreationPath } from "@/lib/profile-builder-rollout";
 import type { ProfileDocument } from "@shared/profile-document";
+import { normalizeProfileDocument } from "@shared/profile-document";
 
 interface PortfolioData {
   profile: {
@@ -329,7 +330,7 @@ export default function PortfolioPage() {
   }
 
   if (portfolio.profileDocument) {
-    const page = portfolio.profileDocument;
+    const page = normalizeProfileDocument(portfolio.profileDocument);
     return (
       <div className="new-profile-public">
         <ProfileDocumentView document={page} publicMode onAsk={() => setShowProfileChat(true)} onContact={(kind) => capturePublicEvent("profile_contact_clicked", username, { kind })} />

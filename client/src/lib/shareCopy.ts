@@ -6,9 +6,9 @@
 export function buildLinkedInPost(profileUrl: string): string {
   return `A CV tells a recruiter what I did. It doesn't explain why any of it mattered.
 
-So I built a page that answers that instead. Ask it about a specific project, a hard call, a number - it answers from the real record, in my voice.
+So I built a page that shows the work behind the titles: the situation, what I contributed, and what changed.
 
-${profileUrl} — go on, try the Conversational Resume`;
+${profileUrl}`;
 }
 
 /** Short note to paste to someone already inside a company. Soft inbound — not a pitch. */

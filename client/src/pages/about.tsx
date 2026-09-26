@@ -81,7 +81,7 @@ export default function AboutPage() {
                   I've sat in the rooms where hiring decisions get made. I've seen exceptional candidates lose out not because they weren't qualified — but because their story didn't land.
                 </p>
                 <p>
-                  Proxy is my answer to that. Not a resume builder. Not a LinkedIn makeover. An AI-powered career portfolio that represents you the way you'd represent yourself in the room.
+                  Proxy is my answer to that. It turns the evidence behind your career into a designed page you can review, own, and share.
                 </p>
               </div>
             </div>
@@ -97,7 +97,7 @@ export default function AboutPage() {
               <div className="w-12 h-12 bg-[#22C55E] border-[3px] border-black flex items-center justify-center mb-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                 <Brain className="text-black w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold mb-4">AI Career Portfolio</h3>
+              <h3 className="text-2xl font-bold mb-4">Professional Evidence Page</h3>
               <p className="mono text-sm text-black/70 leading-relaxed">
                 An interactive portfolio that answers recruiter questions with your actual stories and results.
               </p>

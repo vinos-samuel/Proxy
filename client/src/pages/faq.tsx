@@ -206,7 +206,7 @@ export default function FAQPage() {
       ),
     },
     {
-      q: "How does the AI chatbot on my profile work?",
+      q: "How does the optional AI explorer work?",
       plainText: "The AI explorer is optional and off by default. If you enable it, visitors can ask questions about the public page you approved. It does not receive your raw CV, private answers, or unapproved drafts. You can turn it off again from the builder.",
       a: (
         <div className="space-y-4">
@@ -264,33 +264,32 @@ export default function FAQPage() {
     },
     {
       q: "Can I edit my page after it's published?",
-      plainText: "Yes. Once your profile is live, you can access your dashboard to edit your content at any time. You can update career stories, add new achievements, adjust your chatbot's tone, upload new photos or videos, and refine how your AI represents you. Changes are reflected on your public profile immediately. Your page should evolve as your career does.",
+      plainText: "Yes. Your edits stay private while you work. Review and publish the version you want visitors to see. Free pages include seven days of edits after first publication; Pro includes ongoing edits.",
       a: (
         <div className="space-y-4">
           <p><strong className="text-black">Yes.</strong> Once your profile is live, you can access your dashboard to edit your content at any time.</p>
           <p>You can:</p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Update career stories and add new achievements</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Adjust your chatbot's tone and vocabulary</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Upload new photos or videos</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Refine how your AI represents you</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Choose whether to show the optional AI explorer</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Update your portrait and contact choices</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Refine your headline, career detail, and selected work</span></li>
           </ul>
-          <p>Changes are reflected on your public profile <strong className="text-black">immediately</strong>. Your page should evolve as your career does.</p>
+          <p>Your edits remain private until you review and publish them. Free pages include seven days of edits after first publication; Pro includes ongoing edits.</p>
         </div>
       ),
     },
     {
       q: "What analytics do I get about my profile?",
-      plainText: "Your dashboard shows key metrics about your page's performance: total profile views showing how many people visited your page, questions asked showing what recruiters and visitors are asking your AI chatbot, and engagement patterns. This gives you insight into which aspects of your career are generating the most interest, helping you optimize your profile and understand what hiring managers care about most.",
+      plainText: "Your dashboard shows basic page views and, when the optional AI explorer is enabled, how many questions visitors asked. These signals do not prove hiring intent, but they show whether the page is being opened and explored.",
       a: (
         <div className="space-y-4">
           <p>Your dashboard shows key metrics about your page's performance:</p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Profile views</strong> — how many people visited your page</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Questions asked</strong> — what recruiters and visitors are asking your AI chatbot</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Engagement patterns</strong> — understand what's generating interest</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Questions asked</strong> — how often visitors used the optional AI explorer</span></li>
           </ul>
-          <p>This helps you <strong className="text-black">optimize your profile</strong> and understand what hiring managers care about most.</p>
+          <p>These are basic engagement signals. They do not prove hiring intent or identify every visitor.</p>
         </div>
       ),
     },
@@ -373,7 +372,7 @@ export default function FAQPage() {
           <p><strong className="text-black">Recently shipped:</strong></p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Referral attribution</strong> — every published profile gets a personal referral link; track how many people sign up from your recommendation</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Basic profile analytics</strong> — view counts and the questions visitors ask your Twin, shown on your dashboard</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Basic profile analytics</strong> — view counts and the questions visitors ask through your page, shown on your dashboard</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Tightened AI accuracy</strong> — stricter grounding rules, false premise correction, and explicit no-fabrication enforcement</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Suggested question chips</strong> — prompt cards on your portfolio page that help recruiters start the conversation instantly</span></li>
           </ul>

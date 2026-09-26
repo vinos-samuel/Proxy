@@ -4,7 +4,7 @@ import path from "path";
 import sharp from "sharp";
 import { storage } from "./storage";
 import { getCustomerForPublicPortfolio, getProfileForPublicPortfolio, canonicalPublicUsername } from "./portfolio-alias";
-import { profileDocumentSchema, toPublicProfileDocument } from "@shared/profile-document";
+import { selectPublicProfileDocument } from "@shared/profile-document";
 
 /** Strip characters that could break HTML attributes or the <title> tag */
 function sanitize(str: string): string {
@@ -97,10 +97,10 @@ export function serveStatic(app: Express) {
         getCustomerForPublicPortfolio(req.params.username),
         getProfileForPublicPortfolio(req.params.username),
       ]);
-      if (!customer || !profile || profile.status !== "published") return res.status(404).end();
+      if (!customer || !profile || !profile.isPublic || profile.status !== "published") return res.status(404).end();
       const row = await storage.getProfileDocumentByProfileId(profile.id);
-      if (!row?.publishedDocument) return res.status(404).end();
-      const page = toPublicProfileDocument(profileDocumentSchema.parse(row.publishedDocument));
+      const page = selectPublicProfileDocument(row);
+      if (!page) return res.status(404).end();
       const palette = page.style === "modern"
         ? { background: "#f2f6fa", ink: "#102c59", accent: "#8da5c2" }
         : page.style === "expressive"
@@ -239,9 +239,7 @@ export function serveStatic(app: Express) {
 
         if (customer && profile?.status === "published") {
           const documentRow = await storage.getProfileDocumentByProfileId(profile.id);
-          const page = documentRow?.publishedDocument
-            ? toPublicProfileDocument(profileDocumentSchema.parse(documentRow.publishedDocument))
-            : null;
+          const page = selectPublicProfileDocument(documentRow);
           const name = page?.identity.name || profile.displayName || customer.name || req.params.username;
           const url  = `https://myproxy.work/portfolio/${canonicalPublicUsername(req.params.username)}`;
           const qd   = (profile.questionnaireData as any) || {};
@@ -251,7 +249,7 @@ export function serveStatic(app: Express) {
             ? page.identity.summary.slice(0, 155)
             : profile.positioning
             ? profile.positioning.slice(0, 155)
-            : `Explore ${name}'s AI career portfolio. Ask questions, understand their experience, and decide if they're the right fit — before you get on a call.`;
+            : `Explore ${name}'s selected work, career experience, and professional strengths.`;
 
           // Build schema.org Person — the core of AEO
           const jsonLd: Record<string, any> = {
@@ -262,7 +260,7 @@ export function serveStatic(app: Express) {
             mainEntityOfPage: {
               "@type": "ProfilePage",
               "@id": url,
-              name: `${name} — AI Career Portfolio`,
+              name: `${name} — Professional Profile`,
             },
           };
 

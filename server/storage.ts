@@ -1,10 +1,10 @@
 import { db } from "./db";
 import { eq, desc, sql, count, and } from "drizzle-orm";
 import {
-  customers, twinProfiles, profileDocuments, factBanks, knowledgeEntries, chatUsage, payments, chatMessages, blogPosts,
+  customers, twinProfiles, profileDocuments, guestProfileDocuments, factBanks, knowledgeEntries, chatUsage, payments, chatMessages, blogPosts,
   blogSubscribers,
   jobCompanies, jobContacts, jobApplications,
-  type Customer, type InsertCustomer, type TwinProfile, type InsertTwinProfile, type ProfileDocumentRow,
+  type Customer, type InsertCustomer, type TwinProfile, type InsertTwinProfile, type ProfileDocumentRow, type GuestProfileDocumentRow,
   type FactBank, type InsertFactBank, type KnowledgeEntry, type InsertKnowledgeEntry,
   type Payment, type BlogPost,
   type BlogSubscriber, type InsertBlogSubscriber,
@@ -37,7 +37,14 @@ export interface IStorage {
   upsertProfileDocument(profileId: string, document: ProfileDocument): Promise<ProfileDocumentRow>;
   updateWorkingProfileDocument(profileId: string, revision: number, document: ProfileDocument): Promise<ProfileDocumentRow | undefined>;
   publishProfileDocument(profileId: string, revision: number): Promise<ProfileDocumentRow | undefined>;
+  activateProfileDocument(profileId: string, revision: number): Promise<ProfileDocumentRow | undefined>;
   restorePreviousProfileDocument(profileId: string, revision: number): Promise<ProfileDocumentRow | undefined>;
+
+  // Guest page-first drafts
+  getGuestProfileDocument(sessionKey: string): Promise<GuestProfileDocumentRow | undefined>;
+  upsertGuestProfileDocument(sessionKey: string, document: ProfileDocument, extractedData: unknown, expiresAt: Date): Promise<GuestProfileDocumentRow>;
+  updateGuestProfileDocument(sessionKey: string, revision: number, document: ProfileDocument, expiresAt: Date): Promise<GuestProfileDocumentRow | undefined>;
+  deleteGuestProfileDocument(sessionKey: string): Promise<void>;
 
   // Fact Banks
   getFactBanksByProfileId(profileId: string): Promise<FactBank[]>;
@@ -357,7 +364,7 @@ export class DatabaseStorage implements IStorage {
     const [row] = await db
       .update(profileDocuments)
       .set({
-        previousPublishedDocument: profileDocuments.publishedDocument,
+        activeDocument: sql`coalesce(${profileDocuments.activeDocument}, ${profileDocuments.publishedDocument})`,
         publishedDocument: profileDocuments.workingDocument,
         publishedRevision: revision,
         publishedAt: new Date(),
@@ -369,6 +376,37 @@ export class DatabaseStorage implements IStorage {
       ))
       .returning();
     return row;
+  }
+
+  async activateProfileDocument(profileId: string, revision: number): Promise<ProfileDocumentRow | undefined> {
+    const [row] = await db
+      .update(profileDocuments)
+      .set({
+        previousPublishedDocument: profileDocuments.activeDocument,
+        activeDocument: profileDocuments.publishedDocument,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(profileDocuments.twinProfileId, profileId),
+        eq(profileDocuments.revision, revision),
+        eq(profileDocuments.publishedRevision, revision),
+        sql`${profileDocuments.activeDocument} IS DISTINCT FROM ${profileDocuments.publishedDocument}`,
+      ))
+      .returning();
+    if (row) return row;
+
+    // A publish retry for the same reviewed revision is successful but must not
+    // replace the rollback pointer with the version that is already active.
+    const [alreadyActive] = await db
+      .select()
+      .from(profileDocuments)
+      .where(and(
+        eq(profileDocuments.twinProfileId, profileId),
+        eq(profileDocuments.revision, revision),
+        eq(profileDocuments.publishedRevision, revision),
+        sql`${profileDocuments.activeDocument} IS NOT DISTINCT FROM ${profileDocuments.publishedDocument}`,
+      ));
+    return alreadyActive;
   }
 
   async restorePreviousProfileDocument(profileId: string, revision: number): Promise<ProfileDocumentRow | undefined> {
@@ -385,8 +423,9 @@ export class DatabaseStorage implements IStorage {
       .update(profileDocuments)
       .set({
         workingDocument: current.previousPublishedDocument,
-        previousPublishedDocument: current.publishedDocument,
+        previousPublishedDocument: current.activeDocument || current.publishedDocument,
         publishedDocument: current.previousPublishedDocument,
+        activeDocument: current.previousPublishedDocument,
         revision: sql`${profileDocuments.revision} + 1`,
         publishedRevision: sql`${profileDocuments.revision} + 1`,
         publishedAt: new Date(),
@@ -398,6 +437,54 @@ export class DatabaseStorage implements IStorage {
       ))
       .returning();
     return row;
+  }
+
+  async getGuestProfileDocument(sessionKey: string): Promise<GuestProfileDocumentRow | undefined> {
+    const [row] = await db.select().from(guestProfileDocuments).where(eq(guestProfileDocuments.sessionKey, sessionKey));
+    if (!row) return undefined;
+    if (row.expiresAt.getTime() <= Date.now()) {
+      await db.delete(guestProfileDocuments).where(eq(guestProfileDocuments.sessionKey, sessionKey));
+      return undefined;
+    }
+    return row;
+  }
+
+  async upsertGuestProfileDocument(sessionKey: string, document: ProfileDocument, extractedData: unknown, expiresAt: Date): Promise<GuestProfileDocumentRow> {
+    const [row] = await db.insert(guestProfileDocuments).values({
+      sessionKey,
+      workingDocument: document,
+      extractedData,
+      revision: 1,
+      expiresAt,
+    }).onConflictDoUpdate({
+      target: guestProfileDocuments.sessionKey,
+      set: {
+        workingDocument: document,
+        extractedData,
+        revision: 1,
+        expiresAt,
+        updatedAt: new Date(),
+      },
+    }).returning();
+    return row;
+  }
+
+  async updateGuestProfileDocument(sessionKey: string, revision: number, document: ProfileDocument, expiresAt: Date): Promise<GuestProfileDocumentRow | undefined> {
+    const [row] = await db.update(guestProfileDocuments).set({
+      workingDocument: document,
+      revision: sql`${guestProfileDocuments.revision} + 1`,
+      expiresAt,
+      updatedAt: new Date(),
+    }).where(and(
+      eq(guestProfileDocuments.sessionKey, sessionKey),
+      eq(guestProfileDocuments.revision, revision),
+      sql`${guestProfileDocuments.expiresAt} > CURRENT_TIMESTAMP`,
+    )).returning();
+    return row;
+  }
+
+  async deleteGuestProfileDocument(sessionKey: string): Promise<void> {
+    await db.delete(guestProfileDocuments).where(eq(guestProfileDocuments.sessionKey, sessionKey));
   }
 
   async getFactBanksByProfileId(profileId: string): Promise<FactBank[]> {

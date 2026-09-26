@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { storage } from "./storage";
+import type { ImprovementQuestion, ProfileDocument } from "@shared/profile-document";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY!,
@@ -42,6 +43,46 @@ const COVERAGE_AREAS = [
   "skills_depth",        // beyond the list — what they're really expert at
   "career_direction",    // where they're headed / what they want next
 ];
+
+export async function refineBuilderQuestion(document: ProfileDocument, candidate: ImprovementQuestion): Promise<ImprovementQuestion> {
+  const sourceContext = candidate.targetId
+    ? document.projects.find((item) => item.id === candidate.targetId)?.sourceIds
+        .map((id) => document.sources.find((source) => source.id === id)?.excerpt)
+        .filter(Boolean)
+        .join("\n")
+    : "";
+  const recentAnswers = document.sources
+    .filter((source) => source.kind === "user")
+    .slice(-4)
+    .map((source) => `${source.label}: ${source.excerpt}`)
+    .join("\n");
+
+  const prompt = `Rewrite one private career-page interview question.
+
+Person: ${sanitizeForPrompt(document.identity.name, 100)}
+Role: ${sanitizeForPrompt(document.identity.title, 120)}
+Topic: ${sanitizeForPrompt(candidate.label, 160)}
+Source context: ${sanitizeForPrompt(sourceContext, 900) || "No CV excerpt is available."}
+Recent answers: ${sanitizeForPrompt(recentAnswers, 1200) || "None yet."}
+Required information: ${sanitizeForPrompt(candidate.field, 80)}
+Safe fallback question: ${sanitizeForPrompt(candidate.question, 400)}
+
+Ask exactly one warm, plain-English question. Name the work or role. Build on the source and recent answers without asserting an unstated fact. Do not ask for information already present. A qualitative answer is valid; never require a number. Return only the question, under 320 characters.`;
+
+  try {
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    });
+    const question = (result.text || "").trim().replace(/^['"]|['"]$/g, "");
+    if (question.length >= 10 && question.length <= 320 && question.includes("?")) {
+      return { ...candidate, question };
+    }
+  } catch {
+    // The deterministic, source-aware question remains available.
+  }
+  return candidate;
+}
 
 // ==================== PROMPT BUILDERS ====================
 

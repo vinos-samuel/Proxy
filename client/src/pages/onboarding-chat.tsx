@@ -224,7 +224,7 @@ export default function OnboardingChatPage() {
             Back to forms
           </button>
           <div className="text-center">
-            <div className="font-bold text-sm leading-tight">BUILDING YOUR TWIN</div>
+            <div className="font-bold text-sm leading-tight">BUILDING YOUR EVIDENCE PAGE</div>
             <div className="mono text-xs text-black/50 uppercase tracking-wider">Conversation mode</div>
           </div>
           <div className="w-28" />
@@ -235,7 +235,7 @@ export default function OnboardingChatPage() {
       <div className="max-w-3xl mx-auto px-6 pt-6 w-full">
         <div className="bg-white border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4">
           <p className="mono text-xs text-black/60 leading-relaxed">
-            Just talk naturally. No need to position yourself or use professional language — the more real you are, the better your Twin will represent you.
+            Just talk naturally. No need to position yourself or use professional language. Specific examples help Proxy build a page that represents your work clearly.
             {speechSupported && " Tap the mic to speak, tap again to stop."}
           </p>
         </div>

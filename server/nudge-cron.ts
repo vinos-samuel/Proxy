@@ -95,7 +95,7 @@ export function startNudgeCron() {
           to: p.email,
           subject: newViews > 0
             ? `${newViews} ${newViews === 1 ? "person" : "people"} viewed your Proxy profile this week`
-            : `Visitors asked your Twin ${questions.length} question${questions.length === 1 ? "" : "s"} this week`,
+            : `Visitors asked your AI explorer ${questions.length} question${questions.length === 1 ? "" : "s"} this week`,
           html: weeklyDigestTemplate(p.name, newViews, questions, isPro, profileUrl, dashboardUrl),
         }).catch(() => {});
         await storage.markDigestSent(p.profileId, p.viewCount);

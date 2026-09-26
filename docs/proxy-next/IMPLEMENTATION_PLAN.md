@@ -1,6 +1,6 @@
 # Proxy: page-first creation and publishing
 
-Date: 23 September 2026. Status: implementation complete locally; deployment and user pilot pending.
+Date: 23 September 2026. Status updated 24 September: initial implementation reviewed with a real CV; corrections required before pilot. Read [EXPERIENCE_CORRECTION_PRD.md](EXPERIENCE_CORRECTION_PRD.md) for the current execution specification. Earlier broad readiness claims below are historical.
 
 ## 1. Outcome and scope
 

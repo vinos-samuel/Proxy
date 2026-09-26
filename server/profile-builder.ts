@@ -20,11 +20,41 @@ function cleanLines(value: string | undefined): string[] {
     .split("\n")
     .map((line) => line.replace(/^[\s•*\-–—]+/, "").trim().slice(0, 500))
     .filter(Boolean)
-    .slice(0, 8);
+    .slice(0, 16);
+}
+
+export type PublicationProfile = {
+  paymentStatus: string | null;
+  tier: string | null;
+  freePublishedAt: Date | string | null;
+  isPublic: boolean | null;
+};
+
+export function getPublicationAccess(profile: PublicationProfile, now = Date.now()) {
+  const isPaid = profile.paymentStatus === "paid" && profile.tier !== "free";
+  const freePublishedAt = profile.freePublishedAt ? new Date(profile.freePublishedAt).getTime() : Number.NaN;
+  const isEditableFree = profile.tier === "free" && Number.isFinite(freePublishedAt) &&
+    now - freePublishedAt <= 7 * 24 * 60 * 60 * 1000;
+  const isFirstFreePublish = !profile.isPublic && (!profile.tier || profile.tier === "free");
+  return {
+    isPaid,
+    isEditableFree,
+    isFirstFreePublish,
+    canPublish: isPaid || isEditableFree || isFirstFreePublish,
+    canChangeLivePage: isPaid || isEditableFree,
+  };
 }
 
 function stableId(prefix: string, index: number): string {
   return `${prefix}-${index + 1}`;
+}
+
+export function conciseHeadline(value: string | undefined, fallback: string): string {
+  const firstSentence = (value || "").split(/(?<=[.!?])\s+|\n/)[0]?.trim() || "";
+  if (firstSentence.length <= 90 && firstSentence.split(/\s+/).length <= 14) {
+    return firstSentence || fallback.slice(0, 90);
+  }
+  return fallback.trim().slice(0, 90) || "Professional profile";
 }
 
 function normalizeWebUrl(value: string | undefined): string | null {
@@ -47,8 +77,9 @@ export function buildProfileDocument(parsed: ParsedResume, preview: Preview): Pr
     .split(/\n\s*\n/)
     .map((part) => part.trim())
     .filter(Boolean);
-  const headline = positioningParts[0] || parsed.currentTitle || "Professional profile";
-  const summary = positioningParts.slice(1).join("\n\n") || parsed.summary || headline;
+  const rawHeadline = positioningParts[0] || parsed.currentTitle || "Professional profile";
+  const headline = conciseHeadline(rawHeadline, parsed.currentTitle || "Professional profile");
+  const summary = positioningParts.slice(1).join("\n\n") || parsed.summary || rawHeadline;
 
   const sources: ProfileDocument["sources"] = [];
   const experience: ProfileDocument["experience"] = (parsed.roles || []).slice(0, 20).map((role, index) => {
@@ -72,21 +103,6 @@ export function buildProfileDocument(parsed: ParsedResume, preview: Preview): Pr
     };
   });
 
-  const projects: ProfileDocument["projects"] = [];
-  (parsed.roles || []).forEach((role, index) => {
-    const highlights = cleanLines(role.achievements);
-    if (!highlights.length || projects.length >= 3) return;
-    const company = (role.company || "Selected work").slice(0, 160);
-    const title = (role.title || "Professional contribution").slice(0, 160);
-    projects.push({
-      id: stableId("project", index),
-      title: `${company}: ${title}`.slice(0, 180),
-      company: role.company ? company : undefined,
-      contribution: highlights[0],
-      sourceIds: [stableId("resume-role", index)],
-    });
-  });
-
   (parsed.achievements || []).slice(0, 10).forEach((achievement, index) => {
     sources.push({
       id: stableId("resume-achievement", index),
@@ -96,19 +112,59 @@ export function buildProfileDocument(parsed: ParsedResume, preview: Preview): Pr
     });
   });
 
+  const employerContributions: ProfileDocument["employerContributions"] = (parsed.employerContributions || [])
+    .slice(0, 20)
+    .map((employer, index) => {
+      const sourceId = stableId("resume-employer", index);
+      const contributions = employer.contributions.map((item) => item.trim().slice(0, 500)).filter(Boolean).slice(0, 20);
+      sources.push({
+        id: sourceId,
+        kind: "resume",
+        label: `${employer.company} selected contributions`.slice(0, 160),
+        excerpt: contributions.join(" — ").slice(0, 1200),
+      });
+      return {
+        id: stableId("employer-contributions", index),
+        company: employer.company.slice(0, 160),
+        contributions,
+        sourceIds: [sourceId],
+      };
+    })
+    .filter((employer) => employer.company && employer.contributions.length);
+
+  // A role description is experience, not automatically a project. Start
+  // selected work only from explicitly extracted achievement statements and
+  // leave company/role attribution unspecified until the owner confirms it.
+  const projects: ProfileDocument["projects"] = (parsed.achievements || []).slice(0, 3).map((achievement, index) => {
+    const clean = achievement.trim().slice(0, 900);
+    const firstClause = clean.split(/[.;:\n]/)[0]?.trim() || clean;
+    const title = firstClause.split(/\s+/).slice(0, 12).join(" ").replace(/[.!?]+$/, "");
+    return {
+      id: stableId("project", index),
+      title: title.slice(0, 180) || `Selected work ${index + 1}`,
+      summary: clean.slice(0, 500),
+      outcome: clean,
+      sourceIds: [stableId("resume-achievement", index)],
+    };
+  });
+
   return {
     schemaVersion: 1,
-    style: "editorial",
+    style: "executive",
     identity: {
       name: parsed.name || "Your name",
       title: parsed.currentTitle || "Professional",
       location: parsed.location || undefined,
-      headline: headline.slice(0, 240),
+      headline,
       summary: summary.slice(0, 1800),
       photoUrl: null,
+      videoUrl: null,
+      showPhoto: true,
+      showVideo: true,
     },
     projects,
     experience,
+    employerContributions,
     skills: (parsed.skills || []).map((skill) => skill.trim().slice(0, 80)).filter(Boolean).slice(0, 40),
     contact: {
       email: normalizeEmail(parsed.email),
@@ -119,6 +175,18 @@ export function buildProfileDocument(parsed: ParsedResume, preview: Preview): Pr
       showWebsite: false,
     },
     publicBotEnabled: false,
+    impactStats: [],
+    details: {
+      education: (parsed.education || []).map((item) => item.trim().slice(0, 500)).filter(Boolean).slice(0, 12),
+      certifications: (parsed.certifications || []).map((item) => item.trim().slice(0, 500)).filter(Boolean).slice(0, 12),
+      awards: (parsed.awards || []).map((item) => item.trim().slice(0, 500)).filter(Boolean).slice(0, 12),
+      interests: (parsed.interests || []).map((item) => item.trim().slice(0, 500)).filter(Boolean).slice(0, 12),
+      showEducation: true,
+      showCertifications: true,
+      showAwards: true,
+      showInterests: false,
+    },
+    privateContext: { questions: [], concerns: [] },
     sources,
     skippedQuestionIds: [],
     answeredQuestionIds: [],
@@ -142,7 +210,7 @@ export function buildProfileDocumentFromLegacy(profile: any): ProfileDocument {
         period: role.years ? String(role.years).slice(0, 100) : undefined,
         highlights: (Array.isArray(role.achievements) ? role.achievements : [])
           .map((item: unknown) => String(item).slice(0, 500))
-          .slice(0, 8),
+          .slice(0, 16),
         sourceIds: [],
       });
     });
@@ -178,17 +246,21 @@ export function buildProfileDocumentFromLegacy(profile: any): ProfileDocument {
 
   return {
     schemaVersion: 1,
-    style: "editorial",
+    style: "executive",
     identity: {
       name: String(profile.displayName || questionnaire?.step1?.fullName || "Your name").slice(0, 160),
       title: String(profile.roleTitle || questionnaire?.step1?.currentTitle || "Professional").slice(0, 180),
       location: questionnaire?.step1?.location ? String(questionnaire.step1.location).slice(0, 160) : undefined,
-      headline: String(profile.positioning || profile.heroSubtitle || profile.roleTitle || "Professional profile").split(/\n\s*\n/)[0].slice(0, 240),
+      headline: conciseHeadline(String(profile.heroSubtitle || profile.positioning || ""), String(profile.roleTitle || "Professional profile")),
       summary: String(profile.positioning || questionnaire?.step2?.professionalSummary || profile.roleTitle || "Professional profile").slice(0, 1800),
       photoUrl: normalizeWebUrl(profile.photoUrl || questionnaire?.step10?.headshot || questionnaire?.step10?.photoUrl || undefined),
+      videoUrl: normalizeWebUrl(profile.videoUrl || questionnaire?.step10?.introVideo || undefined),
+      showPhoto: true,
+      showVideo: true,
     },
     projects,
     experience,
+    employerContributions: [],
     skills: skillTags.map((item: unknown) => String(item).trim().slice(0, 80)).filter(Boolean).slice(0, 40),
     contact: {
       email: typeof contactEmail === "string" && contactEmail.includes("@") && !contactEmail.startsWith("[") ? contactEmail : null,
@@ -199,6 +271,20 @@ export function buildProfileDocumentFromLegacy(profile: any): ProfileDocument {
       showWebsite: false,
     },
     publicBotEnabled: false,
+    impactStats: [],
+    details: {
+      education: [], certifications: [], awards: [], interests: [],
+      showEducation: true, showCertifications: true, showAwards: true, showInterests: false,
+    },
+    privateContext: {
+      workingStyle: questionnaire?.step7?.workingStyle || undefined,
+      careerDirection: questionnaire?.step7?.careerDirection || undefined,
+      voiceNotes: questionnaire?.step7?.communicationStyle || undefined,
+      questions: Array.isArray(questionnaire?.step8?.questions) ? questionnaire.step8.questions.slice(0, 12) : [],
+      concerns: Array.isArray(questionnaire?.step9?.objections)
+        ? questionnaire.step9.objections.slice(0, 12).map((item: any) => ({ concern: String(item.objection || ""), response: String(item.response || "") })).filter((item: any) => item.concern && item.response)
+        : [],
+    },
     sources: [],
     skippedQuestionIds: [],
     answeredQuestionIds: [],
@@ -213,7 +299,10 @@ export function getImprovementCandidates(document: ProfileDocument): Improvement
   const candidates: ImprovementQuestion[] = [];
 
   document.projects.forEach((project, index) => {
-    const label = project.title;
+    const label = project.company ? `${project.title} · ${project.company}` : project.title;
+    const source = project.sourceIds.map((id) => document.sources.find((item) => item.id === id)).find(Boolean);
+    const context = source ? `${source.kind === "resume" ? "Your CV says" : "You added"}: “${source.excerpt.slice(0, 180)}${source.excerpt.length > 180 ? "…" : ""}” ` : "";
+    const sourceFields = source ? { sourceKind: source.kind, sourceExcerpt: source.excerpt.slice(0, 320) } : {};
     if (!project.challenge?.trim()) {
       candidates.push({
         id: `project:${project.id}:challenge`,
@@ -221,7 +310,8 @@ export function getImprovementCandidates(document: ProfileDocument): Improvement
         targetId: project.id,
         field: "challenge",
         label,
-        question: `What problem or situation made this work necessary?`,
+        ...sourceFields,
+        question: `${context}Before this work began, what was difficult, unclear, or not working well?`,
         priority: 95 - index,
       });
     }
@@ -232,7 +322,8 @@ export function getImprovementCandidates(document: ProfileDocument): Improvement
         targetId: project.id,
         field: "contribution",
         label,
-        question: `What did you personally change or deliver in this work?`,
+        ...sourceFields,
+        question: `${context}What did you personally change, decide, or deliver?`,
         priority: 92 - index,
       });
     }
@@ -243,8 +334,52 @@ export function getImprovementCandidates(document: ProfileDocument): Improvement
         targetId: project.id,
         field: "outcome",
         label,
-        question: `What changed because of your work? A specific result helps, but a number is not required.`,
+        ...sourceFields,
+        question: `${context}What became better or different afterwards? A clear observation is enough; you do not need a number.`,
         priority: 88 - index,
+      });
+    }
+
+    const coreComplete = Boolean(project.challenge?.trim() && project.contribution?.trim() && project.outcome?.trim());
+    const decisionId = `project:${project.id}:decision`;
+    if (coreComplete && !answered.has(decisionId) && !skipped.has(decisionId)) {
+      candidates.push({
+        id: decisionId,
+        section: "project",
+        targetId: project.id,
+        field: "contribution",
+        label,
+        ...sourceFields,
+        question: `While doing ${project.title}, what was one important decision or trade-off you personally made?`,
+        priority: 84 - index,
+      });
+    }
+
+    const influenceId = `project:${project.id}:influence`;
+    if (answered.has(decisionId) && !answered.has(influenceId) && !skipped.has(influenceId)) {
+      candidates.push({
+        id: influenceId,
+        section: "project",
+        targetId: project.id,
+        field: "contribution",
+        label,
+        ...sourceFields,
+        question: `Who needed to support ${project.title}, and how did you bring them with you?`,
+        priority: 82 - index,
+      });
+    }
+
+    const reflectionId = `project:${project.id}:reflection`;
+    if (answered.has(influenceId) && !answered.has(reflectionId) && !skipped.has(reflectionId)) {
+      candidates.push({
+        id: reflectionId,
+        section: "project",
+        targetId: project.id,
+        field: "contribution",
+        label,
+        ...sourceFields,
+        question: `Looking back on ${project.title}, what part of your approach would you deliberately use again?`,
+        priority: 80 - index,
       });
     }
   });
@@ -271,6 +406,30 @@ export function getImprovementCandidates(document: ProfileDocument): Improvement
       label: "About you",
       question: "What kind of difficult work do people most often trust you to handle?",
       priority: 70,
+    });
+  }
+
+  if (!document.privateContext.workingStyle?.trim()) {
+    candidates.push({
+      id: "identity:working-style",
+      section: "summary",
+      targetId: null,
+      field: "summary",
+      label: "How you work",
+      question: "When work is complex or unclear, what do colleagues rely on you to do?",
+      priority: 64,
+    });
+  }
+
+  if (!document.privateContext.careerDirection?.trim()) {
+    candidates.push({
+      id: "identity:career-direction",
+      section: "summary",
+      targetId: null,
+      field: "summary",
+      label: "What you want next",
+      question: "What kind of opportunity or client problem would you most like to take on next?",
+      priority: 60,
     });
   }
 
@@ -320,12 +479,14 @@ export function applyProposal(document: ProfileDocument, proposal: ImprovementPr
     }
   }
 
-  next.sources.push({
-    id: answerSourceId,
-    kind: "user",
-    label: proposal.question,
-    excerpt: proposal.answer,
-  });
+  if (!next.sources.some((source) => source.id === answerSourceId)) {
+    next.sources.push({
+      id: answerSourceId,
+      kind: "user",
+      label: proposal.question,
+      excerpt: proposal.answer,
+    });
+  }
   next.answeredQuestionIds = Array.from(new Set([...next.answeredQuestionIds, proposal.questionId]));
   next.pendingProposal = null;
   next.undoStack = [
@@ -343,19 +504,28 @@ export function applyProposal(document: ProfileDocument, proposal: ImprovementPr
 
 export function undoLastChange(document: ProfileDocument): ProfileDocument | null {
   const undo = document.undoStack.at(-1);
-  if (!undo || typeof undo.before !== "string") return null;
+  if (!undo) return null;
   const next = structuredClone(document);
-  if (undo.section === "headline") next.identity.headline = undo.before;
-  if (undo.section === "summary") next.identity.summary = undo.before;
-  if (undo.section === "project") {
+  if (undo.section === "project" && undo.field === "project:add" && undo.targetId) {
+    next.projects = next.projects.filter((project) => project.id !== undo.targetId);
+    next.pendingProposal = next.pendingProposal?.targetId === undo.targetId ? null : next.pendingProposal;
+  } else if (undo.section === "project" && undo.field === "project:remove" && undo.before && typeof undo.before === "object") {
+    const removed = undo.before as { project: ProfileDocument["projects"][number]; index: number };
+    next.projects.splice(Math.max(0, Math.min(removed.index, next.projects.length)), 0, removed.project);
+  } else if (undo.section === "project" && undo.field === "project:order" && Array.isArray(undo.before)) {
+    const order = undo.before.filter((id): id is string => typeof id === "string");
+    next.projects.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  } else if (typeof undo.before !== "string") {
+    return null;
+  } else if (undo.section === "headline") next.identity.headline = undo.before;
+  else if (undo.section === "summary") next.identity.summary = undo.before;
+  else if (undo.section === "project") {
     const project = next.projects.find((item) => item.id === undo.targetId);
     if (project) project[undo.field as "challenge" | "contribution" | "outcome"] = undo.before || undefined;
-  }
-  if (undo.section === "experience") {
+  } else if (undo.section === "experience") {
     const role = next.experience.find((item) => item.id === undo.targetId);
     if (role) role.summary = undo.before || undefined;
-  }
-  if (undo.section === "style" && ["editorial", "modern", "expressive"].includes(undo.before)) {
+  } else if (undo.section === "style" && ["executive", "editorial", "modern", "expressive"].includes(undo.before)) {
     next.style = undo.before as ProfileDocument["style"];
   }
   next.undoStack = next.undoStack.slice(0, -1);

@@ -23,11 +23,11 @@ const STEPS = [
   { id: 4, title: "War Stories", icon: BookOpen, description: "Your high-stakes professional stories (min 3)" },
   { id: 5, title: "Metrics & Achievements", icon: Sparkles, description: "Your quantifiable achievements" },
   { id: 6, title: "Technical Skills", icon: Wrench, description: "Platforms, tools and methodologies" },
-  { id: 7, title: "Voice & Personality", icon: Mic, description: "How your AI Twin should communicate" },
+  { id: 7, title: "Voice & Personality", icon: Mic, description: "How your optional visitor answers should sound" },
   { id: 8, title: "Common Questions", icon: HelpCircle, description: "Questions visitors might ask" },
   { id: 9, title: "Objection Handling", icon: Shield, description: "How to handle tough questions" },
   { id: 10, title: "Branding & Assets", icon: Palette, description: "Visual branding and media" },
-  { id: 11, title: "Chatbot Setup", icon: MessageSquare, description: "Configure your chatbot experience" },
+  { id: 11, title: "AI Explorer", icon: MessageSquare, description: "Prepare optional visitor questions" },
   { id: 12, title: "Review & Submit", icon: Send, description: "Review everything and submit" },
 ];
 
@@ -576,8 +576,11 @@ export default function QuestionnairePage() {
 
           <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#22C55E] ease-linear rounded-full" style={{ transition: "width 8000ms linear" }}
-              style={{ width: `${Math.min(((buildingStep + 1) / buildingSteps.length) * 95, 95)}%` }}
+              className="h-full bg-[#22C55E] ease-linear rounded-full"
+              style={{
+                transition: "width 8000ms linear",
+                width: `${Math.min(((buildingStep + 1) / buildingSteps.length) * 95, 95)}%`,
+              }}
             />
           </div>
           <p className="mono text-xs text-white/30 mt-4 uppercase tracking-widest">// ai_is_working</p>
@@ -597,7 +600,7 @@ export default function QuestionnairePage() {
               <Sparkles className="h-8 w-8 text-black" />
             </div>
             <h1 className="text-3xl font-bold mb-2">
-              {hasAiDraft ? "Your draft is ready." : "How do you want to build your Twin?"}
+              {hasAiDraft ? "Your draft is ready." : "How do you want to build your evidence page?"}
             </h1>
             <p className="mono text-sm text-black/60">
               {hasAiDraft
@@ -698,7 +701,7 @@ export default function QuestionnairePage() {
                 &bull; Career history with achievements<br/>
                 &bull; War stories &amp; objection handling<br/>
                 &bull; Common Q&amp;A &amp; voice/personality<br/>
-                &bull; Skills, achievements &amp; chatbot setup
+                &bull; Skills, achievements &amp; optional AI explorer
               </div>
             </div>
 
@@ -1224,7 +1227,7 @@ export default function QuestionnairePage() {
                 <div className="space-y-6">
                   <div className="border-[3px] border-black bg-[#E8E8E3] p-4">
                     <p className="mono text-sm text-black/60">
-                      What questions do you expect visitors to ask? How should your AI Twin respond?
+                      What questions do you expect visitors to ask? What approved points should Proxy use in an answer?
                       Think about what you've been asked in interviews.
                     </p>
                   </div>
@@ -1257,7 +1260,7 @@ export default function QuestionnairePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="mono text-xs uppercase tracking-wider text-black/60 block">Key Points for AI Twin's Response {qi < 3 && "*"}</label>
+                        <label className="mono text-xs uppercase tracking-wider text-black/60 block">Approved Points for the Answer {qi < 3 && "*"}</label>
                         <textarea
                           value={q.answer}
                           onChange={e => updateQuestion(qi, "answer", e.target.value)}
@@ -1505,7 +1508,7 @@ export default function QuestionnairePage() {
               {currentStep === 11 && (
                 <div className="space-y-5">
                   <div className="space-y-2">
-                    <label className="mono text-xs uppercase tracking-wider text-black/60 block">Suggested Questions for Chatbot Home Screen *</label>
+                    <label className="mono text-xs uppercase tracking-wider text-black/60 block">Suggested Questions for the AI Explorer *</label>
                     <textarea
                       value={data.step11.suggestedQuestions}
                       onChange={e => updateField("step11", "suggestedQuestions", e.target.value)}
@@ -1591,7 +1594,7 @@ export default function QuestionnairePage() {
                         </p>
                       </ReviewSection>
 
-                      <ReviewSection title="Chatbot Setup" complete={!!data.step11.suggestedQuestions}>
+                      <ReviewSection title="AI Explorer" complete={!!data.step11.suggestedQuestions}>
                         <p className="mono text-sm text-black/60">
                           {data.step11.suggestedQuestions ? "Starter questions configured" : "Not configured"}
                           {data.step11.easterEgg ? " | Easter egg set" : ""}
@@ -1613,7 +1616,7 @@ export default function QuestionnairePage() {
                   {/* Voice sample reminder — shown when writing sample is empty */}
                   {showVoiceReminder && (
                     <div className="mb-4 border-[3px] border-black bg-[#FEF9C3] p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                      <p className="font-bold text-sm mb-1">Your Twin will sound more like you with a writing sample.</p>
+                      <p className="font-bold text-sm mb-1">Your page will sound more like you with a writing sample.</p>
                       <p className="mono text-xs text-black/70 mb-3">Go to Step 7 and paste a few sentences you've written — a LinkedIn post, a message, anything in your own words. It takes 2 minutes and makes a big difference.</p>
                       <div className="flex gap-2">
                         <button
@@ -1651,7 +1654,7 @@ export default function QuestionnairePage() {
                       </>
                     ) : (
                       <>
-                        <Sparkles className="h-4 w-4" /> SUBMIT & GENERATE MY DIGITAL TWIN
+                        <Sparkles className="h-4 w-4" /> SUBMIT & BUILD MY EVIDENCE PAGE
                       </>
                     )}
                   </button>

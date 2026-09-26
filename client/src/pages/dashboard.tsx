@@ -13,6 +13,7 @@ import {
   FileText, Sparkles, ExternalLink, ArrowRight, Copy, BarChart3, MessageSquare, Lock, Trash2, Mic, Loader2
 } from "lucide-react";
 import type { TwinProfile } from "@shared/schema";
+type DashboardProfile = TwinProfile & { hasProfileDocument?: boolean };
 import PaymentGate from "@/components/PaymentGate";
 
 export default function DashboardPage() {
@@ -58,7 +59,7 @@ export default function DashboardPage() {
     enabled: !!user,
   });
 
-  const { data: profile, isLoading } = useQuery<TwinProfile | null>({
+  const { data: profile, isLoading } = useQuery<DashboardProfile | null>({
     queryKey: ["/api/profile"],
     queryFn: async () => {
       const res = await fetch("/api/profile", { credentials: "include" });
@@ -66,6 +67,11 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error("Failed to fetch profile");
       return res.json();
     },
+    // The app default is staleTime: Infinity. This page decides where
+    // Preview/Publish/Add Evidence send you based on hasProfileDocument —
+    // a cached answer from before that flipped true would silently route
+    // back into the old pages, so this one has to check fresh on every load.
+    staleTime: 0,
   });
 
   useEffect(() => {
@@ -102,6 +108,10 @@ export default function DashboardPage() {
     published: { label: "PUBLISHED", color: "bg-[#22C55E]" },
   };
 
+  // A profile built through the CV-upload page builder has a profile_documents
+  // row and doesn't understand the legacy questionnaire's /preview, /interview
+  // or PaymentGate flow — send those accounts back into the builder instead.
+  const previewPath = profile?.hasProfileDocument ? profileCreationPath : "/preview";
   const profileStatus = profile ? statusMap[profile.status] || statusMap.draft : statusMap.draft;
   const isFree = profile?.tier === "free";
   const freeWindowExpired = isFree && profile?.freePublishedAt
@@ -219,13 +229,13 @@ export default function DashboardPage() {
                     {(profile?.status === "ready" || profile?.status === "published") && (
                       <>
                         {profile.status === "ready" && (
-                          <Link href="/preview">
+                          <Link href={previewPath}>
                             <button className="bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-publish-ready">
                               <span className="flex items-center gap-2"><Globe className="h-4 w-4" />PUBLISH — GO LIVE</span>
                             </button>
                           </Link>
                         )}
-                        <Link href="/preview">
+                        <Link href={previewPath}>
                           <button className="bg-white text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-preview">
                             <span className="flex items-center gap-2"><Eye className="h-4 w-4" />PREVIEW</span>
                           </button>
@@ -250,7 +260,7 @@ export default function DashboardPage() {
                   <p className="mono text-sm text-black/70 mb-4">
                     Only you can see it. Publish to get a public URL at myproxy.work/portfolio/{user?.username}.
                   </p>
-                  <Link href="/preview">
+                  <Link href={previewPath}>
                     <button className="bg-[#22C55E] text-black px-8 py-4 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none" data-testid="button-publish-go-live">
                       <span className="flex items-center gap-2">Publish — go live <ArrowRight className="h-4 w-4" /></span>
                     </button>
@@ -288,7 +298,9 @@ export default function DashboardPage() {
                   <h3 className="font-bold text-lg">PAGE BUILDER</h3>
                 </div>
                 <p className="mono text-sm text-black/60 mb-4">
-                  {profile
+                  {profile?.hasProfileDocument
+                    ? "Review your page, add another example of your work, answer a question to sharpen it, and control the version visitors see."
+                    : profile
                     ? "Review your page, improve selected sections, and control the version visitors see."
                     : "Upload your CV and see a finished first page before answering more questions."}
                 </p>
@@ -299,7 +311,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              {(profile?.status === "ready" || profile?.status === "published") && (
+              {(profile?.status === "ready" || profile?.status === "published") && !profile?.hasProfileDocument && (
                 <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 bg-[#A78BFA] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
@@ -422,7 +434,7 @@ export default function DashboardPage() {
                   <div className="flex items-start gap-3">
                     <Lock className="h-5 w-5 text-black mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="font-bold text-sm">Your Twin is live and working.</p>
+                      <p className="font-bold text-sm">Your evidence page is live.</p>
                       <p className="mono text-xs text-black/70 mt-1">
                         {viewCount > 0 || questionCount > 0
                           ? `${viewCount} people visited${questionCount > 0 ? ` and ${questionCount} asked questions` : ""}. Upgrade to Pro to keep refining your profile and see exactly what they asked.`
@@ -435,7 +447,7 @@ export default function DashboardPage() {
 
               {showUpgrade && (
                 <div id="upgrade-section" className="md:col-span-2">
-                  <PaymentGate profileId={profile!.id} username={user?.username} />
+                  <PaymentGate profileId={profile!.id} username={user?.username} hideFree={profile?.status === "published"} />
                 </div>
               )}
 
@@ -501,12 +513,12 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="bg-white/10 border border-white/20 p-4 mb-4 mono text-xs text-white/80 leading-relaxed whitespace-pre-line">
-                    {buildLinkedInPost(`https://myproxy.work/portfolio/${user?.username}`)}
+                    {buildLinkedInPost(`${window.location.origin}/portfolio/${user?.username}`)}
                   </div>
                   <div className="flex gap-3 flex-wrap">
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(buildLinkedInPost(`https://myproxy.work/portfolio/${user?.username}`));
+                        navigator.clipboard.writeText(buildLinkedInPost(`${window.location.origin}/portfolio/${user?.username}`));
                       }}
                       className="flex items-center gap-2 bg-[#22C55E] text-black px-5 py-3 font-bold border-[3px] border-[#22C55E] mono text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)] hover:bg-[#16A34A] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
                     >
@@ -514,7 +526,7 @@ export default function DashboardPage() {
                       Copy LinkedIn Post
                     </button>
                     <button
-                      onClick={() => navigator.clipboard.writeText(`https://myproxy.work/portfolio/${user?.username}`)}
+                      onClick={() => navigator.clipboard.writeText(`${window.location.origin}/portfolio/${user?.username}`)}
                       className="flex items-center gap-2 bg-white/10 text-white px-5 py-3 font-bold border-[3px] border-white/30 mono text-xs uppercase tracking-wider hover:bg-white/20 active:translate-x-[1px] active:translate-y-[1px] transition-all"
                     >
                       <Copy className="h-3.5 w-3.5" />
@@ -522,7 +534,7 @@ export default function DashboardPage() {
                     </button>
                     <button
                       onClick={() => {
-                        const signature = `${profile?.displayName || user?.name || user?.username}${profile?.roleTitle ? ` | ${profile.roleTitle}` : ""}\nAsk my AI about my work: https://myproxy.work/portfolio/${user?.username}`;
+                        const signature = `${profile?.displayName || user?.name || user?.username}${profile?.roleTitle ? ` | ${profile.roleTitle}` : ""}\nAsk about my work: ${window.location.origin}/portfolio/${user?.username}`;
                         navigator.clipboard.writeText(signature);
                       }}
                       className="flex items-center gap-2 bg-white/10 text-white px-5 py-3 font-bold border-[3px] border-white/30 mono text-xs uppercase tracking-wider hover:bg-white/20 active:translate-x-[1px] active:translate-y-[1px] transition-all"

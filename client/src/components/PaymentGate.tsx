@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Loader2, Star, Crown, Zap } from "lucide-react";
+import { Check, Loader2, Star, Zap } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
@@ -8,6 +8,10 @@ import InsiderKit from "@/components/InsiderKit";
 interface PaymentGateProps {
   profileId: string;
   username?: string;
+  // Set when this is shown because the free window is already spent (the new
+  // builder only opens this once /api/builder/publish says free isn't
+  // available) — offering "free" again here is misleading, so hide it.
+  hideFree?: boolean;
 }
 
 const tiers = [
@@ -42,43 +46,28 @@ const tiers = [
     ],
     useCase: "USE_CASE: Active job search | Career pivot",
   },
-  {
-    key: "concierge",
-    name: "CONCIERGE",
-    tierLabel: "PREMIUM",
-    price: "$499",
-    originalPrice: "$999",
-    icon: Crown,
-    features: [
-      "EVERYTHING_IN_PRO",
-      "PERSONAL_DISCOVERY_CALL",
-      "PRO_COPYWRITING",
-      "CUSTOM_BRANDING",
-      "HANDS_ON_OPTIMIZATION",
-      "PRIORITY_SUPPORT",
-    ],
-    useCase: "USE_CASE: Executive positioning | Brand building",
-  },
 ];
 
-export default function PaymentGate({ profileId, username }: PaymentGateProps) {
+export default function PaymentGate({ profileId, username, hideFree }: PaymentGateProps) {
   const [loading, setLoading] = useState(false);
-  const [selectedTier, setSelectedTier] = useState<string>("free");
+  const [selectedTier, setSelectedTier] = useState<string>(hideFree ? "pro" : "free");
+  const visibleTiers = hideFree ? tiers.filter((tier) => tier.key !== "free") : tiers;
   const [published, setPublished] = useState(false);
   const [publishData, setPublishData] = useState<{ publicDomain?: string; username?: string; displayName?: string; roleTitle?: string } | null>(null);
   const [showFreeConfirm, setShowFreeConfirm] = useState(false);
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
-  const handlePublish = async () => {
-    if (selectedTier === "free" && !showFreeConfirm) {
+  const handlePublish = async (tierKey: string) => {
+    setSelectedTier(tierKey);
+    if (tierKey === "free" && !showFreeConfirm) {
       setShowFreeConfirm(true);
       return;
     }
 
     setLoading(true);
     try {
-      if (selectedTier === "free") {
+      if (tierKey === "free") {
         const response = await apiRequest("POST", "/api/publish-free");
         const data = await response.json();
         if (data.success) {
@@ -88,7 +77,7 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
         }
       } else {
         const response = await apiRequest("POST", "/api/create-checkout-session", {
-          tier: selectedTier,
+          tier: tierKey,
           profileId,
         });
         const data = await response.json();
@@ -98,16 +87,26 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
           throw new Error("No checkout URL returned");
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Publish error:", error);
-      alert("Something went wrong. Please try again.");
+      // apiRequest throws "<status>: <raw response body>" — the body is
+      // usually {"message": "..."} from the server, so pull that out
+      // instead of showing an opaque alert every time this fails.
+      let detail = error?.message || "Something went wrong. Please try again.";
+      const bodyStart = detail.indexOf("{");
+      if (bodyStart >= 0) {
+        try { detail = JSON.parse(detail.slice(bodyStart)).message || detail; } catch { /* keep raw text */ }
+      }
+      alert(detail);
     } finally {
       setLoading(false);
     }
   };
 
   if (published && publishData) {
-    const profileUrl = `https://myproxy.work/portfolio/${publishData.username}`;
+    // window.location.origin so this reads correctly when tested on a
+    // Replit workspace preview, not just on the production domain.
+    const profileUrl = `${window.location.origin}/portfolio/${publishData.username}`;
     return (
       <div className="md:col-span-2 bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
         <div className="text-center space-y-6">
@@ -175,7 +174,7 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
                 &larr; GO BACK
               </button>
               <button
-                onClick={handlePublish}
+                onClick={() => handlePublish("free")}
                 disabled={loading}
                 className="bg-[#22C55E] text-black px-8 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50"
               >
@@ -220,24 +219,19 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
         </Link>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
-        {tiers.map((tier) => {
+      <div className={`grid gap-6 ${visibleTiers.length > 1 ? "md:grid-cols-2" : "max-w-sm mx-auto"}`}>
+        {visibleTiers.map((tier) => {
           const Icon = tier.icon;
-          const isSelected = selectedTier === tier.key;
           const isPopular = tier.popular;
+          const isBusy = loading && selectedTier === tier.key;
           return (
             <div
               key={tier.key}
-              className={`brutal-card border-black cursor-pointer relative p-8 ${
-                isPopular && isSelected
-                  ? "bg-[#22C55E] transform lg:scale-105 lg:-mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
-                  : isSelected
-                  ? "bg-[#22C55E] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
-                  : isPopular
-                  ? "bg-white transform lg:scale-105 lg:-mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+              className={`brutal-card border-black relative p-8 flex flex-col ${
+                isPopular
+                  ? "bg-[#22C55E] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
                   : "bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
               }`}
-              onClick={() => setSelectedTier(tier.key)}
               data-testid={`card-tier-${tier.key}`}
             >
               {tier.popular && (
@@ -266,38 +260,32 @@ export default function PaymentGate({ profileId, username }: PaymentGateProps) {
               </div>
               <div className="space-y-3 mb-6 text-sm">
                 {tier.features.map((feature, i) => (
-                  <div key={i} className={`flex gap-2 mono ${isSelected ? "text-black" : "text-black/70"}`}>
-                    <span className={`font-bold shrink-0 ${isSelected ? "text-black" : "text-[#22C55E]"}`}>&#10003;</span> {feature}
+                  <div key={i} className="flex gap-2 mono text-black">
+                    <span className="font-bold shrink-0 text-black">&#10003;</span> {feature}
                   </div>
                 ))}
               </div>
-              {isSelected && (
-                <div className="mono text-xs text-black/60 mt-4 pt-4 border-t-2 border-black/20">
-                  {tier.useCase}
-                </div>
-              )}
+              <div className="mono text-xs text-black/60 mb-6">{tier.useCase}</div>
+              <button
+                className={`mt-auto w-full py-4 font-bold mono border-[3px] border-black uppercase tracking-wider transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isPopular ? "bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.35)]" : "bg-[#22C55E] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                }`}
+                onClick={() => handlePublish(tier.key)}
+                disabled={loading}
+                data-testid={`button-checkout-${tier.key}`}
+              >
+                {isBusy ? (
+                  <span className="flex items-center justify-center gap-2"><Loader2 className="h-5 w-5 animate-spin" /> PROCESSING...</span>
+                ) : tier.key === "free" ? (
+                  "PUBLISH FREE →"
+                ) : (
+                  `GET ${tier.name} — ${tier.price} →`
+                )}
+              </button>
             </div>
           );
         })}
       </div>
-
-      <button
-        className="w-full bg-[#22C55E] text-black py-4 font-bold mono border-[3px] border-black uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
-        onClick={handlePublish}
-        disabled={loading}
-        data-testid="button-checkout"
-      >
-        {loading ? (
-          <span className="flex items-center justify-center gap-2">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            PROCESSING...
-          </span>
-        ) : selectedTier === "free" ? (
-          "PUBLISH FREE →"
-        ) : (
-          `GET ${tiers.find((t) => t.key === selectedTier)?.name} — ${tiers.find((t) => t.key === selectedTier)?.price} →`
-        )}
-      </button>
     </div>
   );
 }

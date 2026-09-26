@@ -1,7 +1,7 @@
 import { Switch, Route, useLocation, Redirect } from "wouter";
 import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/lib/auth";
@@ -33,7 +33,7 @@ import TryPage from "@/pages/try";
 import BuilderPage from "@/pages/builder";
 import { Loader2 } from "lucide-react";
 
-function ProtectedRoute({ component: Component }: { component: () => JSX.Element }) {
+function ProtectedRoute({ component: Component }: { component: () => JSX.Element | null }) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -51,7 +51,7 @@ function ProtectedRoute({ component: Component }: { component: () => JSX.Element
   return <Component />;
 }
 
-function GuestRoute({ component: Component }: { component: () => JSX.Element }) {
+function GuestRoute({ component: Component }: { component: () => JSX.Element | null }) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -65,6 +65,46 @@ function GuestRoute({ component: Component }: { component: () => JSX.Element }) 
   if (user) {
     return <Redirect to="/dashboard" />;
   }
+
+  return <Component />;
+}
+
+// /preview and /interview are the pre-correction pages: they edit and read
+// fields the new document-based page never renders, so an account that has
+// moved to the new builder must never land there again, however it got the
+// link (a bookmark, a stale tab, a cached page). The two systems otherwise
+// share the same account and drift out of sync silently.
+function LegacyRoute({ component: Component }: { component: () => JSX.Element | null }) {
+  const { user, isLoading } = useAuth();
+  // A distinct key and staleTime: 0, deliberately not sharing the
+  // dashboard's ["/api/profile"] cache entry. The app default is
+  // staleTime: Infinity, so a profile fetched once on an earlier page
+  // (e.g. before this account had a page) would otherwise be served
+  // forever and never notice hasProfileDocument flipping to true — this
+  // check has to be fresh every time or it silently lets the old pages
+  // back in, which is exactly the bug this route exists to prevent.
+  const { data: profile, isLoading: isProfileLoading } = useQuery<{ hasProfileDocument?: boolean } | null>({
+    queryKey: ["/api/profile", "legacy-route-guard"],
+    queryFn: async () => {
+      const res = await fetch("/api/profile", { credentials: "include" });
+      if (res.status === 404) return null;
+      if (!res.ok) throw new Error("Failed to fetch profile");
+      return res.json();
+    },
+    enabled: Boolean(user),
+    staleTime: 0,
+  });
+
+  if (isLoading || (user && isProfileLoading)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!user) return <Redirect to="/login" />;
+  if (profile?.hasProfileDocument) return <Redirect to="/builder" />;
 
   return <Component />;
 }
@@ -94,9 +134,9 @@ function Router() {
       <Route path="/dashboard">{() => <ProtectedRoute component={DashboardPage} />}</Route>
       <Route path="/builder">{() => <ProtectedRoute component={BuilderPage} />}</Route>
       <Route path="/questionnaire">{() => <ProtectedRoute component={QuestionnairePage} />}</Route>
-      <Route path="/preview">{() => <ProtectedRoute component={PreviewPage} />}</Route>
+      <Route path="/preview">{() => <LegacyRoute component={PreviewPage} />}</Route>
       <Route path="/admin">{() => <ProtectedRoute component={AdminPage} />}</Route>
-      <Route path="/interview">{() => <ProtectedRoute component={TwinInterviewPage} />}</Route>
+      <Route path="/interview">{() => <LegacyRoute component={TwinInterviewPage} />}</Route>
       <Route path="/onboarding-chat">{() => <ProtectedRoute component={OnboardingChatPage} />}</Route>
       <Route path="/job-search">{() => <ProtectedRoute component={JobSearchPage} />}</Route>
       <Route path="/preview-draft">{() => <ProtectedRoute component={PreviewDraftPage} />}</Route>

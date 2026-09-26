@@ -217,26 +217,90 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
         </Link>
       </div>
 
-      <div className={`grid gap-6 ${visibleTiers.length > 1 ? "md:grid-cols-2" : "max-w-sm mx-auto"}`}>
-        {visibleTiers.map((tier) => {
-          const Icon = tier.icon;
-          const isPopular = tier.popular;
-          const isBusy = loading && selectedTier === tier.key;
+      {(() => {
+        const proTier = visibleTiers.find((tier) => tier.key === "pro");
+        const freeTier = visibleTiers.find((tier) => tier.key === "free");
+        const isBusy = (key: string) => loading && selectedTier === key;
+
+        if (proTier && freeTier) {
+          // Two real tiers — Pro is the hero (it's the plan worth selling),
+          // Free is a smaller, still fully actionable option beneath it.
           return (
-            <div
-              key={tier.key}
-              className={`brutal-card border-black relative p-8 flex flex-col ${
-                isPopular
-                  ? "bg-[#22C55E] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
-                  : "bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
-              }`}
-              data-testid={`card-tier-${tier.key}`}
-            >
-              {tier.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1 font-bold mono text-xs border-[3px] border-black uppercase tracking-wider" data-testid="badge-popular">
-                  RECOMMENDED
+            <>
+              <div className="max-w-lg mx-auto mb-6">
+                <div className="brutal-card border-black relative p-10 bg-[#22C55E] shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]" data-testid={`card-tier-${proTier.key}`}>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1 font-bold mono text-xs border-[3px] border-black uppercase tracking-wider" data-testid="badge-popular">
+                    RECOMMENDED
+                  </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-white border-[3px] border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                        <proTier.icon className="h-5 w-5 text-black" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-black">{proTier.name}</h3>
+                    </div>
+                    <div className="mono text-xs text-black/60 uppercase">One-time payment</div>
+                  </div>
+                  <div className="flex items-baseline gap-3 mb-6">
+                    {proTier.originalPrice && (
+                      <div className="mono text-lg text-black/40 line-through">{proTier.originalPrice}</div>
+                    )}
+                    <div className="text-5xl font-bold mono text-black" data-testid={`text-price-${proTier.key}`}>{proTier.price}</div>
+                  </div>
+                  <div className="space-y-3 mb-6 text-sm">
+                    {proTier.features.map((feature, i) => (
+                      <div key={i} className="flex gap-2 mono text-black">
+                        <span className="font-bold shrink-0 text-black">&#10003;</span> {feature}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mono text-xs text-black/60 mb-6">{proTier.useCase}</div>
+                  <button
+                    className="w-full py-4 font-bold mono border-[3px] border-black uppercase tracking-wider bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.35)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => handlePublish(proTier.key)}
+                    disabled={loading}
+                    data-testid={`button-checkout-${proTier.key}`}
+                  >
+                    {isBusy(proTier.key) ? (
+                      <span className="flex items-center justify-center gap-2"><Loader2 className="h-5 w-5 animate-spin" /> PROCESSING...</span>
+                    ) : (
+                      `GET ${proTier.name} — ${proTier.price} →`
+                    )}
+                  </button>
                 </div>
-              )}
+              </div>
+
+              <div className="max-w-lg mx-auto border-[2px] border-black/30 bg-white/60 px-6 py-5 flex flex-wrap items-center justify-between gap-4" data-testid={`card-tier-${freeTier.key}`}>
+                <div>
+                  <div className="mono text-xs text-black/50 uppercase tracking-wider mb-1">Or publish free — $0, no credit card</div>
+                  <p className="text-sm text-black/70">{freeTier.features.join(" · ")}</p>
+                </div>
+                <button
+                  className="shrink-0 bg-white text-black px-6 py-3 font-bold mono text-sm border-[3px] border-black hover:bg-black hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => handlePublish(freeTier.key)}
+                  disabled={loading}
+                  data-testid={`button-checkout-${freeTier.key}`}
+                >
+                  {isBusy(freeTier.key) ? (
+                    <span className="flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> PROCESSING...</span>
+                  ) : (
+                    "PUBLISH FREE →"
+                  )}
+                </button>
+              </div>
+            </>
+          );
+        }
+
+        // Only one tier visible (hideFree) — single centered card, as before.
+        const tier = visibleTiers[0];
+        const Icon = tier.icon;
+        return (
+          <div className="max-w-sm mx-auto">
+            <div className="brutal-card border-black relative p-8 flex flex-col bg-[#22C55E] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]" data-testid={`card-tier-${tier.key}`}>
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1 font-bold mono text-xs border-[3px] border-black uppercase tracking-wider" data-testid="badge-popular">
+                RECOMMENDED
+              </div>
               <div className="mono text-xs text-black/50 mb-2 uppercase">{tier.tierLabel}</div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-white border-[3px] border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
@@ -249,12 +313,7 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
                   <div className="mono text-base text-black/40 line-through mb-1">{tier.originalPrice}</div>
                 )}
                 <div className="text-5xl font-bold mono text-black" data-testid={`text-price-${tier.key}`}>{tier.price}</div>
-                {tier.key !== "free" && (
-                  <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">One-time payment</div>
-                )}
-                {tier.key === "free" && (
-                  <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">No credit card needed</div>
-                )}
+                <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">One-time payment</div>
               </div>
               <div className="space-y-3 mb-6 text-sm">
                 {tier.features.map((feature, i) => (
@@ -265,25 +324,21 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
               </div>
               <div className="mono text-xs text-black/60 mb-6">{tier.useCase}</div>
               <button
-                className={`mt-auto w-full py-4 font-bold mono border-[3px] border-black uppercase tracking-wider transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed ${
-                  isPopular ? "bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.35)]" : "bg-[#22C55E] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                }`}
+                className="mt-auto w-full py-4 font-bold mono border-[3px] border-black uppercase tracking-wider bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.35)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => handlePublish(tier.key)}
                 disabled={loading}
                 data-testid={`button-checkout-${tier.key}`}
               >
-                {isBusy ? (
+                {isBusy(tier.key) ? (
                   <span className="flex items-center justify-center gap-2"><Loader2 className="h-5 w-5 animate-spin" /> PROCESSING...</span>
-                ) : tier.key === "free" ? (
-                  "PUBLISH FREE →"
                 ) : (
                   `GET ${tier.name} — ${tier.price} →`
                 )}
               </button>
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

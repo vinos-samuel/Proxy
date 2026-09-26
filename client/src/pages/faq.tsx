@@ -130,7 +130,7 @@ export default function FAQPage() {
     },
     {
       q: "How much does Proxy cost?",
-      plainText: "Proxy has three plans. Free gives you a published professional page, with an optional AI explorer, and 7 days of edits after publishing. Pro at $49 one-time adds unlimited edits plus page views and recent visitor questions. Concierge at $499 one-time adds a discovery call, professional copywriting, custom branding, and hands-on optimization.",
+      plainText: "Proxy has two plans. Free gives you a published professional page, with an optional AI explorer, and 7 days of edits after publishing. Pro at $49 one-time adds unlimited edits plus page views and recent visitor questions.",
       a: (
         <div className="space-y-4">
           <p>Start free, upgrade when you're ready:</p>
@@ -143,12 +143,8 @@ export default function FAQPage() {
               <span className="bg-black text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">$49</span>
               <span><strong className="text-black">Pro</strong> — Everything in Free plus unlimited edits, page views, and recent visitor questions</span>
             </div>
-            <div className="flex gap-3 items-start">
-              <span className="bg-black text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">$499</span>
-              <span><strong className="text-black">Concierge</strong> — Everything in Pro plus personal discovery call, custom branding, and hands-on optimization</span>
-            </div>
           </div>
-          <p className="border-l-[3px] border-[#22C55E] pl-4">Pro and Concierge are <strong className="text-black">one-time payments</strong> — no monthly subscription.</p>
+          <p className="border-l-[3px] border-[#22C55E] pl-4">Pro is a <strong className="text-black">one-time payment</strong> — no monthly subscription.</p>
         </div>
       ),
     },

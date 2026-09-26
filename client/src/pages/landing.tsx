@@ -590,47 +590,19 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8 mb-8">
-
-            {/* Free */}
-            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-free">
-              <div className="mono text-xs text-black/50 mb-2 uppercase">STARTER</div>
-              <h3 className="text-3xl font-bold mb-4">FREE</h3>
-              <div className="mb-6">
-                <div className="text-6xl font-bold mono" data-testid="text-price-free">$0</div>
-                <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">No credit card needed</div>
-              </div>
-              <div className="space-y-3 mb-8 text-sm">
-                {[
-                  "Professional evidence page",
-                  "Personal page (myproxy.work/you)",
-                  "7 days of edits after publishing",
-                  "Basic view count",
-                ].map((f, i) => (
-                  <div key={i} className="flex gap-2 mono text-black/70">
-                    <span className="text-[#22C55E] font-bold shrink-0">&#10003;</span> {f}
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => navigate("/try")}
-                className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
-                data-testid="button-deploy-free"
-              >
-                Try It With Your CV &rarr;
-              </button>
-            </div>
-
-            {/* Pro */}
-            <div className="border-[3px] border-black bg-[#22C55E] p-8 relative transform lg:scale-105 lg:-mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-pro">
+          {/* Pro — the hero offer */}
+          <div className="max-w-xl mx-auto mb-6">
+            <div className="border-[3px] border-black bg-[#22C55E] p-10 relative shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-pro">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1 font-bold mono text-xs border-[3px] border-black">
                 RECOMMENDED
               </div>
-              <div className="mono text-xs text-black/60 mb-2 uppercase">MOST_POPULAR</div>
-              <h3 className="text-3xl font-bold mb-4">PRO</h3>
-              <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="mono text-xs text-black/60 uppercase">MOST_POPULAR</div>
+                <div className="mono text-xs text-black/60 uppercase">One-time payment</div>
+              </div>
+              <div className="flex items-baseline gap-4 mb-6">
+                <h3 className="text-4xl font-bold">PRO</h3>
                 <div className="text-6xl font-bold mono" data-testid="text-price-pro">$49</div>
-                <div className="mono text-xs text-black/60 mt-1 uppercase tracking-wider">One-time payment</div>
               </div>
               <div className="space-y-3 mb-8 text-sm">
                 {[
@@ -651,38 +623,21 @@ export default function LandingPage() {
                 Try It, Then Go Pro &rarr;
               </button>
             </div>
+          </div>
 
-            {/* Concierge */}
-            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-concierge">
-              <div className="mono text-xs text-black/50 mb-2 uppercase">PREMIUM</div>
-              <h3 className="text-3xl font-bold mb-4">CONCIERGE</h3>
-              <div className="mb-6">
-                <div className="text-6xl font-bold mono" data-testid="text-price-concierge">$499</div>
-                <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">One-time payment</div>
-              </div>
-              <div className="space-y-3 mb-8 text-sm">
-                {[
-                  "Everything in Pro",
-                  "Personal discovery call",
-                  "Professional copywriting",
-                  "Custom branding",
-                  "Hands-on optimization",
-                  "Priority support",
-                ].map((f, i) => (
-                  <div key={i} className="flex gap-2 mono text-black/70">
-                    <span className="text-[#22C55E] font-bold shrink-0">&#10003;</span> {f}
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => navigate("/try")}
-                className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
-                data-testid="button-deploy-concierge"
-              >
-                Try It, Then Go Concierge &rarr;
-              </button>
+          {/* Free — the low-commitment entry point */}
+          <div className="max-w-xl mx-auto mb-8 border-[2px] border-black/30 bg-white/60 px-6 py-5 flex flex-wrap items-center justify-between gap-4" data-testid="card-tier-free">
+            <div>
+              <div className="mono text-xs text-black/50 uppercase tracking-wider mb-1">Or start free — $0, no credit card</div>
+              <p className="text-sm text-black/70">Professional evidence page, personal page link, 7 days of edits after publishing, basic view count.</p>
             </div>
-
+            <button
+              onClick={() => navigate("/try")}
+              className="shrink-0 bg-white text-black px-6 py-3 font-bold mono text-sm border-[3px] border-black hover:bg-black hover:text-white transition-colors"
+              data-testid="button-deploy-free"
+            >
+              Try It With Your CV &rarr;
+            </button>
           </div>
 
           <div className="text-center py-4 border-t-[2px] border-black/20" data-testid="text-founding-member">

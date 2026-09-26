@@ -235,17 +235,15 @@ export default function PortfolioPage() {
       });
 
       if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        throw new Error(`[${res.status}] ${errBody.message || errBody.error || "Chat failed"}`);
+        throw new Error("Chat failed");
       }
 
       const data = await res.json();
       setMessages(prev => [...prev, { role: "assistant", content: data.content || "No response." }]);
-    } catch (err: any) {
-      const errorDetail = err?.message || "Unknown error";
+    } catch {
       setMessages(prev => [
         ...prev,
-        { role: "assistant", content: `Sorry, I'm having trouble responding right now. (${errorDetail}) — Please try again.` },
+        { role: "assistant", content: "I can't answer right now. Please try again." },
       ]);
     } finally {
       setIsStreaming(false);
@@ -310,10 +308,10 @@ export default function PortfolioPage() {
             </p>
             <div className="flex items-center gap-3 shrink-0">
               <button
-                onClick={() => navigate("/register")}
+                onClick={() => navigate("/try")}
                 className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]"
               >
-                Create Mine Free →
+                Try It With Your CV →
               </button>
               <button
                 onClick={() => setDemoBannerDismissed(true)}
@@ -605,7 +603,7 @@ export default function PortfolioPage() {
               <h2 className="dossier-serif text-[26px]">Ask directly</h2>
               <div className="text-sm text-[#5B6158] max-w-[46ch]">Answered from the actual record — not a summary of it.</div>
             </div>
-            <div className="dossier-mono text-[11px] text-[#8B8F84] -mt-5 mb-8">Answered by {possessive} AI proxy, from their own record.</div>
+            <div className="dossier-mono text-[11px] text-[#8B8F84] -mt-5 mb-8">Answered by {possessive} AI, from information they approved.</div>
 
             <div ref={scrollRef} className="flex flex-col gap-6 mb-6 max-h-[480px] overflow-y-auto">
               {messages.length === 0 && !isStreaming && (
@@ -833,10 +831,10 @@ export default function PortfolioPage() {
             </p>
             <div className="flex items-center gap-3 shrink-0">
               <button
-                onClick={() => navigate("/register")}
+                onClick={() => navigate("/try")}
                 className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]"
               >
-                Create Mine Free →
+                Try It With Your CV →
               </button>
               <button
                 onClick={() => setDemoBannerDismissed(true)}
@@ -944,7 +942,7 @@ export default function PortfolioPage() {
         <section className="py-14 px-6 border-b border-[#262B33]" id="rpt-qa">
           <div className="max-w-[820px] mx-auto">
             <h2 className="text-[21px] font-medium mb-1">Questions &amp; answers</h2>
-            <div className="rpt-mono text-[11px] text-[#6B7078] mb-7">Answered by {possessive} AI proxy, from their own record.</div>
+            <div className="rpt-mono text-[11px] text-[#6B7078] mb-7">Answered by {possessive} AI, from information they approved.</div>
             <div ref={scrollRef} className="flex flex-col gap-6 mb-6 max-h-[480px] overflow-y-auto">
               {messages.length === 0 && !isStreaming && (
                 <p className="text-[14.5px] text-[#6B7078] italic">Ask about a project, a decision, or a figure above.</p>
@@ -1116,7 +1114,7 @@ export default function PortfolioPage() {
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
             <p className="text-white text-sm font-medium flex-1 min-w-0"><span className="text-[#22C55E] font-bold">Ask it something real.</span> Explore the profile, then build your own.</p>
             <div className="flex items-center gap-3 shrink-0">
-              <button onClick={() => navigate("/register")} className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]">Create Mine Free →</button>
+              <button onClick={() => navigate("/try")} className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]">Try It With Your CV →</button>
               <button onClick={() => setDemoBannerDismissed(true)} className="text-white/50 hover:text-white text-lg leading-none font-bold" aria-label="Dismiss">×</button>
             </div>
           </div>
@@ -1318,7 +1316,7 @@ export default function PortfolioPage() {
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
             <p className="text-white text-sm font-medium flex-1 min-w-0"><span className="text-[#22C55E] font-bold">Ask it something real.</span> Explore the profile, then build your own.</p>
             <div className="flex items-center gap-3 shrink-0">
-              <button onClick={() => navigate("/register")} className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]">Create Mine Free →</button>
+              <button onClick={() => navigate("/try")} className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]">Try It With Your CV →</button>
               <button onClick={() => setDemoBannerDismissed(true)} className="text-white/50 hover:text-white text-lg leading-none font-bold" aria-label="Dismiss">×</button>
             </div>
           </div>
@@ -1364,7 +1362,7 @@ export default function PortfolioPage() {
               </div>
             )}
             <div style={{ fontFamily: "-apple-system, sans-serif" }} className="flex items-center gap-5 flex-wrap text-[12.5px]">
-              <button onClick={() => document.getElementById("mag-qa")?.scrollIntoView({ behavior: "smooth" })} className="bg-[#96AD86] text-[#1B2117] px-6 py-2.5" data-testid="button-mag-ask">Start the interview</button>
+              <button onClick={() => document.getElementById("mag-qa")?.scrollIntoView({ behavior: "smooth" })} className="bg-[#96AD86] text-[#1B2117] px-6 py-2.5" data-testid="button-mag-ask">Ask about my work</button>
               {portfolio.contact.linkedin && <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer" className="text-[#A69C89] border-b border-[#4A4335]">LinkedIn</a>}
               {hasCv && <a href={profile.cvResumeUrl!} download className="text-[#A69C89] border-b border-[#4A4335]">Download CV</a>}
             </div>
@@ -1390,7 +1388,7 @@ export default function PortfolioPage() {
 
         <div className="px-11 py-12 border-b border-[#322C22] max-w-[680px]" id="mag-qa">
           <h2 style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[13px] tracking-[0.1em] uppercase text-[#96AD86] mb-1">In {possessive} words, answered live</h2>
-          <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11.5px] text-[#7A7568] mb-6">{firstName ? `${firstName}'s` : "Their"} answers, through an AI trained on their own record.</div>
+          <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11.5px] text-[#7A7568] mb-6">{firstName ? `${firstName}'s` : "Their"} AI answers from information they approved.</div>
           <div ref={scrollRef} className="flex flex-col gap-6 mb-6 max-h-[480px] overflow-y-auto">
             {messages.length === 0 && !isStreaming && (
               <p className="text-[15px] text-[#7A7568] italic">Ask about a project, a decision, or a number above.</p>
@@ -1531,7 +1529,7 @@ export default function PortfolioPage() {
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t-[3px] border-[#22C55E] px-4 py-4 flex items-center justify-between gap-4 flex-wrap shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
             <p className="text-white text-sm font-medium flex-1 min-w-0"><span className="text-[#22C55E] font-bold">Ask it something real.</span> Explore the profile, then build your own.</p>
             <div className="flex items-center gap-3 shrink-0">
-              <button onClick={() => navigate("/register")} className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]">Create Mine Free →</button>
+              <button onClick={() => navigate("/try")} className="bg-[#22C55E] text-black px-5 py-2 font-bold text-sm border-[2px] border-[#22C55E] hover:bg-[#16A34A] mono uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(34,197,94,0.4)]">Try It With Your CV →</button>
               <button onClick={() => setDemoBannerDismissed(true)} className="text-white/50 hover:text-white text-lg leading-none font-bold" aria-label="Dismiss">×</button>
             </div>
           </div>

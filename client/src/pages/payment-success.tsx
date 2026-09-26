@@ -196,7 +196,7 @@ export default function PaymentSuccessPage() {
               "Add your profile link to your email signature",
               "Test the optional AI explorer with a visitor question",
               "Send your link to anyone in your network who has offered to help",
-              "Check your dashboard to see who's viewed your profile",
+              "Check the dashboard for page views and visitor questions",
             ].map((step, i) => (
               <div key={i} className="flex items-start gap-3">
                 <div className="w-6 h-6 bg-[#22C55E] border-[2px] border-black flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
@@ -223,7 +223,7 @@ export default function PaymentSuccessPage() {
               className="flex-1 flex items-center justify-center gap-2 bg-white text-black px-6 py-4 font-bold border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
             >
               <ExternalLink className="h-4 w-4" />
-              View My Profile
+              Open Live Page
             </button>
           )}
         </div>

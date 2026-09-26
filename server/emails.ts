@@ -94,7 +94,7 @@ export function welcomeEmailTemplate(name: string, dashboardUrl: string, hasStar
     const body = `
       <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">You're in. Your page is already started.</h1>
       <p style="font-size:15px;color:#555555;margin:0 0 28px 0;line-height:1.6;">
-        Welcome, ${name}. The page you built from your CV is saved to your account now. Pick up where you left off — improve what matters, then approve and publish.
+        Welcome, ${name}. Your page is saved to your account now. Pick up where you left off — improve what matters, then approve and publish.
       </p>
 
       <!-- Steps -->
@@ -105,7 +105,7 @@ export function welcomeEmailTemplate(name: string, dashboardUrl: string, hasStar
           </td>
           <td style="padding:14px 16px;background:#f5f5f0;border:2px solid #000000;border-left:0;border-bottom:0;">
             <strong style="font-size:14px;color:#000000;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Review your page</strong>
-            <span style="font-size:13px;color:#666666;">Your CV is already turned into a first draft — take a look.</span>
+            <span style="font-size:13px;color:#666666;">Your page already has a first draft — take a look.</span>
           </td>
         </tr>
         <tr>
@@ -123,7 +123,7 @@ export function welcomeEmailTemplate(name: string, dashboardUrl: string, hasStar
           </td>
           <td style="padding:14px 16px;background:#f5f5f0;border:2px solid #000000;border-left:0;">
             <strong style="font-size:14px;color:#000000;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Approve and share</strong>
-            <span style="font-size:13px;color:#666666;">Approve the exact version, publish it at myproxy.work/username, and share the link.</span>
+            <span style="font-size:13px;color:#666666;">Approve the exact version, publish it, and share the link.</span>
           </td>
         </tr>
       </table>
@@ -139,7 +139,7 @@ export function welcomeEmailTemplate(name: string, dashboardUrl: string, hasStar
   const body = `
     <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">You're in. Let's prepare your evidence page.</h1>
     <p style="font-size:15px;color:#555555;margin:0 0 28px 0;line-height:1.6;">
-      Welcome, ${name}. Upload your CV and Proxy will build a finished first page. You decide what to improve, approve, and publish.
+      Welcome, ${name}. Upload your CV to create a first draft, or start without one. Review the page, improve what matters, then approve and publish.
     </p>
 
     <!-- Steps -->
@@ -168,7 +168,7 @@ export function welcomeEmailTemplate(name: string, dashboardUrl: string, hasStar
         </td>
         <td style="padding:14px 16px;background:#f5f5f0;border:2px solid #000000;border-left:0;">
           <strong style="font-size:14px;color:#000000;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Approve and share</strong>
-          <span style="font-size:13px;color:#666666;">Approve the exact version, publish it at myproxy.work/username, and share the link.</span>
+          <span style="font-size:13px;color:#666666;">Approve the exact version, publish it, and share the link.</span>
         </td>
       </tr>
     </table>
@@ -185,15 +185,15 @@ export function welcomeEmailTemplate(name: string, dashboardUrl: string, hasStar
 
 export function profileLiveTemplate(name: string, profileUrl: string): string {
   const body = `
-    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your evidence page is live 🚀</h1>
+    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your page is live 🚀</h1>
     <p style="font-size:15px;color:#555555;margin:0 0 24px 0;line-height:1.6;">
-      Congratulations, ${name}! Your professional evidence page is now published and ready to share.
+      Congratulations, ${name}! Your professional page is now published and ready to share.
     </p>
 
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:24px;">
       <tr>
         <td style="background:#f5f5f0;border:2px solid #000000;padding:18px 20px;">
-          <strong style="font-size:12px;color:#888888;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px;">Your Profile URL</strong>
+          <strong style="font-size:12px;color:#888888;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px;">Your Page Link</strong>
           <a href="${profileUrl}" style="font-size:16px;font-weight:900;color:#000000;text-decoration:none;word-break:break-all;">${profileUrl}</a>
         </td>
       </tr>
@@ -210,9 +210,9 @@ export function profileLiveTemplate(name: string, profileUrl: string): string {
       </tr>
     </table>
 
-    ${ctaButton(profileUrl, "View My Profile →")}
+    ${ctaButton(profileUrl, "Open My Page →")}
     <p style="font-size:13px;color:#888888;margin:0;line-height:1.6;">
-      You control the public version. Return to the builder whenever you want to prepare and approve an update.
+      You control the public version — return to the builder whenever you want to prepare and approve an update. Check your dashboard for your plan's edit window.
     </p>
   `;
   return baseTemplate(body);
@@ -233,8 +233,7 @@ export function nudgeEditWindowTemplate(name: string, upgradeUrl: string): strin
           <strong style="font-size:12px;color:#888888;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px;">Upgrade to Pro for</strong>
           <p style="font-size:14px;color:#555555;margin:0;line-height:1.8;">
             <strong style="color:#22C55E;">→</strong> Unlimited edits, any time<br>
-            <strong style="color:#22C55E;">→</strong> Full visitor questions feed<br>
-            <strong style="color:#22C55E;">→</strong> Priority AI processing
+            <strong style="color:#22C55E;">→</strong> Recent visitor questions
           </p>
         </td>
       </tr>
@@ -242,7 +241,7 @@ export function nudgeEditWindowTemplate(name: string, upgradeUrl: string): strin
 
     ${ctaButton(upgradeUrl, "Upgrade to Pro — $49 →")}
     <p style="font-size:13px;color:#888888;margin:0;line-height:1.6;">
-      Your profile stays live — it's working for you right now. Upgrade when you're ready to make changes.
+      Your page stays live. Upgrade when you need to publish changes.
     </p>
   `;
   return baseTemplate(body);
@@ -250,15 +249,15 @@ export function nudgeEditWindowTemplate(name: string, upgradeUrl: string): strin
 
 // ─── Nudge: Engagement (Day 3) ───────────────────────────────────────────────
 
-export function nudgeEngagementTemplate(name: string, viewCount: number, upgradeUrl: string): string {
+export function nudgeEngagementTemplate(name: string, viewCount: number, questionCount: number, upgradeUrl: string): string {
   const visitorText = viewCount > 0
-    ? `Your evidence page has already had <strong>${viewCount} visitor${viewCount === 1 ? "" : "s"}</strong>.`
-    : "Your evidence page is live and ready to share.";
+    ? `Your page has already had <strong>${viewCount} view${viewCount === 1 ? "" : "s"}</strong>.`
+    : "Your page is live and ready to share.";
 
   const body = `
-    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your evidence page is live</h1>
+    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your page is live</h1>
     <p style="font-size:15px;color:#555555;margin:0 0 24px 0;line-height:1.6;">
-      Hi ${name}, it's been 3 days since you published your Proxy profile. ${visitorText}
+      Hi ${name}, it's been 3 days since you published your Proxy page. ${visitorText}
     </p>
 
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:24px;">
@@ -266,17 +265,20 @@ export function nudgeEngagementTemplate(name: string, viewCount: number, upgrade
         <td style="background:#f5f5f0;border:2px solid #000000;padding:18px 20px;">
           <strong style="font-size:12px;color:#888888;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px;">Pro unlocks</strong>
           <p style="font-size:14px;color:#555555;margin:0;line-height:1.8;">
-            <strong style="color:#22C55E;">→</strong> See every question visitors asked through your page<br>
-            <strong style="color:#22C55E;">→</strong> Unlimited profile edits<br>
-            <strong style="color:#22C55E;">→</strong> Full analytics dashboard
+            <strong style="color:#22C55E;">→</strong> Recent visitor questions<br>
+            <strong style="color:#22C55E;">→</strong> Unlimited page edits
           </p>
         </td>
       </tr>
     </table>
 
-    ${ctaButton(upgradeUrl, "See what they asked → Upgrade")}
+    ${questionCount > 0
+      ? ctaButton(upgradeUrl, "See what they asked → Upgrade")
+      : ctaButton(upgradeUrl, "Open Dashboard →")}
     <p style="font-size:13px;color:#888888;margin:0;line-height:1.6;">
-      Know what recruiters and hiring managers are curious about. That context alone is worth the upgrade.
+      ${questionCount > 0
+        ? "Know what recruiters and hiring managers are curious about. That context alone is worth the upgrade."
+        : "Upgrade any time to keep editing your page after the free window closes."}
     </p>
   `;
   return baseTemplate(body);
@@ -294,7 +296,7 @@ export function weeklyDigestTemplate(
 ): string {
   const firstName = name.split(" ")[0];
   const viewLine = newViews > 0
-    ? `<strong>${newViews} ${newViews === 1 ? "person" : "people"}</strong> viewed your profile this week.`
+    ? `Your page received <strong>${newViews} view${newViews === 1 ? "" : "s"}</strong> since your last update.`
     : "";
   const questionLine = questions.length > 0
     ? `Visitors asked through your page <strong>${questions.length} question${questions.length === 1 ? "" : "s"}</strong>.`
@@ -324,14 +326,14 @@ export function weeklyDigestTemplate(
     : "";
 
   const body = `
-    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your evidence page this week</h1>
+    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">Your page since your last update</h1>
     <p style="font-size:15px;color:#555555;margin:0 0 24px 0;line-height:1.6;">
-      Hi ${firstName} — a quick update on your Proxy profile. ${viewLine} ${questionLine}
+      Hi ${firstName} — a quick update on your Proxy page. ${viewLine} ${questionLine}
     </p>
     ${questionBlock}
     ${ctaButton(dashboardUrl, "See Your Dashboard →")}
     <p style="font-size:13px;color:#888888;margin:0;line-height:1.6;">
-      More shares mean more visitors. Your profile: <a href="${profileUrl}" style="color:#22C55E;text-decoration:none;">${profileUrl}</a>
+      Share your link with someone who could hire, introduce, or work with you: <a href="${profileUrl}" style="color:#22C55E;text-decoration:none;">${profileUrl}</a>
     </p>
   `;
   return baseTemplate(body);
@@ -380,7 +382,7 @@ export function feedbackEmailTemplate(name: string): string {
       Just reply to this email. A few words is enough. I read every reply and it directly shapes what I fix next.
     </p>
     <p style="font-size:15px;color:#333333;margin:0 0 24px 0;line-height:1.6;">
-      Also — if your profile is still sitting at "Ready" and you haven't gone live yet, I'm happy to help you push it live. Takes 5 minutes.
+      Also — if your page is still private, reply and I'll help you publish it.
     </p>
     <p style="font-size:15px;color:#333333;margin:0 0 4px 0;line-height:1.6;">Vinos</p>
     <p style="font-size:13px;color:#888888;margin:0;line-height:1.6;">Founder, Proxy — myproxy.work</p>
@@ -388,28 +390,28 @@ export function feedbackEmailTemplate(name: string): string {
   return baseTemplate(body);
 }
 
-export function tipsEmailTemplate(name: string, dashboardUrl: string): string {
+export function tipsEmailTemplate(name: string, dashboardUrl: string, isPublic: boolean): string {
   const firstName = name.split(" ")[0];
   const body = `
     <h1 style="font-size:24px;font-weight:900;color:#000000;margin:0 0 8px 0;letter-spacing:-0.5px;">3 ways to get more from your Proxy, ${firstName}</h1>
-    <p style="font-size:15px;color:#333333;margin:0 0 20px 0;line-height:1.6;">Your profile is live. Here's how to make it work harder for you.</p>
+    <p style="font-size:15px;color:#333333;margin:0 0 20px 0;line-height:1.6;">${isPublic ? "Your page is live." : "Your page is ready, waiting for you to publish it."} Here's how to make it work harder for you.</p>
 
     <div style="border-left:4px solid #22C55E;padding:12px 16px;margin:0 0 20px 0;background:#f9fafb;">
       <p style="font-size:14px;font-weight:700;color:#000;margin:0 0 4px 0;">1. Make the page sound like you</p>
-      <p style="font-size:14px;color:#555;margin:0;line-height:1.6;">Go to your profile → Edit → Private authoring notes → "How you want to sound". Paste a few sentences you've written — a LinkedIn post, a message to a colleague, anything in your own words. Proxy uses that tone when your "Ask about my work" bot answers visitors.</p>
+      <p style="font-size:14px;color:#555;margin:0;line-height:1.6;">Open the builder → Edit → Private authoring notes → "How you want to sound". Paste a few sentences you've written — a LinkedIn post, a message to a colleague, anything in your own words. Proxy uses that tone when your "Ask about my work" bot answers visitors.</p>
     </div>
 
     <div style="border-left:4px solid #22C55E;padding:12px 16px;margin:0 0 20px 0;background:#f9fafb;">
-      <p style="font-size:14px;font-weight:700;color:#000;margin:0 0 4px 0;">2. Your profile is private until you publish it</p>
+      <p style="font-size:14px;font-weight:700;color:#000;margin:0 0 4px 0;">2. Your page is private until you publish it</p>
       <p style="font-size:14px;color:#555;margin:0;line-height:1.6;">Nothing is visible to anyone until you choose to publish. You control when it goes live. We don't share or sell your data — ever.</p>
     </div>
 
     <div style="border-left:4px solid #22C55E;padding:12px 16px;margin:0 0 24px 0;background:#f9fafb;">
       <p style="font-size:14px;font-weight:700;color:#000;margin:0 0 4px 0;">3. How to use your Proxy link</p>
-      <p style="font-size:14px;color:#555;margin:0;line-height:1.6;">Add it to your LinkedIn About section. Put it in your email signature. When someone asks for your CV, send your Proxy link instead. Every time someone clicks it, your AI answers their questions — even while you sleep.</p>
+      <p style="font-size:14px;color:#555;margin:0;line-height:1.6;">Add it to your LinkedIn About section. Put it in your email signature. When someone asks for your CV, send your Proxy link instead. If you've turned on "Ask about my work", visitors can ask questions about the information you approved.</p>
     </div>
 
-    <a href="${dashboardUrl}" style="display:inline-block;background:#22C55E;color:#000;font-weight:700;padding:12px 24px;text-decoration:none;border:3px solid #000;font-family:monospace;text-transform:uppercase;letter-spacing:0.5px;">Go to your profile →</a>
+    <a href="${dashboardUrl}" style="display:inline-block;background:#22C55E;color:#000;font-weight:700;padding:12px 24px;text-decoration:none;border:3px solid #000;font-family:monospace;text-transform:uppercase;letter-spacing:0.5px;">Open the builder →</a>
 
     <p style="font-size:12px;color:#aaaaaa;margin:28px 0 0 0;border-top:1px solid #e5e5e5;padding-top:16px;">
       — Vinos, Proxy
@@ -429,7 +431,7 @@ export function passwordResetTemplate(resetUrl: string): string {
       <tr>
         <td style="background:#fff8e1;border:2px solid #f0c000;padding:14px 16px;">
           <p style="font-size:13px;color:#7a6000;margin:0;line-height:1.6;">
-            ⚠️ This link expires in <strong>1 hour</strong>. If you didn't request a password reset, your account is safe — just ignore this email.
+            ⚠️ This link expires in <strong>1 hour</strong>. If you did not request this, ignore this email.
           </p>
         </td>
       </tr>

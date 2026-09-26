@@ -19,7 +19,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-bold text-black mb-3">1. Service</h2>
             <p className="text-black/70 leading-relaxed">
-              Proxy (myproxy.work) provides AI-powered career profile pages.
+              Proxy (myproxy.work) provides professional evidence pages built from information users provide, with an optional AI explorer.
               By using this service you agree to these terms.
             </p>
           </section>
@@ -45,7 +45,7 @@ export default function TermsPage() {
             <p className="text-black/70 leading-relaxed mb-3">Plans available:</p>
             <ul className="text-black/70 leading-relaxed space-y-2 list-disc list-inside">
               <li><strong>Free:</strong> $0 — Published page + optional AI explorer, 7 days of edits after publishing</li>
-              <li><strong>Pro:</strong> $49 USD — Unlimited edits, full analytics</li>
+              <li><strong>Pro:</strong> $49 USD — Ongoing edits, page views and recent visitor questions</li>
               <li><strong>Concierge:</strong> $499 USD — Personal discovery call, custom branding, hands-on optimization</li>
             </ul>
             <p className="text-black/70 leading-relaxed mt-3">

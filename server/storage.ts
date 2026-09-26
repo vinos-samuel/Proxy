@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { logger } from "./logger";
 import { eq, desc, sql, count, and } from "drizzle-orm";
 import {
   customers, twinProfiles, profileDocuments, guestProfileDocuments, factBanks, knowledgeEntries, chatUsage, payments, chatMessages, blogPosts,
@@ -13,6 +14,28 @@ import {
   type JobApplication, type InsertJobApplication,
 } from "@shared/schema";
 import type { ProfileDocument } from "@shared/profile-document";
+import { ObjectStorageService } from "./replit_integrations/object_storage/objectStorage";
+
+const objectStorageService = new ObjectStorageService();
+
+// Collects every object-storage file path (headshot/video/CV) referenced by a
+// customer's profile and profile document, across all document snapshots.
+function collectObjectPaths(profile: TwinProfile, document?: ProfileDocumentRow): string[] {
+  const paths = new Set<string>();
+  for (const url of [profile.photoUrl, profile.videoUrl, profile.resumeUrl, profile.cvResumeUrl]) {
+    if (url) paths.add(url);
+  }
+  const snapshots: (ProfileDocument | null | undefined)[] = document
+    ? [document.workingDocument, document.publishedDocument, document.activeDocument, document.previousPublishedDocument]
+    : [];
+  for (const snapshot of snapshots) {
+    const photoUrl = snapshot?.identity?.photoUrl;
+    const videoUrl = snapshot?.identity?.videoUrl;
+    if (photoUrl) paths.add(photoUrl);
+    if (videoUrl) paths.add(videoUrl);
+  }
+  return Array.from(paths);
+}
 
 export interface IStorage {
   // Customers
@@ -78,7 +101,7 @@ export interface IStorage {
   // Analytics
   incrementViewCount(profileId: string): Promise<void>;
   saveChatMessage(profileId: string, question: string): Promise<void>;
-  getAnalytics(profileId: string): Promise<{ viewCount: number; recentQuestions: { question: string; askedAt: Date }[] }>;
+  getAnalytics(profileId: string): Promise<{ viewCount: number; totalQuestions: number; recentQuestions: { question: string; askedAt: Date }[] }>;
 
   // Nudge emails
   getFreeProfilesDueForNudge(): Promise<Array<{ profileId: string; email: string; name: string; username: string; freePublishedAt: Date; viewCount: number; nudge1SentAt: Date | null; nudge2SentAt: Date | null; }>>;
@@ -195,7 +218,7 @@ export class DatabaseStorage implements IStorage {
     await db.update(twinProfiles).set({ feedbackEmailSentAt: new Date() }).where(eq(twinProfiles.id, profileId));
   }
 
-  async getProfilesDueForTipsEmail(): Promise<Array<{ profileId: string; email: string; name: string }>> {
+  async getProfilesDueForTipsEmail(): Promise<Array<{ profileId: string; email: string; name: string; isPublic: boolean }>> {
     const now = new Date();
     const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
     const fourDaysAgo = new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000);
@@ -204,6 +227,7 @@ export class DatabaseStorage implements IStorage {
         profileId: twinProfiles.id,
         email: customers.email,
         name: customers.name,
+        isPublic: twinProfiles.isPublic,
       })
       .from(twinProfiles)
       .innerJoin(customers, eq(twinProfiles.customerId, customers.id))
@@ -214,7 +238,7 @@ export class DatabaseStorage implements IStorage {
           eq(customers.emailVerified, true)
         )
       );
-    return rows.map(r => ({ profileId: r.profileId, email: r.email, name: r.name }));
+    return rows.map(r => ({ profileId: r.profileId, email: r.email, name: r.name, isPublic: r.isPublic ?? false }));
   }
 
   async markTipsEmailSent(profileId: string): Promise<void> {
@@ -630,15 +654,17 @@ export class DatabaseStorage implements IStorage {
     await db.insert(chatMessages).values({ profileId, question });
   }
 
-  async getAnalytics(profileId: string): Promise<{ viewCount: number; recentQuestions: { question: string; askedAt: Date }[] }> {
+  async getAnalytics(profileId: string): Promise<{ viewCount: number; totalQuestions: number; recentQuestions: { question: string; askedAt: Date }[] }> {
     const [profile] = await db.select({ viewCount: twinProfiles.viewCount }).from(twinProfiles).where(eq(twinProfiles.id, profileId));
     const questions = await db.select({ question: chatMessages.question, askedAt: chatMessages.askedAt })
       .from(chatMessages)
       .where(eq(chatMessages.profileId, profileId))
       .orderBy(desc(chatMessages.askedAt))
       .limit(10);
+    const [{ total }] = await db.select({ total: count() }).from(chatMessages).where(eq(chatMessages.profileId, profileId));
     return {
       viewCount: profile?.viewCount || 0,
+      totalQuestions: total,
       recentQuestions: questions,
     };
   }
@@ -832,6 +858,14 @@ export class DatabaseStorage implements IStorage {
     // Full cascade delete — remove all user data before deleting the account
     const profile = await this.getProfileByCustomerId(id);
     if (profile) {
+      const document = await this.getProfileDocumentByProfileId(profile.id);
+      for (const objectPath of collectObjectPaths(profile, document)) {
+        try {
+          await objectStorageService.deleteObjectEntity(objectPath);
+        } catch (error) {
+          logger.error("Failed to delete uploaded file during account deletion", { customerId: id, objectPath, error: String(error) });
+        }
+      }
       await this.deleteChatMessagesByProfileId(profile.id);
       await this.deleteKnowledgeEntriesByProfileId(profile.id);
       await this.deleteFactBanksByProfileId(profile.id);

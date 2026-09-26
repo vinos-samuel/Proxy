@@ -133,7 +133,7 @@ function Router() {
       <Route path="/register">{() => <GuestRoute component={RegisterPage} />}</Route>
       <Route path="/dashboard">{() => <ProtectedRoute component={DashboardPage} />}</Route>
       <Route path="/builder">{() => <ProtectedRoute component={BuilderPage} />}</Route>
-      <Route path="/questionnaire">{() => <ProtectedRoute component={QuestionnairePage} />}</Route>
+      <Route path="/questionnaire">{() => <LegacyRoute component={QuestionnairePage} />}</Route>
       <Route path="/preview">{() => <LegacyRoute component={PreviewPage} />}</Route>
       <Route path="/admin">{() => <ProtectedRoute component={AdminPage} />}</Route>
       <Route path="/interview">{() => <LegacyRoute component={TwinInterviewPage} />}</Route>

@@ -142,7 +142,7 @@ export default function LandingPage() {
               className="bg-[#22C55E] text-black px-6 py-3 font-bold hover:bg-[#16A34A] border-[3px] border-black mono text-sm uppercase tracking-wider"
               data-testid="link-register"
             >
-              ENGAGE &rarr;
+              SEE A LIVE EXAMPLE &rarr;
             </button>
           </div>
         </div>
@@ -327,7 +327,7 @@ export default function LandingPage() {
       {/* 1.5 Trust strip */}
       <div className="border-t-[3px] border-b-[3px] border-black bg-[#F5F5F0] py-4 px-6">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-1 mono text-xs uppercase tracking-widest text-black/50">
-          <span>Trusted by professionals at</span>
+          <span>Used by professionals with experience at</span>
           <span className="font-bold text-black">Airtable</span>
           <span>·</span>
           <span className="font-bold text-black">HSBC</span>
@@ -367,7 +367,7 @@ export default function LandingPage() {
               <div className="space-y-5">
                 {[
                   { title: "A real conversation, then a call", desc: "Two-way engagement" },
-                  { title: "Shared as a link, direct to a human", desc: "No ATS. Straight to the person." },
+                  { title: "Shared as a link, direct to a human", desc: "Share directly with a person." },
                   { title: "Dynamic — explains why it mattered", desc: "Your stories, your metrics, your voice" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-3">
@@ -445,10 +445,10 @@ export default function LandingPage() {
               <h3 className="text-xl font-bold mb-6 mono uppercase tracking-wider">Why candidates use it</h3>
               <div className="space-y-4">
                 {[
-                  { title: "More recruiter responses", desc: "Recruiters get answers before they ask. Less friction = more replies." },
+                  { title: "More context, less friction", desc: "Give people more context before the first call." },
                   { title: "Get referred more easily", desc: "Give contacts the context to actually vouch for you — not just forward your CV." },
                   { title: "Start the interview before it begins", desc: "They arrive already knowing your work. The call starts one step ahead." },
-                  { title: "One link instead of five documents", desc: "Resume, LinkedIn, portfolio, references — all in one place, always up to date." },
+                  { title: "One link instead of five documents", desc: "One link for your selected work, career history, and contact details." },
                   { title: "Stand out from candidates using only resumes", desc: "At your level, everyone has the same CV. This is how you don't." },
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-4">
@@ -516,7 +516,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// the_comparison</div>
           <h2 className="text-5xl font-bold mb-4">A portfolio page is a résumé you can scroll.</h2>
-          <p className="text-2xl font-bold text-[#22C55E] mb-16">Proxy is a résumé you can talk to.</p>
+          <p className="text-2xl font-bold text-[#22C55E] mb-16">Turn the evidence behind your CV into a page people can explore.</p>
 
           <div className="overflow-x-auto border-[3px] border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <table className="w-full min-w-[720px] border-collapse">
@@ -535,7 +535,7 @@ export default function LandingPage() {
                   { feature: "Explains why an achievement mattered", proxy: "✓", resume: "✗ Lists only", linkedin: "Partial", portfolio: "✗ Lists only" },
                   { feature: "One link, always current", proxy: "✓", resume: "✗", linkedin: "Partial", portfolio: "✓" },
                   { feature: "First useful result", proxy: "After CV upload", resume: "Redone per application", linkedin: "Ongoing upkeep", portfolio: "Manual setup" },
-                  { feature: "Cost", proxy: "Free to start · $49 once", resume: "$500–800 (writer)", linkedin: "Free", portfolio: "Often free" },
+                  { feature: "Cost", proxy: "Free to start · $49 once", resume: "Varies (writer)", linkedin: "Free", portfolio: "Often free" },
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-black/10 last:border-b-0">
                     <td className="p-5 font-bold text-black">{row.feature}</td>
@@ -558,7 +558,7 @@ export default function LandingPage() {
       <section className="px-6 py-20 border-t-[3px] border-black bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// what_people_say</div>
-          <h2 className="text-5xl font-bold mb-16">Real profiles. Real results.</h2>
+          <h2 className="text-5xl font-bold mb-16">What early users say.</h2>
           <div className="grid lg:grid-cols-2 gap-8 items-start">
             <div className="border-[3px] border-black bg-[#E8E8E3] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <p className="text-base text-black/80 mb-6 leading-relaxed">
@@ -586,7 +586,7 @@ export default function LandingPage() {
           <div className="flex flex-wrap items-center gap-4 mb-6">
             <h2 className="text-5xl font-bold">CHOOSE YOUR PLAN</h2>
             <div className="bg-black text-[#22C55E] px-4 py-2 font-bold mono text-sm border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(34,197,94,1)] uppercase tracking-wider" data-testid="badge-launch-special">
-              &#9733; FOUNDING MEMBER PRICING
+              &#9733; ONE-TIME PRICE
             </div>
           </div>
 
@@ -613,11 +613,11 @@ export default function LandingPage() {
                 ))}
               </div>
               <button
-                onClick={() => navigate("/register")}
+                onClick={() => navigate("/try")}
                 className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
                 data-testid="button-deploy-free"
               >
-                Get Started Free &rarr;
+                Try It With Your CV &rarr;
               </button>
             </div>
 
@@ -636,9 +636,7 @@ export default function LandingPage() {
                 {[
                   "Everything in Free",
                   "Unlimited edits",
-                  "Full analytics dashboard",
-                  "Visitor questions feed",
-                  "Priority processing",
+                  "Page views and recent visitor questions",
                 ].map((f, i) => (
                   <div key={i} className="flex gap-2 mono text-black">
                     <span className="text-black font-bold shrink-0">&#10003;</span> {f}
@@ -646,11 +644,11 @@ export default function LandingPage() {
                 ))}
               </div>
               <button
-                onClick={() => navigate("/register")}
+                onClick={() => navigate("/try")}
                 className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
                 data-testid="button-deploy-pro"
               >
-                Get Pro — $49 &rarr;
+                Try It, Then Go Pro &rarr;
               </button>
             </div>
 
@@ -677,11 +675,11 @@ export default function LandingPage() {
                 ))}
               </div>
               <button
-                onClick={() => navigate("/register")}
+                onClick={() => navigate("/try")}
                 className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
                 data-testid="button-deploy-concierge"
               >
-                Get Concierge — $499 &rarr;
+                Try It, Then Go Concierge &rarr;
               </button>
             </div>
 
@@ -689,7 +687,7 @@ export default function LandingPage() {
 
           <div className="text-center py-4 border-t-[2px] border-black/20" data-testid="text-founding-member">
             <p className="mono text-sm text-black/60 uppercase tracking-wider">
-              Founding member pricing &mdash; Start free, upgrade when you're ready.
+              One-time price, no subscription &mdash; start free, upgrade when you're ready.
             </p>
             <Link href="/faq">
               <span className="block mt-4 text-black/50 text-sm hover:text-black/80 transition cursor-pointer">
@@ -709,11 +707,11 @@ export default function LandingPage() {
           </h2>
           <p className="mono text-xl text-black/60 mb-10">Free to start. See your first page before answering more questions.</p>
           <button
-            onClick={() => navigate("/register")}
+            onClick={() => navigate("/try")}
             className="bg-[#22C55E] hover:bg-[#16A34A] text-black px-16 py-5 text-xl font-bold mono border-[3px] border-black uppercase tracking-wider shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
             data-testid="button-final-cta"
           >
-            Build Your Profile &rarr;
+            Try It With Your CV &rarr;
           </button>
         </div>
       </section>

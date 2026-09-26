@@ -50,10 +50,10 @@ export default function AboutPage() {
           <div className="text-3xl font-bold leading-tight mb-8">The job market in 2026 is brutal for senior professionals. Not because they lack experience. Because the systems they're navigating were never designed with them in mind.</div>
           <div className="mono text-lg text-black/70 space-y-6 leading-relaxed">
             <p>
-              A PDF resume summarising 15 years of decisions and results, evaluated in 6 seconds by a screener who doesn't know the industry. That's not a talent problem. That's a communication problem.
+              A PDF compresses 15 years of decisions and results into a format that's usually skimmed quickly by a screener who doesn't know the industry. That's not a talent problem. That's a communication problem.
             </p>
             <p>
-              Senior professionals don't need a better resume. They need a better way to tell their story.
+              A stronger CV helps, but it can't carry all the context behind senior work. That takes a better way to tell the story.
             </p>
           </div>
         </div>
@@ -130,9 +130,9 @@ export default function AboutPage() {
             READY TO TELL YOUR<br />
             STORY <span className="text-[#22C55E]">PROPERLY?</span>
           </h2>
-          <Link href="/pricing">
+          <Link href="/try">
             <Button className="bg-[#22C55E] hover:bg-[#1eb054] text-black px-12 py-8 text-2xl font-bold border-[3px] border-white shadow-[6px_6px_0px_0px_rgba(255,255,255,0.3)] uppercase tracking-tighter rounded-none">
-              Build Your Portfolio <ArrowRight className="ml-4 w-8 h-8" />
+              Try It With Your CV <ArrowRight className="ml-4 w-8 h-8" />
             </Button>
           </Link>
         </div>

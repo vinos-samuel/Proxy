@@ -438,10 +438,10 @@ export function registerProfileBuilderRoutes(app: Express) {
     const next = structuredClone(state.document);
     next.pendingProposal = proposal;
     next.sources.push({ id: answerSourceId, kind: "user", label: proposal.question.slice(0, 160), excerpt: proposal.answer });
-    next.privateContext.questions = [
-      ...next.privateContext.questions,
-      { question: proposal.question, answer: proposal.answer },
-    ].slice(-12);
+    // The Q&A only enters privateContext.questions (which feeds the public AI
+    // explorer's background) once the user accepts this suggestion via
+    // applyProposal — see server/profile-builder.ts. A skipped or never-reviewed
+    // answer must never reach the public bot.
     if (question.id === "identity:working-style") next.privateContext.workingStyle = parsed.data.answer;
     if (question.id === "identity:career-direction") next.privateContext.careerDirection = parsed.data.answer;
     const saved = await saveWorking(req, state, next);
@@ -561,6 +561,7 @@ export function registerProfileBuilderRoutes(app: Express) {
     const activated = await storage.activateProfileDocument(profile.id, row.revision);
     if (!activated) return res.status(409).json({ message: "The reviewed version changed. Review it again before publishing." });
 
+    const wasAlreadyPublic = profile.isPublic;
     const customer = await storage.getCustomer(req.session.customerId);
     await storage.updateProfileById(profile.id, {
       ...(access.isFirstFreePublish ? { paymentStatus: "paid", tier: "free", freePublishedAt: new Date() } : {}),
@@ -568,6 +569,28 @@ export function registerProfileBuilderRoutes(app: Express) {
       publicDomain: `myproxy.work/portfolio/${customer?.username}`,
     });
     await storage.updateProfileStatus(profile.id, "published");
+
+    if (!wasAlreadyPublic) try {
+      const { profileLiveTemplate } = await import("./emails");
+      const resendApiKey = process.env.RESEND_API_KEY;
+      const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+      if (resendApiKey && customer?.email) {
+        const profileUrl = `https://myproxy.work/portfolio/${customer.username}`;
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from: `Proxy <${fromEmail}>`,
+            to: customer.email,
+            subject: "Your page is live",
+            html: profileLiveTemplate(customer.name || customer.username, profileUrl),
+          }),
+        });
+      }
+    } catch (emailErr) {
+      logger.info("[Profile Builder] Profile live email failed (non-blocking)", { error: String(emailErr) });
+    }
+
     return res.json({ success: true, username: customer?.username });
   });
 

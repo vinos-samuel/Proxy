@@ -46,7 +46,8 @@ export default function PrivacyPage() {
               <li>To process your AI-generated career content via Google Gemini</li>
               <li>To send transactional emails (account verification, password reset, profile updates) via Resend</li>
               <li>To process payments via Stripe</li>
-              <li>To show you analytics on who is visiting and engaging with your page</li>
+              <li>To show you page views and the questions visitors ask on your page</li>
+              <li>To measure usage and campaign performance (see Cookies below)</li>
               <li>To improve the service</li>
             </ul>
           </section>
@@ -61,6 +62,9 @@ export default function PrivacyPage() {
               <li><strong>Stripe</strong> — to process payments securely</li>
               <li><strong>Resend</strong> — to send transactional emails</li>
               <li><strong>Replit</strong> — infrastructure and hosting</li>
+              <li><strong>PostHog</strong> — product analytics (pages viewed, features used)</li>
+              <li><strong>Google Analytics</strong> — site traffic and usage measurement</li>
+              <li><strong>Meta Pixel</strong> — measures the performance of our ads on Meta platforms</li>
             </ul>
           </section>
 
@@ -83,9 +87,9 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-bold text-black mb-3">6. Data storage and retention</h2>
             <p className="text-black/70 leading-relaxed">
               Your data is stored on Replit's infrastructure (PostgreSQL database and Object Storage).
-              We retain your data while your account is active. When you delete your account, all personal
-              data is permanently and immediately deleted — including your profile, career data, knowledge
-              entries, and chat history. Payment transaction records are retained for financial and legal
+              We retain your data while your account is active. When you delete your account, your profile,
+              career data, knowledge entries, chat history, and uploaded files (resume, CV, headshot, video)
+              are permanently deleted. Payment transaction records are retained for financial and legal
               record-keeping purposes only.
             </p>
           </section>
@@ -109,8 +113,11 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-bold text-black mb-3">8. Cookies</h2>
             <p className="text-black/70 leading-relaxed">
-              We use session cookies for login and a CSRF security cookie.
-              No third-party tracking or advertising cookies.
+              We use essential cookies to run your session and protect against CSRF attacks.
+              We also use PostHog, Google Analytics, and Meta Pixel to measure how the site is used and how
+              our ads perform. These providers may set their own cookies or use similar tracking technology
+              in your browser; see each provider's own privacy policy for what they collect and how to opt out
+              (for example, browser extensions and ad-blockers can block these).
             </p>
           </section>
 

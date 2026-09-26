@@ -494,6 +494,13 @@ export function applyProposal(document: ProfileDocument, proposal: ImprovementPr
     });
   }
   next.answeredQuestionIds = Array.from(new Set([...next.answeredQuestionIds, proposal.questionId]));
+  // Only an accepted suggestion's Q&A becomes background the public AI explorer
+  // can draw on (see approvedBotBackground in shared/profile-document.ts) —
+  // a skipped or not-yet-reviewed answer must never reach it.
+  next.privateContext.questions = [
+    ...next.privateContext.questions,
+    { question: proposal.question, answer: proposal.answer },
+  ].slice(-12);
   next.pendingProposal = null;
   next.undoStack = [
     ...next.undoStack,

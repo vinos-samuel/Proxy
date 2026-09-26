@@ -39,7 +39,7 @@ export default function InsiderKit({ profileUrl, displayName, roleTitle }: Insid
       <div className="bg-[#E8E8E3] border-[3px] border-black p-4">
         <p className="mono text-xs font-bold uppercase tracking-wider mb-2">2. Send it to someone inside</p>
         <p className="mono text-xs text-black/60 mb-3">
-          Someone who already works there — or who offered to help. A short note, the link, done. They can ask the page themselves instead of reading a CV.
+          Someone who already works there — or who offered to help. A short note, the link, done. They can review your selected work before deciding whether to introduce you.
         </p>
         <p className="mono text-xs text-black/50 mb-3 whitespace-pre-line max-h-24 overflow-hidden">{insiderNote}</p>
         <button

@@ -10,7 +10,6 @@ export function startNudgeCron() {
     logger.info("[Nudge] Cron tick");
     try {
       const profiles = await storage.getFreeProfilesDueForNudge();
-      if (profiles.length === 0) return;
 
       const resend = new Resend(process.env.RESEND_API_KEY);
       const from = `Vinos at Proxy <vinos@myproxy.work>`;
@@ -35,14 +34,15 @@ export function startNudgeCron() {
 
         // Nudge 2: engagement (72hrs after free publish)
         if (hoursSincePublish >= 72 && !p.nudge2SentAt) {
+          const { totalQuestions } = await storage.getAnalytics(p.profileId);
           await resend.emails.send({
             from,
             to: p.email,
             reply_to: "vinos@myproxy.work",
             subject: p.viewCount > 0
-              ? `Your page has had ${p.viewCount} visitor${p.viewCount === 1 ? "" : "s"}`
-              : "Your evidence page is live — upgrade to see engagement",
-            html: nudgeEngagementTemplate(p.name, p.viewCount, upgradeUrl),
+              ? `Your page has had ${p.viewCount} view${p.viewCount === 1 ? "" : "s"}`
+              : "Your page is live — upgrade to see engagement",
+            html: nudgeEngagementTemplate(p.name, p.viewCount, totalQuestions, upgradeUrl),
           }).catch(() => {});
           await storage.markNudgeSent(p.profileId, 2);
           logger.info("[Nudge] Nudge 2 sent", { profileId: p.profileId, email: p.email });
@@ -71,7 +71,7 @@ export function startNudgeCron() {
           reply_to: "vinos@myproxy.work",
           to: p.email,
           subject: `3 ways to get more from your Proxy, ${p.name.split(" ")[0]}`,
-          html: tipsEmailTemplate(p.name, dashboardUrl),
+          html: tipsEmailTemplate(p.name, dashboardUrl, p.isPublic),
         }).catch(() => {});
         await storage.markTipsEmailSent(p.profileId);
         logger.info("[Nudge] Tips email sent", { profileId: p.profileId, email: p.email });
@@ -94,8 +94,8 @@ export function startNudgeCron() {
           reply_to: "vinos@myproxy.work",
           to: p.email,
           subject: newViews > 0
-            ? `${newViews} ${newViews === 1 ? "person" : "people"} viewed your Proxy profile this week`
-            : `Visitors asked your AI explorer ${questions.length} question${questions.length === 1 ? "" : "s"} this week`,
+            ? `Your Proxy page got ${newViews} view${newViews === 1 ? "" : "s"} since your last update`
+            : `Visitors asked your AI explorer ${questions.length} question${questions.length === 1 ? "" : "s"} since your last update`,
           html: weeklyDigestTemplate(p.name, newViews, questions, isPro, profileUrl, dashboardUrl),
         }).catch(() => {});
         await storage.markDigestSent(p.profileId, p.viewCount);

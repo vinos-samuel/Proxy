@@ -49,11 +49,11 @@ export default function DashboardPage() {
     queryKey: ["/api/referral/count"],
   });
 
-  const { data: analytics } = useQuery<{ viewCount: number; recentQuestions: { question: string; askedAt: string }[] }>({
+  const { data: analytics } = useQuery<{ viewCount: number; totalQuestions: number; recentQuestions: { question: string; askedAt: string }[] }>({
     queryKey: ["/api/analytics/my"],
     queryFn: async () => {
       const res = await fetch("/api/analytics/my", { credentials: "include" });
-      if (!res.ok) return { viewCount: 0, recentQuestions: [] };
+      if (!res.ok) return { viewCount: 0, totalQuestions: 0, recentQuestions: [] };
       return res.json();
     },
     enabled: !!user,
@@ -118,7 +118,7 @@ export default function DashboardPage() {
     ? (Date.now() - new Date(profile.freePublishedAt).getTime()) / (1000 * 60 * 60) > 24 * 7
     : false;
 
-  const questionCount = analytics?.recentQuestions?.length ?? 0;
+  const questionCount = analytics?.totalQuestions ?? 0;
   const viewCount = analytics?.viewCount ?? 0;
 
   const showUpgrade = profile && (
@@ -352,7 +352,7 @@ export default function DashboardPage() {
                     <div className="border-[3px] border-black bg-[#E8E8E3] p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Eye className="h-4 w-4 text-black/60" />
-                        <span className="mono text-xs uppercase tracking-wider text-black/60">Profile Views</span>
+                        <span className="mono text-xs uppercase tracking-wider text-black/60">Page Views</span>
                       </div>
                       <div className="text-4xl font-bold">{viewCount}</div>
                       {viewCount === 0 && (
@@ -385,7 +385,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 border-[3px] border-black p-4 text-center">
                         <Lock className="h-5 w-5 mb-2" />
-                        <p className="font-bold text-sm mb-1">{questionCount} recruiters asked questions.</p>
+                        <p className="font-bold text-sm mb-1">{questionCount} visitor question{questionCount === 1 ? "" : "s"} asked.</p>
                         <p className="mono text-xs text-black/60 mb-3">Upgrade to Pro to see what they wanted to know.</p>
                         <button
                           onClick={() => document.getElementById("upgrade-section")?.scrollIntoView({ behavior: "smooth" })}
@@ -445,7 +445,7 @@ export default function DashboardPage() {
                       <p className="mono text-xs text-black/70 mt-1">
                         {viewCount > 0 || questionCount > 0
                           ? `${viewCount} people visited${questionCount > 0 ? ` and ${questionCount} asked questions` : ""}. Upgrade to Pro to keep refining your profile and see exactly what they asked.`
-                          : "Your 7-day free edit window has ended. Upgrade to Pro to keep editing and see full analytics."}
+                          : "Your 7-day free edit window has ended. Upgrade to Pro to keep editing and see page views and recent visitor questions."}
                       </p>
                     </div>
                   </div>
@@ -498,7 +498,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <p className="mono text-sm text-black/60 mb-4">
-                    This usually takes 1–2 minutes. This page will update automatically. When it's ready, Publish will be at the top — your page stays private until you click it.
+                    Processing time varies. This page updates automatically. When it's ready, Publish will be at the top — your page stays private until you click it.
                   </p>
                   <div className="flex items-center gap-2 px-3 py-1 bg-[#93C5FD] border-[3px] border-black mono text-xs uppercase tracking-wider font-bold w-fit">
                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -516,7 +516,7 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <h3 className="font-bold text-lg">SHARE YOUR PROFILE</h3>
-                      <p className="mono text-xs text-white/50">Your profile is indexed by search engines and AI sourcing tools — every share gets you more visibility.</p>
+                      <p className="mono text-xs text-white/50">Your page is public. Share it with people you want to reach.</p>
                     </div>
                   </div>
                   <div className="bg-white/10 border border-white/20 p-4 mb-4 mono text-xs text-white/80 leading-relaxed whitespace-pre-line">
@@ -537,7 +537,7 @@ export default function DashboardPage() {
                       className="flex items-center gap-2 bg-white/10 text-white px-5 py-3 font-bold border-[3px] border-white/30 mono text-xs uppercase tracking-wider hover:bg-white/20 active:translate-x-[1px] active:translate-y-[1px] transition-all"
                     >
                       <Copy className="h-3.5 w-3.5" />
-                      Copy Profile URL
+                      Copy Page Link
                     </button>
                     <button
                       onClick={() => {

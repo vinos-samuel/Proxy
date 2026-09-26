@@ -298,12 +298,12 @@ export default function BlogPostPage() {
           <section className="px-6 py-16 border-b-[3px] border-black">
             <div className="max-w-3xl mx-auto border-[3px] border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-8 text-center">
               {subscribeState === "done" ? (
-                <p className="mono text-lg font-bold">You're on the list. New posts land in your inbox.</p>
+                <p className="mono text-lg font-bold">You're on the list.</p>
               ) : (
                 <>
-                  <h3 className="text-2xl font-bold uppercase tracking-tight mb-2">Get the next post</h3>
+                  <h3 className="text-2xl font-bold uppercase tracking-tight mb-2">Join the list</h3>
                   <p className="mono text-sm text-black/60 mb-6">
-                    One email a week. No fluff, no funnel.
+                    Future Proxy research updates. No fluff, no funnel. Emails haven't started yet.
                   </p>
                   <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                     <input

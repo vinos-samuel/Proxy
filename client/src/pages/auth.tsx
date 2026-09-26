@@ -175,6 +175,7 @@ export function RegisterPage() {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [hasGuestDraft, setHasGuestDraft] = useState(false);
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -186,6 +187,7 @@ export function RegisterPage() {
     fetch("/api/builder", { credentials: "include" })
       .then((response) => response.ok ? response.json() : null)
       .then((state) => {
+        if (!cancelled && state?.document) setHasGuestDraft(true);
         const draftName = state?.document?.identity?.name?.trim();
         if (cancelled || !draftName || form.getValues("name") || form.getValues("username")) return;
         const suggestedUsername = draftName
@@ -227,7 +229,7 @@ export function RegisterPage() {
               <ProxyLogo />
             </div>
           </Link>
-          <h1 className="text-4xl font-bold mb-2 text-black/60">Save your page. Make it yours.</h1>
+          <h1 className="text-4xl font-bold mb-2 text-black/60">{hasGuestDraft ? "Save your page. Make it yours." : "Create your account. Build your page."}</h1>
           <p className="mono text-sm text-black/60 uppercase tracking-wider">Prepare convincing evidence for your next opportunity</p>
         </div>
 
@@ -236,7 +238,7 @@ export function RegisterPage() {
             <div className="text-center py-4">
               <Mail className="h-12 w-12 text-[#22C55E] mx-auto mb-4" />
               <p className="font-bold text-black mono uppercase tracking-wider">Check Your Email</p>
-              <p className="text-sm text-black/60 mono mt-2">We sent a verification link to <strong>{registeredEmail}</strong>. Verify it to return to your saved page.</p>
+              <p className="text-sm text-black/60 mono mt-2">We sent a verification link to <strong>{registeredEmail}</strong>. Verify it to {hasGuestDraft ? "return to your saved page" : "start your page"}.</p>
               <p className="text-xs text-black/40 mono mt-4">Didn't get it? Check your spam folder or{" "}
                 <Link href="/login" className="underline text-black/60">go to sign in</Link> to resend.
               </p>

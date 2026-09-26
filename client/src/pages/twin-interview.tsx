@@ -236,7 +236,7 @@ export default function TwinInterviewPage() {
             <div className="space-y-3">
               <div className="bg-[#FDE68A] border-[3px] border-black p-4 text-left mb-2">
                 <p className="font-bold text-sm mb-1">Next step: Complete the questionnaire to publish</p>
-                <p className="mono text-xs text-black/70">Your voice session is saved. The questionnaire is where you finalise your profile and get it live — it takes about 10 minutes.</p>
+                <p className="mono text-xs text-black/70">Your voice session is saved. The questionnaire is where you finalise your profile and get it live.</p>
               </div>
               <button
                 onClick={() => navigate("/questionnaire")}

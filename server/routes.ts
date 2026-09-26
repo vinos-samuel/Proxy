@@ -1469,7 +1469,7 @@ PASS if every specific claim traces back to the profile data, or if the response
   app.get("/api/analytics/my", requireAuth, async (req: Request, res: Response) => {
     try {
       const profile = await storage.getProfileByCustomerId(req.session.customerId!);
-      if (!profile) return res.json({ viewCount: 0, recentQuestions: [] });
+      if (!profile) return res.json({ viewCount: 0, totalQuestions: 0, recentQuestions: [] });
       const analytics = await storage.getAnalytics(profile.id);
       res.json(analytics);
     } catch (error) {
@@ -2296,6 +2296,7 @@ PASS if every specific claim traces back to the profile data, or if the response
       const from = `Vinos at Proxy <vinos@myproxy.work>`;
       const upgradeUrl = "https://myproxy.work/dashboard";
       const viewCount = profile.viewCount ?? 0;
+      const { totalQuestions } = await storage.getAnalytics(profile.id);
 
       await resend.emails.send({
         from,
@@ -2308,8 +2309,8 @@ PASS if every specific claim traces back to the profile data, or if the response
         from,
         to: customer.email,
         reply_to: "vinos@myproxy.work",
-        subject: `[TEST] Your evidence page has had ${viewCount} visitors`,
-        html: nudgeEngagementTemplate(customer.name, viewCount, upgradeUrl),
+        subject: `[TEST] Your page has had ${viewCount} views`,
+        html: nudgeEngagementTemplate(customer.name, viewCount, totalQuestions, upgradeUrl),
       });
 
       logger.info("[Nudge] Test emails sent", { to: customer.email });

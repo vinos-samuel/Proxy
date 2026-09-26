@@ -53,10 +53,10 @@ export default function OnboardingChatPage() {
         const res = await apiRequest("POST", "/api/onboarding/start", { draft });
         const data = await res.json();
         setMessages([{ role: "assistant", content: data.message }]);
-      } catch (err: any) {
+      } catch {
         setMessages([{
           role: "assistant",
-          content: `Couldn't start the conversation. Error: ${err?.message || String(err)}\n\nPlease go back and try the form path instead.`,
+          content: "The conversation could not start. Try again or use the guided form.",
         }]);
       } finally {
         setIsStarting(false);
@@ -183,7 +183,7 @@ export default function OnboardingChatPage() {
             {isGoingLive ? (
               <><Loader2 className="h-4 w-4 animate-spin" /> Building your page…</>
             ) : (
-              "Go Live →"
+              "Build My Draft →"
             )}
           </button>
           {goLiveError && (
@@ -280,7 +280,7 @@ export default function OnboardingChatPage() {
         {readyToComplete && !isLoading && (
           <div className="mb-4 bg-white border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <p className="mono text-xs text-black/60 mb-3 uppercase tracking-wider">
-              Conversation complete — ready to update your profile
+              Conversation complete — ready to update your draft
             </p>
             <button
               onClick={handleComplete}
@@ -288,9 +288,9 @@ export default function OnboardingChatPage() {
               className="w-full bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] disabled:opacity-50 flex items-center justify-center gap-2 transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
             >
               {isCompleting ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> Saving your profile…</>
+                <><Loader2 className="h-4 w-4 animate-spin" /> Saving your answers…</>
               ) : (
-                <><CheckCircle2 className="h-4 w-4" /> Update My Profile →</>
+                <><CheckCircle2 className="h-4 w-4" /> Update My Draft →</>
               )}
             </button>
           </div>

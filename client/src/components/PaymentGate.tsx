@@ -22,12 +22,12 @@ const tiers = [
     price: "$0",
     icon: Zap,
     features: [
-      "EVIDENCE_PAGE + OPTIONAL_AI_EXPLORER",
-      "PERSONAL_PAGE (myproxy.work/you)",
-      "7_DAYS_OF_EDITS_AFTER_PUBLISH",
-      "BASIC_VIEW_COUNT",
+      "Professional page with optional AI explorer",
+      "Personal page (myproxy.work/you)",
+      "Edit for 7 days after first publication",
+      "Basic view count",
     ],
-    useCase: "USE_CASE: Build and share your first evidence page",
+    useCase: "Build and share your first evidence page",
   },
   {
     key: "pro",
@@ -38,13 +38,11 @@ const tiers = [
     icon: Star,
     popular: true,
     features: [
-      "EVERYTHING_IN_FREE",
-      "UNLIMITED_EDITS",
-      "FULL_ANALYTICS_DASHBOARD",
-      "VISITOR_QUESTIONS_FEED",
-      "PRIORITY_PROCESSING",
+      "Everything in Free",
+      "Unlimited edits",
+      "Page views and recent visitor questions",
     ],
-    useCase: "USE_CASE: Active job search | Career pivot",
+    useCase: "Active job search | Career pivot",
   },
 ];
 
@@ -210,7 +208,7 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
           Your personal page at <strong>myproxy.work/portfolio/{username || "yourname"}</strong>
         </p>
         <div className="inline-block mt-3 bg-black text-[#22C55E] px-4 py-2 mono text-xs uppercase tracking-wider border-[3px] border-black font-bold" data-testid="badge-launch-special">
-          &#9733; FOUNDING MEMBER PRICING
+          &#9733; ONE-TIME PRICE
         </div>
         <Link href="/faq">
           <div className="text-center mt-4 text-black/50 text-sm hover:text-black/80 transition cursor-pointer">

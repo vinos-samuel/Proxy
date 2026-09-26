@@ -178,7 +178,7 @@ export default function PreviewPage() {
               Your profile needs to be processed by AI before you can preview it.
             </p>
             <Link href={profileCreationPath}>
-              <Button data-testid="button-goto-questionnaire">Complete Questionnaire</Button>
+              <Button data-testid="button-goto-questionnaire">Continue Building Your Page</Button>
             </Link>
           </CardContent>
         </Card>
@@ -304,7 +304,7 @@ export default function PreviewPage() {
             <div className="mb-6 text-center">
               <h1 className="text-2xl font-bold mb-2">Preview Your Page</h1>
               <p className="text-muted-foreground text-sm">
-                Review your portfolio and make tweaks before publishing.
+                Review your page before publishing.
               </p>
             </div>
           )}

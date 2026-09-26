@@ -130,7 +130,7 @@ export default function FAQPage() {
     },
     {
       q: "How much does Proxy cost?",
-      plainText: "Proxy has three plans. Free gives you a published professional page, with an optional AI explorer, and 7 days of edits after publishing. Pro at $49 one-time adds unlimited edits and full analytics. Concierge at $499 one-time adds a discovery call, professional copywriting, custom branding, and hands-on optimization.",
+      plainText: "Proxy has three plans. Free gives you a published professional page, with an optional AI explorer, and 7 days of edits after publishing. Pro at $49 one-time adds unlimited edits plus page views and recent visitor questions. Concierge at $499 one-time adds a discovery call, professional copywriting, custom branding, and hands-on optimization.",
       a: (
         <div className="space-y-4">
           <p>Start free, upgrade when you're ready:</p>
@@ -141,7 +141,7 @@ export default function FAQPage() {
             </div>
             <div className="flex gap-3 items-start">
               <span className="bg-black text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">$49</span>
-              <span><strong className="text-black">Pro</strong> — Everything in Free plus unlimited edits, full analytics dashboard, and visitor questions feed</span>
+              <span><strong className="text-black">Pro</strong> — Everything in Free plus unlimited edits, page views, and recent visitor questions</span>
             </div>
             <div className="flex gap-3 items-start">
               <span className="bg-black text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">$499</span>
@@ -172,47 +172,47 @@ export default function FAQPage() {
     },
     {
       q: "What is AEO (Agent Engine Optimisation) and how does it benefit my job search?",
-      plainText: "SEO (Search Engine Optimisation) is how websites get found by Google. AEO — Agent Engine Optimisation — is the emerging equivalent for AI agents like ChatGPT, Perplexity, Gemini, and Claude. As AI tools become part of how recruiters source candidates, the professionals who get surfaced will be the ones whose profiles are structured, machine-readable, and publicly accessible. A PDF resume is invisible to these agents. A Proxy profile is not. Every Proxy profile includes schema.org Person structured data — a technical standard that tells AI agents exactly who you are, what you've done, where you've worked, and what you're known for. When a recruiter or their AI asks 'find me a senior finance leader with APAC experience', structured profiles like yours get parsed and surfaced. This is a real shift happening now. Proxy profiles are built for it from day one.",
+      plainText: "SEO (Search Engine Optimisation) is how websites get found by Google. AEO — Agent Engine Optimisation — is the emerging equivalent for AI agents like ChatGPT, Perplexity, Gemini, and Claude. As AI tools become part of how recruiters source candidates, structured, machine-readable, publicly accessible profiles have a better chance of being parsed correctly. A PDF resume generally isn't parsed the way a structured web page can be. Every Proxy profile includes schema.org Person structured data — a technical standard that tells AI agents your name, what you've done, where you've worked, and what you're known for. Structured data can help a profile like yours get parsed and surfaced when a recruiter or their AI searches for someone with your background, but appearing in results is never guaranteed. Proxy profiles are built with this structure from day one.",
       a: (
         <div className="space-y-4">
           <p><strong className="text-black">SEO</strong> (Search Engine Optimisation) is how websites get found by Google. <strong className="text-black">AEO — Agent Engine Optimisation</strong> — is the emerging equivalent for AI agents like ChatGPT, Perplexity, Gemini, and recruiter-specific AI tools.</p>
-          <p>As AI becomes part of how recruiters source candidates, the professionals who get surfaced will be the ones whose profiles are <strong className="text-black">structured, machine-readable, and publicly accessible.</strong></p>
-          <p>A PDF resume is invisible to these agents. A Proxy profile is not.</p>
+          <p>As AI becomes part of how recruiters source candidates, <strong className="text-black">structured, machine-readable, and publicly accessible</strong> profiles have a better chance of being parsed correctly — though appearing in results is never guaranteed.</p>
+          <p>A PDF resume generally isn't parsed by these agents the way a structured web page can be.</p>
           <p><strong className="text-black">What Proxy does technically:</strong></p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">schema.org Person markup</strong> — embedded structured data that tells AI agents your name, title, skills, career history, and location in a format they can parse</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Public, indexable URL</strong> — your profile lives on the open web at myproxy.work/you, crawlable by all major search engines and AI tools</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Distribution surface area</strong> — every time you share your link, you increase the chances an AI agent retrieves it in a relevant search</span></li>
           </ul>
-          <p>This is a real shift happening now. Proxy profiles are built for it from day one.</p>
+          <p>This structure gives your profile the best chance of being read correctly by AI agents. It doesn't guarantee you'll be surfaced — share the link directly with people you want to reach.</p>
         </div>
       ),
     },
     {
       q: "Will AI tools and recruiting agents find my Proxy profile automatically?",
-      plainText: "Not automatically from day one — but structured and distributed Proxy profiles are far more likely to be surfaced than a LinkedIn page or a PDF. Here is how it works: search engines like Google index your profile as soon as it is live. AI tools like Perplexity and ChatGPT that draw from the web can parse your structured data. Recruiter-specific AI sourcing tools look for machine-readable candidate profiles. The more you share your profile link — in your email signature, LinkedIn, direct outreach — the more indexed surface area it builds. The combination of structured data plus public distribution is what makes Proxy profiles agent-discoverable. LinkedIn profiles have structured data too, but they sit behind a login wall and are not fully parseable by external AI agents. Your Proxy profile is fully public and structured from the ground up.",
+      plainText: "Not automatically, and not guaranteed. Structured, publicly shared profiles are generally easier for search engines and AI tools to discover than a LinkedIn page behind a login wall or a PDF that isn't crawlable at all — but indexing and appearing in results still depend on factors Proxy doesn't control. Here is how it works: search engines like Google can index a public profile once it's live, though timing varies. AI tools like Perplexity and ChatGPT that draw from the web can parse your structured data. Recruiter-specific AI sourcing tools look for machine-readable candidate profiles. The more you share your profile link — in your email signature, LinkedIn, direct outreach — the more chances it has of being found. Structured data plus public distribution gives your profile the best shot at being agent-discoverable, but sharing the link directly with people you want to reach is still the most reliable path.",
       a: (
         <div className="space-y-4">
-          <p>Not automatically from day one — but a structured, distributed Proxy profile is far more likely to be surfaced than a LinkedIn page or a PDF.</p>
+          <p>Not automatically, and not guaranteed — but a structured, publicly shared Proxy profile is generally easier to discover than a LinkedIn page behind a login wall or a PDF that isn't crawlable at all.</p>
           <p><strong className="text-black">Here is how it works:</strong></p>
           <ul className="space-y-2 ml-1">
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Search engines like Google index your profile as soon as it is live</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Search engines like Google can index a public profile once it's live, though timing and inclusion vary</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>AI tools like Perplexity and ChatGPT that draw from the web can parse your structured data</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Recruiter-specific AI sourcing tools look for machine-readable candidate profiles</span></li>
           </ul>
-          <p>The more you share your profile link — in your email signature, LinkedIn, direct outreach — the more indexed surface area it builds. More surface area means more chances an AI surfaces your profile when a recruiter asks it to find someone like you.</p>
+          <p>The more you share your profile link — in your email signature, LinkedIn, direct outreach — the more chances it has of being found. Sharing the link directly with people you want to reach is still the most reliable path.</p>
           <p><strong className="text-black">Why not just use LinkedIn?</strong> LinkedIn profiles have structured data too, but they sit behind a login wall and are not fully parseable by external AI agents. Your Proxy profile is fully public and structured from the ground up.</p>
         </div>
       ),
     },
     {
       q: "How does the optional AI explorer work?",
-      plainText: "The AI explorer is optional and off by default. If you enable it, visitors can ask questions about the public page you approved. It does not receive your raw CV, private answers, or unapproved drafts. You can turn it off again from the builder.",
+      plainText: "The AI explorer is optional and off by default. If you enable it, visitors can ask questions about your published page plus any follow-up Q&A you've accepted into it. It does not receive your raw CV, source excerpts, skipped suggestions, or answers you never accepted. You can turn it off again from the builder.",
       a: (
         <div className="space-y-4">
           <p>The <strong className="text-black">Ask about my work</strong> explorer is optional and off by default.</p>
-          <p>If you turn it on, visitors can ask follow-up questions about the public page you approved. The explorer receives that approved public content only.</p>
-          <p>Your raw CV, private improvement answers, skipped questions, and unapproved drafts stay outside the public chat context. You can turn the explorer off again at any time.</p>
+          <p>If you turn it on, visitors can ask follow-up questions about your published page, plus any follow-up Q&A you've accepted into it via the "Add stronger evidence" flow.</p>
+          <p>Your raw CV, source excerpts, skipped suggestions, and answers you never accepted stay outside the public chat context. You can turn the explorer off again at any time.</p>
         </div>
       ),
     },
@@ -267,7 +267,7 @@ export default function FAQPage() {
       plainText: "Yes. Your edits stay private while you work. Review and publish the version you want visitors to see. Free pages include seven days of edits after first publication; Pro includes ongoing edits.",
       a: (
         <div className="space-y-4">
-          <p><strong className="text-black">Yes.</strong> Once your profile is live, you can access your dashboard to edit your content at any time.</p>
+          <p><strong className="text-black">Yes.</strong> Once your profile is live, you can access your dashboard to edit your content — how long depends on your plan (see below).</p>
           <p>You can:</p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Update career stories and add new achievements</span></li>
@@ -286,7 +286,7 @@ export default function FAQPage() {
         <div className="space-y-4">
           <p>Your dashboard shows key metrics about your page's performance:</p>
           <ul className="space-y-2 ml-1">
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Profile views</strong> — how many people visited your page</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Page views</strong> — how many times your page was viewed</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Questions asked</strong> — how often visitors used the optional AI explorer</span></li>
           </ul>
           <p>These are basic engagement signals. They do not prove hiring intent or identify every visitor.</p>
@@ -295,16 +295,16 @@ export default function FAQPage() {
     },
     {
       q: "Is my information private and secure?",
-      plainText: "Your page is accessible via your unique profile URL. You control who sees it by choosing when and where to share the link. We don't share your data with recruiters, job boards, or third parties. Your account is protected with encrypted passwords, email verification, and secure session management. We comply with Singapore PDPA data protection standards. You can read our full privacy policy at myproxy.work/privacy.",
+      plainText: "Your page is accessible via your unique profile URL. You control who sees it by choosing when and where to share the link. We do not sell your data. We use the service providers listed in our privacy policy (payments, email, hosting, analytics) to run Proxy — we don't hand your data to recruiters or job boards. Your account is protected with encrypted passwords, email verification, and secure session management. We follow Singapore PDPA principles for how we collect, use, and let you control your data. You can read our full privacy policy at myproxy.work/privacy.",
       a: (
         <div className="space-y-4">
           <p>Your page is accessible via your <strong className="text-black">unique profile URL</strong> — you control who sees it by choosing when and where to share the link.</p>
           <p>Security measures:</p>
           <ul className="space-y-2 ml-1">
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>We <strong className="text-black">don't share</strong> your data with recruiters, job boards, or third parties</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>We <strong className="text-black">do not sell</strong> your data, and don't hand it to recruiters or job boards — see our privacy policy for the service providers we use to run Proxy</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Encrypted passwords and email verification</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Secure session management</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>Singapore PDPA compliant</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span>We follow Singapore PDPA principles for your data rights</span></li>
           </ul>
           <p>Read our full <Link href="/privacy"><span className="text-[#22C55E] font-bold cursor-pointer hover:underline">privacy policy</span></Link>.</p>
         </div>
@@ -350,38 +350,32 @@ export default function FAQPage() {
     },
     {
       q: "How accurate is the AI? Can it make things up about me?",
-      plainText: "This is the right question to ask. Proxy uses strict grounding rules: the AI can only answer from your actual profile data — your war stories, career timeline, and achievements. If a question requires information not in your profile, the AI says so and redirects the recruiter to contact you directly. It will not invent numbers, fabricate company experience, or present general knowledge as personal experience. The system also prevents cross-company contamination — facts from one employer cannot be attributed to another. If someone provides incorrect information in a question (for example, assuming you worked somewhere you didn't), the AI corrects the premise before answering. No system is perfect, but Proxy's guardrails are designed to fail safely: when in doubt, redirect — never fabricate.",
+      plainText: "This is the right question to ask. Proxy's AI explorer is instructed to answer only from your actual profile data — your war stories, career timeline, and achievements — and to say plainly when a detail isn't there, redirecting the recruiter to contact you directly. It's instructed not to invent numbers, fabricate company experience, present general knowledge as personal experience, or attribute a fact from one employer to another. It's also instructed to correct an incorrect premise before answering. These are strict prompt instructions, not a technical guarantee — no AI system is perfect. Test it yourself before you turn it on, and treat a wrong answer as something to fix, not something that can't happen.",
       a: (
         <div className="space-y-4">
-          <p>This is the right question to ask. Proxy uses strict grounding rules so the AI <strong className="text-black">can only answer from your actual profile data</strong> — your war stories, career timeline, and achievements.</p>
+          <p>This is the right question to ask. Proxy's AI explorer is <strong className="text-black">instructed to answer only from your actual profile data</strong> — your war stories, career timeline, and achievements. These are strict prompt instructions, not a technical guarantee.</p>
           <ul className="space-y-2 ml-1">
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">No fabrication</strong> — numbers, metrics, company names, and project details must exist in your profile. The AI will not invent specifics to fill a gap.</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">No cross-company contamination</strong> — facts from one employer cannot be attributed to another, even if the number exists elsewhere in your profile.</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Honest redirects</strong> — when the AI reaches the edge of your data, it says so and directs the recruiter to contact you directly. A clean "I don't have that detail" is more credible than a confident fabrication.</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">False premise correction</strong> — if someone assumes something incorrect about your background, the AI corrects it immediately.</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Instructed not to fabricate</strong> — numbers, metrics, company names, and project details are meant to come only from your profile.</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Instructed against cross-company mixing</strong> — facts from one employer aren't meant to be attributed to another, even if the number exists elsewhere in your profile.</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Instructed to redirect honestly</strong> — when it reaches the edge of your data, it's meant to say so and point the recruiter to contact you directly.</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Instructed to correct false premises</strong> — if someone assumes something incorrect about your background, it's meant to correct it.</span></li>
           </ul>
-          <p>No AI system is perfect. But Proxy is designed to fail safely: when in doubt, redirect — never fabricate.</p>
+          <p>No AI system is perfect. Test it yourself before you turn it on, and treat a wrong answer as something to fix, not something that can't happen.</p>
         </div>
       ),
     },
     {
-      q: "What's coming next for Proxy?",
-      plainText: "Recently shipped: referral attribution (track signups from your personal referral link), basic profile analytics (view counts and visitor questions), tightened AI accuracy guardrails, and full blog SEO with structured data so articles rank on Google and get parsed by AI agents. Coming next: LinkedIn enrichment (automatically pulling your professional activity to enrich your profile), deeper session tracking (see individual visit sessions and what each visitor asked your AI), and suggested question chips on portfolio pages to remove cold-start friction for recruiters. All existing members get early access to new features as they launch.",
+      q: "What's shipped so far on Proxy?",
+      plainText: "Referral attribution (track signups from your personal referral link), basic profile analytics (view counts and visitor questions), tightened AI explorer instructions, suggested question chips on portfolio pages, and full blog SEO with structured data so articles rank on Google and get parsed by AI agents. We announce new features in product updates as they ship.",
       a: (
         <div className="space-y-4">
-          <p><strong className="text-black">Recently shipped:</strong></p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Referral attribution</strong> — every published profile gets a personal referral link; track how many people sign up from your recommendation</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Basic profile analytics</strong> — view counts and the questions visitors ask through your page, shown on your dashboard</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Tightened AI accuracy</strong> — stricter grounding rules, false premise correction, and explicit no-fabrication enforcement</span></li>
+            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Tightened AI explorer instructions</strong> — stricter grounding, false-premise correction, and explicit no-fabrication instructions</span></li>
             <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Suggested question chips</strong> — prompt cards on your portfolio page that help recruiters start the conversation instantly</span></li>
           </ul>
-          <p><strong className="text-black">Coming next:</strong></p>
-          <ul className="space-y-2 ml-1">
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">LinkedIn enrichment</strong> — automatically pulling your professional activity to enrich your profile</span></li>
-            <li className="flex gap-2"><span className="text-[#22C55E] font-bold">-</span><span><strong className="text-black">Deeper session tracking</strong> — see each individual recruiter visit, how long they stayed, and exactly what they asked your AI</span></li>
-          </ul>
-          <p>All existing members get <strong className="text-black">early access</strong> to new features as they launch.</p>
+          <p>We announce new features in product updates as they ship.</p>
         </div>
       ),
     },

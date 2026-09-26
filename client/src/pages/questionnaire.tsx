@@ -18,7 +18,7 @@ import { ThemePreviewSwatch } from "@/components/theme-preview-swatch";
 
 const STEPS = [
   { id: 1, title: "Basic Information", icon: User, description: "Your name, contact details and location" },
-  { id: 2, title: "Professional Summary", icon: Target, description: "Your positioning statement and superpower" },
+  { id: 2, title: "Professional Summary", icon: Target, description: "Your positioning statement and what sets your work apart" },
   { id: 3, title: "Career History", icon: Briefcase, description: "Your resume and work experience" },
   { id: 4, title: "War Stories", icon: BookOpen, description: "Your high-stakes professional stories (min 3)" },
   { id: 5, title: "Metrics & Achievements", icon: Sparkles, description: "Your quantifiable achievements" },
@@ -541,7 +541,7 @@ export default function QuestionnairePage() {
 
   const buildingSteps = [
     { label: "Reading your CV...", sub: "Extracting experience, roles and achievements" },
-    { label: "Drafting your profile...", sub: "AI is writing all 11 sections from your career data" },
+    { label: "Drafting your profile...", sub: "AI is writing your page from your career data" },
     { label: "Building your career story...", sub: "War stories, Q&A, objection handling — all drafted" },
     { label: "Almost ready...", sub: "Preparing your Proxy profile preview" },
   ];
@@ -554,7 +554,7 @@ export default function QuestionnairePage() {
             <Sparkles className="h-10 w-10 text-black animate-pulse" />
           </div>
           <h1 className="text-3xl font-bold mb-2">Building your Proxy profile...</h1>
-          <p className="mono text-sm text-white/50 mb-12">This takes about 30–40 seconds. Worth it.</p>
+          <p className="mono text-sm text-white/50 mb-12">Processing time varies. Worth it.</p>
 
           <div className="space-y-4 text-left mb-12">
             {buildingSteps.map((s, i) => (
@@ -636,11 +636,11 @@ export default function QuestionnairePage() {
               <h2 className="font-bold text-lg mb-2">Fill in the forms</h2>
               <p className="mono text-xs text-black/60 leading-relaxed">
                 {hasAiDraft
-                  ? "Go through the 11-step questionnaire. Everything is pre-filled from your CV — review, personalise, and submit."
-                  : "Go through the 11-step questionnaire at your own pace and submit when ready."}
+                  ? "Go through the guided form. Everything is pre-filled from your CV — review, personalise, and submit."
+                  : "Go through the guided form at your own pace and submit when ready."}
               </p>
               <div className="mono text-xs text-black/40 uppercase tracking-wider mt-4">
-                ~20 minutes
+                Complete it at your own pace
               </div>
             </button>
           </div>
@@ -660,7 +660,7 @@ export default function QuestionnairePage() {
           <div className="mx-auto max-w-4xl px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
             <Link href="/dashboard">
               <div className="flex items-center gap-3 cursor-pointer">
-                <ProxyLogo /><span className="text-xl font-bold tracking-tight ml-4">Context Ingestion</span>
+                <ProxyLogo /><span className="text-xl font-bold tracking-tight ml-4">Build Your Page</span>
               </div>
             </Link>
             <Link href="/dashboard">
@@ -673,8 +673,8 @@ export default function QuestionnairePage() {
 
         <div className="mx-auto max-w-3xl px-6 py-12">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2">Context Ingestion</h1>
-            <p className="mono text-sm text-black/60 uppercase tracking-wider">Building your career proxy</p>
+            <h1 className="text-4xl font-bold mb-2">Build Your Page</h1>
+            <p className="mono text-sm text-black/60 uppercase tracking-wider">Building your page</p>
           </div>
 
           <div className="mb-8 p-4 border-[3px] border-black bg-white">
@@ -690,8 +690,8 @@ export default function QuestionnairePage() {
           <div className="bg-white border-[3px] border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <h2 className="text-3xl font-bold mb-4">Upload Resume (Optional)</h2>
             <p className="text-black/70 mb-6">
-              Upload your PDF resume and AI will pre-fill the <strong>entire questionnaire</strong> — all 11 sections.
-              Just review, personalise the flagged parts, and you're done. Saves ~45 minutes.
+              Upload your PDF resume and AI will pre-fill <strong>most of the form</strong> from it.
+              Review the flagged sections, personalise them, and you're done.
             </p>
 
             <div className="bg-[#22C55E]/15 border-2 border-[#22C55E] p-4 mb-6 mono text-sm">
@@ -742,7 +742,7 @@ export default function QuestionnairePage() {
                 <>
                   <p className="mono text-sm font-bold mb-2">✨ AI DRAFTING YOUR PROFILE...</p>
                   <p className="mono text-xs text-black/60">{resumeFileName}</p>
-                  <p className="mono text-xs text-black/40 mt-2">Generating all 11 sections — 20-30 seconds</p>
+                  <p className="mono text-xs text-black/40 mt-2">Generating your page — processing time varies</p>
                 </>
               ) : (
                 <>
@@ -778,7 +778,7 @@ export default function QuestionnairePage() {
         <div className="mx-auto max-w-4xl px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/dashboard">
             <div className="flex items-center gap-3 cursor-pointer">
-              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ mixBlendMode: "multiply" }} /><span className="text-xl font-bold tracking-tight" data-testid="text-context-ingestion">Context Ingestion</span>
+              <img src="/proxy-logo.png" alt="Proxy" className="h-20 w-auto" style={{ mixBlendMode: "multiply" }} /><span className="text-xl font-bold tracking-tight" data-testid="text-context-ingestion">Build Your Page</span>
             </div>
           </Link>
           <div className="flex items-center gap-4">
@@ -1031,7 +1031,7 @@ export default function QuestionnairePage() {
                   <div className="border-[3px] border-black bg-[#E8E8E3] p-4">
                     <p className="mono text-sm text-black/60">
                       Your career history has been captured in Step 2. You can upload your actual CV/Resume file in Step 10 (Branding &amp; Assets).
-                      Next, we'll collect your professional war stories — the high-stakes moments that define your career.
+                      Next, we'll collect your war stories — selected work examples that show what you did and why it mattered.
                     </p>
                   </div>
                   <div className="space-y-3">
@@ -1617,7 +1617,7 @@ export default function QuestionnairePage() {
                   {showVoiceReminder && (
                     <div className="mb-4 border-[3px] border-black bg-[#FEF9C3] p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                       <p className="font-bold text-sm mb-1">Your page will sound more like you with a writing sample.</p>
-                      <p className="mono text-xs text-black/70 mb-3">Go to Step 7 and paste a few sentences you've written — a LinkedIn post, a message, anything in your own words. It takes 2 minutes and makes a big difference.</p>
+                      <p className="mono text-xs text-black/70 mb-3">Go to Step 7 and paste a few sentences you've written — a LinkedIn post, a message, anything in your own words. It only takes a moment and makes a big difference.</p>
                       <div className="flex gap-2">
                         <button
                           onClick={() => { setCurrentStep(7); setShowVoiceReminder(false); }}

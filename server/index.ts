@@ -198,9 +198,16 @@ app.use((req, res, next) => {
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     // A raw ZodError's .message is the JSON-stringified issues array — never
-    // send that to the client, log it server-side and show a plain message.
+    // send that to the client. Show a plain message, but append just the
+    // failing field's path and issue text (never its actual value) so a fix
+    // can be diagnosed straight from a screenshot, with no server log access
+    // needed — this is the only place client error text is composed, so it
+    // reaches every surface that displays error.message.
     const isZodError = err?.name === "ZodError" || Array.isArray(err?.issues);
-    const message = isZodError ? "Something on this page didn't save correctly" : (err.message || "Internal Server Error");
+    const zodDetail = isZodError && err.issues?.[0]
+      ? ` (field: ${err.issues[0].path?.join(".")} — ${err.issues[0].message})`
+      : "";
+    const message = isZodError ? `Something on this page didn't save correctly${zodDetail}` : (err.message || "Internal Server Error");
 
     logger.error(isZodError ? "Unhandled validation error" : message, {
       status,

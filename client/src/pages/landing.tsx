@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { FileText, Zap, Rocket, X, Check, Send, Loader2 } from "lucide-react";
+import { FileText, Zap, Rocket, X, Check, Send, Loader2, MessageCircle, Globe } from "lucide-react";
 import ProxyLogo from "@/components/ProxyLogo";
 import { getCsrfToken } from "@/lib/queryClient";
 import { renderAnswer } from "@/lib/renderAnswer";
@@ -159,7 +159,7 @@ export default function LandingPage() {
                 Prepare convincing evidence for your next opportunity.
               </h1>
               <p className="text-xl lg:text-2xl font-bold text-black/70 mb-8">
-                Turn your CV and real work into a professional page you feel confident sharing.
+                Turn your CV and real work into a professional page you feel confident sharing — no hosting to manage, and it can answer follow-up questions for you.
               </p>
               <div className="flex gap-4 flex-wrap">
                 <button
@@ -189,6 +189,8 @@ export default function LandingPage() {
                 <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> No account to try it</span>
                 <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Free to start</span>
                 <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Private until you publish</span>
+                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> No hosting or domain needed</span>
+                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Recruiters can ask it questions</span>
               </div>
               <button
                 onClick={() => navigate("/register")}
@@ -428,6 +430,32 @@ export default function LandingPage() {
               </div>
               <h3 className="text-2xl font-bold mt-4 mb-3">Approve, publish, share</h3>
               <p className="mono text-sm text-black/70 leading-relaxed">Choose a design, approve the exact version, and share one clear link. The AI explorer is optional and uses approved public information only.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Two things that make this different */}
+      <section className="px-6 py-20 border-t-[3px] border-black bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// what_makes_this_different</div>
+          <h2 className="text-5xl font-bold mb-16">Not just a webpage.</h2>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="border-[3px] border-black bg-[#22C55E] p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              <div className="w-14 h-14 bg-white border-[3px] border-black flex items-center justify-center mb-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                <MessageCircle className="h-7 w-7 text-black" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3">Recruiters can ask it questions</h3>
+              <p className="mono text-sm text-black/80 leading-relaxed">Turn on "Ask about my work" and a visitor can ask a follow-up right there — "tell me more about that project," "have you managed a team this size" — and get an answer grounded in what you approved. No back-and-forth email just to get the one detail they actually needed.</p>
+            </div>
+
+            <div className="border-[3px] border-black bg-black text-white p-8 shadow-[8px_8px_0px_0px_rgba(34,197,94,1)]">
+              <div className="w-14 h-14 bg-[#22C55E] border-[3px] border-black flex items-center justify-center mb-6 shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)]">
+                <Globe className="h-7 w-7 text-black" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3">No hosting, no domain, live in minutes</h3>
+              <p className="mono text-sm text-white/70 leading-relaxed">A personal site means buying a domain, picking a builder, and maintaining it. Proxy skips all of that — upload your CV, review the page, publish, and it's live at your own link. Nothing to host, renew, or break.</p>
             </div>
           </div>
         </div>

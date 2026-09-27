@@ -159,7 +159,7 @@ export default function LandingPage() {
                 Prepare convincing evidence for your next opportunity.
               </h1>
               <p className="text-xl lg:text-2xl font-bold text-black/70 mb-8">
-                Turn your CV and real work into a professional page you feel confident sharing — no hosting to manage, and it can answer follow-up questions for you.
+                Turn your CV into a professional web page you're proud to share. No web hosting. It even answers follow-up questions for you.
               </p>
               <div className="flex gap-4 flex-wrap">
                 <button
@@ -189,7 +189,7 @@ export default function LandingPage() {
                 <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> No account to try it</span>
                 <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Free to start</span>
                 <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Private until you publish</span>
-                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> No hosting or domain needed</span>
+                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> No web hosting needed</span>
                 <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Recruiters can ask it questions</span>
               </div>
               <button

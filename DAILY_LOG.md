@@ -717,3 +717,50 @@
 **Blocked/untested:** Codex browser-use allowance ended before the last ten-cycle save run and 200% zoom repeat. Direct signup/verification, database-backed guest claim, true two-tab conflicts, free/paid publication and chat endpoints require the authorised isolated Replit environment. The supplied private CV was reviewed locally; automatic approval review rejected sending it to Gemini without explicit external-transmission consent. No production action was taken.
 
 **Next:** Run the additive SQL and acceptance checklist in the development environment. Do not deploy until the unchecked release gates pass. Do not run `db:push` if it proposes deleting or renaming `session`.
+
+---
+
+## 2026-09-26
+
+**Tasks Completed**
+- Fixed expired live Stripe key blocking all checkout
+- Root-caused and fixed a real account-data bug: logged-in users' drafts could silently inherit an unrelated guest CV upload
+- Merged `codex/proxy-experience-correction` (19 commits, new page-builder redesign) into `main`, deployed to production
+- Fixed guest session cookie never being set (express-session), which broke all post-upload guest editing
+- Fixed a recurring save crash from AI-generated text exceeding field length limits (multiple occurrences)
+- Fixed raw validation errors leaking to users; fixed duplicate "Add work" button
+- Fixed missing post-publish dashboard navigation; fixed bot answers losing paragraph formatting
+- Fixed welcome/tips email copy mismatched with the new signup flow
+- Cleaned up stray corrupted production data from the earlier incident
+- Made the "use existing profile" path prominent for legacy accounts; added dashboard clarity note
+
+**Files Modified**
+- server/profile-builder-routes.ts, server/profile-builder.ts — core bug fixes
+- server/index.ts, server/ai-processor.ts, server/routes.ts, server/emails.ts — error handling, bot prompts, email copy
+- client/src/pages/builder.tsx, dashboard.tsx, portfolio.tsx, client/src/components/profile-document-view.tsx — UI fixes
+
+**Blockers**
+- None. Handed off a copywrite/email review prompt for Codex; not yet run.
+
+---
+
+## 2026-09-26
+
+**Tasks Completed**
+- Implemented all 21 findings from a copy audit comparing Proxy's promises against actual code
+- Fixed a real privacy bug: unaccepted "Improve" answers were leaking into the public AI explorer's context
+- Added real file deletion on account delete (headshot/video/CV were never removed from storage)
+- Fixed missing "page is live" email on the new Page Builder's publish route
+- Fixed nudge cron silently skipping feedback/tips/digest emails whenever no free-tier user needed nudging that hour
+- Added a real total visitor-question count (was capped at 10, shown as total)
+- Removed Concierge from self-serve pricing (homepage + dashboard) — already dropped from PaymentGate, never matched elsewhere
+- Redesigned pricing UI as Pro-hero + Free-secondary layout on both pages
+- Fixed a stale CLAUDE.md deploy instruction pointing at a defunct dev branch
+
+**Files Modified**
+- 27 files across client pages/components and server routes/emails/storage — merged to main via `copy-audit-fixes`
+- PaymentGate.tsx, landing.tsx, faq.tsx, terms.tsx — Concierge removal + redesign, on branch `remove-concierge-pricing-redesign` (pushed, not yet merged)
+
+**Blockers**
+- Object-storage file deletion and the new profile-live email untested against a live server — verify on Replit
+- `remove-concierge-pricing-redesign` branch awaiting merge to main

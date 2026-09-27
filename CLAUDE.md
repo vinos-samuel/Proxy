@@ -8,7 +8,67 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-09-01 (Session 12)
+## Current Sprint — 2026-09-26 (Session 14)
+**Status:** All 21 findings from a copy-vs-code audit are implemented. `copy-audit-fixes` branch merged to `main` and pushed — Vinos pulled it on Replit workspace and confirmed the pricing section renders correctly. A second branch, `remove-concierge-pricing-redesign`, is pushed but **not yet merged** — needs Vinos's review and merge before deploy.
+
+**Completed:**
+- Fixed a real privacy bug: an "Improve" answer entered the public AI explorer's background as soon as a suggestion was generated, before the user accepted it — even a skipped suggestion stayed there. Now only entered on explicit accept (`server/profile-builder.ts`, `server/profile-builder-routes.ts`)
+- Added real object-storage file deletion on account delete — headshot/video/CV were previously only removed from the DB, never from storage (`server/storage.ts`, `objectStorage.ts`)
+- Fixed the new Page Builder's `/api/builder/publish` route never sending the "your page is live" email — only legacy publish paths did
+- Fixed `nudge-cron.ts` early-returning for the entire hourly tick whenever no free-tier profile needed an edit-window/engagement nudge, silently skipping feedback/tips/weekly-digest emails for everyone else that hour
+- Added a real total visitor-question count (`storage.getAnalytics`) — dashboard and emails previously showed a count capped at the last 10 rows and presented it as a total
+- Made the tips email's opening line conditional on actual publish state instead of assuming every recipient had published
+- Added a `LegacyRoute` guard on `/questionnaire` (previously only `/preview` and `/interview` had it) so current-Builder accounts can't land on the legacy form
+- Documented PostHog/GA4/Meta Pixel in `privacy.tsx` — it claimed no third-party tracking while all three were live in `index.html`
+- Rerouted landing-page pricing/final CTAs from `/register` straight to `/try`, matching the hero button's existing discovery-first pattern
+- Removed Concierge from self-serve pricing on the homepage, FAQ, and terms — it had already been dropped from the dashboard's `PaymentGate` tier list in an earlier, unlogged change, but never removed from marketing copy. Backend (`server/routes.ts`, `payment-success.tsx`) still accepts a `concierge` tier — left alone on the assumption it's still sold manually, not confirmed with Vinos
+- Redesigned both pricing UIs (homepage + dashboard) as a Pro-hero card with Free as a smaller secondary strip, now that there are only two self-serve tiers
+- Fixed dozens of smaller copy issues: unsupported absolute claims, a dead "Delete Draft" button pointing at a nonexistent route, internal-looking `SCREAMING_SNAKE_CASE` feature labels, stale "11-step questionnaire" (it's 12), "Context Ingestion"/"career proxy" jargon, developer-facing 404 text
+- Updated the stale `claude/fix-build-hanging-7MnVR` dev-branch instruction below — that branch is far enough behind `main` that merging it would have deleted the current Page Builder redesign
+
+**Where we stopped:** `copy-audit-fixes` is merged to main and live on the Replit workspace preview, confirmed visually by Vinos. `remove-concierge-pricing-redesign` is pushed to GitHub but not yet merged — waiting on Vinos's review.
+
+**What's next:**
+- Vinos: review and merge `remove-concierge-pricing-redesign`, then deploy both branches' combined changes to production
+- Verify on Replit (not tested locally — no local DB): object-storage file deletion on account delete, the new profile-live email send on `/api/builder/publish`, the privacy fix (skip a suggestion, confirm it never reaches the AI explorer)
+- Confirm with Vinos whether Concierge ($499) is still sold at all (e.g. manually after a discovery call) — if not, strip the backend/`payment-success.tsx` support too
+- Vinos wants to start GTM on the refreshed Proxy next week using a tool called "Origami" — not yet scoped, no context captured on what it is or how Claude's involved
+
+**Architecture decisions made this session:**
+- A "suggested change" only becomes background the public AI explorer can draw on once the owner explicitly accepts it (`applyProposal`) — never at the moment it's proposed. Any future feature that lets an owner preview AI-facing content before it's public must gate on acceptance, not generation
+- Nudge cron's independent email programs (feedback, tips, digest) must never share a single early-return with the free-tier nudge loop — each program's due-list should be fetched and processed unconditionally
+- Topic branches are per-session and named for the work (e.g. `copy-audit-fixes`), never a fixed dev-branch name — see the updated deploy section below for why
+
+## Previous Sprint — 2026-09-26 (Session 13)
+**Status:** `codex/proxy-experience-correction` (the redesign branch from Sessions before this one, 19 commits, never previously merged) is now merged to `main` and deployed to production. All bugs found during today's testing are fixed and deployed. Production data cleaned up.
+
+**Completed:**
+- Fixed expired live Stripe key (`STRIPE_SECRET_KEY` rotated in Stripe + both Workspace and Deployment secrets)
+- Found and fixed a real bug: a logged-in user's CV upload could silently overwrite an unrelated existing account's draft with no confirmation — added a `confirmReplace` guard on `/api/builder/upload`
+- Found a second related bug: `loadBuilder()` let a logged-in user with no working draft yet silently inherit a stray guest session's draft — now returns null instead, guest content only reachable via explicit `/api/builder/adopt-guest`
+- Merged `codex/proxy-experience-correction` into `main` (50 files, schema changes: new `active_document` column, new `guest_profile_documents` table) — resolved via a real `git merge`, not cherry-picking, with both branches' independent guest-draft-isolation fixes reconciled
+- Fixed guest session cookie never being sent after CV upload (root cause: express-session's `shouldSetCookie()` requires the session object to actually change, not just `.save()` — verified against `node_modules/express-session` source directly)
+- Fixed a recurring save-crash: AI-generated "improve" text (bounded to 2500 chars) written into fields with smaller real limits (headline 240, project fields 900, experience summary 800, source label 160) — found via exhaustive automated curl testing across all 3 sample CVs, two separate occurrences (one in `applyProposal`, one — the one actually hit in practice — in `/api/builder/improve` directly)
+- Stopped raw ZodError dumps from reaching users (global error handler in `server/index.ts`); made it show just the failing field name for fast diagnosis without needing server logs
+- Fixed bot answers collapsing into one dense paragraph — the "no markdown" anti-hallucination prompt rule had also banned all line breaks; now explicitly allows paragraph breaks while still banning markdown syntax characters
+- Fixed missing post-publish navigation (no way back to dashboard except a buried footer link)
+- Fixed welcome/tips email copy that assumed a cold registration, not a guest-draft-first signup
+- Cleaned up production data: deleted a stray `profile_documents` row on the `vinos` account left over from the account-overwrite bug (its `working_document` had another test persona's data; `published_document`/`active_document` were never populated — the live page has always rendered from legacy `twin_profiles` fields, confirmed by direct SQL)
+- Made the "use my existing profile" path prominent for any pre-existing account (published, ready, or draft) instead of a buried text link; added a dashboard note explaining "Add More Evidence" (enriches the current legacy live page) vs "Page Builder" (moves to the new design) are different tools
+
+**Where we stopped:** Everything tested today is deployed and verified live. No open bugs from this session.
+
+**What's next:**
+- Hand off the prepared Codex review prompt (copywrite, email templates, notification copy audit) — given to Vinos, not yet run
+- No other committed next item
+
+**Architecture decisions made this session:**
+- A logged-in user's CV upload must never silently replace an existing draft — always requires explicit confirmation, both server-side (`confirmReplace` param) and client-side (`window.confirm` prompt)
+- Guest session establishment requires an actual property write on `req.session`, not just calling `.save()` — `saveUninitialized: false` means an unmodified session never gets cookied regardless
+- Any value written into a bounded schema field must be clamped to that field's real limit at the point of assignment, not assumed safe because its own type allows more — this bit us twice in the same session on different fields
+- Global error handler never forwards a raw ZodError's message to the client, but does surface the failing field path + issue text (not the value) so bugs are diagnosable from a screenshot alone
+
+## Previous Sprint — 2026-09-01 (Session 12)
 **Status:** P0 + all 4 P1 items code-complete, typecheck clean (42 pre-existing errors unchanged, none new), build clean. Committed to branch `blog-fixes-cta-capture-share`. **Not yet on `main`, not yet deployed** — Vinos needs to merge and run deploy steps (schema change, see below).
 
 **This session completed:**
@@ -138,11 +198,12 @@ Digital Twin / AI-powered career profile builder. Users upload a resume, fill an
 ## REMIND VINOS EVERY TIME: How to deploy changes
 After Claude writes code, Vinos does these steps:
 
-**⚠️ CRITICAL — Claude's rule:** Every session, ALL commits go to the dev branch (`claude/fix-build-hanging-7MnVR`). Claude MUST end every session by telling Vinos to merge the dev branch into main. Work is NOT done until it is on main. Never leave commits only on the dev branch.
+**⚠️ CRITICAL — Claude's rule:** Every session, commits go to a new topic branch named for that session's work (e.g. `copy-audit-fixes`, `honest-copy-and-free-tier-fix`) — never straight onto `main`. Claude MUST end every session by telling Vinos the exact branch name and how to merge it into main. Work is NOT done until it is on main. Never leave commits only on a topic branch with no merge instructions.
+(History note: an earlier fixed branch name, `claude/fix-build-hanging-7MnVR`, was named here — it went stale and, as of 2026-09-26, is far enough behind `main` that merging it would delete the current Page Builder redesign. Don't merge it. Always check `git log main..<branch>` and `git diff main <branch> --stat` before merging any old branch, dev or otherwise.)
 
-**Step 1 — Merge dev branch and push from Mac terminal (from proxy folder):**
+**Step 1 — Merge this session's branch and push from Mac terminal (from proxy folder, replace `<branch>` with the name Claude gave you):**
 ```
-git fetch origin && git merge origin/claude/fix-build-hanging-7MnVR && git push origin main
+git checkout main && git merge <branch> && git push origin main
 ```
 
 **Step 2 — Pull on Replit Shell (ALWAYS use this, never plain `git pull`):**

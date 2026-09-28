@@ -21,54 +21,21 @@ export default function InsiderKit({ profileUrl, displayName, roleTitle }: Insid
   };
 
   return (
-    <div className="text-left max-w-lg mx-auto space-y-4" data-testid="insider-kit">
-      <p className="mono text-xs text-black/50 uppercase tracking-widest text-center">// how to send it</p>
-
-      <div className="bg-[#E8E8E3] border-[3px] border-black p-4">
-        <p className="mono text-xs font-bold uppercase tracking-wider mb-2">1. Copy your live link</p>
-        <p className="mono text-xs text-black/60 mb-3 break-all">{profileUrl}</p>
-        <button
-          onClick={() => copyItem("url", profileUrl)}
-          className="bg-black text-white px-4 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider"
-          data-testid="button-copy-url"
-        >
-          {copiedItem === "url" ? "Copied!" : "Copy link"}
-        </button>
+    <div className="kit" data-testid="insider-kit">
+      <p className="site-eyebrow">How to send it</p>
+      <div className="kit-item">
+        <div><b>Copy your link</b><p className="kit-mono">{profileUrl}</p></div>
+        <button type="button" className="site-btn site-btn--sm" onClick={() => copyItem("url", profileUrl)} data-testid="button-copy-url">{copiedItem === "url" ? "Copied" : "Copy link"}</button>
       </div>
-
-      <div className="bg-[#E8E8E3] border-[3px] border-black p-4">
-        <p className="mono text-xs font-bold uppercase tracking-wider mb-2">2. Send it to someone inside</p>
-        <p className="mono text-xs text-black/60 mb-3">
-          Someone who already works there — or who offered to help. A short note, the link, done. They can review your selected work before deciding whether to introduce you.
-        </p>
-        <p className="mono text-xs text-black/50 mb-3 whitespace-pre-line max-h-24 overflow-hidden">{insiderNote}</p>
-        <button
-          onClick={() => copyItem("note", insiderNote)}
-          className="bg-black text-white px-4 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider"
-          data-testid="button-copy-insider-note"
-        >
-          {copiedItem === "note" ? "Copied!" : "Copy a note to paste"}
-        </button>
+      <div className="kit-item">
+        <div><b>Send it to someone inside</b><p>Someone who already works there, or who offered to help. A short note and the link is enough.</p></div>
+        <button type="button" className="site-btn site-btn--quiet site-btn--sm" onClick={() => copyItem("note", insiderNote)} data-testid="button-copy-insider-note">{copiedItem === "note" ? "Copied" : "Copy a note"}</button>
       </div>
-
-      <div className="bg-[#E8E8E3] border-[3px] border-black p-4">
-        <p className="mono text-xs font-bold uppercase tracking-wider mb-2">3. Put the link where you already are</p>
-        <p className="mono text-xs text-black/60 mb-3 whitespace-pre-line">{emailSignature}</p>
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => copyItem("signature", emailSignature)}
-            className="bg-black text-white px-4 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider"
-            data-testid="button-copy-signature"
-          >
-            {copiedItem === "signature" ? "Copied!" : "Copy email signature"}
-          </button>
-          <button
-            onClick={() => copyItem("post", linkedInPost)}
-            className="bg-white text-black px-4 py-2 font-bold border-[3px] border-black mono text-xs uppercase tracking-wider"
-            data-testid="button-copy-linkedin-post"
-          >
-            {copiedItem === "post" ? "Copied!" : "Copy LinkedIn post"}
-          </button>
+      <div className="kit-item">
+        <div><b>Put it where people already see you</b><p>Your email signature and LinkedIn.</p></div>
+        <div className="kit-buttons">
+          <button type="button" className="site-btn site-btn--quiet site-btn--sm" onClick={() => copyItem("signature", emailSignature)} data-testid="button-copy-signature">{copiedItem === "signature" ? "Copied" : "Email signature"}</button>
+          <button type="button" className="site-btn site-btn--quiet site-btn--sm" onClick={() => copyItem("post", linkedInPost)} data-testid="button-copy-linkedin-post">{copiedItem === "post" ? "Copied" : "LinkedIn post"}</button>
         </div>
       </div>
     </div>

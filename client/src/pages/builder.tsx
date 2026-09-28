@@ -13,6 +13,7 @@ import { mergeProfileDocuments, setDocumentPath, type DocumentConflict } from "@
 import { useUpload } from "@/hooks/use-upload";
 import { useSpeechInput } from "@/hooks/use-speech-input";
 import { renderAnswer } from "@/lib/renderAnswer";
+import { takePendingCvUpload } from "@/lib/pending-cv-upload";
 
 type BuilderState = {
   document?: ProfileDocument;
@@ -278,6 +279,16 @@ export default function BuilderPage() {
     }
     setBusy(null);
   };
+
+  // A CV chosen on the homepage hero is handed over here once the workspace
+  // has loaded, so the visitor lands straight on the upload progress screen.
+  const pendingUploadCheckedRef = useRef(false);
+  useEffect(() => {
+    if (busy !== null || pendingUploadCheckedRef.current || fixtureMode) return;
+    pendingUploadCheckedRef.current = true;
+    const file = takePendingCvUpload();
+    if (file) void upload(file);
+  }, [busy, fixtureMode]);
 
   const saveDocument = (next: ProfileDocument, event?: string) => {
     if (!stateRef.current.revision) return Promise.resolve(null);

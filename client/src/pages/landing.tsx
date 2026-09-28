@@ -1,54 +1,139 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { FileText, Zap, Rocket, X, Check, Send, Loader2, MessageCircle, Globe } from "lucide-react";
-import ProxyLogo from "@/components/ProxyLogo";
+import { ArrowRight, Check, Loader2, Upload } from "lucide-react";
+import { SiteFooter, SiteNav } from "@/components/SiteChrome";
+import { TalkingO } from "@/components/ProxyLogo";
+import ProfileDocumentView from "@/components/profile-document-view";
 import { getCsrfToken } from "@/lib/queryClient";
 import { renderAnswer } from "@/lib/renderAnswer";
+import { setPendingCvUpload } from "@/lib/pending-cv-upload";
+import { visualProfileFixture } from "@/lib/profile-document-fixtures";
+import type { ProfileStyle } from "@shared/profile-document";
 
 // Demo account the hero widget mirrors. Kept as one constant so the widget
 // and the "see the full profile" link can never point at different accounts.
 const HERO_DEMO_USERNAME = "priya";
+const MAX_CV_BYTES = 5 * 1024 * 1024;
 
 interface HeroProfile {
   displayName: string;
   roleLine: string;
   photoUrl: string | null;
-  videoUrl: string | null;
-  quote: string | null;
   suggestedQuestions: string[];
 }
 
 // Shown until the live fetch resolves, and if it ever fails — matches her
-// real profile as of the Executive-theme switch, so there's never a blank
-// or broken-looking widget. The live fetch keeps this from drifting again.
+// real profile. The live fetch keeps this from drifting.
 const HERO_PROFILE_FALLBACK: HeroProfile = {
   displayName: "Priya Sharma",
   roleLine: "VP, Talent Acquisition & Workforce Strategy — Nexora Group",
   photoUrl: null,
-  videoUrl: null,
-  quote: "Priya Sharma leads APAC Talent Acquisition & Workforce Strategy, building scalable functions and governing multi-million dollar contingent workforces.",
   suggestedQuestions: [
     "What do you see as the biggest emerging challenge in talent acquisition for the APAC region?",
     "How do you leverage data and analytics to inform your talent strategy decisions?",
   ],
 };
 
-export default function LandingPage() {
-  const [, navigate] = useLocation();
+const DESIGNS: Array<{ key: ProfileStyle; label: string; mood: string }> = [
+  { key: "executive", label: "Executive", mood: "Confident and proven" },
+  { key: "editorial", label: "Editorial", mood: "Quiet and considered" },
+  { key: "modern", label: "Modern", mood: "Clear and structured" },
+  { key: "expressive", label: "Expressive", mood: "Warm and distinctive" },
+];
 
+function CvDrop({ id, compact = false }: { id: string; compact?: boolean }) {
+  const [, navigate] = useLocation();
+  const [problem, setProblem] = useState("");
+  const [dragging, setDragging] = useState(false);
+
+  const choose = (file: File | undefined) => {
+    if (!file) return;
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setProblem("Please choose a PDF. Most CV tools can export one.");
+      return;
+    }
+    if (file.size > MAX_CV_BYTES) {
+      setProblem("That file is over 5 MB. Try exporting the PDF again without images.");
+      return;
+    }
+    setPendingCvUpload(file);
+    navigate("/try");
+  };
+
+  return (
+    <div>
+      <label
+        htmlFor={id}
+        className={`landing-drop ${dragging ? "is-dragging" : ""} ${compact ? "landing-drop--compact" : ""}`}
+        onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(event) => { event.preventDefault(); setDragging(false); choose(event.dataTransfer.files?.[0]); }}
+        data-testid={`${id}-drop`}
+      >
+        <span className="site-btn"><Upload /> Upload your CV</span>
+        <small>or drop a PDF here · up to 5 MB</small>
+        <input id={id} type="file" accept="application/pdf" onChange={(event) => choose(event.target.files?.[0])} />
+      </label>
+      {problem && <p className="landing-drop-problem" role="alert">{problem}</p>}
+    </div>
+  );
+}
+
+function DesignShowcase() {
+  const [style, setStyle] = useState<ProfileStyle>("executive");
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.5);
+  const sample = visualProfileFixture(style);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const update = () => setScale(frame.clientWidth / 1120);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div className="landing-designs">
+      <div className="landing-design-tabs" role="tablist" aria-label="Page designs">
+        {DESIGNS.map((design) => (
+          <button
+            key={design.key}
+            role="tab"
+            aria-selected={style === design.key}
+            className={style === design.key ? "is-active" : ""}
+            onClick={() => setStyle(design.key)}
+          >
+            <b>{design.label}</b>
+            <span>{design.mood}</span>
+          </button>
+        ))}
+      </div>
+      <div className="landing-design-frame" ref={frameRef} aria-label={`Sample page in the ${style} design`}>
+        <div className="landing-design-scaler" style={{ transform: `scale(${scale})` }} aria-hidden="true">
+          <ProfileDocumentView document={sample} />
+        </div>
+        <span className="landing-design-note">Sample page</span>
+      </div>
+    </div>
+  );
+}
+
+export default function LandingPage() {
   // Live chat-in-hero — ask the demo profile a real question, no click-through.
   // Uses the same public, unauthenticated /api/chat/:username endpoint the
   // portfolio page itself uses.
   const [heroQuestion, setHeroQuestion] = useState("");
+  const [heroAsked, setHeroAsked] = useState("");
   const [heroAnswer, setHeroAnswer] = useState("");
   const [heroAsking, setHeroAsking] = useState(false);
+  const [heroProfile, setHeroProfile] = useState<HeroProfile>(HERO_PROFILE_FALLBACK);
 
   // Name, role line, photo and suggested questions are fetched live from the
   // same public /api/portfolio/:username endpoint the real page uses — never
-  // hardcoded — so the hero can't drift out of sync with her actual profile
-  // the way it used to (invented name, invented questions).
-  const [heroProfile, setHeroProfile] = useState<HeroProfile>(HERO_PROFILE_FALLBACK);
-
+  // hardcoded — so the hero can't drift out of sync with her actual profile.
   useEffect(() => {
     fetch(`/api/portfolio/${HERO_DEMO_USERNAME}`)
       .then((res) => {
@@ -63,13 +148,10 @@ export default function LandingPage() {
         if (!p) return;
         const roleLine = [p.roleTitle, p.careerTimeline?.[0]?.company].filter(Boolean).join(" — ");
         const questions = (p.portfolioSuggestedQuestions || []).slice(0, 2);
-        const quote = (p.positioning || "").split("\n\n").filter(Boolean)[0] || null;
         setHeroProfile({
           displayName: p.displayName || HERO_PROFILE_FALLBACK.displayName,
           roleLine: roleLine || HERO_PROFILE_FALLBACK.roleLine,
           photoUrl: p.photoUrl || null,
-          videoUrl: p.videoUrl || null,
-          quote: quote || HERO_PROFILE_FALLBACK.quote,
           suggestedQuestions: questions.length ? questions : HERO_PROFILE_FALLBACK.suggestedQuestions,
         });
       })
@@ -83,6 +165,8 @@ export default function LandingPage() {
     const text = question.trim();
     if (!text || heroAsking) return;
     setHeroAsking(true);
+    setHeroAsked(text);
+    setHeroQuestion("");
     setHeroAnswer("");
     try {
       const csrfToken = getCsrfToken();
@@ -98,624 +182,156 @@ export default function LandingPage() {
         console.error(`[hero] /api/chat/${HERO_DEMO_USERNAME} → ${response.status}`);
         setHeroAnswer(
           response.status === 429
-            ? "This demo is getting a lot of questions right now — give it a minute and try again, or ask it on the full profile below."
-            : "That's worth a real answer — ask it on the full profile below."
+            ? "This demo is getting a lot of questions right now. Give it a minute, or ask on her full page."
+            : "That's worth a real answer. Ask it on her full page."
         );
         return;
       }
       const data = await response.json();
-      setHeroAnswer(data.content || "That's worth a real answer — ask it on the full profile below.");
+      setHeroAnswer(data.content || "That's worth a real answer. Ask it on her full page.");
     } catch (err) {
       console.error(`[hero] /api/chat/${HERO_DEMO_USERNAME} request failed`, err);
-      setHeroAnswer("That's worth a real answer — ask it on the full profile below.");
+      setHeroAnswer("That's worth a real answer. Ask it on her full page.");
     } finally {
       setHeroAsking(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-white text-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-
-      {/* Nav */}
-      <nav className="border-b-[3px] border-black bg-[#D1D1CC] sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
-          <Link href="/">
-            <div className="cursor-pointer" data-testid="text-brand-name">
-              <ProxyLogo />
-            </div>
-          </Link>
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="/about"><span className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider cursor-pointer">About</span></Link>
-            <Link href="/blog"><span className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider cursor-pointer">Blog</span></Link>
-            <Link href="/faq"><span className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider cursor-pointer">FAQ</span></Link>
-            <a href="#how" className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider">How</a>
-            <a href="#pricing" className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider">Pricing</a>
-            <button
-              onClick={() => navigate("/login")}
-              className="mono text-sm text-black/60 hover:text-black uppercase tracking-wider"
-              data-testid="link-login"
-            >
-              Login
-            </button>
-            <button
-              onClick={() => navigate(`/portfolio/${HERO_DEMO_USERNAME}?demo=true`)}
-              className="bg-[#22C55E] text-black px-6 py-3 font-bold hover:bg-[#16A34A] border-[3px] border-black mono text-sm uppercase tracking-wider"
-              data-testid="link-register"
-            >
-              SEE A LIVE EXAMPLE &rarr;
-            </button>
-          </div>
-        </div>
-      </nav>
+    <div className="site">
+      <SiteNav />
 
       {/* 1. Hero */}
-      <section className="px-6 py-20 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <section className="landing-hero">
+        <div className="landing-hero-copy">
+          <h1 className="site-display landing-h1" data-testid="text-hero-headline">
+            Your CV can't answer questions. <em>Your page can.</em>
+          </h1>
+          <p className="landing-sub">Upload your CV. See your finished page in a minute, then share one link.</p>
+          <CvDrop id="hero-cv" />
+          <p className="landing-trust">Free · No account needed to try · Private until you publish</p>
+        </div>
 
-            {/* Left column */}
+        <div className="landing-demo" aria-label={`Live example: ${heroProfile.displayName}'s page`}>
+          <div className="landing-demo-top">
+            <span>myproxy.work/portfolio/{HERO_DEMO_USERNAME}</span>
+            <span className="landing-live"><i />Live</span>
+          </div>
+          <div className="landing-demo-who">
+            {heroProfile.photoUrl
+              ? <img src={heroProfile.photoUrl} alt="" />
+              : <span className="landing-demo-initial">{heroProfile.displayName.charAt(0)}</span>}
             <div>
-              <h1 className="text-4xl lg:text-6xl font-bold leading-tight mb-3" data-testid="text-hero-headline">
-                Prepare convincing evidence for your next opportunity.
-              </h1>
-              <p className="text-xl lg:text-2xl font-bold text-black/70 mb-8">
-                Turn your CV into a professional web page you're proud to share. No web hosting. It even answers follow-up questions for you.
-              </p>
-              <div className="flex gap-4 flex-wrap">
-                <button
-                  onClick={() => navigate("/try")}
-                  className="bg-[#22C55E] text-black px-8 py-4 font-bold hover:bg-[#16A34A] border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-                  data-testid="button-hero-cta"
-                >
-                  Try It With Your CV — Free &rarr;
-                </button>
-                <a
-                  href={`https://myproxy.work/portfolio/${HERO_DEMO_USERNAME}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-white text-black px-8 py-4 font-bold border-[3px] border-black hover:bg-gray-100 mono shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex flex-col items-center"
-                  data-testid="button-view-demo"
-                >
-                  <span className="uppercase tracking-wider text-sm">See a live example &rarr;</span>
-                  <span className="text-xs text-black/50 font-normal normal-case tracking-normal mt-0.5">See how real experience can read as a page</span>
-                </a>
-              </div>
-              <div className="mt-4 bg-[#F0FDF4] border-[2px] border-[#22C55E] px-4 py-3">
-                <p className="text-sm text-black/80">
-                  🔒 <strong>Your data stays yours.</strong> Your profile is private until you publish it. We don't sell your data or use it to train AI models.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 mono text-xs font-bold uppercase tracking-wider text-black/60">
-                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> No account to try it</span>
-                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Free to start</span>
-                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Private until you publish</span>
-                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> No web hosting needed</span>
-                <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#22C55E]" /> Recruiters can ask it questions</span>
-              </div>
-              <button
-                onClick={() => navigate("/register")}
-                className="text-sm text-black/50 hover:text-black underline mt-3"
-              >
-                Already sure? Create an account directly &rarr;
-              </button>
-              <p className="text-base font-semibold text-black mt-5">
-                See a finished page first. Improve only the parts that need more evidence.
-              </p>
-            </div>
-
-            {/* Right column — a live, scaled Executive-theme card. Same paper
-                background, serif headline, hairline borders and mono labels
-                as the real portfolio page, so what you see here is what you
-                get — not the landing page's own separate look. */}
-            <div className="border border-[#DBD9CD] bg-[#F2F1EC] text-[#1B211E]" style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif" }}>
-              <style>{`
-                .hero-dossier-serif { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif; }
-                .hero-dossier-mono { font-family: "SF Mono", "IBM Plex Mono", Menlo, Consolas, monospace; }
-              `}</style>
-
-              <div className="flex items-center justify-between px-5 py-3 border-b border-[#DBD9CD]">
-                <div className="hero-dossier-mono text-[11px] tracking-wide text-[#5B6158]">
-                  PROXY / EXECUTIVE PROFILE
-                </div>
-                <div className="hero-dossier-mono text-[11px] uppercase tracking-wider text-[#5B6158] flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#2F5D4C] inline-block" />
-                  Published
-                </div>
-              </div>
-
-              <div className="px-5 pt-5 pb-4 border-b border-[#DBD9CD]">
-                <div className="flex items-center gap-3 mb-3">
-                  {heroProfile.photoUrl ? (
-                    <img
-                      src={heroProfile.photoUrl}
-                      alt={heroProfile.displayName}
-                      className="w-10 h-10 rounded-full object-cover border border-[#DBD9CD] shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-[#2F5D4C] flex items-center justify-center hero-dossier-serif text-[#F2F1EC] text-lg shrink-0">
-                      {heroProfile.displayName.charAt(0)}
-                    </div>
-                  )}
-                  <div>
-                    <div className="hero-dossier-serif text-[20px] leading-tight">{heroProfile.displayName}</div>
-                    <div className="hero-dossier-mono text-[11px] text-[#5B6158] uppercase tracking-wide">{heroProfile.roleLine}</div>
-                  </div>
-                </div>
-                {heroProfile.quote && (
-                  <p className="hero-dossier-serif italic text-[15px] leading-relaxed text-[#1B211E] pl-4 border-l-2 border-[#2F5D4C] mt-4">
-                    {heroProfile.quote}
-                  </p>
-                )}
-              </div>
-
-              {/* Her real intro video, fetched live from her profile — not
-                  a pre-recorded stand-in. Same controls-not-autoplay
-                  treatment the real Executive theme uses, since it's a
-                  real video with her actual voice. */}
-              {heroProfile.videoUrl && (
-                <video
-                  src={heroProfile.videoUrl}
-                  controls
-                  className="w-full border-b border-[#DBD9CD] block"
-                  data-testid="video-hero-intro"
-                />
-              )}
-
-              <div className="px-5 py-5">
-                <h3 className="hero-dossier-serif text-[17px] mb-1">Ask directly</h3>
-                <div className="hero-dossier-mono text-[10.5px] text-[#8B8F84] mb-4">Answered by her AI proxy, from her own record.</div>
-
-                {heroAnswer && (
-                  <div className="hero-dossier-serif text-[15px] leading-relaxed pl-4 border-l border-[#C3C0B0] mb-4" data-testid="text-hero-answer">
-                    {renderAnswer(heroAnswer)}
-                  </div>
-                )}
-                {heroAsking && (
-                  <div className="flex items-center gap-2 text-[#8B8F84] text-sm mb-4">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Answering…
-                  </div>
-                )}
-
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    askHeroDemo(heroQuestion);
-                  }}
-                  className="flex gap-2.5 border-t border-[#DBD9CD] pt-4"
-                >
-                  <input
-                    value={heroQuestion}
-                    onChange={(e) => setHeroQuestion(e.target.value)}
-                    placeholder="Ask about a project, a decision, or a result…"
-                    className="flex-1 bg-transparent border-b border-[#C3C0B0] px-0.5 py-2 text-[14px] text-[#1B211E] outline-none focus:border-[#2F5D4C] placeholder:text-[#8B8F84]"
-                    data-testid="input-hero-chat"
-                  />
-                  <button
-                    type="submit"
-                    disabled={heroAsking || !heroQuestion.trim()}
-                    className="hero-dossier-mono text-[11px] uppercase tracking-wide border border-[#1B211E] px-4 disabled:opacity-40 hover:bg-[#1B211E] hover:text-[#F2F1EC] transition-colors"
-                    data-testid="button-hero-chat-send"
-                  >
-                    {heroAsking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Ask"}
-                  </button>
-                </form>
-
-                {!heroAnswer && !heroAsking && (
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {heroProfile.suggestedQuestions.map((q, i) => (
-                      <button
-                        key={i}
-                        onClick={() => { setHeroQuestion(q); askHeroDemo(q); }}
-                        className="hero-dossier-mono text-[10.5px] text-[#5B6158] border border-[#C3C0B0] px-3 py-1.5 text-left hover:border-[#2F5D4C] hover:text-[#2F5D4C] transition-colors"
-                        data-testid={`button-hero-suggestion-${i}`}
-                      >
-                        {q}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                <p className="hero-dossier-mono text-[10.5px] text-[#8B8F84] mt-4 text-center">
-                  Real conversation ·{" "}
-                  <a href={`https://myproxy.work/portfolio/${HERO_DEMO_USERNAME}`} target="_blank" rel="noopener noreferrer" className="text-[#2F5D4C] hover:underline">see the full profile</a>
-                </p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* 1.5 Trust strip */}
-      <div className="border-t-[3px] border-b-[3px] border-black bg-[#F5F5F0] py-4 px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-1 mono text-xs uppercase tracking-widest text-black/50">
-          <span>Used by professionals with experience at</span>
-          <span className="font-bold text-black">Airtable</span>
-          <span>·</span>
-          <span className="font-bold text-black">HSBC</span>
-        </div>
-      </div>
-
-      {/* 2. Problem / Solution */}
-      <section className="px-6 py-20 border-t-[3px] border-black bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// the_problem</div>
-          <h2 className="text-5xl font-bold mb-16">The resume had a good run.</h2>
-
-          <div className="grid lg:grid-cols-2 gap-8">
-            <div className="bg-[#D1D1CC] border-[3px] border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              <h3 className="text-3xl font-bold mb-6 text-black/50">THE RESUME</h3>
-              <div className="space-y-5">
-                {[
-                  { title: "Skimmed in seconds, then silence", desc: "One-way broadcast" },
-                  { title: "Lost in the ATS", desc: "Filtered before a human sees it" },
-                  { title: "Static — says what you did", desc: "Doesn't explain why it mattered" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <X className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
-                    <div>
-                      <div className="font-bold text-black">{item.title}</div>
-                      <div className="mono text-sm text-black/60">{item.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-[#22C55E] border-[3px] border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              <h3 className="text-3xl font-bold mb-6">YOUR PROXY</h3>
-              <div className="space-y-5">
-                {[
-                  { title: "A real conversation, then a call", desc: "Two-way engagement" },
-                  { title: "Shared as a link, direct to a human", desc: "Share directly with a person." },
-                  { title: "Dynamic — explains why it mattered", desc: "Your stories, your metrics, your voice" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-black mt-0.5 shrink-0" />
-                    <div>
-                      <div className="font-bold text-black">{item.title}</div>
-                      <div className="mono text-sm text-black/70">{item.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <b>{heroProfile.displayName}</b>
+              <small>{heroProfile.roleLine}</small>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* 4. How It Works */}
-      <section id="how" className="px-6 py-20 border-t-[3px] border-black bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// how_it_works</div>
-          <h2 className="text-5xl font-bold mb-16">How It Works</h2>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <div className="mono text-xs text-black/60 mb-2 uppercase tracking-widest">// step_01</div>
-              <div className="text-6xl font-bold text-[#22C55E]">01</div>
-              <div className="flex items-center gap-3 mb-4 mt-4">
-                <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center shrink-0">
-                  <FileText className="h-6 w-6" />
-                </div>
-                <span className="mono text-xs font-bold border-[2px] border-black bg-white px-2 py-1 uppercase tracking-wider">First draft</span>
-              </div>
-              <h3 className="text-2xl font-bold mt-4 mb-3">Upload your CV</h3>
-              <p className="mono text-sm text-black/70 leading-relaxed">Proxy reads your PDF and builds a polished first page from the experience already in it. No questionnaire before you see the result.</p>
-            </div>
-
-            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <div className="mono text-xs text-black/60 mb-2 uppercase tracking-widest">// step_02</div>
-              <div className="text-6xl font-bold text-[#22C55E]">02</div>
-              <div className="flex items-center gap-3 mb-4 mt-4">
-                <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center shrink-0">
-                  <Rocket className="h-6 w-6" />
-                </div>
-                <span className="mono text-xs font-bold border-[2px] border-black bg-white px-2 py-1 uppercase tracking-wider">Optional</span>
-              </div>
-              <h3 className="text-2xl font-bold mt-4 mb-3">Strengthen one section</h3>
-              <p className="mono text-sm text-black/70 leading-relaxed">Answer a useful question about a project or result. See the exact section change, then keep it, edit it, skip it, or undo it.</p>
-            </div>
-
-            <div className="border-[3px] border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <div className="mono text-xs text-black/60 mb-2 uppercase tracking-widest">// step_03</div>
-              <div className="text-6xl font-bold text-[#22C55E]">03</div>
-              <div className="flex items-center gap-3 mb-4 mt-4">
-                <div className="w-12 h-12 bg-[#E8E8E3] border-[2px] border-black flex items-center justify-center shrink-0">
-                  <Zap className="h-6 w-6" />
-                </div>
-                <span className="mono text-xs font-bold border-[2px] border-black bg-white px-2 py-1 uppercase tracking-wider">Your choice</span>
-              </div>
-              <h3 className="text-2xl font-bold mt-4 mb-3">Approve, publish, share</h3>
-              <p className="mono text-sm text-black/70 leading-relaxed">Choose a design, approve the exact version, and share one clear link. The AI explorer is optional and uses approved public information only.</p>
-            </div>
+          <div className="landing-demo-chat" aria-live="polite">
+            {!heroAsked && <p className="landing-demo-hint">Ask her page anything about her work. It answers from what she approved.</p>}
+            {heroAsked && <p className="landing-q">{heroAsked}</p>}
+            {heroAsking && <p className="landing-a landing-a--typing"><TalkingO className="landing-typing" /> Answering…</p>}
+            {heroAnswer && <div className="landing-a" data-testid="text-hero-answer">{renderAnswer(heroAnswer)}</div>}
           </div>
-        </div>
-      </section>
-
-      {/* 5. Two things that make this different */}
-      <section className="px-6 py-20 border-t-[3px] border-black bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// what_makes_this_different</div>
-          <h2 className="text-5xl font-bold mb-16">Not just a webpage.</h2>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="border-[3px] border-black bg-[#22C55E] p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              <div className="w-14 h-14 bg-white border-[3px] border-black flex items-center justify-center mb-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                <MessageCircle className="h-7 w-7 text-black" />
-              </div>
-              <h3 className="text-2xl font-bold mb-3">Recruiters can ask it questions</h3>
-              <p className="mono text-sm text-black/80 leading-relaxed">Turn on "Ask about my work" and a visitor can ask a follow-up right there — "tell me more about that project," "have you managed a team this size" — and get an answer grounded in what you approved. No back-and-forth email just to get the one detail they actually needed.</p>
+          {!heroAsked && (
+            <div className="landing-demo-chips">
+              {heroProfile.suggestedQuestions.map((q, i) => (
+                <button key={i} type="button" onClick={() => askHeroDemo(q)} data-testid={`button-hero-suggestion-${i}`}>{q}</button>
+              ))}
             </div>
-
-            <div className="border-[3px] border-black bg-black text-white p-8 shadow-[8px_8px_0px_0px_rgba(34,197,94,1)]">
-              <div className="w-14 h-14 bg-[#22C55E] border-[3px] border-black flex items-center justify-center mb-6 shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)]">
-                <Globe className="h-7 w-7 text-black" />
-              </div>
-              <h3 className="text-2xl font-bold mb-3">No hosting, no domain, live in minutes</h3>
-              <p className="mono text-sm text-white/70 leading-relaxed">A personal site means buying a domain, picking a builder, and maintaining it. Proxy skips all of that — upload your CV, review the page, publish, and it's live at your own link. Nothing to host, renew, or break.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Why candidates use Proxy */}
-      <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
-        <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// why_candidates_use_proxy</div>
-          <h2 className="text-5xl font-bold mb-16">What you actually get.</h2>
-
-          <div className="grid lg:grid-cols-2 gap-12">
-            {/* Left — why */}
-            <div>
-              <h3 className="text-xl font-bold mb-6 mono uppercase tracking-wider">Why candidates use it</h3>
-              <div className="space-y-4">
-                {[
-                  { title: "More context, less friction", desc: "Give people more context before the first call." },
-                  { title: "Get referred more easily", desc: "Give contacts the context to actually vouch for you — not just forward your CV." },
-                  { title: "Start the interview before it begins", desc: "They arrive already knowing your work. The call starts one step ahead." },
-                  { title: "One link instead of five documents", desc: "One link for your selected work, career history, and contact details." },
-                  { title: "Stand out from candidates using only resumes", desc: "At your level, everyone has the same CV. This is how you don't." },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-4">
-                    <div className="w-2 h-2 bg-[#22C55E] mt-2 shrink-0 border border-black"></div>
-                    <div>
-                      <div className="font-bold text-black">{item.title}</div>
-                      <div className="mono text-sm text-black/60 leading-relaxed">{item.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right — three ways to use it */}
-            <div>
-              <h3 className="text-xl font-bold mb-6 mono uppercase tracking-wider">How people actually use it</h3>
-              <div className="space-y-4">
-                {[
-                  { step: "01", text: "Put the link in your email signature" },
-                  { step: "02", text: "Put it on your LinkedIn" },
-                  { step: "03", text: "Send it instead of a CV when someone asks" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-4 border-[2px] border-black bg-white p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                    <div className="mono text-2xl font-bold text-[#22C55E] shrink-0">{item.step}</div>
-                    <p className="mono text-sm text-black/70 leading-relaxed pt-1">{item.text}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. Referral edge */}
-      <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
-        <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-black/50 mb-6 uppercase tracking-widest">// the_referral_edge</div>
-          <div className="max-w-2xl mb-10">
-            <p className="text-3xl lg:text-4xl font-bold text-black leading-tight">Your network wants to help. They just don't have enough to go on.</p>
-          </div>
-          <div className="grid lg:grid-cols-2 gap-6">
-            <div className="border-[3px] border-black p-8 bg-[#D1D1CC] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <h3 className="text-2xl font-bold mb-4 text-black/50">THE PROBLEM</h3>
-              <div className="space-y-4 text-black/70 mono text-sm leading-relaxed">
-                <p>"Let me send over their CV" isn't enough to stake a professional reputation on.</p>
-                <p>To make a real referral, someone needs to understand your work — what you've built, how you think, what makes you different. A PDF doesn't give them that.</p>
-                <p className="font-bold text-black">Most referrals don't happen because the goodwill is there, but the context isn't.</p>
-              </div>
-            </div>
-            <div className="border-[3px] border-black p-8 bg-[#22C55E] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <h3 className="text-2xl font-bold mb-4">THE PROXY EDGE</h3>
-              <div className="space-y-4 mono text-sm leading-relaxed">
-                <p>Share your Proxy link with anyone who's offered to help. They can review specific work and understand what you have actually done.</p>
-                <p>They go from "I vaguely know this person" to "I can genuinely vouch for this person" — in minutes, not months.</p>
-                <p className="font-bold">The referral happens because they actually understood you.</p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-6 mono text-xs text-black/40 text-right">// send a link, not a file</div>
-        </div>
-      </section>
-
-      {/* 7.7 Comparison table */}
-      <section className="px-6 py-20 border-t-[3px] border-black bg-[#E8E8E3]">
-        <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// the_comparison</div>
-          <h2 className="text-5xl font-bold mb-4">A portfolio page is a résumé you can scroll.</h2>
-          <p className="text-2xl font-bold text-[#22C55E] mb-16">Turn the evidence behind your CV into a page people can explore.</p>
-
-          <div className="overflow-x-auto border-[3px] border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <table className="w-full min-w-[720px] border-collapse">
-              <thead>
-                <tr className="border-b-[3px] border-black">
-                  <th className="text-left p-5 mono text-xs uppercase tracking-widest text-black/50 font-bold">Feature</th>
-                  <th className="text-left p-5 bg-[#22C55E] mono text-sm uppercase tracking-widest font-bold">Proxy</th>
-                  <th className="text-left p-5 mono text-sm uppercase tracking-widest text-black/60 font-bold">Resume / CV</th>
-                  <th className="text-left p-5 mono text-sm uppercase tracking-widest text-black/60 font-bold">LinkedIn Profile</th>
-                  <th className="text-left p-5 mono text-sm uppercase tracking-widest text-black/60 font-bold">Portfolio Site</th>
-                </tr>
-              </thead>
-              <tbody className="mono text-sm">
-                {[
-                  { feature: "Shows evidence behind an achievement", proxy: "✓", resume: "Limited", linkedin: "Partial", portfolio: "Varies" },
-                  { feature: "Explains why an achievement mattered", proxy: "✓", resume: "✗ Lists only", linkedin: "Partial", portfolio: "✗ Lists only" },
-                  { feature: "One link, always current", proxy: "✓", resume: "✗", linkedin: "Partial", portfolio: "✓" },
-                  { feature: "First useful result", proxy: "After CV upload", resume: "Redone per application", linkedin: "Ongoing upkeep", portfolio: "Manual setup" },
-                  { feature: "Cost", proxy: "Free to start · $49 once", resume: "Varies (writer)", linkedin: "Free", portfolio: "Often free" },
-                ].map((row, i) => (
-                  <tr key={i} className="border-b border-black/10 last:border-b-0">
-                    <td className="p-5 font-bold text-black">{row.feature}</td>
-                    <td className="p-5 bg-[#F0FDF4] font-bold text-black">{row.proxy}</td>
-                    <td className="p-5 text-black/60">{row.resume}</td>
-                    <td className="p-5 text-black/60">{row.linkedin}</td>
-                    <td className="p-5 text-black/60">{row.portfolio}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="mono text-xs text-black/50 mt-4">
-            Proxy starts from your existing CV, then lets you improve only the sections that need more evidence.
-          </p>
-        </div>
-      </section>
-
-      {/* 7.5 Testimonials */}
-      <section className="px-6 py-20 border-t-[3px] border-black bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="mono text-sm text-black/50 mb-4 uppercase tracking-widest">// what_people_say</div>
-          <h2 className="text-5xl font-bold mb-16">What early users say.</h2>
-          <div className="grid lg:grid-cols-2 gap-8 items-start">
-            <div className="border-[3px] border-black bg-[#E8E8E3] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <p className="text-base text-black/80 mb-6 leading-relaxed">
-                "I honestly didn't expect the 45 minutes I spent building my Proxy profile to make such a difference. I went beyond my CV and talked about the projects I've worked on, the lessons I've learned, the decisions I've made and, importantly, how I actually work. That context <strong className="text-black">made the AI bot sound surprisingly like me — not like a generic career assistant.</strong> When someone is evaluating you for a senior role, that ability to communicate the story behind the experience is incredibly valuable."
-              </p>
-              <div className="mono text-sm font-bold text-black">Steven Bong</div>
-              <div className="mono text-xs text-black/50 uppercase tracking-wider mt-0.5">TA Strategy @ Airtable</div>
-            </div>
-            <div className="border-[3px] border-black bg-[#E8E8E3] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <p className="text-base text-black/80 mb-6 leading-relaxed">
-                "I started by simply uploading my CV to see what Proxy would do with it. The initial profile was already impressive, but what I really liked was being able to keep adding detail and customise the story around my experience. The designs are clean and genuinely <strong className="text-black">make your career look more interesting than a traditional CV ever could.</strong> I've shared my portfolio with recruiters and the feedback has been very positive — it gives them a much better way to understand what I've actually done."
-              </p>
-              <div className="mono text-sm font-bold text-black">John Lima</div>
-              <div className="mono text-xs text-black/50 uppercase tracking-wider mt-0.5">Portfolio Manager @ HSBC</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 8. Pricing */}
-      <section id="pricing" className="px-6 py-20 border-t-[3px] border-black bg-[#D1D1CC]">
-        <div className="max-w-7xl mx-auto">
-          <div className="mono text-xs text-black/50 mb-4 uppercase tracking-widest">// pricing</div>
-          <p className="text-lg text-black/70 mb-6 max-w-2xl">Start with a complete evidence page from your CV. Upgrade when you want ongoing edits and deeper control.</p>
-          <div className="flex flex-wrap items-center gap-4 mb-6">
-            <h2 className="text-5xl font-bold">CHOOSE YOUR PLAN</h2>
-            <div className="bg-black text-[#22C55E] px-4 py-2 font-bold mono text-sm border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(34,197,94,1)] uppercase tracking-wider" data-testid="badge-launch-special">
-              &#9733; ONE-TIME PRICE
-            </div>
-          </div>
-
-          {/* Pro — the hero offer */}
-          <div className="max-w-xl mx-auto mb-6">
-            <div className="border-[3px] border-black bg-[#22C55E] p-10 relative shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]" data-testid="card-tier-pro">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1 font-bold mono text-xs border-[3px] border-black">
-                RECOMMENDED
-              </div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="mono text-xs text-black/60 uppercase">MOST_POPULAR</div>
-                <div className="mono text-xs text-black/60 uppercase">One-time payment</div>
-              </div>
-              <div className="flex items-baseline gap-4 mb-6">
-                <h3 className="text-4xl font-bold">PRO</h3>
-                <div className="text-6xl font-bold mono" data-testid="text-price-pro">$49</div>
-              </div>
-              <div className="space-y-3 mb-8 text-sm">
-                {[
-                  "Everything in Free",
-                  "Unlimited edits",
-                  "Page views and recent visitor questions",
-                ].map((f, i) => (
-                  <div key={i} className="flex gap-2 mono text-black">
-                    <span className="text-black font-bold shrink-0">&#10003;</span> {f}
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => navigate("/try")}
-                className="w-full bg-black hover:bg-gray-800 text-white py-4 font-bold mono border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
-                data-testid="button-deploy-pro"
-              >
-                Try It, Then Go Pro &rarr;
-              </button>
-            </div>
-          </div>
-
-          {/* Free — the low-commitment entry point */}
-          <div className="max-w-xl mx-auto mb-8 border-[2px] border-black/30 bg-white/60 px-6 py-5 flex flex-wrap items-center justify-between gap-4" data-testid="card-tier-free">
-            <div>
-              <div className="mono text-xs text-black/50 uppercase tracking-wider mb-1">Or start free — $0, no credit card</div>
-              <p className="text-sm text-black/70">Professional evidence page, personal page link, 7 days of edits after publishing, basic view count.</p>
-            </div>
-            <button
-              onClick={() => navigate("/try")}
-              className="shrink-0 bg-white text-black px-6 py-3 font-bold mono text-sm border-[3px] border-black hover:bg-black hover:text-white transition-colors"
-              data-testid="button-deploy-free"
-            >
-              Try It With Your CV &rarr;
+          )}
+          <form className="landing-demo-ask" onSubmit={(event) => { event.preventDefault(); askHeroDemo(heroQuestion); }}>
+            <label htmlFor="hero-question" className="sr-only">Ask Priya's page a question</label>
+            <input
+              id="hero-question"
+              value={heroQuestion}
+              onChange={(event) => setHeroQuestion(event.target.value)}
+              placeholder="Ask about a project, a decision, a result…"
+              data-testid="input-hero-chat"
+            />
+            <button type="submit" disabled={heroAsking || !heroQuestion.trim()} data-testid="button-hero-chat-send">
+              {heroAsking ? <Loader2 className="animate-spin" /> : "Ask"}
             </button>
-          </div>
-
-          <div className="text-center py-4 border-t-[2px] border-black/20" data-testid="text-founding-member">
-            <p className="mono text-sm text-black/60 uppercase tracking-wider">
-              One-time price, no subscription &mdash; start free, upgrade when you're ready.
-            </p>
-            <Link href="/faq">
-              <span className="block mt-4 text-black/50 text-sm hover:text-black/80 transition cursor-pointer">
-                Questions before you decide? Read our FAQ &rarr;
-              </span>
-            </Link>
-          </div>
+          </form>
+          <a className="landing-demo-link" href={`/portfolio/${HERO_DEMO_USERNAME}`}>See her full page <ArrowRight /></a>
         </div>
       </section>
 
-      {/* 9. Final CTA */}
-      <section className="px-6 py-32 bg-white">
-        <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight" data-testid="text-final-cta">
-            Your career deserves<br />
-            a better first impression.
-          </h2>
-          <p className="mono text-xl text-black/60 mb-10">Free to start. See your first page before answering more questions.</p>
-          <button
-            onClick={() => navigate("/try")}
-            className="bg-[#22C55E] hover:bg-[#16A34A] text-black px-16 py-5 text-xl font-bold mono border-[3px] border-black uppercase tracking-wider shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-            data-testid="button-final-cta"
-          >
-            Try It With Your CV &rarr;
-          </button>
+      {/* 2. How it works */}
+      <section id="how" className="landing-section">
+        <p className="site-eyebrow">How it works</p>
+        <h2 className="site-display landing-h2">Three steps. The first one takes a minute.</h2>
+        <ol className="landing-steps">
+          <li>
+            <span className="landing-step-n">1</span>
+            <h3>Upload your CV</h3>
+            <p>Proxy turns it into a finished page before you answer a single question.</p>
+          </li>
+          <li>
+            <span className="landing-step-n">2</span>
+            <h3>Answer a question or two</h3>
+            <p>Optional. Each answer makes a section stronger and teaches your page to answer visitors.</p>
+          </li>
+          <li>
+            <span className="landing-step-n">3</span>
+            <h3>Publish and share one link</h3>
+            <p>No hosting or domain to set up. Put it in your email signature, on LinkedIn, or send it instead of a CV.</p>
+          </li>
+        </ol>
+      </section>
+
+      {/* 3. Designs */}
+      <section className="landing-section">
+        <p className="site-eyebrow">Designs</p>
+        <h2 className="site-display landing-h2">Four designs. Same career. Switch any time.</h2>
+        <DesignShowcase />
+      </section>
+
+      {/* 4. What early users say */}
+      <section className="landing-section">
+        <p className="site-eyebrow">Early users</p>
+        <div className="landing-quotes">
+          <figure>
+            <blockquote className="site-display">"That context made the AI bot sound surprisingly like me — not like a generic career assistant."</blockquote>
+            <figcaption><b>Steven Bong</b> · TA Strategy, Airtable</figcaption>
+          </figure>
+          <figure>
+            <blockquote className="site-display">"The designs are clean and genuinely make your career look more interesting than a traditional CV ever could."</blockquote>
+            <figcaption><b>John Lima</b> · Portfolio Manager, HSBC</figcaption>
+          </figure>
         </div>
       </section>
 
-      <footer className="border-t-[3px] border-black py-12 px-6 bg-[#D1D1CC]">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3">
-              <ProxyLogo />
-            </div>
-            <div className="flex gap-6 mono text-xs font-bold uppercase tracking-widest text-black/50">
-              <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>
-              <Link href="/blog"><span className="cursor-pointer hover:text-black">Blog</span></Link>
-              <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
-              <Link href="/privacy"><span className="cursor-pointer hover:text-black">Privacy</span></Link>
-              <Link href="/terms"><span className="cursor-pointer hover:text-black">Terms</span></Link>
-              <a href="#pricing" className="cursor-pointer hover:text-black">Pricing</a>
-              <a href="mailto:vinos@myproxy.work" className="cursor-pointer hover:text-black">vinos@myproxy.work</a>
-              <span className="opacity-30">SYS_ID: PROXY_v1.0 | &copy;2026</span>
-            </div>
+      {/* 5. Pricing + final call to action */}
+      <section id="pricing" className="landing-section">
+        <p className="site-eyebrow">Pricing</p>
+        <h2 className="site-display landing-h2">Start free. Pay once if you want more.</h2>
+        <div className="landing-prices">
+          <div className="site-card landing-price" data-testid="card-tier-free">
+            <div className="landing-price-head"><h3>Free</h3><b>$0</b></div>
+            <ul>
+              <li><Check /> Your page and your own link</li>
+              <li><Check /> Visitors can ask your page questions</li>
+              <li><Check /> 7 days of edits after you publish</li>
+              <li><Check /> View count</li>
+            </ul>
+          </div>
+          <div className="site-card landing-price landing-price--pro" data-testid="card-tier-pro">
+            <div className="landing-price-head"><h3>Pro</h3><b data-testid="text-price-pro">$49</b><span>one-time, no subscription</span></div>
+            <ul>
+              <li><Check /> Everything in Free</li>
+              <li><Check /> Unlimited edits</li>
+              <li><Check /> See the questions visitors ask</li>
+            </ul>
           </div>
         </div>
-      </footer>
+        <div className="landing-final">
+          <h2 className="site-display" data-testid="text-final-cta">Try it with your CV. It's free.</h2>
+          <CvDrop id="final-cv" compact />
+          <p className="site-faint">Questions first? <Link className="site-link" href="/faq">Read the FAQ</Link></p>
+        </div>
+      </section>
+
+      <SiteFooter />
     </div>
   );
 }

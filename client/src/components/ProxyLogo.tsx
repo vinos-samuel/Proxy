@@ -1,34 +1,39 @@
 interface ProxyLogoProps {
   className?: string;
+  /** Font size of the wordmark in px. The mark scales with it. */
+  size?: number;
+  tone?: "ink" | "paper";
+  /** Gently animate the three dots, as if the page is typing an answer. */
+  live?: boolean;
 }
 
-export default function ProxyLogo({ className = "" }: ProxyLogoProps) {
+/**
+ * The "o" that talks: a ring with three typing dots. It is the brand's one
+ * signature element: the page that answers. Deliberately no speech-bubble
+ * tail, so it isn't mistaken for other bubble-"o" marks.
+ */
+export function TalkingO({ className = "", dotColor }: { className?: string; dotColor?: string }) {
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      {/* Document icon with slash */}
-      <svg width="52" height="64" viewBox="0 0 52 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        {/* Document background */}
-        <rect x="2" y="2" width="48" height="60" fill="white" stroke="#1A1A1A" strokeWidth="2.5"/>
-        {/* Resume label — faded gray, it's the thing being replaced */}
-        <text x="26" y="15" textAnchor="middle" fontFamily="'Space Grotesk', sans-serif" fontSize="8" fontWeight="700" fill="#999">RESUME</text>
-        {/* Thin divider under title */}
-        <line x1="8" y1="19" x2="44" y2="19" stroke="#ccc" strokeWidth="1"/>
-        {/* Content lines */}
-        <line x1="8" y1="27" x2="44" y2="27" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"/>
-        <line x1="8" y1="34" x2="44" y2="34" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"/>
-        <line x1="8" y1="41" x2="44" y2="41" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"/>
-        <line x1="8" y1="48" x2="36" y2="48" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"/>
-        <line x1="8" y1="55" x2="28" y2="55" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"/>
-        {/* Green slash — extends beyond document corners for clean look */}
-        <line x1="-2" y1="66" x2="54" y2="-2" stroke="#22C55E" strokeWidth="5.5" strokeLinecap="round"/>
-      </svg>
+    <svg className={className} viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+      <circle cx="20" cy="20" r="15.2" fill="none" stroke="currentColor" strokeWidth="5.2" />
+      <circle className="proxy-dot" cx="13.4" cy="20.4" r="2.5" fill={dotColor || "var(--brand-sage)"} />
+      <circle className="proxy-dot" cx="20" cy="20.4" r="2.5" fill={dotColor || "var(--brand-sage)"} />
+      <circle className="proxy-dot" cx="26.6" cy="20.4" r="2.5" fill={dotColor || "var(--brand-sage)"} />
+    </svg>
+  );
+}
 
-      {/* PROXY wordmark */}
-      <div className="flex flex-col leading-none">
-        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: "28px", fontWeight: "800", color: "#1A1A1A", letterSpacing: "-0.5px", lineHeight: 1 }}>
-          PROXY
-        </span>
-      </div>
-    </div>
+export default function ProxyLogo({ className = "", size = 26, tone = "ink", live = false }: ProxyLogoProps) {
+  return (
+    <span
+      className={`proxy-wordmark ${tone === "paper" ? "proxy-wordmark--paper" : ""} ${live ? "proxy-wordmark--live" : ""} ${className}`}
+      style={{ fontSize: `${size}px` }}
+      role="img"
+      aria-label="Proxy"
+    >
+      <span aria-hidden="true">pr</span>
+      <TalkingO dotColor={tone === "paper" ? "#8FC2A9" : undefined} />
+      <span aria-hidden="true">xy</span>
+    </span>
   );
 }

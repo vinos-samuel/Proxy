@@ -34,7 +34,6 @@ const tiers = [
     name: "PRO",
     tierLabel: "MOST_POPULAR",
     price: "$49",
-    originalPrice: "$99",
     icon: Star,
     popular: true,
     features: [
@@ -106,32 +105,14 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
     // Replit workspace preview, not just on the production domain.
     const profileUrl = `${window.location.origin}/portfolio/${publishData.username}`;
     return (
-      <div className="md:col-span-2 bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-        <div className="text-center space-y-6">
-          <div className="w-16 h-16 bg-[#22C55E] border-[3px] border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-            <Check className="h-8 w-8 text-black" />
-          </div>
-          <h2 className="text-3xl font-bold text-black" data-testid="text-publish-success">
-            Your page is live.
-          </h2>
-          <p className="mono text-sm text-black/60">
-            Public URL: <strong className="text-black">myproxy.work/portfolio/{publishData.username}</strong>
-          </p>
-
-          <InsiderKit
-            profileUrl={profileUrl}
-            displayName={publishData.displayName}
-            roleTitle={publishData.roleTitle}
-          />
-
+      <div className="pg">
+        <div className="pg-done">
+          <span className="pg-done-mark"><Check /></span>
+          <h2 className="site-display" data-testid="text-publish-success">Your page is live.</h2>
+          <p className="site-muted">myproxy.work/portfolio/<b>{publishData.username}</b></p>
+          <InsiderKit profileUrl={profileUrl} displayName={publishData.displayName} roleTitle={publishData.roleTitle} />
           {publishData.username && (
-            <button
-              onClick={() => navigate(`/portfolio/${publishData.username}`)}
-              className="bg-[#22C55E] text-black px-8 py-4 font-bold border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-              data-testid="button-view-portfolio"
-            >
-              Open your live page &rarr;
-            </button>
+            <button type="button" className="site-btn" onClick={() => navigate(`/portfolio/${publishData.username}`)} data-testid="button-view-portfolio">Open your live page</button>
           )}
         </div>
       </div>
@@ -141,207 +122,76 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
   // Free tier confirmation screen
   if (showFreeConfirm) {
     return (
-      <div className="md:col-span-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-        <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <div className="text-center space-y-6">
-            <div className="w-16 h-16 bg-[#E8A75D] border-[3px] border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-              <Zap className="h-8 w-8 text-black" />
-            </div>
-            <h2 className="text-2xl font-bold text-black">REVIEW BEFORE PUBLISHING</h2>
-            <div className="text-left max-w-lg mx-auto space-y-4">
-              <p className="mono text-sm text-black/70 leading-relaxed">
-                This is still a draft. Publishing makes it public at <strong>myproxy.work/portfolio/{username}</strong>
-              </p>
-              <div className="bg-[#FEF3C7] border-[3px] border-black p-4">
-                <p className="mono text-sm text-black/80 font-bold mb-2">FREE PLAN — WHAT TO KNOW:</p>
-                <ul className="mono text-sm text-black/70 space-y-1">
-                  <li>&#8226; You'll have <strong>7 days</strong> to make edits after publishing</li>
-                  <li>&#8226; After that, upgrade to Pro ($49) for unlimited edits</li>
-                  <li>&#8226; Make sure the page wording is accurate and approved</li>
-                </ul>
-              </div>
-              <p className="mono text-xs text-black/50">
-                Tip: Go back to the builder if you want to refine anything before going live.
-              </p>
-            </div>
-            <div className="flex gap-4 justify-center flex-wrap">
-              <button
-                onClick={() => setShowFreeConfirm(false)}
-                className="bg-white text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100"
-              >
-                &larr; GO BACK
-              </button>
-              <button
-                onClick={() => handlePublish("free")}
-                disabled={loading}
-                className="bg-[#22C55E] text-black px-8 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50"
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" /> PUBLISHING...
-                  </span>
-                ) : (
-                  "PUBLISH NOW — FREE"
-                )}
-              </button>
-            </div>
-            <button
-              onClick={() => { setShowFreeConfirm(false); setSelectedTier("pro"); }}
-              className="mono text-xs text-black/50 hover:text-black/80 underline"
-            >
-              Actually, I want Pro with unlimited edits — $49
+      <div className="pg">
+        <div className="pg-confirm">
+          <h2 className="site-display">Publish your page for free?</h2>
+          <p className="site-muted">It goes public at <b>myproxy.work/portfolio/{username}</b>.</p>
+          <ul>
+            <li>You can edit for <b>7 days</b> after publishing.</li>
+            <li>After that, Pro ($49, once) gives you unlimited edits.</li>
+            <li>Check the wording is accurate before it goes live.</li>
+          </ul>
+          <div className="pg-actions">
+            <button type="button" className="site-btn" onClick={() => handlePublish("free")} disabled={loading}>
+              {loading ? <><Loader2 className="animate-spin" /> Publishing…</> : "Publish now · free"}
             </button>
+            <button type="button" className="site-btn site-btn--quiet" onClick={() => setShowFreeConfirm(false)}>Go back</button>
           </div>
+          <button type="button" className="site-link pg-switch" onClick={() => { setShowFreeConfirm(false); setSelectedTier("pro"); }}>
+            I'd rather have Pro with unlimited edits ($49)
+          </button>
         </div>
       </div>
     );
   }
 
+  const proTier = visibleTiers.find((tier) => tier.key === "pro");
+  const freeTier = visibleTiers.find((tier) => tier.key === "free");
+  const isBusy = (key: string) => loading && selectedTier === key;
+
   return (
-    <div className="md:col-span-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-      <div className="text-center mb-8">
+    <div className="pg">
+      <div className="pg-head">
         {/* hideFree means the free publish is already used (live page, or the
             builder was told free isn't available) — "Publish your page" would
             tell someone whose page is already live to publish it. */}
-        <div className="mono text-xs text-black/50 mb-2 uppercase tracking-widest">&#9698; {hideFree ? "Keep improving your page" : "Your Evidence Page is Ready"}</div>
-        <h2 className="text-3xl font-bold mb-2 text-black" data-testid="text-payment-title">
-          {hideFree ? "UPGRADE TO PRO" : "PUBLISH YOUR PAGE"}
-        </h2>
-        <p className="mono text-sm text-black/60 uppercase tracking-wider">
-          Your personal page at <strong>myproxy.work/portfolio/{username || "yourname"}</strong>
+        <h2 className="site-display" data-testid="text-payment-title">{hideFree ? "Upgrade to Pro" : "Publish your page"}</h2>
+        <p className="site-muted">
+          {hideFree
+            ? "Keep editing whenever you like, and see the questions visitors ask your page."
+            : <>Your page goes live at <b>myproxy.work/portfolio/{username || "yourname"}</b>.</>}
         </p>
-        <div className="inline-block mt-3 bg-black text-[#22C55E] px-4 py-2 mono text-xs uppercase tracking-wider border-[3px] border-black font-bold" data-testid="badge-launch-special">
-          &#9733; ONE-TIME PRICE
-        </div>
-        <Link href="/faq">
-          <div className="text-center mt-4 text-black/50 text-sm hover:text-black/80 transition cursor-pointer">
-            Questions before you decide? Read our FAQ &rarr;
-          </div>
-        </Link>
       </div>
 
-      {(() => {
-        const proTier = visibleTiers.find((tier) => tier.key === "pro");
-        const freeTier = visibleTiers.find((tier) => tier.key === "free");
-        const isBusy = (key: string) => loading && selectedTier === key;
-
-        if (proTier && freeTier) {
-          // Two real tiers — Pro is the hero (it's the plan worth selling),
-          // Free is a smaller, still fully actionable option beneath it.
-          return (
-            <>
-              <div className="max-w-lg mx-auto mb-6">
-                <div className="brutal-card border-black relative p-10 bg-[#22C55E] shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]" data-testid={`card-tier-${proTier.key}`}>
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1 font-bold mono text-xs border-[3px] border-black uppercase tracking-wider" data-testid="badge-popular">
-                    RECOMMENDED
-                  </div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-white border-[3px] border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                        <proTier.icon className="h-5 w-5 text-black" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-black">{proTier.name}</h3>
-                    </div>
-                    <div className="mono text-xs text-black/60 uppercase">One-time payment</div>
-                  </div>
-                  <div className="flex items-baseline gap-3 mb-6">
-                    {proTier.originalPrice && (
-                      <div className="mono text-lg text-black/40 line-through">{proTier.originalPrice}</div>
-                    )}
-                    <div className="text-5xl font-bold mono text-black" data-testid={`text-price-${proTier.key}`}>{proTier.price}</div>
-                  </div>
-                  <div className="space-y-3 mb-6 text-sm">
-                    {proTier.features.map((feature, i) => (
-                      <div key={i} className="flex gap-2 mono text-black">
-                        <span className="font-bold shrink-0 text-black">&#10003;</span> {feature}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mono text-xs text-black/60 mb-6">{proTier.useCase}</div>
-                  <button
-                    className="w-full py-4 font-bold mono border-[3px] border-black uppercase tracking-wider bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.35)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={() => handlePublish(proTier.key)}
-                    disabled={loading}
-                    data-testid={`button-checkout-${proTier.key}`}
-                  >
-                    {isBusy(proTier.key) ? (
-                      <span className="flex items-center justify-center gap-2"><Loader2 className="h-5 w-5 animate-spin" /> PROCESSING...</span>
-                    ) : (
-                      `GET ${proTier.name} — ${proTier.price} →`
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="max-w-lg mx-auto border-[2px] border-black/30 bg-white/60 px-6 py-5 flex flex-wrap items-center justify-between gap-4" data-testid={`card-tier-${freeTier.key}`}>
-                <div>
-                  <div className="mono text-xs text-black/50 uppercase tracking-wider mb-1">Or publish free — $0, no credit card</div>
-                  <p className="text-sm text-black/70">{freeTier.features.join(" · ")}</p>
-                </div>
-                <button
-                  className="shrink-0 bg-white text-black px-6 py-3 font-bold mono text-sm border-[3px] border-black hover:bg-black hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={() => handlePublish(freeTier.key)}
-                  disabled={loading}
-                  data-testid={`button-checkout-${freeTier.key}`}
-                >
-                  {isBusy(freeTier.key) ? (
-                    <span className="flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> PROCESSING...</span>
-                  ) : (
-                    "PUBLISH FREE →"
-                  )}
-                </button>
-              </div>
-            </>
-          );
-        }
-
-        // Only one tier visible (hideFree) — single centered card, as before.
-        const tier = visibleTiers[0];
-        const Icon = tier.icon;
-        return (
-          <div className="max-w-sm mx-auto">
-            <div className="brutal-card border-black relative p-8 flex flex-col bg-[#22C55E] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]" data-testid={`card-tier-${tier.key}`}>
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1 font-bold mono text-xs border-[3px] border-black uppercase tracking-wider" data-testid="badge-popular">
-                RECOMMENDED
-              </div>
-              <div className="mono text-xs text-black/50 mb-2 uppercase">{tier.tierLabel}</div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-white border-[3px] border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                  <Icon className="h-5 w-5 text-black" />
-                </div>
-                <h3 className="text-2xl font-bold text-black">{tier.name}</h3>
-              </div>
-              <div className="mb-6">
-                {tier.originalPrice && (
-                  <div className="mono text-base text-black/40 line-through mb-1">{tier.originalPrice}</div>
-                )}
-                <div className="text-5xl font-bold mono text-black" data-testid={`text-price-${tier.key}`}>{tier.price}</div>
-                <div className="mono text-xs text-black/50 mt-1 uppercase tracking-wider">One-time payment</div>
-              </div>
-              <div className="space-y-3 mb-6 text-sm">
-                {tier.features.map((feature, i) => (
-                  <div key={i} className="flex gap-2 mono text-black">
-                    <span className="font-bold shrink-0 text-black">&#10003;</span> {feature}
-                  </div>
-                ))}
-              </div>
-              <div className="mono text-xs text-black/60 mb-6">{tier.useCase}</div>
-              <button
-                className="mt-auto w-full py-4 font-bold mono border-[3px] border-black uppercase tracking-wider bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.35)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => handlePublish(tier.key)}
-                disabled={loading}
-                data-testid={`button-checkout-${tier.key}`}
-              >
-                {isBusy(tier.key) ? (
-                  <span className="flex items-center justify-center gap-2"><Loader2 className="h-5 w-5 animate-spin" /> PROCESSING...</span>
-                ) : (
-                  `GET ${tier.name} — ${tier.price} →`
-                )}
-              </button>
+      <div className={`pg-tiers ${freeTier ? "" : "pg-tiers--single"}`}>
+        {proTier && (
+          <div className="site-card pg-tier pg-tier--pro" data-testid={`card-tier-${proTier.key}`}>
+            <div className="pg-tier-top">
+              <h3>Pro</h3>
+              <b data-testid={`text-price-${proTier.key}`}>{proTier.price}</b>
+              <span>one-time payment, no subscription</span>
             </div>
+            <ul>{proTier.features.map((feature) => <li key={feature}><Check /> {feature}</li>)}</ul>
+            <button type="button" className="site-btn" onClick={() => handlePublish(proTier.key)} disabled={loading} data-testid={`button-checkout-${proTier.key}`}>
+              {isBusy(proTier.key) ? <><Loader2 className="animate-spin" /> Opening checkout…</> : `Get Pro · ${proTier.price}`}
+            </button>
           </div>
-        );
-      })()}
+        )}
+        {freeTier && (
+          <div className="site-card pg-tier" data-testid={`card-tier-${freeTier.key}`}>
+            <div className="pg-tier-top">
+              <h3>Free</h3>
+              <b>$0</b>
+              <span>no card needed</span>
+            </div>
+            <ul>{freeTier.features.map((feature) => <li key={feature}><Check /> {feature}</li>)}</ul>
+            <button type="button" className="site-btn site-btn--quiet" onClick={() => handlePublish(freeTier.key)} disabled={loading} data-testid={`button-checkout-${freeTier.key}`}>
+              {isBusy(freeTier.key) ? <><Loader2 className="animate-spin" /> Publishing…</> : "Publish free"}
+            </button>
+          </div>
+        )}
+      </div>
+      <p className="pg-faq site-faint">Questions before you decide? <Link className="site-link" href="/faq">Read the FAQ</Link></p>
     </div>
   );
 }

@@ -333,8 +333,6 @@ export default function LandingPage() {
           <span className="font-bold text-black">Airtable</span>
           <span>·</span>
           <span className="font-bold text-black">HSBC</span>
-          <span>·</span>
-          <span className="font-bold text-black">J&amp;J</span>
         </div>
       </div>
 

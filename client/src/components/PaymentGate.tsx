@@ -200,9 +200,12 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
   return (
     <div className="md:col-span-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
       <div className="text-center mb-8">
-        <div className="mono text-xs text-black/50 mb-2 uppercase tracking-widest">&#9698; Your Evidence Page is Ready</div>
+        {/* hideFree means the free publish is already used (live page, or the
+            builder was told free isn't available) — "Publish your page" would
+            tell someone whose page is already live to publish it. */}
+        <div className="mono text-xs text-black/50 mb-2 uppercase tracking-widest">&#9698; {hideFree ? "Keep improving your page" : "Your Evidence Page is Ready"}</div>
         <h2 className="text-3xl font-bold mb-2 text-black" data-testid="text-payment-title">
-          PUBLISH YOUR PAGE
+          {hideFree ? "UPGRADE TO PRO" : "PUBLISH YOUR PAGE"}
         </h2>
         <p className="mono text-sm text-black/60 uppercase tracking-wider">
           Your personal page at <strong>myproxy.work/portfolio/{username || "yourname"}</strong>

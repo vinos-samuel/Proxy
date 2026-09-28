@@ -297,7 +297,8 @@ export default function DashboardPage() {
                   </p>
                 </div>
               )}
-              <div className="bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              {/* Full width unless the legacy "Add More Evidence" card sits beside it */}
+              <div className={`bg-white border-[3px] border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] ${(profile?.status === "ready" || profile?.status === "published") && !profile?.hasProfileDocument ? "" : "md:col-span-2"}`}>
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 bg-[#E8A75D] border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                     <FileText className="h-6 w-6 text-black" />
@@ -372,7 +373,10 @@ export default function DashboardPage() {
                   </div>
 
                   {isFree && questionCount > 0 ? (
-                    <div className="relative">
+                    // min-h keeps the lock overlay from being taller than the
+                    // blurred list behind it — with only 1–2 questions the
+                    // overlay text used to spill over its own border.
+                    <div className="relative min-h-[180px]">
                       <div className="filter blur-sm select-none pointer-events-none opacity-50">
                         <div className="mono text-xs uppercase tracking-wider text-black/50 mb-3">Questions visitors asked</div>
                         <div className="space-y-2">

@@ -23,13 +23,10 @@ export default function ProxyLogo({ className = "" }: ProxyLogoProps) {
         <line x1="-2" y1="66" x2="54" y2="-2" stroke="#22C55E" strokeWidth="5.5" strokeLinecap="round"/>
       </svg>
 
-      {/* PROXY wordmark + tagline */}
+      {/* PROXY wordmark */}
       <div className="flex flex-col leading-none">
         <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: "28px", fontWeight: "800", color: "#1A1A1A", letterSpacing: "-0.5px", lineHeight: 1 }}>
           PROXY
-        </span>
-        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: "10px", color: "#555", letterSpacing: "0.02em", marginTop: "3px" }}>
-          Prepare convincing evidence for your next opportunity.
         </span>
       </div>
     </div>

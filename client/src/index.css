@@ -712,7 +712,9 @@
   .builder-workspace { display: block; }
   .builder-canvas { padding: 10px; }
   .builder-menu { display: inline-flex; }
-  .builder-topbar-action,.builder-topbar-publish { display: none; }
+  /* Keep Publish visible on phones — it used to be reachable only through the
+     menu drawer. Preview moves into the drawer's space instead. */
+  .builder-topbar-action { display: none; }
   .builder-panel { position: fixed; z-index: 50; top: 0; right: 0; width: min(390px,100vw); height: 100vh; transform: translateX(102%); transition: transform .2s ease; box-shadow: -15px 0 45px rgba(0,0,0,.18); }
   .builder-panel--open { transform: translateX(0); }
   .builder-panel-head button { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; }
@@ -726,6 +728,8 @@
 
 @media (max-width: 620px) {
   .builder-topbar { height: 54px; padding: 0 12px; }
+  .builder-save-state { display: none; }
+  .builder-topbar-publish { padding: 6px 10px; font-size: 13px; }
   .builder-canvas { padding: 0; }
   .builder-browser { border-left: 0; border-right: 0; border-radius: 0; }
   .builder-canvas>.proxy-page { box-shadow: none; }
@@ -869,4 +873,11 @@
   .builder-preview-mode>header span { display: none; }
   .builder-test-chat { padding: 0; }
   .builder-test-chat>div { height: 100vh; max-height: none; }
+}
+
+/* Phones: Publish stays in the top bar, Preview lives in the drawer. Placed
+   after the base .builder-topbar-action rule above so it actually wins. */
+@media (max-width: 900px) {
+  .builder-topbar-action { display: none; }
+  .builder-topbar-publish { white-space: nowrap; }
 }

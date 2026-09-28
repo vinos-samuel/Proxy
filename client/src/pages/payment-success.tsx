@@ -91,11 +91,11 @@ export default function PaymentSuccessPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-[#22C55E] mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Confirming Payment...</h1>
-          <p className="text-black/60 mono text-sm uppercase tracking-wider">Publishing your approved page</p>
+      <div className="site auth">
+        <div className="auth-message">
+          <Loader2 className="auth-icon animate-spin" />
+          <h1 className="site-display auth-h1">Confirming your payment…</h1>
+          <p className="site-muted">Publishing your approved page.</p>
         </div>
       </div>
     );
@@ -103,132 +103,56 @@ export default function PaymentSuccessPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center p-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-        <div className="max-w-md w-full text-center">
-          <AlertCircle className="h-16 w-16 text-black/40 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
-          <p className="text-black/60 mb-6">{error}</p>
-          <button
-            onClick={() => setLocation("/dashboard")}
-            className="bg-black text-white px-8 py-3 font-bold border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:bg-black/80 transition-all"
-          >
-            Go to Dashboard
-          </button>
+      <div className="site auth">
+        <div className="auth-message">
+          <AlertCircle className="auth-icon" />
+          <h1 className="site-display auth-h1">Something went wrong</h1>
+          <p className="site-muted">{error}</p>
+          <button type="button" className="site-btn" onClick={() => setLocation("/dashboard")}>Go to your dashboard</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#E8E8E3]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-      <div className="max-w-2xl mx-auto px-6 py-16">
-
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="w-16 h-16 bg-[#22C55E] border-[3px] border-black flex items-center justify-center mx-auto mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <CheckCircle className="h-8 w-8 text-black" />
-          </div>
-          <div className="mono text-xs text-black/50 uppercase tracking-widest mb-3">// profile_live</div>
-          <h1 className="text-4xl font-bold mb-3">Your page is live.</h1>
-          <p className="text-black/60 text-lg">
-            Share the link when you want someone to understand your work beyond a CV.
-          </p>
-        </div>
-
-        {/* Profile URL */}
-        {domain && (
-          <div className="border-[3px] border-black bg-white p-6 mb-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-            <div className="mono text-xs text-black/50 uppercase tracking-widest mb-3">// your_url</div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-lg font-bold font-mono text-[#22C55E] break-all flex-1">{profileUrl}</span>
-              <button
-                onClick={copyLink}
-                className={`flex items-center gap-2 px-4 py-2 font-bold border-[2px] border-black mono text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all ${copied ? "bg-[#22C55E] text-black" : "bg-black text-white hover:bg-black/80"}`}
-              >
-                <Copy className="h-3.5 w-3.5" />
-                {copied ? "Copied!" : "Copy"}
-              </button>
-            </div>
-          </div>
-        )}
+    <div className="site">
+      <main className="content">
+        <header className="content-head">
+          <span className="pg-done-mark"><CheckCircle /></span>
+          <h1 className="site-display content-h1">Your page is live.</h1>
+          <p className="content-lede">Share the link when you want someone to understand your work beyond a CV.</p>
+        </header>
 
         {domain && (
-          <div className="border-[3px] border-black bg-white p-6 mb-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-            <InsiderKit profileUrl={profileUrl} />
-          </div>
+          <section className="site-card paysuccess-url">
+            <span>{profileUrl}</span>
+            <button type="button" className="site-btn site-btn--sm" onClick={copyLink}><Copy /> {copied ? "Copied" : "Copy link"}</button>
+          </section>
         )}
 
-        {/* Share section — the main action */}
-        <div className="border-[3px] border-black bg-black text-white p-6 mb-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-[#22C55E] border-[2px] border-[#22C55E] flex items-center justify-center">
-              <Share2 className="h-4 w-4 text-black" />
-            </div>
-            <div>
-              <div className="mono text-xs text-white/50 uppercase tracking-widest">// share_now</div>
-              <h2 className="font-bold text-lg">Post it on LinkedIn</h2>
-            </div>
+        <section className="paysuccess-post">
+          <h2 className="site-display content-h2">Post it on LinkedIn</h2>
+          <p className="site-muted">A starting post you can edit before sharing.</p>
+          <pre>{linkedInPost}</pre>
+          <button type="button" className="site-btn" onClick={copyPost}><Linkedin /> {postCopied ? "Copied. Open LinkedIn and paste it." : "Copy LinkedIn post"}</button>
+        </section>
+
+        {domain && <InsiderKit profileUrl={profileUrl} />}
+
+        <section className="paysuccess-next">
+          <h2 className="site-display content-h2">Next steps</h2>
+          <ol>
+            <li>Add your page link to your email signature.</li>
+            <li>Ask your page a visitor question to see how it answers.</li>
+            <li>Send the link to anyone in your network who offered to help.</li>
+            <li>Check your dashboard for page views and visitor questions.</li>
+          </ol>
+          <div className="dash-actions">
+            <button type="button" className="site-btn" onClick={() => setLocation("/dashboard")}><ArrowRight /> Go to your dashboard</button>
+            {domain && <a className="site-btn site-btn--quiet" href={profileUrl} target="_blank" rel="noreferrer"><ExternalLink /> Open live page</a>}
           </div>
-
-          <p className="text-white/70 text-sm mb-4">
-            Share your approved page with people who can introduce, hire, or work with you. We have written a starting post you can edit.
-          </p>
-
-          {/* Pre-written post */}
-          <div className="bg-white/10 border border-white/20 p-4 mb-4 text-sm text-white/90 leading-relaxed whitespace-pre-line font-mono text-xs">
-            {linkedInPost}
-          </div>
-
-          <button
-            onClick={copyPost}
-            className={`w-full flex items-center justify-center gap-2 px-6 py-4 font-bold border-[3px] mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(34,197,94,0.4)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all ${postCopied ? "bg-[#16A34A] border-[#16A34A] text-white" : "bg-[#22C55E] border-[#22C55E] text-black hover:bg-[#16A34A]"}`}
-          >
-            <Linkedin className="h-4 w-4" />
-            {postCopied ? "Post copied — open LinkedIn and paste!" : "Copy LinkedIn Post"}
-          </button>
-        </div>
-
-        {/* Next steps */}
-        <div className="border-[3px] border-black bg-white p-6 mb-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <div className="mono text-xs text-black/50 uppercase tracking-widest mb-4">// next_steps</div>
-          <div className="space-y-3">
-            {[
-              "Add your profile link to your email signature",
-              "Test the optional AI explorer with a visitor question",
-              "Send your link to anyone in your network who has offered to help",
-              "Check the dashboard for page views and visitor questions",
-            ].map((step, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-[#22C55E] border-[2px] border-black flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                  {i + 1}
-                </div>
-                <p className="text-sm text-black/80">{step}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* CTA buttons */}
-        <div className="flex gap-3 flex-wrap">
-          <button
-            onClick={() => setLocation("/dashboard")}
-            className="flex-1 flex items-center justify-center gap-2 bg-black text-white px-6 py-4 font-bold border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-black/80 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-          >
-            <ArrowRight className="h-4 w-4" />
-            Go to Dashboard
-          </button>
-          {domain && (
-            <button
-              onClick={() => window.open(profileUrl, "_blank")}
-              className="flex-1 flex items-center justify-center gap-2 bg-white text-black px-6 py-4 font-bold border-[3px] border-black mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Open Live Page
-            </button>
-          )}
-        </div>
-
-      </div>
+        </section>
+      </main>
     </div>
   );
 }

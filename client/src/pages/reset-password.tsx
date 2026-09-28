@@ -69,20 +69,20 @@ export default function ResetPasswordPage() {
     if (tokenValid === null) {
       return (
         <div className="flex items-center justify-center py-10">
-          <Loader2 className="h-8 w-8 animate-spin text-black/40" />
+          <Loader2 className="auth-icon animate-spin" />
         </div>
       );
     }
 
     if (!tokenValid) {
       return (
-        <div className="text-center py-4">
+        <div className="auth-message">
           <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <p className="font-bold text-black mono uppercase tracking-wider">Invalid or Expired Link</p>
-          <p className="text-sm text-black/60 mono mt-2">This password reset link is invalid or has expired.</p>
+          <p className="auth-title">Invalid or Expired Link</p>
+          <p className="site-muted auth-small">This password reset link is invalid or has expired.</p>
           <Link href="/forgot-password">
             <Button
-              className="mt-6 w-full bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold py-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none"
+              className="site-btn auth-submit"
               data-testid="button-request-new-link"
             >
               Request New Link
@@ -94,13 +94,13 @@ export default function ResetPasswordPage() {
 
     if (success) {
       return (
-        <div className="text-center py-4">
-          <CheckCircle className="h-12 w-12 text-[#22C55E] mx-auto mb-4" />
-          <p className="font-bold text-black mono uppercase tracking-wider">Password Updated</p>
-          <p className="text-sm text-black/60 mono mt-2">Your password has been reset. Redirecting to sign in...</p>
+        <div className="auth-message">
+          <CheckCircle className="auth-icon" />
+          <p className="auth-title">Password Updated</p>
+          <p className="site-muted auth-small">Your password has been reset. Redirecting to sign in...</p>
           <Link href="/login">
             <Button
-              className="mt-6 w-full bg-black hover:bg-black/80 text-white font-bold py-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none"
+              className="site-btn site-btn--quiet auth-submit"
               data-testid="button-go-to-login"
             >
               Sign In Now
@@ -111,58 +111,58 @@ export default function ResetPasswordPage() {
     }
 
     return (
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="newPassword" className="mono text-xs uppercase tracking-wider text-black/60">New Password</Label>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="auth-form">
+        <div>
+          <Label htmlFor="newPassword" className="site-label">New Password</Label>
           <div className="relative">
             <Input
               id="newPassword"
               type={showPassword ? "text" : "password"}
               placeholder="Min 8 characters"
               data-testid="input-new-password"
-              className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+              className="site-input h-auto"
               {...form.register("newPassword")}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40"
+              className="auth-eye"
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
           {form.formState.errors.newPassword && (
-            <p className="mono text-xs text-destructive">{form.formState.errors.newPassword.message}</p>
+            <p className="auth-error">{form.formState.errors.newPassword.message}</p>
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword" className="mono text-xs uppercase tracking-wider text-black/60">Confirm Password</Label>
+        <div>
+          <Label htmlFor="confirmPassword" className="site-label">Confirm Password</Label>
           <div className="relative">
             <Input
               id="confirmPassword"
               type={showConfirm ? "text" : "password"}
               placeholder="Repeat new password"
               data-testid="input-confirm-password"
-              className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black"
+              className="site-input h-auto"
               {...form.register("confirmPassword")}
             />
             <button
               type="button"
               onClick={() => setShowConfirm(!showConfirm)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40"
+              className="auth-eye"
             >
               {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
           {form.formState.errors.confirmPassword && (
-            <p className="mono text-xs text-destructive">{form.formState.errors.confirmPassword.message}</p>
+            <p className="auth-error">{form.formState.errors.confirmPassword.message}</p>
           )}
         </div>
 
         <Button
           type="submit"
-          className="w-full bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold py-6 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+          className="site-btn auth-submit"
           disabled={form.formState.isSubmitting}
           data-testid="button-reset-password"
         >
@@ -177,23 +177,21 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center p-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+    <div className="site auth">
       <motion.div
         className="relative w-full max-w-md"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <div className="text-center mb-8">
+        <div className="auth-head">
           <Link href="/">
-            <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <ProxyLogo />
-            </div>
+            <span className="auth-logo"><ProxyLogo size={30} /></span>
           </Link>
-          <h1 className="text-4xl font-bold mb-2 text-black/60">New Password</h1>
-          <p className="mono text-sm text-black/60 uppercase tracking-wider">Choose a strong password</p>
+          <h1 className="site-display auth-h1">New Password</h1>
+          <p className="site-muted">Choose a strong password</p>
         </div>
 
-        <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        <div className="site-card auth-card">
           {renderContent()}
         </div>
       </motion.div>

@@ -638,12 +638,30 @@ export default function BuilderPage() {
         </section>
 
         <aside className={`builder-panel ${mobilePanel ? "builder-panel--open" : ""}`}>
-          <div className="builder-panel-head"><div><p>Your page</p><span>{dirty ? "Changes waiting to save" : "Private draft"}</span></div><button onClick={() => setMobilePanel(false)} aria-label="Close editing panel"><X /></button></div>
+          <div className="builder-panel-head"><div className="builder-strength">{(() => {
+            // Page strength: five checks read straight from the page's own
+            // data. No scores are invented; each check names what's missing.
+            const fullStories = document.projects.filter((project) => [project.challenge, project.contribution, project.outcome].every((value) => Boolean(value && value.trim().length >= 10))).length;
+            const checks: Array<{ done: boolean; next: string; go: () => void }> = [
+              { done: fullStories >= 2, next: `Answer questions about ${fullStories === 1 ? "one more example" : "two examples"} of your work`, go: () => { setPanel("improve"); setConversationTopic("work"); setQuestion(null); } },
+              { done: document.impactStats.filter((stat) => stat.label.trim() && stat.value.trim()).length >= 2, next: "Add two impact numbers", go: () => { setPanel("edit"); setEditTarget({ section: "impactStats" }); } },
+              { done: Boolean(document.howIWork?.trim()), next: "Write \"My approach\"", go: () => { setPanel("edit"); setEditTarget({ section: "howIWork" }); } },
+              { done: Boolean(document.identity.photoUrl && document.identity.showPhoto), next: "Add a photo", go: () => setPanel("settings") },
+              { done: Boolean((document.contact.showEmail && document.contact.email) || (document.contact.showLinkedin && document.contact.linkedin) || (document.contact.showWebsite && document.contact.website)), next: "Show a way to contact you", go: () => setPanel("settings") },
+            ];
+            const done = checks.filter((check) => check.done).length;
+            const nextCheck = checks.find((check) => !check.done);
+            return <>
+              <p><b>Page strength</b><span>{done} of {checks.length}</span></p>
+              <div className="builder-strength-bars" aria-hidden="true">{checks.map((check, index) => <i key={index} className={index < done ? "on" : ""} />)}</div>
+              {nextCheck ? <button type="button" className="builder-strength-next" onClick={nextCheck.go}>Next: {nextCheck.next} →</button> : <small>Every section is in good shape.</small>}
+            </>;
+          })()}</div><button onClick={() => setMobilePanel(false)} aria-label="Close editing panel"><X /></button></div>
           <nav>{(["improve", "edit", "style", "settings"] as Panel[]).map((item) => <button key={item} className={panel === item ? "active" : ""} onClick={() => setPanel(item)}>{item === "style" ? "design" : item}</button>)}</nav>
           <div className="builder-panel-body">
             {error && <div className="builder-error" role="alert"><p>{error}</p>{conflict ? <div className="builder-conflict-review">{conflictReview ? <>{conflictReview.conflicts.length > 0 ? <><p>Choose which version to keep for each conflicting field. Other changes were combined automatically.</p>{conflictReview.conflicts.map((item) => <fieldset key={item.path}><legend>{item.path.replaceAll(".", " · ")}</legend><button className={conflictReview.choices[item.path] === "local" ? "selected" : ""} onClick={() => setConflictReview((current) => current ? { ...current, choices: { ...current.choices, [item.path]: "local" } } : current)}><b>Keep my change</b><span>{summarizeConflictValue(item.local)}</span></button><button className={conflictReview.choices[item.path] === "remote" ? "selected" : ""} onClick={() => setConflictReview((current) => current ? { ...current, choices: { ...current.choices, [item.path]: "remote" } } : current)}><b>Keep other version</b><span>{summarizeConflictValue(item.remote)}</span></button></fieldset>)}</> : <p>Your changes do not overlap. They can be combined safely.</p>}<div className="builder-conflict-actions"><button onClick={reloadAfterConflict}>Use latest version</button><button disabled={conflictReview.conflicts.some((item) => !conflictReview.choices[item.path])} onClick={saveReviewedConflict}>Save reviewed version</button></div></> : <p>Loading both versions…</p>}</div> : dirty && <button onClick={() => saveDocument(document)}>Retry save</button>}</div>}
             {!user && state.source === "guest" && <p className="builder-guest-note">Guest draft · kept for 4 hours. Create an account before it expires.</p>}
-            {user && state.source === "guest" && <div className="builder-adopt"><b>Save this guest page to your account</b><p>Your public page will not change until you approve and publish.</p><button onClick={async () => {
+            {user && state.source === "guest" && <div className="builder-adopt"><b>Save this guest page to your account</b><p>Nothing goes public until you publish.</p><button onClick={async () => {
               const result = await mutate<{ document: ProfileDocument; revision: number }>("adopt", "/api/builder/adopt-guest", { confirmReplace: false });
               if (result) setState((current) => ({ ...current, source: "account" }));
             }}>Save to my account</button></div>}
@@ -652,9 +670,8 @@ export default function BuilderPage() {
               if (result) setState((current) => ({ ...current, guestAvailable: false }));
             }}>Use the guest draft instead</button></div>}
             {panel === "improve" && <>
-              <p className="builder-panel-kicker"><Sparkles /> Add stronger evidence</p>
-              <p className="builder-panel-subtitle">Answer a follow-up question to create a suggested change — review it before it's added to your page. {!document.publicBotEnabled && <button type="button" className="builder-text-button" onClick={() => setPanel("settings")}>Turn on "Ask about my work" under Settings →</button>}</p>
-              <div className="builder-conversation-controls"><button type="button" onClick={() => setChoosingTopic((value) => !value)}>Choose another topic <ChevronRight /></button><button type="button" onClick={() => setPanel("edit")}>Finish for now</button></div>
+              <div className="builder-conversation-controls"><p className="builder-panel-subtitle">One answer makes a section stronger. You review the change before it's added.</p><button type="button" onClick={() => setChoosingTopic((value) => !value)}>Other topics <ChevronRight /></button></div>
+              {!document.publicBotEnabled && <button type="button" className="builder-text-button builder-bot-off" onClick={() => setPanel("settings")}>"Ask about my work" is off. Turn it on in Settings</button>}
               {choosingTopic && <div className="builder-topic-picker">{([
                 ["all", "Best next question"], ["work", "Selected work"], ["experience", "Career experience"], ["about", "Working style and direction"],
               ] as Array<[ConversationTopic, string]>).map(([value, label]) => <button className={conversationTopic === value ? "active" : ""} key={value} onClick={() => { setConversationTopic(value); setChoosingTopic(false); setQuestion(null); }}>{label}</button>)}</div>}

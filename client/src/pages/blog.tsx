@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { SiteFooter, SiteNav } from "@/components/SiteChrome";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 
@@ -37,39 +38,21 @@ export default function BlogPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#E8E8E3] text-black selection:bg-[#22C55E]/30" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-      {/* Navigation */}
-      <nav className="border-b-[3px] border-black bg-white sticky top-0 z-50 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link href="/">
-            <div className="flex items-center gap-2 cursor-pointer group">
-              <div className="w-8 h-8 bg-black flex items-center justify-center border-[2px] border-black group-hover:bg-[#22C55E] transition-colors">
-                <span className="text-white font-black text-xl leading-none">P</span>
-              </div>
-              <span className="font-bold text-xl tracking-tighter">PROXY</span>
-            </div>
-          </Link>
-          <div className="flex gap-8 mono text-xs font-bold uppercase tracking-widest">
-            <Link href="/about"><span className="cursor-pointer hover:text-[#22C55E]">About</span></Link>
-            <Link href="/blog"><span className="cursor-pointer hover:text-[#22C55E] border-b-2 border-black">Blog</span></Link>
-            <Link href="/faq"><span className="cursor-pointer hover:text-[#22C55E]">FAQ</span></Link>
-            <Link href="/pricing"><span className="cursor-pointer hover:text-[#22C55E]">Pricing</span></Link>
-          </div>
-        </div>
-      </nav>
+    <div className="site">
+      <SiteNav />
 
       {/* Hero */}
-      <section className="px-6 py-24 border-b-[3px] border-black bg-white">
+      <section className="px-6 py-24 border-b border-[#DBD9CD]">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="mono text-xs text-black/50 mb-4 uppercase tracking-widest">&#9698; Insights</div>
-            <h1 className="text-6xl lg:text-8xl font-bold mb-8 leading-none uppercase tracking-tighter">
+            <div className="site-eyebrow mb-4">Insights</div>
+            <h1 className="site-display content-h1 mb-6">
               Blog
             </h1>
-            <p className="mono text-xl text-black/60 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-black/60 max-w-2xl mx-auto leading-relaxed">
               Insights for candidates and recruiters navigating the AI era
             </p>
           </motion.div>
@@ -77,7 +60,7 @@ export default function BlogPage() {
       </section>
 
       {/* Category Filters + Posts */}
-      <section className="px-6 py-24 border-b-[3px] border-black">
+      <section className="px-6 py-24 border-b border-[#DBD9CD]">
         <div className="max-w-5xl mx-auto">
           {/* Filter Tabs */}
           <div className="flex gap-4 mb-12">
@@ -85,10 +68,10 @@ export default function BlogPage() {
               <button
                 key={cat.key}
                 onClick={() => setActiveFilter(cat.key)}
-                className={`px-6 py-3 font-bold text-sm uppercase tracking-widest border-[3px] border-black transition-colors ${
+                className={`px-4 py-2 font-semibold text-sm border border-[#DBD9CD] rounded-full transition-colors ${
                   activeFilter === cat.key
-                    ? "bg-black text-white"
-                    : "bg-white text-black hover:bg-[#22C55E]"
+                    ? "bg-[#2F5D4C] text-white"
+                    : "bg-white text-[#1B211E] hover:border-[#2F5D4C]"
                 }`}
               >
                 {cat.label}
@@ -99,14 +82,14 @@ export default function BlogPage() {
           {/* Loading State */}
           {isLoading && (
             <div className="text-center py-24">
-              <div className="mono text-lg text-black/50">Loading posts...</div>
+              <div className="text-lg text-black/50">Loading posts...</div>
             </div>
           )}
 
           {/* Empty State */}
           {!isLoading && (!filteredPosts || filteredPosts.length === 0) && (
             <div className="text-center py-24">
-              <div className="mono text-lg text-black/50">No posts yet — check back soon</div>
+              <div className="text-lg text-black/50">No posts yet — check back soon</div>
             </div>
           )}
 
@@ -118,10 +101,10 @@ export default function BlogPage() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="border-[3px] border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all"
+                    className="border border-[#DBD9CD] rounded-lg bg-white cursor-pointer hover: hover:-translate-y-1 transition-all"
                   >
                     {post.heroImageUrl && (
-                      <div className="aspect-video overflow-hidden border-b-[3px] border-black">
+                      <div className="aspect-video overflow-hidden border-b border-[#DBD9CD]">
                         <img
                           src={post.heroImageUrl}
                           alt={post.title}
@@ -132,11 +115,11 @@ export default function BlogPage() {
                     <div className="p-6">
                       <div className="flex items-center gap-3 mb-4">
                         {post.category && post.category.split(",").map((cat) => (
-                          <span key={cat.trim()} className="px-3 py-1 bg-[#22C55E] text-black text-xs font-bold uppercase tracking-widest border-[2px] border-black">
+                          <span key={cat.trim()} className="px-3 py-1 bg-[#2F5D4C] text-white text-xs font-bold uppercase tracking-widest border border-[#DBD9CD] rounded">
                             {cat.trim().replace(/-/g, " ")}
                           </span>
                         ))}
-                        <span className="mono text-xs text-black/40">
+                        <span className="text-xs text-black/40">
                           {post.publishedAt
                             ? new Date(post.publishedAt).toLocaleDateString("en-US", {
                                 year: "numeric",
@@ -145,15 +128,15 @@ export default function BlogPage() {
                               })
                             : ""}
                         </span>
-                        <span className="mono text-xs text-black/40">
+                        <span className="text-xs text-black/40">
                           {Math.ceil(post.content.length / 1500)} min read
                         </span>
                       </div>
-                      <h2 className="text-2xl font-bold mb-3 uppercase tracking-tight leading-tight">
+                      <h2 className="site-display text-2xl mb-3 leading-tight">
                         {post.title}
                       </h2>
                       {post.excerpt && (
-                        <p className="mono text-sm text-black/60 leading-relaxed">
+                        <p className="text-sm text-black/60 leading-relaxed">
                           {post.excerpt}
                         </p>
                       )}
@@ -166,25 +149,7 @@ export default function BlogPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="px-6 py-12 border-t-[3px] border-black bg-[#E8E8E3]">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-black flex items-center justify-center border-[2px] border-black">
-              <span className="text-white font-black text-sm leading-none">P</span>
-            </div>
-            <span className="font-bold text-lg tracking-tighter uppercase">Proxy</span>
-          </div>
-          <div className="flex gap-8 mono text-xs font-bold uppercase tracking-widest text-black/50">
-            <Link href="/about"><span className="cursor-pointer hover:text-black">About</span></Link>
-            <Link href="/blog"><span className="cursor-pointer hover:text-black">Blog</span></Link>
-            <Link href="/faq"><span className="cursor-pointer hover:text-black">FAQ</span></Link>
-            <Link href="/#pricing"><span className="cursor-pointer hover:text-black">Pricing</span></Link>
-            <a href="mailto:vinos@myproxy.work" className="cursor-pointer hover:text-black">vinos@myproxy.work</a>
-            <span>&copy; 2026 Proxy</span>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

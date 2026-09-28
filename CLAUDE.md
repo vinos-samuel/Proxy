@@ -8,7 +8,32 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-09-26 (Session 14)
+## Current Sprint — 2026-09-28 (Session 15)
+**Status:** UI review → full front-end redesign, 4 commits on branch `claude/wonderful-wozniak-vcdxlw` (this branch also contains the unmerged Session 14 branch `remove-concierge-pricing-redesign`, so merging this one covers both). Typecheck unchanged (40 pre-existing errors, none in touched files), `npm run build` passes, `npm run test:profile-builder` 38/38. **Not yet on `main`, not deployed.** No schema change.
+
+**Completed:**
+- Step 1 (bugs): Publish visible on phones in the builder; published free users no longer told "Publish your page"; dashboard lock box overlap fixed; logo tagline removed; J&J removed from trust strip (Vinos: not a confirmed user); two "(not used yet)" private-note fields hidden (data kept)
+- Step 2 (publish flow): one **Publish** button + confirmation sheet (URL, design, chat on/off, contact) that calls the existing `/api/builder/approve` then `/publish`; upload shows a 4-step progress checklist + skeleton; phone bottom bar (Improve/Edit/Design/Preview); **"Ask about my work" now ON by default for new pages** (CV upload + no-CV start only — `server/profile-builder.ts`, `server/profile-builder-routes.ts`; legacy imports and existing pages unchanged); FAQ corrected to match
+- Step 3 (say less): new homepage — headline "Your CV can't answer questions. Your page can." / "Upload your CV. See your finished page in a minute, then share one link."; CV upload in the hero hands the file to `/try` via `client/src/lib/pending-cv-upload.ts`; 11 sections → 5; phone height 11,725px → ~3,950px. Dashboard rebuilt as a "your link" page
+- Step 4 (one look): calm sage-and-serif brand across homepage, sign-in/register/password pages, dashboard, PaymentGate, share kit, About/FAQ/Blog/blog post/Privacy/Terms, payment success/cancelled, 404. New logo: lower-case serif "proxy" whose "o" is a ring with three typing dots (deliberately no speech tail — Evaneos uses a speech-bubble "O"). New favicon.svg/png, apple-touch-icon, og-image-v3.png. Builder gains a 5-check "Page strength" meter
+- Removed the struck-through "$99" next to Pro $49 in PaymentGate (Pro was never sold at $99)
+
+**Where we stopped:** all four steps committed and pushed to `claude/wonderful-wozniak-vcdxlw`. Verified only in local renders with mocked APIs (no local DB) — needs a real run on the Replit workspace.
+
+**What's next:**
+- Vinos: merge + deploy (steps below), then on the workspace: upload a CV from the homepage hero and confirm it lands on the progress screen and then the builder; publish once via the new sheet; check dashboard as a free published user
+- Check `builder_first_page` seconds in PostHog before keeping "in a minute" in the headline subtext
+- PostHog IS installed in `client/index.html` (contradicts older notes below). Its `api_host` is `https://us.posthog.com`; PostHog's standard US host is `https://us.i.posthog.com` — confirm events arrive in Live events
+- Still old visual style (not in scope this session): questionnaire, preview, twin-interview, onboarding-chat, job-search, admin, preview-draft, portfolio page chrome
+- Run a trademark search on the new logo before any print use
+
+**Architecture decisions made this session:**
+- One brand system: tokens + classes live in `client/src/index.css` under "Proxy brand" (`.site`, `.site-btn`, `.site-card`, `.site-display`…); shared `SiteNav`/`SiteFooter` in `client/src/components/SiteChrome.tsx`. New public pages use these, never the old 3px-border/green style
+- The signature element is the talking "o" (`TalkingO` in `ProxyLogo.tsx`); reuse it for "answering…" states, nowhere decorative
+- Publishing is one user action; the server's approve step stays as a stale-tab guard and is chained client-side
+- Page-strength checks are computed from the document in the browser and must stay factual (no invented scores)
+
+## Previous Sprint — 2026-09-26 (Session 14)
 **Status:** All 21 findings from a copy-vs-code audit are implemented. `copy-audit-fixes` branch merged to `main` and pushed — Vinos pulled it on Replit workspace and confirmed the pricing section renders correctly. A second branch, `remove-concierge-pricing-redesign`, is pushed but **not yet merged** — needs Vinos's review and merge before deploy.
 
 **Completed:**

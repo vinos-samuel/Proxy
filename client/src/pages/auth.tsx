@@ -57,109 +57,105 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center p-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+    <div className="site auth">
       <motion.div
         className="relative w-full max-w-md"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <div className="text-center mb-8">
-          <Link href="/">
-            <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <ProxyLogo />
-            </div>
-          </Link>
-          <h1 className="text-4xl font-bold mb-2 text-black/60">Welcome back</h1>
-          <p className="mono text-sm text-black/60 uppercase tracking-wider">Sign in to manage your page</p>
+        <div className="auth-head">
+          <Link href="/" className="auth-logo" aria-label="Proxy home"><ProxyLogo size={30} /></Link>
+          <h1 className="site-display auth-h1">Welcome back</h1>
+          <p className="site-muted">Sign in to manage your page.</p>
         </div>
 
-        <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        <div className="site-card auth-card">
           {unverifiedEmail ? (
-            <div className="text-center py-4">
-              <Mail className="h-12 w-12 text-[#22C55E] mx-auto mb-4" />
-              <p className="font-bold text-black mono uppercase tracking-wider">Email Not Verified</p>
-              <p className="text-sm text-black/60 mono mt-2">Please check <strong>{unverifiedEmail}</strong> and click the verification link before logging in.</p>
+            <div className="auth-message">
+              <Mail className="auth-icon" />
+              <p className="auth-title">Please verify your email</p>
+              <p className="site-muted auth-small">Please check <strong>{unverifiedEmail}</strong> and click the verification link before logging in.</p>
               {resent ? (
-                <div className="flex items-center justify-center gap-2 mt-6 text-sm mono text-[#22C55E]">
-                  <CheckCircle className="h-4 w-4" /> Verification email resent!
+                <div className="auth-ok">
+                  <CheckCircle className="h-4 w-4" /> Verification email sent again.
                 </div>
               ) : (
                 <Button
                   onClick={handleResend}
                   disabled={resending}
-                  className="mt-6 w-full bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold py-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none"
+                  className="site-btn auth-submit"
                 >
-                  {resending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Resend Verification Email"}
+                  {resending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Resend verification email"}
                 </Button>
               )}
-              <button onClick={() => setUnverifiedEmail(null)} className="mt-4 text-xs mono text-black/40 hover:text-black/60 underline">
+              <button onClick={() => setUnverifiedEmail(null)} className="site-link auth-back">
                 Back to sign in
               </button>
             </div>
           ) : (
           <>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="mono text-xs uppercase tracking-wider text-black/60">Email</Label>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="auth-form">
+            <div>
+              <Label htmlFor="email" className="site-label">Email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="you@example.com"
                 data-testid="input-email"
-                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black text-black"
+                className="site-input h-auto"
                 {...form.register("email")}
               />
               {form.formState.errors.email && (
-                <p className="mono text-xs text-destructive">{form.formState.errors.email.message}</p>
+                <p className="auth-error">{form.formState.errors.email.message}</p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="mono text-xs uppercase tracking-wider text-black/60">Password</Label>
+            <div>
+              <Label htmlFor="password" className="site-label">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   data-testid="input-password"
-                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black text-black"
+                  className="site-input h-auto"
                   {...form.register("password")}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40"
+                  className="auth-eye" aria-label={showPassword ? "Hide password" : "Show password"}
                   data-testid="button-toggle-password"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {form.formState.errors.password && (
-                <p className="mono text-xs text-destructive">{form.formState.errors.password.message}</p>
+                <p className="auth-error">{form.formState.errors.password.message}</p>
               )}
             </div>
             <Button
               type="submit"
-              className="w-full bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold py-6 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+              className="site-btn auth-submit"
               disabled={form.formState.isSubmitting}
               data-testid="button-login"
             >
               {form.formState.isSubmitting ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <>Sign In &rarr;</>
+                <>Sign in</>
               )}
             </Button>
           </form>
 
-          <p className="text-center text-sm mt-8">
-            <span className="text-black/60 mono uppercase tracking-wider">Don't have an account?</span>{" "}
-            <Link href="/register" className="text-black font-bold mono uppercase tracking-wider hover:underline" data-testid="link-register">
+          <p className="auth-center auth-foot">
+            <span className="site-muted">Don't have an account?</span>{" "}
+            <Link href="/register" className="site-link" data-testid="link-register">
               Create one
             </Link>
           </p>
 
-          <p className="text-center text-sm mt-6">
-            <Link href="/forgot-password" className="text-black/50 mono text-xs uppercase tracking-wider hover:underline" data-testid="link-forgot-password">
+          <p className="auth-center auth-foot">
+            <Link href="/forgot-password" className="site-faint auth-small" data-testid="link-forgot-password">
               Forgot password?
             </Link>
           </p>
@@ -217,129 +213,125 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center p-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+    <div className="site auth">
       <motion.div
         className="relative w-full max-w-md"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <div className="text-center mb-8">
-          <Link href="/">
-            <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <ProxyLogo />
-            </div>
-          </Link>
-          <h1 className="text-4xl font-bold mb-2 text-black/60">{hasGuestDraft ? "Save your page. Make it yours." : "Create your account. Build your page."}</h1>
-          <p className="mono text-sm text-black/60 uppercase tracking-wider">Prepare convincing evidence for your next opportunity</p>
+        <div className="auth-head">
+          <Link href="/" className="auth-logo" aria-label="Proxy home"><ProxyLogo size={30} /></Link>
+          <h1 className="site-display auth-h1">{hasGuestDraft ? "Save your page. Make it yours." : "Create your account. Build your page."}</h1>
+          <p className="site-muted">{hasGuestDraft ? "Create a free account to keep and publish your page." : "Free to start. No card needed."}</p>
         </div>
 
-        <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        <div className="site-card auth-card">
           {registeredEmail ? (
-            <div className="text-center py-4">
-              <Mail className="h-12 w-12 text-[#22C55E] mx-auto mb-4" />
-              <p className="font-bold text-black mono uppercase tracking-wider">Check Your Email</p>
-              <p className="text-sm text-black/60 mono mt-2">We sent a verification link to <strong>{registeredEmail}</strong>. Verify it to {hasGuestDraft ? "return to your saved page" : "start your page"}.</p>
-              <p className="text-xs text-black/40 mono mt-4">Didn't get it? Check your spam folder or{" "}
-                <Link href="/login" className="underline text-black/60">go to sign in</Link> to resend.
+            <div className="auth-message">
+              <Mail className="auth-icon" />
+              <p className="auth-title">Check your email</p>
+              <p className="site-muted auth-small">We sent a verification link to <strong>{registeredEmail}</strong>. Verify it to {hasGuestDraft ? "return to your saved page" : "start your page"}.</p>
+              <p className="site-faint auth-small">Didn't get it? Check your spam folder or{" "}
+                <Link href="/login" className="site-link">go to sign in</Link> to resend.
               </p>
             </div>
           ) : (
           <>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="mono text-xs uppercase tracking-wider text-black/60">Full Name</Label>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="auth-form">
+            <div>
+              <Label htmlFor="name" className="site-label">Full name</Label>
               <Input
                 id="name"
-                placeholder="John Doe"
+                placeholder="Your name"
                 data-testid="input-name"
-                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black text-black"
+                className="site-input h-auto"
                 {...form.register("name")}
               />
               {form.formState.errors.name && (
-                <p className="mono text-xs text-destructive">{form.formState.errors.name.message}</p>
+                <p className="auth-error">{form.formState.errors.name.message}</p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="username" className="mono text-xs uppercase tracking-wider text-black/60">Username</Label>
+            <div>
+              <Label htmlFor="username" className="site-label">Username</Label>
               <div>
                 <Input
                   id="username"
-                  placeholder="john-doe"
+                  placeholder="your-name"
                   data-testid="input-username"
-                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black text-black"
+                  className="site-input h-auto"
                   {...form.register("username")}
                 />
-                <p className="mt-2 text-xs mono text-black/40">Your link: myproxy.work/portfolio/{form.watch("username") || "your-name"}</p>
+                <p className="site-faint auth-hint">Your link: myproxy.work/portfolio/{form.watch("username") || "your-name"}</p>
               </div>
               {form.formState.errors.username && (
-                <p className="mono text-xs text-destructive">{form.formState.errors.username.message}</p>
+                <p className="auth-error">{form.formState.errors.username.message}</p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="reg-email" className="mono text-xs uppercase tracking-wider text-black/60">Email</Label>
+            <div>
+              <Label htmlFor="reg-email" className="site-label">Email</Label>
               <Input
                 id="reg-email"
                 type="email"
                 placeholder="you@example.com"
                 data-testid="input-reg-email"
-                className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black text-black"
+                className="site-input h-auto"
                 {...form.register("email")}
               />
               {form.formState.errors.email && (
-                <p className="mono text-xs text-destructive">{form.formState.errors.email.message}</p>
+                <p className="auth-error">{form.formState.errors.email.message}</p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="reg-password" className="mono text-xs uppercase tracking-wider text-black/60">Password</Label>
+            <div>
+              <Label htmlFor="reg-password" className="site-label">Password</Label>
               <div className="relative">
                 <Input
                   id="reg-password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Min 8 characters"
                   data-testid="input-reg-password"
-                  className="border-2 border-black bg-white px-4 py-3 mono rounded-none h-auto focus-visible:ring-0 focus-visible:border-black text-black"
+                  className="site-input h-auto"
                   {...form.register("password")}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40"
+                  className="auth-eye" aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {form.formState.errors.password && (
-                <p className="mono text-xs text-destructive">{form.formState.errors.password.message}</p>
+                <p className="auth-error">{form.formState.errors.password.message}</p>
               )}
             </div>
             <Button
               type="submit"
-              className="w-full bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold py-6 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+              className="site-btn auth-submit"
               disabled={form.formState.isSubmitting}
               data-testid="button-register"
             >
               {form.formState.isSubmitting ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <>Create Account &rarr;</>
+                <>Create account</>
               )}
             </Button>
           </form>
 
-          <p className="text-center text-xs mt-6 leading-relaxed text-black/60 mono">
+          <p className="site-faint auth-small auth-center">
             By signing up you agree to our{" "}
-            <Link href="/terms" className="text-black font-bold hover:underline" data-testid="link-terms">
+            <Link href="/terms" className="site-link" data-testid="link-terms">
               Terms of Service
             </Link>
             {" "}and{" "}
-            <Link href="/privacy" className="text-black font-bold hover:underline" data-testid="link-privacy">
+            <Link href="/privacy" className="site-link" data-testid="link-privacy">
               Privacy Policy
             </Link>
           </p>
 
-          <p className="text-center text-sm mt-6">
-            <span className="text-black/60 mono uppercase tracking-wider">Already have an account?</span>{" "}
-            <Link href="/login" className="text-black font-bold mono uppercase tracking-wider hover:underline" data-testid="link-login">
+          <p className="auth-center auth-foot">
+            <span className="site-muted">Already have an account?</span>{" "}
+            <Link href="/login" className="site-link" data-testid="link-login">
               Sign in
             </Link>
           </p>

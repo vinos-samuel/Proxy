@@ -40,36 +40,34 @@ export default function VerifyEmailPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#E8E8E3] flex items-center justify-center p-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+    <div className="site auth">
       <motion.div
         className="relative w-full max-w-md"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <div className="text-center mb-8">
+        <div className="auth-head">
           <Link href="/">
-            <div className="inline-flex items-center gap-2 cursor-pointer mb-4">
-              <ProxyLogo />
-            </div>
+            <span className="auth-logo"><ProxyLogo size={30} /></span>
           </Link>
-          <h1 className="text-4xl font-bold mb-2 text-black/60">Email Verification</h1>
+          <h1 className="site-display auth-h1">Email Verification</h1>
         </div>
 
-        <div className="bg-white border-[3px] border-black p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center">
+        <div className="site-card auth-card auth-message">
           {status === "loading" && (
             <div className="py-8">
-              <Loader2 className="h-12 w-12 animate-spin text-black/40 mx-auto mb-4" />
-              <p className="mono text-sm text-black/60 uppercase tracking-wider">Verifying your email...</p>
+              <Loader2 className="auth-icon animate-spin" />
+              <p className="site-muted">Verifying your email...</p>
             </div>
           )}
 
           {status === "success" && (
             <div className="py-4">
-              <CheckCircle className="h-12 w-12 text-[#22C55E] mx-auto mb-4" />
-              <p className="font-bold text-black mono uppercase tracking-wider">Email Verified!</p>
-              <p className="text-sm text-black/60 mono mt-2">Your account is active. Redirecting to your page builder...</p>
+              <CheckCircle className="auth-icon" />
+              <p className="auth-title">Email Verified!</p>
+              <p className="site-muted auth-small">Your account is active. Redirecting to your page builder...</p>
               <Link href={profileCreationPath}>
-                <Button className="mt-6 w-full bg-black hover:bg-black/80 text-white font-bold py-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none">
+                <Button className="site-btn site-btn--quiet auth-submit">
                   Build my page →
                 </Button>
               </Link>
@@ -79,10 +77,10 @@ export default function VerifyEmailPage() {
           {status === "error" && (
             <div className="py-4">
               <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-              <p className="font-bold text-black mono uppercase tracking-wider">Verification Failed</p>
-              <p className="text-sm text-black/60 mono mt-2">{errorMsg}</p>
+              <p className="auth-title">Verification Failed</p>
+              <p className="site-muted auth-small">{errorMsg}</p>
               <Link href="/login">
-                <Button className="mt-6 w-full bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold py-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mono uppercase tracking-wider rounded-none">
+                <Button className="site-btn auth-submit">
                   Back to Sign In
                 </Button>
               </Link>

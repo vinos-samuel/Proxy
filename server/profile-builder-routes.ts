@@ -296,7 +296,7 @@ export function registerProfileBuilderRoutes(app: Express) {
       experience: [],
       skills: [],
       contact: { email: null, linkedin: null, website: null, showEmail: false, showLinkedin: false, showWebsite: false },
-      publicBotEnabled: false,
+      publicBotEnabled: true, // new no-CV pages match CV pages: chat on by default
       details: { education: [], certifications: [], awards: [], interests: [], showEducation: true, showCertifications: true, showAwards: true, showInterests: false },
       privateContext: { questions: [], concerns: [] },
       sources: [{ id: sourceId, kind: "user", label: "Starting description", excerpt: parsed.data.work }],
@@ -550,7 +550,7 @@ export function registerProfileBuilderRoutes(app: Express) {
     const row = await storage.getProfileDocumentByProfileId(profile.id);
     if (!row || row.revision !== parsed.data.revision) return res.status(409).json({ message: "Your page changed. Reload before publishing." });
     if (!row.publishedDocument || row.publishedRevision !== row.revision) {
-      return res.status(409).json({ message: "You've edited since you last approved. Click \"Review & approve\" above, then Publish." });
+      return res.status(409).json({ message: "Your page changed while publishing. Press Publish again." });
     }
 
     const access = getPublicationAccess(profile);

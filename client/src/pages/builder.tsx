@@ -74,6 +74,13 @@ function summarizeConflictValue(value: unknown): string {
   return text.length > 180 ? `${text.slice(0, 177)}…` : text;
 }
 
+const UPLOAD_STEPS = [
+  "Reading your CV",
+  "Finding your roles and results",
+  "Writing your headline and summary",
+  "Choosing your strongest work",
+];
+
 export default function BuilderPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -91,7 +98,9 @@ export default function BuilderPage() {
   const [conflictReview, setConflictReview] = useState<ConflictReview | null>(null);
   const [mobilePanel, setMobilePanel] = useState(false);
   const [showPlans, setShowPlans] = useState(false);
-  const [approved, setApproved] = useState(false);
+  const [publishSheet, setPublishSheet] = useState(false);
+  const [uploadStep, setUploadStep] = useState(0);
+  const [uploadName, setUploadName] = useState("");
   const [dirty, setDirty] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [editTarget, setEditTarget] = useState<EditTarget>({ section: "outline" });
@@ -148,6 +157,16 @@ export default function BuilderPage() {
       .finally(() => setBusy(null));
   }, [fixtureMode]);
 
+  // Upload progress checklist: steps advance on a timer and the last one holds
+  // until the server responds. Labels describe work the server really does;
+  // there are no invented counts or percentages.
+  useEffect(() => {
+    if (busy !== "upload") return;
+    setUploadStep(0);
+    const timer = window.setInterval(() => setUploadStep((step) => Math.min(step + 1, UPLOAD_STEPS.length - 1)), 7000);
+    return () => window.clearInterval(timer);
+  }, [busy]);
+
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
       if (!dirty) return;
@@ -171,7 +190,6 @@ export default function BuilderPage() {
     acknowledgedDocumentRef.current = next.document;
     stateRef.current = { ...stateRef.current, ...next };
     setState((current) => ({ ...current, ...next }));
-    setApproved(false);
     setDirty(false);
     setConflict(false);
     setConflictReview(null);
@@ -189,7 +207,6 @@ export default function BuilderPage() {
       );
       stateRef.current = { ...stateRef.current, document: preserved, revision: next.revision };
       setState((current) => ({ ...current, document: preserved, revision: next.revision }));
-      setApproved(false);
       setDirty(true);
       return;
     }
@@ -203,7 +220,6 @@ export default function BuilderPage() {
     localEditVersionRef.current += 1;
     stateRef.current = { ...stateRef.current, document: next };
     setState((value) => ({ ...value, document: next }));
-    setApproved(false);
     setDirty(true);
   };
 
@@ -236,6 +252,7 @@ export default function BuilderPage() {
     const data = new FormData();
     data.append("resume", file);
     if (confirmReplace) data.append("confirmReplace", "true");
+    setUploadName(file.name);
     setBusy("upload");
     setError("");
     capture("builder_upload_started", { sizeBand: file.size < 1_000_000 ? "under_1mb" : file.size < 3_000_000 ? "1_to_3mb" : "3_to_5mb" });
@@ -425,37 +442,34 @@ export default function BuilderPage() {
     }
   };
 
-  const approve = async () => {
+  // One Publish action. The server still requires an approval step before
+  // publishing (so a stale tab can't publish the wrong version); the sheet
+  // runs approve then publish back to back instead of asking for two clicks.
+  const openPublish = () => {
     if (!stateRef.current.revision || !user) {
       sessionStorage.setItem("proxy_builder_return", "1");
       setLocation("/register");
       return;
     }
-    setBusy("approve");
     setError("");
-    try {
-      await saveQueueRef.current;
-      await requestJson("/api/builder/approve", { method: "POST", body: JSON.stringify({ revision: stateRef.current.revision }) });
-      setApproved(true);
-      capture("builder_approved", { revision: stateRef.current.revision });
-    } catch (cause: any) {
-      setError(cause.message);
-    } finally {
-      setBusy(null);
-    }
+    setPublishSheet(true);
   };
 
-  const publish = async () => {
+  const publishNow = async () => {
     if (!stateRef.current.revision) return;
     setBusy("publish");
     setError("");
     try {
       await saveQueueRef.current;
-      const result = await requestJson<{ username: string }>("/api/builder/publish", { method: "POST", body: JSON.stringify({ revision: stateRef.current.revision }) });
+      const revisionToPublish = stateRef.current.revision;
+      await requestJson("/api/builder/approve", { method: "POST", body: JSON.stringify({ revision: revisionToPublish }) });
+      capture("builder_approved", { revision: revisionToPublish });
+      const result = await requestJson<{ username: string }>("/api/builder/publish", { method: "POST", body: JSON.stringify({ revision: revisionToPublish }) });
       capture("builder_published");
+      setPublishSheet(false);
       setLocation(`/portfolio/${result.username}`);
     } catch (cause: any) {
-      if (cause.message.includes("publishing plan")) setShowPlans(true);
+      if (cause.message.includes("publishing plan")) { setPublishSheet(false); setShowPlans(true); }
       else setError(cause.message);
     } finally {
       setBusy(null);
@@ -490,7 +504,6 @@ export default function BuilderPage() {
       stateRef.current = latest;
       setState(latest);
       setDirty(false);
-      setApproved(false);
       setConflict(false);
       setConflictReview(null);
       setError("");
@@ -530,6 +543,27 @@ export default function BuilderPage() {
 
   if (busy === "loading") return <div className="builder-loading"><Loader2 className="animate-spin" /><p>Preparing your workspace…</p></div>;
 
+  if (!document && busy === "upload") {
+    return (
+      <main className="builder-empty">
+        <header><Link href="/"><ProxyLogo /></Link></header>
+        <section className="builder-building" aria-live="polite">
+          <h1>Building your page</h1>
+          <p>Keep this tab open. Your page appears here when it's ready.</p>
+          <ol>
+            {UPLOAD_STEPS.map((label, index) => (
+              <li key={label} className={index < uploadStep ? "is-done" : index === uploadStep ? "is-doing" : ""}>
+                <i aria-hidden="true">{index < uploadStep ? <Check /> : index === uploadStep ? <Loader2 className="animate-spin" /> : null}</i>
+                <span>{label}{index === 0 && uploadName && <small>{uploadName}</small>}</span>
+              </li>
+            ))}
+          </ol>
+          <div className="builder-building-skeleton" aria-hidden="true"><b /><b /><b /><span /><span /><span /></div>
+        </section>
+      </main>
+    );
+  }
+
   if (!document) {
     return (
       <main className="builder-empty">
@@ -545,9 +579,9 @@ export default function BuilderPage() {
               }}>{busy === "import" ? <Loader2 className="animate-spin" /> : <Sparkles />} Continue with my existing profile</button>
             </div>
           )}
-          <p className="builder-kicker">{state.legacyAvailable && user ? "Or start over from a CV instead" : "Prepare convincing evidence for your next opportunity."}</p>
+          {state.legacyAvailable && user && <p className="builder-kicker">Or start over from a CV instead</p>}
           <h1>Turn your CV into a page worth sharing.</h1>
-          <p>Upload a PDF for the fastest start. You will see a finished first version, then you can deepen it through conversation or guided editing.</p>
+          <p>You'll see your finished page first. Nothing goes public until you publish.</p>
           <label className="builder-upload">
             {busy === "upload" ? <Loader2 className="animate-spin" /> : <Upload />}
             <span>{busy === "upload" ? "Building your page…" : "Upload your CV"}</span>
@@ -566,7 +600,7 @@ export default function BuilderPage() {
             if (result) { setState((current) => ({ ...current, source: "account" })); capture("builder_guest_adopted_from_empty"); }
           }}>Use a recent draft from this browser <ChevronRight /></button>}
           {error && <p className="builder-error" role="alert">{error}</p>}
-          <p className="builder-trust">Your CV and answers stay private while you build. Guest drafts are kept for 4 hours. Create a free account to keep and publish your page. No card required.</p>
+          <p className="builder-trust">Private while you build · Guest drafts are kept for 4 hours · A free account publishes it, no card</p>
         </section>
       </main>
     );
@@ -578,7 +612,7 @@ export default function BuilderPage() {
     <main className="builder-shell">
       <header className="builder-topbar">
         <Link href={user ? "/dashboard" : "/"} className="builder-back"><ArrowLeft /> <span>Proxy</span></Link>
-        <div><span className={`builder-save-state ${error ? "is-error" : ""}`}>{busy === "save" ? "Saving…" : error && dirty ? "Save failed" : dirty ? "Unsaved changes" : "All changes saved"}</span><button className="builder-topbar-action" disabled={dirty || Boolean(busy)} onClick={() => setPreviewMode(true)}><Eye /> Preview</button><button className="builder-topbar-publish" disabled={dirty || Boolean(busy) || Boolean(proposal)} onClick={approved ? publish : approve}>{!user ? "Create free account" : approved ? (state.hasPublished ? "Publish changes" : "Publish free") : "Review & approve"}</button><button className="builder-menu" onClick={() => setMobilePanel(true)} aria-label="Open editing panel"><Menu /></button></div>
+        <div><span className={`builder-save-state ${error ? "is-error" : ""}`}>{busy === "save" ? "Saving…" : error && dirty ? "Save failed" : dirty ? "Unsaved changes" : "All changes saved"}</span><button className="builder-topbar-action" disabled={dirty || Boolean(busy)} onClick={() => setPreviewMode(true)}><Eye /> Preview</button><button className="builder-topbar-publish" disabled={dirty || Boolean(busy) || Boolean(proposal)} title={proposal ? "Keep or skip the suggested change first" : undefined} onClick={openPublish}>{state.hasPublished ? "Publish changes" : "Publish"}</button><button className="builder-menu" onClick={() => setMobilePanel(true)} aria-label="Open editing panel"><Menu /></button></div>
       </header>
       <div className="builder-workspace">
         <section className="builder-canvas" aria-label="Page preview">
@@ -594,7 +628,7 @@ export default function BuilderPage() {
 
         <aside className={`builder-panel ${mobilePanel ? "builder-panel--open" : ""}`}>
           <div className="builder-panel-head"><div><p>Your page</p><span>{dirty ? "Changes waiting to save" : "Private draft"}</span></div><button onClick={() => setMobilePanel(false)} aria-label="Close editing panel"><X /></button></div>
-          <nav>{(["improve", "edit", "style", "settings"] as Panel[]).map((item) => <button key={item} className={panel === item ? "active" : ""} onClick={() => setPanel(item)}>{item}</button>)}</nav>
+          <nav>{(["improve", "edit", "style", "settings"] as Panel[]).map((item) => <button key={item} className={panel === item ? "active" : ""} onClick={() => setPanel(item)}>{item === "style" ? "design" : item}</button>)}</nav>
           <div className="builder-panel-body">
             {error && <div className="builder-error" role="alert"><p>{error}</p>{conflict ? <div className="builder-conflict-review">{conflictReview ? <>{conflictReview.conflicts.length > 0 ? <><p>Choose which version to keep for each conflicting field. Other changes were combined automatically.</p>{conflictReview.conflicts.map((item) => <fieldset key={item.path}><legend>{item.path.replaceAll(".", " · ")}</legend><button className={conflictReview.choices[item.path] === "local" ? "selected" : ""} onClick={() => setConflictReview((current) => current ? { ...current, choices: { ...current.choices, [item.path]: "local" } } : current)}><b>Keep my change</b><span>{summarizeConflictValue(item.local)}</span></button><button className={conflictReview.choices[item.path] === "remote" ? "selected" : ""} onClick={() => setConflictReview((current) => current ? { ...current, choices: { ...current.choices, [item.path]: "remote" } } : current)}><b>Keep other version</b><span>{summarizeConflictValue(item.remote)}</span></button></fieldset>)}</> : <p>Your changes do not overlap. They can be combined safely.</p>}<div className="builder-conflict-actions"><button onClick={reloadAfterConflict}>Use latest version</button><button disabled={conflictReview.conflicts.some((item) => !conflictReview.choices[item.path])} onClick={saveReviewedConflict}>Save reviewed version</button></div></> : <p>Loading both versions…</p>}</div> : dirty && <button onClick={() => saveDocument(document)}>Retry save</button>}</div>}
             {!user && state.source === "guest" && <p className="builder-guest-note">Guest draft · kept for 4 hours. Create an account before it expires.</p>}
@@ -758,11 +792,28 @@ export default function BuilderPage() {
           </div>
           <footer>
             {document.undoStack.length > 0 && <button className="builder-undo" disabled={Boolean(busy)} onClick={() => mutate("undo", "/api/builder/undo", { revision })}><RotateCcw /> Undo last change</button>}
-            {!approved ? <button className="builder-primary" disabled={Boolean(busy) || Boolean(proposal) || dirty} onClick={approve}>{busy === "approve" ? <Loader2 className="animate-spin" /> : <Check />} {user ? "Review & approve" : "Create free account to publish"}</button> : <button className="builder-primary" disabled={Boolean(busy)} onClick={publish}>{busy === "publish" ? <Loader2 className="animate-spin" /> : null} {state.hasPublished ? "Publish changes" : "Publish free · no card"}</button>}
+            <button className="builder-primary" disabled={Boolean(busy) || Boolean(proposal) || dirty} onClick={() => { setMobilePanel(false); openPublish(); }}><Check /> {state.hasPublished ? "Publish changes" : "Publish"}</button>
             {!user && <Link className="builder-sign-in" href="/login?next=/builder">Already have an account? Sign in</Link>}
           </footer>
         </aside>
       </div>
+      <nav className="builder-dock" aria-label="Edit your page">
+        {([["improve", "Improve"], ["edit", "Edit"], ["style", "Design"]] as Array<[Panel, string]>).map(([value, label]) => <button key={value} type="button" onClick={() => { setPanel(value); setMobilePanel(true); }}>{label}</button>)}
+        <button type="button" disabled={dirty || Boolean(busy)} onClick={() => setPreviewMode(true)}>Preview</button>
+      </nav>
+      {publishSheet && user && <div className="builder-publish-sheet" role="dialog" aria-modal="true" aria-label="Publish your page"><div>
+        <button className="builder-modal-close" onClick={() => setPublishSheet(false)} aria-label="Close"><X /></button>
+        <h2>{state.hasPublished ? "Publish your changes?" : "Publish your page?"}</h2>
+        <p className="builder-publish-url"><span>{window.location.host}/portfolio/</span><b>{user.username}</b></p>
+        <ul>
+          <li><Check /> <span><span className="builder-capitalize">{document.style}</span> design · {document.projects.length} {document.projects.length === 1 ? "example" : "examples"} of your work</span></li>
+          <li>{document.publicBotEnabled ? <Check /> : <X />} <span>"Ask about my work" is {document.publicBotEnabled ? "on" : "off"}</span><button type="button" className="builder-text-button" onClick={() => { setPublishSheet(false); setPanel("settings"); setMobilePanel(true); }}>Change</button></li>
+          <li>{[document.contact.showEmail && "Email", document.contact.showLinkedin && "LinkedIn", document.contact.showWebsite && "Website"].some(Boolean) ? <Check /> : <X />} <span>{(() => { const shown = [document.contact.showEmail && document.contact.email && "email", document.contact.showLinkedin && document.contact.linkedin && "LinkedIn", document.contact.showWebsite && document.contact.website && "website"].filter(Boolean); return shown.length ? `Visitors can reach you by ${shown.join(" and ")}` : "No contact details shown"; })()}</span><button type="button" className="builder-text-button" onClick={() => { setPublishSheet(false); setPanel("settings"); setMobilePanel(true); }}>Change</button></li>
+        </ul>
+        {error && <p className="builder-error" role="alert">{error}</p>}
+        <button className="builder-primary" disabled={Boolean(busy)} onClick={publishNow}>{busy === "publish" ? <Loader2 className="animate-spin" /> : null} {state.hasPublished ? "Publish changes" : "Publish now · free"}</button>
+        {!state.hasPublished && <small>Free pages can be edited for 7 days after publishing. Pro ($49, once) removes the limit.</small>}
+      </div></div>}
       {testChat && <div className="builder-test-chat" role="dialog" aria-modal="true" aria-label="Test Ask about my work"><div><button className="builder-test-chat-close" onClick={() => setTestChat(false)} aria-label="Close test"><X /></button><p className="builder-panel-kicker">Private test · uses this preview</p><h2>Ask about {document.identity.name.split(" ")[0]}'s work</h2><small>Answers use only information a visitor would be allowed to see. Hidden contacts, private answers and source excerpts are excluded. {user ? "Account tests allow 20" : "Guest tests allow 5"} questions per hour.</small><div className="builder-test-starters">{[
         `What kind of work is ${document.identity.name.split(" ")[0]} strongest at?`,
         document.projects[0] ? `What did ${document.identity.name.split(" ")[0]} contribute to ${document.projects[0].title}?` : "What experience stands out?",

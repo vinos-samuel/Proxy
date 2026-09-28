@@ -881,3 +881,52 @@
   .builder-topbar-action { display: none; }
   .builder-topbar-publish { white-space: nowrap; }
 }
+
+/* ---- Upload progress (shown while /api/builder/upload runs) ---- */
+.builder-empty > section.builder-building { text-align: left; max-width: 520px; }
+.builder-building h1 { font-size: clamp(38px,6vw,56px); margin-bottom: 10px; }
+.builder-building > p { color: #5a6359; font-size: 16px; }
+.builder-building ol { list-style: none; margin: 30px 0 0; padding: 0; display: grid; gap: 14px; }
+.builder-building li { display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start; color: #8b8f84; font-size: 16px; }
+.builder-building li i { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #c3c0b0; display: grid; place-items: center; }
+.builder-building li i svg { width: 14px; height: 14px; }
+.builder-building li.is-doing { color: #171a17; font-weight: 600; }
+.builder-building li.is-doing i { border-color: #334b32; color: #334b32; }
+.builder-building li.is-done { color: #3d4a3c; }
+.builder-building li.is-done i { background: #334b32; border-color: #334b32; color: #fff; }
+.builder-building li small { display: block; margin-top: 2px; color: #7a7f74; font: 400 12px/1.4 ui-monospace,Menlo,monospace; overflow-wrap: anywhere; }
+.builder-building-skeleton { display: grid; gap: 10px; margin-top: 36px; padding: 22px; background: #f6f2e9; border: 1px solid #dbd9cd; }
+.builder-building-skeleton b, .builder-building-skeleton span { display: block; height: 12px; border-radius: 2px; background: linear-gradient(90deg,#e7e4da 0%,#f1efe8 50%,#e7e4da 100%); background-size: 200% 100%; animation: builder-shimmer 1.6s ease-in-out infinite; }
+.builder-building-skeleton b { height: 22px; width: 88%; }
+.builder-building-skeleton b:nth-child(2) { width: 64%; }
+.builder-building-skeleton b:nth-child(3) { width: 40%; height: 12px; margin-bottom: 8px; }
+.builder-building-skeleton span:nth-of-type(3) { width: 70%; }
+@keyframes builder-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .builder-building-skeleton b, .builder-building-skeleton span { animation: none; } }
+
+/* ---- Publish sheet ---- */
+.builder-publish-sheet { position: fixed; z-index: 70; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(21,25,21,.55); }
+.builder-publish-sheet > div { position: relative; width: min(460px,100%); display: grid; gap: 16px; padding: 28px; border-radius: 8px; background: #f8f7f2; color: #171a17; box-shadow: 0 30px 70px rgba(0,0,0,.3); font-family: Inter,system-ui,sans-serif; }
+.builder-publish-sheet h2 { margin: 0; padding-right: 36px; font: 500 28px/1.1 Georgia,serif; }
+.builder-publish-sheet .builder-modal-close { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 4px; }
+.builder-publish-sheet .builder-modal-close svg { width: 16px; }
+.builder-publish-url { display: flex; flex-wrap: wrap; margin: 0; padding: 11px 12px; border: 1px solid #bfc3b8; border-radius: 5px; background: #fff; font: 14px/1.4 ui-monospace,Menlo,monospace; }
+.builder-publish-url span { color: #7a7f74; }
+.builder-publish-sheet ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 14px; }
+.builder-publish-sheet li { display: grid; grid-template-columns: 18px 1fr auto; gap: 9px; align-items: center; min-height: 36px; }
+.builder-publish-sheet li > svg { width: 16px; height: 16px; color: #2f6b3e; }
+.builder-publish-sheet li .builder-text-button { min-height: 36px; padding: 0; font-size: 13px; }
+.builder-publish-sheet .builder-primary { margin-top: 4px; }
+.builder-publish-sheet small { color: #6d7469; font-size: 12.5px; text-align: center; }
+.builder-capitalize { text-transform: capitalize; }
+
+/* ---- Mobile editing dock ---- */
+.builder-dock { display: none; }
+@media (max-width: 900px) {
+  .builder-dock { position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); background: rgba(248,248,245,.97); border-top: 1px solid #cfd1c9; box-shadow: 0 -8px 24px rgba(28,35,27,.08); }
+  .builder-dock button { min-height: 44px; border: 0; border-radius: 6px; background: transparent; color: #3d4a3c; font: 600 13px Inter,system-ui,sans-serif; cursor: pointer; }
+  .builder-dock button:active { background: #e6e8e1; }
+  .builder-dock button:disabled { opacity: .45; }
+  .builder-canvas { padding-bottom: 76px; }
+  .builder-menu { display: none; }
+}

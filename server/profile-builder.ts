@@ -174,7 +174,10 @@ export function buildProfileDocument(parsed: ParsedResume, preview: Preview): Pr
       showLinkedin: false,
       showWebsite: false,
     },
-    publicBotEnabled: false,
+    // On by default for new pages built from a CV: "a page that answers"
+    // is the product's headline. Users see this in the publish sheet and can
+    // turn it off under Settings. Imported legacy profiles keep false below.
+    publicBotEnabled: true,
     impactStats: [],
     details: {
       education: (parsed.education || []).map((item) => item.trim().slice(0, 500)).filter(Boolean).slice(0, 12),

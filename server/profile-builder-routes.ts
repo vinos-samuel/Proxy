@@ -186,7 +186,7 @@ export function registerProfileBuilderRoutes(app: Express) {
         return res.json({
           needsUpload: !profile,
           legacyAvailable: Boolean(profile),
-          guestAvailable: Boolean(getGuestDraft(req)),
+          guestAvailable: Boolean(await getGuestDraft(req)),
         });
       }
       return res.json({ needsUpload: true, guestExpiresInHours: 4 });
@@ -314,6 +314,10 @@ export function registerProfileBuilderRoutes(app: Express) {
       null,
       new Date(Date.now() + GUEST_DRAFT_TTL_MS),
     );
+    // Same reason as the CV upload route: without a property write the
+    // session cookie is never sent and the next request cannot find the draft.
+    req.session.guestDraftEstablished = true;
+    await saveSession(req);
     return res.json({ document: guest.workingDocument, revision: guest.revision, hasPublished: false, source: "guest" });
   });
 

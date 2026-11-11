@@ -1813,9 +1813,13 @@ PASS if every specific claim traces back to the profile data, or if the response
           },
         });
 
+        // Do not write `tier` here. The tier is set from the Stripe session
+        // metadata only after payment (webhook and /api/payment/status).
+        // Writing it before payment gave a free published page Pro access
+        // when the owner abandoned checkout, and blocked free publishing for
+        // an unpublished page.
         await storage.updateProfileById(profile.id, {
           stripeSessionId: session.id,
-          tier,
         });
 
         res.json({ url: session.url });

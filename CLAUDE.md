@@ -8,7 +8,27 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-09-28 (Session 15)
+## Current Sprint — 2026-11-15 (Pro pay moment)
+**Status:** Branch `cursor/pro-pay-moment-41c8`. Not merged, not deployed. Vinos reviews the PR first.
+
+**Completed:**
+- Homepage, FAQ pricing answer, terms, checkout and the first-publish sheet now sell Pro ($49 once) as edit-any-time plus the text of visitor questions. Free stays available and its limits are unchanged.
+- Homepage Pro card has a Get Pro button. Logged-out visitors go to CV upload. Logged-in visitors go to the existing upgrade or publish choice.
+- Hero names mid-to-senior professionals who are job hunting now, and the share line is a referral ask. Step 3 now says send the page with the CV and a referral ask.
+- The $499 blog post keeps its stored essay. A pricing note is rendered at the top of that slug.
+- A cancelled Stripe checkout no longer writes `tier: pro` before payment, and an unpaid profile can still publish free.
+
+**Where we stopped:** PR opened for review. Stripe checkout was not completed in a browser. The Job Search Agent was not added to the Pro list.
+
+**What's next:**
+- Vinos: review the PR. Decide whether to gate the Job Search Agent to Pro in code before any page says it is included.
+- Do not merge or deploy until that review.
+
+**Decisions:**
+- The Job Search Agent is not listed as a Pro feature. `/api/job-agent/*` and `/api/crm/*` only require login. The job-search page treats `paymentStatus === "paid"` as Pro, and a free publish sets that status with `tier: "free"`. New accounts also get 48 hours of access.
+- Least-invasive blog fix: an on-page note. The title, excerpt and body stay in the database.
+
+## Previous Sprint — 2026-09-28 (Session 15)
 **Status:** UI review → full front-end redesign, 4 commits on branch `claude/wonderful-wozniak-vcdxlw` (this branch also contains the unmerged Session 14 branch `remove-concierge-pricing-redesign`, so merging this one covers both). Typecheck unchanged (40 pre-existing errors, none in touched files), `npm run build` passes, `npm run test:profile-builder` 38/38. **Not yet on `main`, not deployed.** No schema change.
 
 **Completed:**

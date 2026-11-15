@@ -131,21 +131,20 @@ export default function FAQPage() {
     },
     {
       q: "How much does Proxy cost?",
-      plainText: "Proxy has two plans. Free gives you a published professional page, with an optional AI explorer, and 7 days of edits after publishing. Pro at $49 one-time adds unlimited edits plus page views and recent visitor questions.",
+      plainText: "Proxy has two plans. Free gives you a published professional page, with an optional AI explorer, and 7 days of edits after publishing. Pro is $49, paid once. It is for the job search after your page is live: edit whenever you want, including after the first week, and see the questions visitors ask.",
       a: (
         <div className="space-y-4">
-          <p>Start free, upgrade when you're ready:</p>
+          <p>Start free. Pro is there when you want it for the job search.</p>
           <div className="space-y-3 ml-1">
             <div className="flex gap-3 items-start">
-              <span className="bg-[#2F5D4C] text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">FREE</span>
-              <span><strong className="text-black">Free</strong> — Published evidence page with an optional AI explorer. Unlimited edits while in draft; 7 days of edits after you publish. No credit card needed.</span>
+              <span className="bg-[#2F5D4C] text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">Free</span>
+              <span><strong className="text-black">Free.</strong> Published evidence page with an optional AI explorer. Unlimited edits while in draft. 7 days of edits after you publish. No credit card needed.</span>
             </div>
             <div className="flex gap-3 items-start">
               <span className="bg-[#2F5D4C] text-white font-bold text-xs px-2 py-1 rounded flex-shrink-0 mt-0.5">$49</span>
-              <span><strong className="text-black">Pro</strong> — Everything in Free plus unlimited edits, page views, and recent visitor questions</span>
+              <span><strong className="text-black">Pro.</strong> For the job search after your page is live. Edit whenever you want, including after the first week, and see the questions visitors ask. Your page, your link, and visitor Q&amp;A stay included. Paid once.</span>
             </div>
           </div>
-          <p className="border-l-[3px] border-[#2F5D4C] pl-4">Pro is a <strong className="text-black">one-time payment</strong> — no monthly subscription.</p>
         </div>
       ),
     },

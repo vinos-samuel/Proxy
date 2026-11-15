@@ -18,6 +18,8 @@ interface BlogPost {
   metaDescription: string | null;
 }
 
+const PRICING_NOTE_SLUG = "what-a-499-career-profile-actually-buys-you-be-honest";
+
 function renderMarkdown(markdown: string): string {
   const blocks = markdown.split("\n\n");
   const html: string[] = [];
@@ -239,6 +241,13 @@ export default function BlogPostPage() {
 
           {/* Post Body */}
           <section className="px-6 py-16 border-b border-[#DBD9CD]">
+            {post.slug === PRICING_NOTE_SLUG && (
+              <div className="max-w-3xl mx-auto">
+                <aside className="blog-pricing-note" data-testid="note-pricing-update">
+                  <p>Pricing update, November 2026. This post was written when Proxy sold a Launch plan at $99 and a Concierge plan at $499. The plans for sale now are Free, and Pro at $49 once. <Link href="/pricing">See current pricing</Link>.</p>
+                </aside>
+              </div>
+            )}
             <div
               className="max-w-3xl mx-auto text-lg text-black/80 leading-relaxed space-y-6 [&_h2]:text-black [&_p]:text-black/80 [&_ul]:text-black/80 [&_strong]:text-black [&_a]:text-[#2F5D4C]"
               dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}

@@ -1813,9 +1813,10 @@ PASS if every specific claim traces back to the profile data, or if the response
           },
         });
 
+        // Tier stays unchanged until Stripe confirms payment. Writing it here
+        // used to mark a cancelled checkout as Pro and block the free publish.
         await storage.updateProfileById(profile.id, {
           stripeSessionId: session.id,
-          tier,
         });
 
         res.json({ url: session.url });
@@ -2508,7 +2509,7 @@ Proxy helps experienced professionals prepare convincing evidence for their next
 - About: https://myproxy.work/about — the problem Proxy solves and who it's for
 - FAQ: https://myproxy.work/faq — common questions on pricing, data, how profiles work
 - Blog index: https://myproxy.work/blog — articles on job search, AI sourcing, career positioning
-- Pricing: https://myproxy.work/pricing — Free, Pro ($49), Concierge ($499) tiers
+- Pricing: https://myproxy.work/pricing. Free, and Pro at $49 paid once.
 
 ## Blog posts
 

@@ -8,6 +8,8 @@ import { getCsrfToken } from "@/lib/queryClient";
 import { renderAnswer } from "@/lib/renderAnswer";
 import { setPendingCvUpload } from "@/lib/pending-cv-upload";
 import { visualProfileFixture } from "@/lib/profile-document-fixtures";
+import { useAuth } from "@/lib/auth";
+import { PRO_BUTTON_LABEL, PRO_FEATURES, PRO_FOR } from "@/lib/pro-plan";
 import type { ProfileStyle } from "@shared/profile-document";
 
 // Demo account the hero widget mirrors. Kept as one constant so the widget
@@ -122,6 +124,11 @@ function DesignShowcase() {
 }
 
 export default function LandingPage() {
+  const { user, isLoading: authLoading } = useAuth();
+  // Checkout needs an account and a page that is ready to publish.
+  // A logged-out visitor uploads a CV first. A logged-in visitor goes to
+  // the dashboard, which opens the existing upgrade or publish choice.
+  const proHref = !authLoading && user ? "/dashboard#upgrade" : "/try";
   // Live chat-in-hero — ask the demo profile a real question, no click-through.
   // Uses the same public, unauthenticated /api/chat/:username endpoint the
   // portfolio page itself uses.
@@ -204,10 +211,11 @@ export default function LandingPage() {
       {/* 1. Hero */}
       <section className="landing-hero">
         <div className="landing-hero-copy">
+          <p className="landing-for">For mid-to-senior professionals who are job hunting now.</p>
           <h1 className="site-display landing-h1" data-testid="text-hero-headline">
             Your CV can't answer questions. <em>Your page can.</em>
           </h1>
-          <p className="landing-sub">Upload your CV. See your finished page in a minute, then share one link.</p>
+          <p className="landing-sub">Upload your CV. See your finished page in a minute, then send the link with a referral ask.</p>
           <CvDrop id="hero-cv" />
           <p className="landing-trust">Free · No account needed to try · Private until you publish</p>
         </div>
@@ -274,7 +282,7 @@ export default function LandingPage() {
           <li>
             <span className="landing-step-n">3</span>
             <h3>Publish and share one link</h3>
-            <p>No hosting or domain to set up. Put it in your email signature, on LinkedIn, or send it instead of a CV.</p>
+            <p>No hosting or domain to set up. Put it in your email signature, on LinkedIn, or send the page with your CV and a referral ask.</p>
           </li>
         </ol>
       </section>
@@ -316,12 +324,14 @@ export default function LandingPage() {
             </ul>
           </div>
           <div className="site-card landing-price landing-price--pro" data-testid="card-tier-pro">
-            <div className="landing-price-head"><h3>Pro</h3><b data-testid="text-price-pro">$49</b><span>one-time, no subscription</span></div>
+            <div className="landing-price-head"><h3>Pro</h3><b data-testid="text-price-pro">$49</b><span>paid once</span></div>
+            <p className="landing-price-for">{PRO_FOR}</p>
             <ul>
+              {PRO_FEATURES.map((feature) => <li key={feature}><Check /> {feature}</li>)}
               <li><Check /> Everything in Free</li>
-              <li><Check /> Unlimited edits</li>
-              <li><Check /> See the questions visitors ask</li>
             </ul>
+            <Link className="site-btn" href={proHref} data-testid="button-get-pro">{PRO_BUTTON_LABEL}</Link>
+            {!authLoading && !user && <p className="landing-price-note">Upload your CV first. Checkout opens once your page is ready.</p>}
           </div>
         </div>
         <div className="landing-final">

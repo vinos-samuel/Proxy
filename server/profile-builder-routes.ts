@@ -61,6 +61,7 @@ type LoadedBuilder = {
   revision: number;
   publishedRevision: number | null;
   hasPublished: boolean;
+  paidPlan: boolean;
   source: "account" | "guest";
 };
 
@@ -121,6 +122,7 @@ async function loadBuilder(req: Request): Promise<LoadedBuilder | null> {
           revision: row.revision,
           publishedRevision: row.publishedRevision,
           hasPublished: Boolean(profile.isPublic),
+          paidPlan: profile.paymentStatus === "paid" && profile.tier !== "free",
           source: "account",
         };
       }
@@ -140,6 +142,7 @@ async function loadBuilder(req: Request): Promise<LoadedBuilder | null> {
     revision: guest.revision,
     publishedRevision: null,
     hasPublished: false,
+    paidPlan: false,
     source: "guest",
   };
 }
@@ -168,6 +171,7 @@ function stateResponse(state: LoadedBuilder, extra: Record<string, unknown> = {}
     revision: state.revision,
     publishedRevision: state.publishedRevision,
     hasPublished: state.hasPublished,
+    paidPlan: state.paidPlan,
     source: state.source,
     ...extra,
   };
@@ -243,6 +247,7 @@ export function registerProfileBuilderRoutes(app: Express) {
           document: row.workingDocument,
           revision: row.revision,
           hasPublished: Boolean(profile.isPublic),
+          paidPlan: profile.paymentStatus === "paid" && profile.tier !== "free",
           source: "account",
         });
       }
@@ -267,7 +272,7 @@ export function registerProfileBuilderRoutes(app: Express) {
         generationMs: generatedAt - parsedAt,
         totalMs: Date.now() - startedAt,
       });
-      return res.json({ document: guest.workingDocument, revision: guest.revision, hasPublished: false, source: "guest" });
+      return res.json({ document: guest.workingDocument, revision: guest.revision, hasPublished: false, paidPlan: false, source: "guest" });
     } catch (error: any) {
       logger.error("[Profile Builder] Upload failed", { error: String(error) });
       // A Postgres error (5-char SQLSTATE code, e.g. missing table/column) is
@@ -306,7 +311,7 @@ export function registerProfileBuilderRoutes(app: Express) {
     if (req.session.customerId) {
       const profile = await storage.upsertProfile({ customerId: req.session.customerId, displayName: parsed.data.name, roleTitle: parsed.data.title, positioning: parsed.data.work, heroSubtitle: parsed.data.title, status: "ready" });
       const row = await storage.upsertProfileDocument(profile.id, document);
-      return res.json({ document: row.workingDocument, revision: row.revision, hasPublished: Boolean(profile.isPublic), source: "account" });
+      return res.json({ document: row.workingDocument, revision: row.revision, hasPublished: Boolean(profile.isPublic), paidPlan: profile.paymentStatus === "paid" && profile.tier !== "free", source: "account" });
     }
     const guest = await storage.upsertGuestProfileDocument(
       guestSessionKey(req),
@@ -314,7 +319,7 @@ export function registerProfileBuilderRoutes(app: Express) {
       null,
       new Date(Date.now() + GUEST_DRAFT_TTL_MS),
     );
-    return res.json({ document: guest.workingDocument, revision: guest.revision, hasPublished: false, source: "guest" });
+    return res.json({ document: guest.workingDocument, revision: guest.revision, hasPublished: false, paidPlan: false, source: "guest" });
   });
 
   app.post("/api/builder/adopt-existing", async (req: Request, res: Response) => {

@@ -14,11 +14,13 @@ import { useUpload } from "@/hooks/use-upload";
 import { useSpeechInput } from "@/hooks/use-speech-input";
 import { renderAnswer } from "@/lib/renderAnswer";
 import { takePendingCvUpload } from "@/lib/pending-cv-upload";
+import { PRO_BUTTON_LABEL, PRO_FEATURES, PRO_FOR } from "@/lib/pro-plan";
 
 type BuilderState = {
   document?: ProfileDocument;
   revision?: number;
   hasPublished?: boolean;
+  paidPlan?: boolean;
   publishedRevision?: number | null;
   source?: "guest" | "account";
   needsUpload?: boolean;
@@ -117,6 +119,7 @@ export default function BuilderPage() {
   const saveSequenceRef = useRef(0);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const planOpenedRef = useRef(false);
   const fixtureMode = import.meta.env.DEV && new URLSearchParams(window.location.search).get("fixture") === "1";
 
   const document = state.document ? normalizeProfileDocument(state.document) : state.document;
@@ -157,6 +160,14 @@ export default function BuilderPage() {
       .catch((cause) => setError(cause.message))
       .finally(() => setBusy(null));
   }, [fixtureMode]);
+
+  useEffect(() => {
+    if (planOpenedRef.current || fixtureMode || !user || !document) return;
+    const plan = new URLSearchParams(window.location.search).get("plan");
+    if (plan !== "pro" && plan !== "free") return;
+    planOpenedRef.current = true;
+    setPublishSheet(true);
+  }, [fixtureMode, user, document]);
 
   // Upload progress checklist: steps advance on a timer and the last one holds
   // until the server responds. Labels describe work the server really does;
@@ -457,13 +468,38 @@ export default function BuilderPage() {
   // publishing (so a stale tab can't publish the wrong version); the sheet
   // runs approve then publish back to back instead of asking for two clicks.
   const openPublish = () => {
-    if (!stateRef.current.revision || !user) {
+    if (!stateRef.current.revision || (!user && !fixtureMode)) {
       sessionStorage.setItem("proxy_builder_return", "1");
       setLocation("/register");
       return;
     }
     setError("");
     setPublishSheet(true);
+  };
+
+  const startProCheckout = async () => {
+    if (!stateRef.current.revision || !user) {
+      sessionStorage.setItem("proxy_builder_return", "1");
+      setLocation("/register");
+      return;
+    }
+    setBusy("checkout");
+    setError("");
+    try {
+      await saveQueueRef.current;
+      const revisionToPublish = stateRef.current.revision;
+      await requestJson("/api/builder/approve", { method: "POST", body: JSON.stringify({ revision: revisionToPublish }) });
+      capture("builder_approved", { revision: revisionToPublish });
+      const result = await requestJson<{ url?: string }>("/api/create-checkout-session", {
+        method: "POST",
+        body: JSON.stringify({ tier: "pro" }),
+      });
+      if (!result.url) throw new Error("No checkout URL returned");
+      window.location.href = result.url;
+    } catch (cause: any) {
+      setError(cause.message || "Could not open checkout");
+      setBusy(null);
+    }
   };
 
   const publishNow = async () => {
@@ -829,18 +865,42 @@ export default function BuilderPage() {
         {([["improve", "Improve"], ["edit", "Edit"], ["style", "Design"]] as Array<[Panel, string]>).map(([value, label]) => <button key={value} type="button" onClick={() => { setPanel(value); setMobilePanel(true); }}>{label}</button>)}
         <button type="button" disabled={dirty || Boolean(busy)} onClick={() => setPreviewMode(true)}>Preview</button>
       </nav>
-      {publishSheet && user && <div className="builder-publish-sheet" role="dialog" aria-modal="true" aria-label="Publish your page"><div>
+      {publishSheet && (user || fixtureMode) && <div className="builder-publish-sheet" role="dialog" aria-modal="true" aria-label="Publish your page"><div>
         <button className="builder-modal-close" onClick={() => setPublishSheet(false)} aria-label="Close"><X /></button>
-        <h2>{state.hasPublished ? "Publish your changes?" : "Publish your page?"}</h2>
-        <p className="builder-publish-url"><span>{window.location.host}/portfolio/</span><b>{user.username}</b></p>
+        <h2>{state.hasPublished ? "Publish your changes?" : "Your page is ready"}</h2>
+        <p className="builder-publish-url"><span>{window.location.host}/portfolio/</span><b>{user?.username || "you"}</b></p>
         <ul>
           <li><Check /> <span><span className="builder-capitalize">{document.style}</span> design · {document.projects.length} {document.projects.length === 1 ? "example" : "examples"} of your work</span></li>
           <li>{document.publicBotEnabled ? <Check /> : <X />} <span>"Ask about my work" is {document.publicBotEnabled ? "on" : "off"}</span><button type="button" className="builder-text-button" onClick={() => { setPublishSheet(false); setPanel("settings"); setMobilePanel(true); }}>Change</button></li>
           <li>{[document.contact.showEmail && "Email", document.contact.showLinkedin && "LinkedIn", document.contact.showWebsite && "Website"].some(Boolean) ? <Check /> : <X />} <span>{(() => { const shown = [document.contact.showEmail && document.contact.email && "email", document.contact.showLinkedin && document.contact.linkedin && "LinkedIn", document.contact.showWebsite && document.contact.website && "website"].filter(Boolean); return shown.length ? `Visitors can reach you by ${shown.join(" and ")}` : "No contact details shown"; })()}</span><button type="button" className="builder-text-button" onClick={() => { setPublishSheet(false); setPanel("settings"); setMobilePanel(true); }}>Change</button></li>
         </ul>
         {error && <p className="builder-error" role="alert">{error}</p>}
-        <button className="builder-primary" disabled={Boolean(busy)} onClick={publishNow}>{busy === "publish" ? <Loader2 className="animate-spin" /> : null} {state.hasPublished ? "Publish changes" : "Publish now · free"}</button>
-        {!state.hasPublished && <small>Free pages can be edited for 7 days after publishing. Pro ($49, once) removes the limit.</small>}
+        {!state.hasPublished && !state.paidPlan ? (
+          <div className="builder-pro-offer">
+            <p><b>Pro</b> <span>$49, paid once</span></p>
+            <p>{PRO_FOR}</p>
+            <ul>
+              {PRO_FEATURES.map((feature) => <li key={feature}><Check /> {feature}</li>)}
+            </ul>
+            <button className="builder-primary" disabled={Boolean(busy)} onClick={startProCheckout} data-testid="button-publish-pro">
+              {busy === "checkout" ? <Loader2 className="animate-spin" /> : null} {PRO_BUTTON_LABEL}
+            </button>
+            <button type="button" className="builder-secondary" disabled={Boolean(busy)} onClick={publishNow} data-testid="button-publish-free">
+              {busy === "publish" ? "Publishing…" : "Publish free"}
+            </button>
+            <small>Free includes your page, your link, and 7 days of edits after you publish.</small>
+          </div>
+        ) : (
+          <>
+            <button className="builder-primary" disabled={Boolean(busy)} onClick={publishNow}>{busy === "publish" ? <Loader2 className="animate-spin" /> : null} {state.hasPublished ? "Publish changes" : "Publish"}</button>
+            {state.hasPublished && !state.paidPlan && (
+              <>
+                <button type="button" className="builder-text-button" disabled={Boolean(busy)} onClick={startProCheckout}>{busy === "checkout" ? "Opening checkout…" : PRO_BUTTON_LABEL}</button>
+                <small>Pro lets you edit whenever you want, including after the first week, and see the questions visitors ask.</small>
+              </>
+            )}
+          </>
+        )}
       </div></div>}
       {testChat && <div className="builder-test-chat" role="dialog" aria-modal="true" aria-label="Test Ask about my work"><div><button className="builder-test-chat-close" onClick={() => setTestChat(false)} aria-label="Close test"><X /></button><p className="builder-panel-kicker">Private test · uses this preview</p><h2>Ask about {document.identity.name.split(" ")[0]}'s work</h2><small>Answers use only information a visitor would be allowed to see. Hidden contacts, private answers and source excerpts are excluded. {user ? "Account tests allow 20" : "Guest tests allow 5"} questions per hour.</small><div className="builder-test-starters">{[
         `What kind of work is ${document.identity.name.split(" ")[0]} strongest at?`,

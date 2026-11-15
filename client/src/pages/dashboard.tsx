@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Copy, ExternalLink, Loader2, Lock, LogOut, X } from "lucide-react";
 import ProxyLogo from "@/components/ProxyLogo";
 import { SiteFooter } from "@/components/SiteChrome";
@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { profileCreationPath } from "@/lib/profile-builder-rollout";
 import { buildLinkedInPost } from "@/lib/shareCopy";
+import { PRO_BUTTON_LABEL, PRO_FEATURES, PRO_FOR } from "@/lib/pro-plan";
 import type { TwinProfile } from "@shared/schema";
 type DashboardProfile = TwinProfile & { hasProfileDocument?: boolean };
 
@@ -44,6 +45,7 @@ export default function DashboardPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [deleteReason, setDeleteReason] = useState("");
+  const upgradeHandled = useRef(false);
 
   const handleDeleteAccount = async () => {
     setDeleteLoading(true);
@@ -108,6 +110,30 @@ export default function DashboardPage() {
     if (typeof window === "undefined" || window.location.hash !== "#publish") return;
     document.getElementById("publish")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [profile?.status]);
+
+  useEffect(() => {
+    if (upgradeHandled.current || isLoading || window.location.hash !== "#upgrade") return;
+    upgradeHandled.current = true;
+    if (!profile) {
+      navigate("/try");
+      return;
+    }
+    const onPaidPlan = profile.paymentStatus === "paid" && profile.tier !== "free";
+    if (onPaidPlan) return;
+    if (profile.status === "published") {
+      setShowUpgrade(true);
+      return;
+    }
+    if (profile.status === "ready" && !profile.hasProfileDocument) {
+      document.getElementById("plans")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    if (profile.hasProfileDocument || profile.status === "ready" || profile.status === "draft") {
+      navigate("/builder?plan=pro");
+      return;
+    }
+    navigate(profileCreationPath);
+  }, [profile, isLoading, navigate]);
 
   // A profile built through the CV-upload page builder has a profile_documents
   // row and doesn't understand the legacy questionnaire's /preview, /interview
@@ -174,12 +200,22 @@ export default function DashboardPage() {
         ) : profile.status === "ready" ? (
           <section className="dash-hero" id="publish" data-testid="card-not-live-yet">
             <p className="site-eyebrow">Private</p>
-            <h1 className="site-display dash-h1">Your page is ready. It's not public yet.</h1>
-            <p className="site-muted">Publish it to get your link: <b>{pageUrlLabel}</b></p>
+            <h1 className="site-display dash-h1">Your page is ready.</h1>
+            <p className="site-muted">It stays private until you publish. Your link will be <b>{pageUrlLabel}</b>.</p>
+            <div className="site-card dash-offer">
+              <div className="landing-price-head"><h3>Pro</h3><b>$49</b><span>paid once</span></div>
+              <p>{PRO_FOR}</p>
+              <ul>
+                {PRO_FEATURES.map((feature) => <li key={feature}><Check /> {feature}</li>)}
+              </ul>
+              {legacyReadyToPublish
+                ? <a className="site-btn" href="#plans">{PRO_BUTTON_LABEL}</a>
+                : <Link className="site-btn" href="/builder?plan=pro">{PRO_BUTTON_LABEL}</Link>}
+            </div>
             <div className="dash-actions">
               {legacyReadyToPublish
-                ? <a className="site-btn" href="#plans">Publish</a>
-                : <Link className="site-btn" href={editPath} data-testid="button-publish-go-live">Review and publish</Link>}
+                ? <a className="site-btn site-btn--quiet" href="#plans">Publish free</a>
+                : <Link className="site-btn site-btn--quiet" href="/builder?plan=free" data-testid="button-publish-go-live">Publish free</Link>}
               <Link className="site-btn site-btn--quiet" href={editPath} data-testid="button-preview">Preview</Link>
             </div>
           </section>

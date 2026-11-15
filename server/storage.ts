@@ -245,7 +245,7 @@ export class DatabaseStorage implements IStorage {
     await db.update(twinProfiles).set({ tipsEmailSentAt: new Date() }).where(eq(twinProfiles.id, profileId));
   }
 
-  async getProfilesDueForWeeklyDigest(): Promise<Array<{ profileId: string; email: string; name: string; username: string; tier: string | null; viewCount: number; digestViewCount: number; digestSentAt: Date | null }>> {
+  async getProfilesDueForWeeklyDigest(): Promise<Array<{ profileId: string; email: string; name: string; username: string; tier: string | null; paymentStatus: string | null; viewCount: number; digestViewCount: number; digestSentAt: Date | null }>> {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const rows = await db
       .select({
@@ -254,6 +254,7 @@ export class DatabaseStorage implements IStorage {
         name: customers.name,
         username: customers.username,
         tier: twinProfiles.tier,
+        paymentStatus: twinProfiles.paymentStatus,
         viewCount: twinProfiles.viewCount,
         digestViewCount: twinProfiles.digestViewCount,
         digestSentAt: twinProfiles.digestSentAt,

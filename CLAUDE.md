@@ -18,7 +18,13 @@ At the end of every session, update the "Current Sprint" block above with:
 - The $499 blog post keeps its stored essay. A pricing note is rendered at the top of that slug.
 - A cancelled Stripe checkout no longer writes `tier: pro` before payment, and an unpaid profile can still publish free.
 
-**Where we stopped:** PR opened for review. Stripe checkout was not completed in a browser. The Job Search Agent was not added to the Pro list.
+**Follow-up on the same PR (still not merged, not deployed):**
+- Job Search Agent and the CRM routes now require tier `pro` plus a confirmed payment. A free publish no longer sets `paymentStatus` to `paid`. Older free rows that already have that status stay tier `free`, so they are not Pro.
+- New accounts keep a 48-hour Job Search Agent trial. The page already called it a trial, and the server now enforces the same window. After that, free accounts see an upsell on `/job-search`.
+- `/api/analytics/my` returns question text only for confirmed Pro. Counts and page views stay for everyone.
+- Pro copy now leads with the Job Search Agent on the pricing card, checkout, publish screens, FAQ, and terms.
+
+**Where we stopped:** PR #2 updated for review. Stripe checkout was not completed in a browser.
 
 **What's next:**
 - Vinos: review the PR. Decide whether to gate the Job Search Agent to Pro in code before any page says it is included.

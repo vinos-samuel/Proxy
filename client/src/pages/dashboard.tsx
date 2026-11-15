@@ -10,6 +10,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { profileCreationPath } from "@/lib/profile-builder-rollout";
 import { buildLinkedInPost } from "@/lib/shareCopy";
 import { PRO_BUTTON_LABEL, PRO_FEATURES, PRO_FOR } from "@/lib/pro-plan";
+import { hasConfirmedPaidTier } from "@shared/plan-access";
 import type { TwinProfile } from "@shared/schema";
 type DashboardProfile = TwinProfile & { hasProfileDocument?: boolean };
 
@@ -118,7 +119,7 @@ export default function DashboardPage() {
       navigate("/try");
       return;
     }
-    const onPaidPlan = profile.paymentStatus === "paid" && profile.tier !== "free";
+    const onPaidPlan = hasConfirmedPaidTier(profile);
     if (onPaidPlan) return;
     if (profile.status === "published") {
       setShowUpgrade(true);

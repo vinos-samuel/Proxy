@@ -22,6 +22,7 @@ import {
   getPublicationAccess,
   undoLastChange,
 } from "./profile-builder";
+import { hasConfirmedPaidTier } from "@shared/plan-access";
 import { selectImprovementQuestion } from "./typesafe-judgments";
 import { refineBuilderQuestion } from "./onboarding-agent";
 
@@ -122,7 +123,7 @@ async function loadBuilder(req: Request): Promise<LoadedBuilder | null> {
           revision: row.revision,
           publishedRevision: row.publishedRevision,
           hasPublished: Boolean(profile.isPublic),
-          paidPlan: profile.paymentStatus === "paid" && profile.tier !== "free",
+          paidPlan: hasConfirmedPaidTier(profile),
           source: "account",
         };
       }
@@ -247,7 +248,7 @@ export function registerProfileBuilderRoutes(app: Express) {
           document: row.workingDocument,
           revision: row.revision,
           hasPublished: Boolean(profile.isPublic),
-          paidPlan: profile.paymentStatus === "paid" && profile.tier !== "free",
+          paidPlan: hasConfirmedPaidTier(profile),
           source: "account",
         });
       }
@@ -311,7 +312,7 @@ export function registerProfileBuilderRoutes(app: Express) {
     if (req.session.customerId) {
       const profile = await storage.upsertProfile({ customerId: req.session.customerId, displayName: parsed.data.name, roleTitle: parsed.data.title, positioning: parsed.data.work, heroSubtitle: parsed.data.title, status: "ready" });
       const row = await storage.upsertProfileDocument(profile.id, document);
-      return res.json({ document: row.workingDocument, revision: row.revision, hasPublished: Boolean(profile.isPublic), paidPlan: profile.paymentStatus === "paid" && profile.tier !== "free", source: "account" });
+      return res.json({ document: row.workingDocument, revision: row.revision, hasPublished: Boolean(profile.isPublic), paidPlan: hasConfirmedPaidTier(profile), source: "account" });
     }
     const guest = await storage.upsertGuestProfileDocument(
       guestSessionKey(req),
@@ -569,7 +570,7 @@ export function registerProfileBuilderRoutes(app: Express) {
     const wasAlreadyPublic = profile.isPublic;
     const customer = await storage.getCustomer(req.session.customerId);
     await storage.updateProfileById(profile.id, {
-      ...(access.isFirstFreePublish ? { paymentStatus: "paid", tier: "free", freePublishedAt: new Date() } : {}),
+      ...(access.isFirstFreePublish ? { tier: "free", freePublishedAt: new Date() } : {}),
       isPublic: true,
       publicDomain: `myproxy.work/portfolio/${customer?.username}`,
     });

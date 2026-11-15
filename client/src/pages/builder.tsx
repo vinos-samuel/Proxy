@@ -896,7 +896,7 @@ export default function BuilderPage() {
             {state.hasPublished && !state.paidPlan && (
               <>
                 <button type="button" className="builder-text-button" disabled={Boolean(busy)} onClick={startProCheckout}>{busy === "checkout" ? "Opening checkout…" : PRO_BUTTON_LABEL}</button>
-                <small>Pro lets you edit whenever you want, including after the first week, and see the questions visitors ask.</small>
+                <small>Pro adds the Job Search Agent, edits after the first week, and the questions visitors ask.</small>
               </>
             )}
           </>

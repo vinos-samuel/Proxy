@@ -3,6 +3,7 @@ import { storage } from "./storage";
 import { Resend } from "resend";
 import { nudgeEditWindowTemplate, nudgeEngagementTemplate, feedbackEmailTemplate, tipsEmailTemplate, weeklyDigestTemplate } from "./emails";
 import { logger } from "./logger";
+import { hasConfirmedPro } from "@shared/plan-access";
 
 export function startNudgeCron() {
   // Run every hour at :00
@@ -87,7 +88,7 @@ export function startNudgeCron() {
           await storage.markDigestSent(p.profileId, p.viewCount);
           continue;
         }
-        const isPro = p.tier !== "free" && p.tier !== null;
+        const isPro = hasConfirmedPro({ tier: p.tier, paymentStatus: p.paymentStatus });
         const profileUrl = `https://myproxy.work/portfolio/${p.username}`;
         await resend.emails.send({
           from,

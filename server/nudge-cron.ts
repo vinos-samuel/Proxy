@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { storage } from "./storage";
 import { Resend } from "resend";
-import { nudgeEditWindowTemplate, nudgeEngagementTemplate, feedbackEmailTemplate, tipsEmailTemplate, weeklyDigestTemplate } from "./emails";
+import { nudgeEditWindowTemplate, nudgeEngagementTemplate, feedbackEmailTemplate, tipsEmailTemplate, weeklyDigestTemplate, noPageReminderTemplate } from "./emails";
 import { logger } from "./logger";
 import { hasConfirmedPro } from "@shared/plan-access";
 
@@ -76,6 +76,20 @@ export function startNudgeCron() {
         }).catch(() => {});
         await storage.markTipsEmailSent(p.profileId);
         logger.info("[Nudge] Tips email sent", { profileId: p.profileId, email: p.email });
+      }
+      // Sign-ups from yesterday that still have no page. The hourly tick covers
+      // the 24 to 48 hour window once, then marks the account so it is not sent again.
+      const noPageAccounts = await storage.getCustomersDueForNoPageReminder(now);
+      for (const account of noPageAccounts) {
+        await resend.emails.send({
+          from,
+          replyTo: "vinos@myproxy.work",
+          to: account.email,
+          subject: "Your Proxy page is not started yet",
+          html: noPageReminderTemplate(account.name, "https://myproxy.work/try"),
+        }).catch(() => {});
+        await storage.markNoPageReminderSent(account.id);
+        logger.info("[Nudge] No-page reminder sent", { customerId: account.id });
       }
       // Weekly activity digest: published profiles, at most once every 7 days, only when there was activity
       const digestProfiles = await storage.getProfilesDueForWeeklyDigest();

@@ -3,6 +3,9 @@ import { applyProposal, conciseHeadline, getImprovementCandidates, getPublicatio
 import { profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, type ProfileDocument } from "../shared/profile-document";
 import { mergeProfileDocuments, setDocumentPath } from "../client/src/lib/profile-document-merge";
 import { hasConfirmedPro, hasJobSearchAccess, recentQuestionsForPlan, JOB_SEARCH_TRIAL_MS } from "../shared/plan-access";
+import { ungroundedNumbers } from "../shared/answer-grounding";
+import { PRIYA_PAGE_FACTS, PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "../shared/priya-reviewed-answers";
+import { guestDraftTtlMs, GUEST_DRAFT_TTL_MS, GUEST_DRAFT_EMAIL_TTL_MS } from "../shared/guest-draft";
 
 function page(overrides: Partial<ProfileDocument> = {}): ProfileDocument {
   return profileDocumentSchema.parse({
@@ -110,6 +113,21 @@ const checks: Array<[string, () => void]> = [
     const now = Date.parse("2026-11-15T00:00:00Z");
     const created = new Date(now - (JOB_SEARCH_TRIAL_MS - 60_000)).toISOString();
     assert.equal(hasJobSearchAccess({ tier: "free", paymentStatus: "unpaid" }, created, now), true);
+  }],
+  ["a number inside another number is not grounded", () => assert.deepEqual(ungroundedNumbers("9 markets", "94% across 6 markets"), ["9"])],
+  ["Priya chip answers use only figures from her page", () => {
+    for (const question of PRIYA_REVIEWED_QUESTIONS) {
+      const answer = reviewedPriyaAnswer(question);
+      assert.ok(answer);
+      assert.deepEqual(ungroundedNumbers(answer, PRIYA_PAGE_FACTS), []);
+    }
+    assert.equal(reviewedPriyaAnswer("something typed by a visitor"), undefined);
+    assert.ok(ungroundedNumbers("Singapore 35 days, India 18, Japan 65", PRIYA_PAGE_FACTS).length > 0);
+    assert.deepEqual(ungroundedNumbers("4 countries, 6 markets, from 52 to 29 days", PRIYA_PAGE_FACTS), []);
+  }],
+  ["guest draft lasts 7 days only after an email is saved", () => {
+    assert.equal(guestDraftTtlMs(false), GUEST_DRAFT_TTL_MS);
+    assert.equal(guestDraftTtlMs(true), GUEST_DRAFT_EMAIL_TTL_MS);
   }],
   ["visitor question text is hidden for free and shown for pro", () => {
     const questions = [{ question: "How did the migration go?", askedAt: new Date() }];

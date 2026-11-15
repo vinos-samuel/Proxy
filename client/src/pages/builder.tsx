@@ -21,6 +21,7 @@ type BuilderState = {
   revision?: number;
   hasPublished?: boolean;
   paidPlan?: boolean;
+  guestEmailOnFile?: boolean;
   publishedRevision?: number | null;
   source?: "guest" | "account";
   needsUpload?: boolean;
@@ -83,6 +84,35 @@ const UPLOAD_STEPS = [
   "Writing your headline and summary",
   "Choosing your strongest work",
 ];
+
+function GuestEmailSave({ alreadySaved }: { alreadySaved: boolean }) {
+  const [email, setEmail] = useState("");
+  const [note, setNote] = useState(alreadySaved ? "A link is saved for 7 days." : "");
+  const [sending, setSending] = useState(false);
+  return (
+    <form className="builder-guest-note" onSubmit={async (event) => {
+      event.preventDefault();
+      setSending(true);
+      setNote("");
+      try {
+        const result = await requestJson<{ emailed: boolean }>("/api/builder/guest-email", { method: "POST", body: JSON.stringify({ email }) });
+        setNote(result.emailed ? "Link sent. It works for 7 days." : "Saved for 7 days. The email could not be sent from here.");
+      } catch (cause: any) {
+        setNote(cause.message || "Could not save that email.");
+      } finally {
+        setSending(false);
+      }
+    }}>
+      <p>{alreadySaved ? "This draft is kept for 7 days." : "Guest draft, kept for 4 hours. Leave an email to keep it for 7 days."}</p>
+      <label>
+        <span className="sr-only">Email</span>
+        <input type="email" required value={email} placeholder="you@example.com" onChange={(event) => setEmail(event.target.value)} />
+      </label>
+      <button type="submit" disabled={sending}>{sending ? "Saving…" : "Email me the link"}</button>
+      {note && <small>{note}</small>}
+    </form>
+  );
+}
 
 export default function BuilderPage() {
   const { user } = useAuth();
@@ -150,7 +180,11 @@ export default function BuilderPage() {
       setBusy(null);
       return;
     }
-    requestJson<BuilderState>("/api/builder")
+    const draftToken = new URLSearchParams(window.location.search).get("draft");
+    const resume = draftToken && /^[a-f0-9]{32,64}$/.test(draftToken)
+      ? requestJson<BuilderState>("/api/builder/resume-guest", { method: "POST", body: JSON.stringify({ token: draftToken }) }).catch(() => requestJson<BuilderState>("/api/builder"))
+      : requestJson<BuilderState>("/api/builder");
+    resume
       .then((next) => {
         acknowledgedDocumentRef.current = next.document;
         stateRef.current = next;
@@ -647,7 +681,7 @@ export default function BuilderPage() {
             if (result) { setState((current) => ({ ...current, source: "account" })); capture("builder_guest_adopted_from_empty"); }
           }}>Use a recent draft from this browser <ChevronRight /></button>}
           {error && <p className="builder-error" role="alert">{error}</p>}
-          <p className="builder-trust">Private while you build · Guest drafts are kept for 4 hours · A free account publishes it, no card</p>
+          <p className="builder-trust">Private while you build. Guest drafts last 4 hours, or 7 days if you leave an email. A free account publishes the page, no card.</p>
         </section>
       </main>
     );
@@ -696,7 +730,7 @@ export default function BuilderPage() {
           <nav>{(["improve", "edit", "style", "settings"] as Panel[]).map((item) => <button key={item} className={panel === item ? "active" : ""} onClick={() => setPanel(item)}>{item === "style" ? "design" : item}</button>)}</nav>
           <div className="builder-panel-body">
             {error && <div className="builder-error" role="alert"><p>{error}</p>{conflict ? <div className="builder-conflict-review">{conflictReview ? <>{conflictReview.conflicts.length > 0 ? <><p>Choose which version to keep for each conflicting field. Other changes were combined automatically.</p>{conflictReview.conflicts.map((item) => <fieldset key={item.path}><legend>{item.path.replaceAll(".", " · ")}</legend><button className={conflictReview.choices[item.path] === "local" ? "selected" : ""} onClick={() => setConflictReview((current) => current ? { ...current, choices: { ...current.choices, [item.path]: "local" } } : current)}><b>Keep my change</b><span>{summarizeConflictValue(item.local)}</span></button><button className={conflictReview.choices[item.path] === "remote" ? "selected" : ""} onClick={() => setConflictReview((current) => current ? { ...current, choices: { ...current.choices, [item.path]: "remote" } } : current)}><b>Keep other version</b><span>{summarizeConflictValue(item.remote)}</span></button></fieldset>)}</> : <p>Your changes do not overlap. They can be combined safely.</p>}<div className="builder-conflict-actions"><button onClick={reloadAfterConflict}>Use latest version</button><button disabled={conflictReview.conflicts.some((item) => !conflictReview.choices[item.path])} onClick={saveReviewedConflict}>Save reviewed version</button></div></> : <p>Loading both versions…</p>}</div> : dirty && <button onClick={() => saveDocument(document)}>Retry save</button>}</div>}
-            {!user && state.source === "guest" && <p className="builder-guest-note">Guest draft · kept for 4 hours. Create an account before it expires.</p>}
+            {!user && state.source === "guest" && <GuestEmailSave alreadySaved={Boolean(state.guestEmailOnFile)} />}
             {user && state.source === "guest" && <div className="builder-adopt"><b>Save this guest page to your account</b><p>Nothing goes public until you publish.</p><button onClick={async () => {
               const result = await mutate<{ document: ProfileDocument; revision: number }>("adopt", "/api/builder/adopt-guest", { confirmReplace: false });
               if (result) setState((current) => ({ ...current, source: "account" }));

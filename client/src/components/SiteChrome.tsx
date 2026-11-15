@@ -14,7 +14,7 @@ export function SiteNav({ minimal = false }: { minimal?: boolean }) {
         {!minimal && (
           <nav className="site-nav-links" aria-label="Main">
             <a className="site-nav-optional" href={onHome ? "#how" : "/#how"}>How it works</a>
-            <a className="site-nav-optional" href={onHome ? "#pricing" : "/#pricing"}>Pricing</a>
+            <a className="site-nav-keep" href={location === "/pricing" ? "#pricing" : "/pricing"}>Pricing</a>
             <Link className="site-nav-optional" href="/blog">Blog</Link>
             {user
               ? <Link className="site-btn site-btn--quiet site-btn--sm" href="/dashboard" data-testid="link-dashboard">Your page</Link>

@@ -24,7 +24,14 @@ At the end of every session, update the "Current Sprint" block above with:
 - `/api/analytics/my` returns question text only for confirmed Pro. Counts and page views stay for everyone.
 - Pro copy now leads with the Job Search Agent on the pricing card, checkout, publish screens, FAQ, and terms.
 
-**Where we stopped:** PR #2 updated for review. Stripe checkout was not completed in a browser.
+**Later follow-up on the same PR, still not merged:**
+- Homepage chips for Priya use reviewed answers from her page (4 countries, 6 markets, 52 to 29 days). Typed questions still call the model, and any reply that adds a number missing from the approved text is replaced.
+- Priya is labelled "Sample page, fictional person" on her portfolio and under the homepage Live chip.
+- Homepage testimonials now include Vinos's 15+ years at Netflix, Cielo, and Randstad Sourceright, from the about page. Quote cards can take an optional link or photo. Both are empty.
+- Pricing stays visible beside Sign in on a phone. `/pricing` scrolls to the pricing section.
+- A guest who leaves an email keeps the draft for 7 days and is emailed a link, using the existing Resend sender. Google sign-in is not added. A 24-hour reminder goes to sign-ups with no page, on the existing hourly email job. Both need new database columns before deploy.
+
+**Where we stopped:** PR #2 updated for review. Stripe checkout was not completed in a browser. Google sign-in still needs a Google OAuth client id and secret.
 
 **What's next:**
 - Vinos: review the PR. Decide whether to gate the Job Search Agent to Pro in code before any page says it is included.

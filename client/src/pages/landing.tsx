@@ -10,6 +10,7 @@ import { setPendingCvUpload } from "@/lib/pending-cv-upload";
 import { visualProfileFixture } from "@/lib/profile-document-fixtures";
 import { useAuth } from "@/lib/auth";
 import { PRO_BUTTON_LABEL, PRO_FEATURES, PRO_FOR } from "@/lib/pro-plan";
+import { PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "@shared/priya-reviewed-answers";
 import type { ProfileStyle } from "@shared/profile-document";
 
 // Demo account the hero widget mirrors. Kept as one constant so the widget
@@ -21,7 +22,18 @@ interface HeroProfile {
   displayName: string;
   roleLine: string;
   photoUrl: string | null;
-  suggestedQuestions: string[];
+}
+
+function Quote({ quote, name, role, href, photoUrl }: { quote: string; name: string; role: string; href?: string; photoUrl?: string }) {
+  return (
+    <figure>
+      {photoUrl ? <img src={photoUrl} alt="" /> : null}
+      <blockquote className="site-display">{quote}</blockquote>
+      <figcaption>
+        {href ? <a href={href}><b>{name}</b></a> : <b>{name}</b>} · {role}
+      </figcaption>
+    </figure>
+  );
 }
 
 // Shown until the live fetch resolves, and if it ever fails — matches her
@@ -30,11 +42,8 @@ const HERO_PROFILE_FALLBACK: HeroProfile = {
   displayName: "Priya Sharma",
   roleLine: "VP, Talent Acquisition & Workforce Strategy — Nexora Group",
   photoUrl: null,
-  suggestedQuestions: [
-    "What do you see as the biggest emerging challenge in talent acquisition for the APAC region?",
-    "How do you leverage data and analytics to inform your talent strategy decisions?",
-  ],
 };
+const HERO_SAMPLE_QUESTIONS = PRIYA_REVIEWED_QUESTIONS.slice(0, 2);
 
 const DESIGNS: Array<{ key: ProfileStyle; label: string; mood: string }> = [
   { key: "executive", label: "Executive", mood: "Confident and proven" },
@@ -138,9 +147,8 @@ export default function LandingPage() {
   const [heroAsking, setHeroAsking] = useState(false);
   const [heroProfile, setHeroProfile] = useState<HeroProfile>(HERO_PROFILE_FALLBACK);
 
-  // Name, role line, photo and suggested questions are fetched live from the
-  // same public /api/portfolio/:username endpoint the real page uses — never
-  // hardcoded — so the hero can't drift out of sync with her actual profile.
+  // Name, role line and photo are fetched live. The question chips are a
+  // fixed reviewed set, so the demo cannot invent figures that are not on her page.
   useEffect(() => {
     fetch(`/api/portfolio/${HERO_DEMO_USERNAME}`)
       .then((res) => {
@@ -154,12 +162,10 @@ export default function LandingPage() {
         const p = data?.profile;
         if (!p) return;
         const roleLine = [p.roleTitle, p.careerTimeline?.[0]?.company].filter(Boolean).join(" — ");
-        const questions = (p.portfolioSuggestedQuestions || []).slice(0, 2);
         setHeroProfile({
           displayName: p.displayName || HERO_PROFILE_FALLBACK.displayName,
           roleLine: roleLine || HERO_PROFILE_FALLBACK.roleLine,
           photoUrl: p.photoUrl || null,
-          suggestedQuestions: questions.length ? questions : HERO_PROFILE_FALLBACK.suggestedQuestions,
         });
       })
       .catch((err) => {
@@ -168,9 +174,27 @@ export default function LandingPage() {
       });
   }, []);
 
+  const [location] = useLocation();
+  useEffect(() => {
+    if (location !== "/pricing" && window.location.hash !== "#pricing") return;
+    const node = document.getElementById("pricing");
+    if (!node) return;
+    const nav = document.querySelector(".site-nav");
+    const offset = nav instanceof HTMLElement ? nav.offsetHeight + 8 : 0;
+    const top = node.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: "auto" });
+  }, [location]);
+
   const askHeroDemo = async (question: string) => {
     const text = question.trim();
     if (!text || heroAsking) return;
+    const reviewed = reviewedPriyaAnswer(text);
+    if (reviewed) {
+      setHeroAsked(text);
+      setHeroQuestion("");
+      setHeroAnswer(reviewed);
+      return;
+    }
     setHeroAsking(true);
     setHeroAsked(text);
     setHeroQuestion("");
@@ -223,7 +247,10 @@ export default function LandingPage() {
         <div className="landing-demo" aria-label={`Live example: ${heroProfile.displayName}'s page`}>
           <div className="landing-demo-top">
             <span>myproxy.work/portfolio/{HERO_DEMO_USERNAME}</span>
-            <span className="landing-live"><i />Live</span>
+            <span className="landing-live-wrap">
+              <span className="landing-live"><i />Live</span>
+              <span className="landing-sample-line">Sample page, fictional person</span>
+            </span>
           </div>
           <div className="landing-demo-who">
             {heroProfile.photoUrl
@@ -242,7 +269,7 @@ export default function LandingPage() {
           </div>
           {!heroAsked && (
             <div className="landing-demo-chips">
-              {heroProfile.suggestedQuestions.map((q, i) => (
+              {HERO_SAMPLE_QUESTIONS.map((q, i) => (
                 <button key={i} type="button" onClick={() => askHeroDemo(q)} data-testid={`button-hero-suggestion-${i}`}>{q}</button>
               ))}
             </div>
@@ -298,15 +325,10 @@ export default function LandingPage() {
       <section className="landing-section">
         <p className="site-eyebrow">Early users</p>
         <div className="landing-quotes">
-          <figure>
-            <blockquote className="site-display">"That context made the AI bot sound surprisingly like me — not like a generic career assistant."</blockquote>
-            <figcaption><b>Steven Bong</b> · TA Strategy, Airtable</figcaption>
-          </figure>
-          <figure>
-            <blockquote className="site-display">"The designs are clean and genuinely make your career look more interesting than a traditional CV ever could."</blockquote>
-            <figcaption><b>John Lima</b> · Portfolio Manager, HSBC</figcaption>
-          </figure>
+          <Quote quote={'"That context made the AI bot sound surprisingly like me — not like a generic career assistant."'} name="Steven Bong" role="TA Strategy, Airtable" />
+          <Quote quote={'"The designs are clean and genuinely make your career look more interesting than a traditional CV ever could."'} name="John Lima" role="Portfolio Manager, HSBC" />
         </div>
+        <p className="landing-founder">Built by Vinos Samuel. 15+ years in APAC HR operations and talent acquisition at Netflix, Cielo, and Randstad Sourceright. <Link href="/about">Read the about page</Link>.</p>
       </section>
 
       {/* 5. Pricing + final call to action */}

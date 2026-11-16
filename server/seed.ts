@@ -3,29 +3,10 @@ import bcrypt from "bcryptjs";
 
 export async function seedDatabase() {
   try {
-    // Create admin user if not exists (check both email and username to avoid duplicate key crash)
-    const existingAdmin =
-      (await storage.getCustomerByEmail("admin@digitaltwin.studio")) ||
-      (await storage.getCustomerByUsername("admin"));
-    if (!existingAdmin) {
-      console.log("Seeding admin user...");
-      const adminHash = await bcrypt.hash("admin123", 10);
-      await storage.createCustomer({
-        email: "admin@digitaltwin.studio",
-        passwordHash: adminHash,
-        name: "Admin",
-        username: "admin",
-      });
-      const newAdmin = await storage.getCustomerByEmail("admin@digitaltwin.studio");
-      if (newAdmin) {
-        const { db } = await import("./db");
-        const { customers } = await import("@shared/schema");
-        const { eq } = await import("drizzle-orm");
-        await db.update(customers).set({ isAdmin: true }).where(eq(customers.id, newAdmin.id));
-      }
-    }
+    // No default admin is seeded. Admin access is granted only by setting
+    // is_admin on a real account in the database.
 
-    // Create demo user if not exists (checked independently of admin)
+    // Create demo user if not exists
     const existingDemo = await storage.getCustomerByUsername("demo");
     if (existingDemo) return;
 
@@ -239,7 +220,6 @@ export async function seedDatabase() {
 
     console.log("Database seeded successfully!");
     console.log("Demo portfolio: /portfolio/demo");
-    console.log("Admin login: admin@digitaltwin.studio / admin123");
     console.log("Demo login: sarah@example.com / demo1234");
   } catch (error) {
     console.error("Seed error:", error);

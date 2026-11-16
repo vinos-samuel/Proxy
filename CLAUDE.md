@@ -8,7 +8,55 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-11-15 (Pro pay moment)
+## Current Sprint — 2026-11-16 (Session 16)
+**Status:** Audit fixes are on `main` and deployed (`0b60de7`, `ae50eec`). PR #2 is merged with review fixes on local branch `pro-pay-merge-fixes` (`69a318f`). **Not pushed, not on `main`, not deployed.** Schema change: 3 new columns, which must be added in production BEFORE deploy. Typecheck unchanged (40 pre-existing errors), `npm run test:profile-builder` 48/48, `npm run build` passes. Nothing run against a live server.
+
+**Completed:**
+- Fixed and deployed: `/api/create-checkout-session` no longer writes `tier` before payment; `GET /api/builder` `guestAvailable` missing `await`; `/api/builder/start-manual` guest session cookie
+- Fixed and deployed: `server/seed.ts` no longer creates admin `admin@digitaltwin.studio` / `admin123`. In production that account existed (created 2026-09-29). Vinos set `is_admin = false` and `password_hash = 'disabled'`; no open sessions for it. No login history exists, so past use cannot be ruled out
+- SQL checks in production: no account got Pro without paying. Tiers: 6 `pro`/`paid`, 9 `free`/`paid` (older free publishes), 28 unpaid. No concierge/launch/evolve rows
+- Reviewed PR #2 code and merged it on `pro-pay-merge-fixes`, with fixes: guest-draft email link built from the fixed site address (was `x-forwarded-host`) and limited to 3 sends per IP per hour; legacy chat number check now also reads the writing sample, portfolio data and step 5 achievements (PR read a non-existent `profile.achievements`); Concierge removed from the checkout price list and `payment-success.tsx`
+
+**Decisions (Vinos, this session):**
+- Free keeps the public link
+- Concierge is retired
+- The 48-hour Job Search Agent trial stays
+
+**Where we stopped:** `pro-pay-merge-fixes` committed locally, waiting for Vinos to run the production SQL, then merge and deploy. Audit still about half done.
+
+
+**Found, not fixed (Vinos to review):**
+- `server/seed.ts` runs on every start, including production, and creates admin `admin@digitaltwin.studio` / `admin123` if no `admin` user exists — test that login on myproxy.work
+- Accounts already hit by the checkout bug: `SELECT c.email, p.tier, p.payment_status, p.free_published_at FROM twin_profiles p JOIN customers c ON c.id = p.customer_id WHERE p.tier IN ('pro','concierge') AND p.paid_at IS NULL;`
+- Password-reset, resend-verification and Stripe return URLs are built from `x-forwarded-host` (register and verify-email use `req.hostname`)
+- The request logger in `server/index.ts` writes every API response body to the logs, including the admin customer list
+- `profileReadyAt` is set only by the legacy `processQuestionnaire`, so feedback and tips emails never fire for builder-only accounts
+- `/api/builder/upload` on a published account sets `status: "ready"` — view counts, weekly digest, sitemap entry and link-preview meta stop until the next publish
+- Nudge cron runs inside a Replit Autoscale deployment — confirm whether hourly ticks are missed when the app is idle
+- Admin "Total revenue" is always $0 (nothing inserts into `payments`); `/llms.txt` still lists Concierge $499; job-search agent has no server-side Pro check (PR #2 claims to add one)
+- Admin broadcast sends all recipients in one `resend.batch.send` call — check Resend's batch limit before the list grows
+- Chat, interview, onboarding and job-agent 500 responses return raw error text
+- No cleanup job for expired `session` rows or `guest_profile_documents` rows (these hold CV data)
+- Unused: `server/replit_integrations/chat|image|batch`, `shared/models/chat.ts`, `ObjectUploader.tsx`, `ThreePanelModal.tsx`, `stripe-backup/`, root file `sedXkIA0y`, `client/public/priya-demo.mp4`, `og-image.png`, `og-image-v2.png`, about 30 unused `components/ui/*` files
+- Client ships as one ~1 MB script with no route splitting; hashed assets are served without long-term cache headers
+
+- Opening an old guest-draft email link deletes any newer guest draft in that browser without a warning (from PR #2, left as is)
+- Demo account `sarah@example.com` / `demo1234` is still seeded with a published page; anyone can sign in and edit it — Vinos to decide whether to remove it
+
+**What's next:**
+- Vinos: run the 4 production SQL statements for PR #2's columns, then merge `pro-pay-merge-fixes` and deploy
+- After deploy: on myproxy.work, publish free on a test account, start a Pro checkout and cancel it, open `/job-search` on an account older than 48 hours, and save a guest draft by email
+- Close PR #2 on GitHub once `main` contains it (it shows as merged automatically after push)
+- Finish the audit (client `builder`, `dashboard`, `try`, `portfolio`, `auth`, `admin`, `job-search`, plus `ai-processor.ts`, `emails.ts`, agent files), then write the 5 candidate-success points
+
+**Architecture decisions made this session:**
+- `tier` on a profile means "paid for". It is written only after payment is confirmed, from Stripe session metadata — never at checkout creation
+- Pro = `tier === "pro"` and `paymentStatus === "paid"` (`shared/plan-access.ts`). `paymentStatus` alone is not Pro
+- Any route that creates a guest draft must write a property on `req.session` and save it, or the guest loses the draft on the next request
+- Links in emails are never built from request headers. Use the fixed site address in production
+- No default admin account is seeded. Admin is granted only by setting `is_admin` on a real account
+
+## Previous Sprint — 2026-11-15 (PR #2, Pro pay moment, by Cursor)
 **Status:** Branch `cursor/pro-pay-moment-41c8`. Not merged, not deployed. Vinos reviews the PR first.
 
 **Completed:**

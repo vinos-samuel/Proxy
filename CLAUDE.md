@@ -26,20 +26,17 @@ At the end of every session, update the "Current Sprint" block above with:
 
 
 **Found, not fixed (Vinos to review):**
-- `server/seed.ts` runs on every start, including production, and creates admin `admin@digitaltwin.studio` / `admin123` if no `admin` user exists — test that login on myproxy.work
-- Accounts already hit by the checkout bug: `SELECT c.email, p.tier, p.payment_status, p.free_published_at FROM twin_profiles p JOIN customers c ON c.id = p.customer_id WHERE p.tier IN ('pro','concierge') AND p.paid_at IS NULL;`
 - Password-reset, resend-verification and Stripe return URLs are built from `x-forwarded-host` (register and verify-email use `req.hostname`)
 - The request logger in `server/index.ts` writes every API response body to the logs, including the admin customer list
 - `profileReadyAt` is set only by the legacy `processQuestionnaire`, so feedback and tips emails never fire for builder-only accounts
 - `/api/builder/upload` on a published account sets `status: "ready"` — view counts, weekly digest, sitemap entry and link-preview meta stop until the next publish
 - Nudge cron runs inside a Replit Autoscale deployment — confirm whether hourly ticks are missed when the app is idle
-- Admin "Total revenue" is always $0 (nothing inserts into `payments`); `/llms.txt` still lists Concierge $499; job-search agent has no server-side Pro check (PR #2 claims to add one)
+- Admin "Total revenue" is always $0 (nothing inserts into `payments`)
 - Admin broadcast sends all recipients in one `resend.batch.send` call — check Resend's batch limit before the list grows
 - Chat, interview, onboarding and job-agent 500 responses return raw error text
 - No cleanup job for expired `session` rows or `guest_profile_documents` rows (these hold CV data)
 - Unused: `server/replit_integrations/chat|image|batch`, `shared/models/chat.ts`, `ObjectUploader.tsx`, `ThreePanelModal.tsx`, `stripe-backup/`, root file `sedXkIA0y`, `client/public/priya-demo.mp4`, `og-image.png`, `og-image-v2.png`, about 30 unused `components/ui/*` files
 - Client ships as one ~1 MB script with no route splitting; hashed assets are served without long-term cache headers
-
 - Opening an old guest-draft email link deletes any newer guest draft in that browser without a warning (from PR #2, left as is)
 - Demo account `sarah@example.com` / `demo1234` is still seeded with a published page; anyone can sign in and edit it — Vinos to decide whether to remove it
 

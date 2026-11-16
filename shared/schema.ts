@@ -22,6 +22,7 @@ export const customers = pgTable("customers", {
   onboardingSession: jsonb("onboarding_session"),
   referredBy: text("referred_by"),
   lastActiveAt: timestamp("last_active_at"),
+  noPageReminderSentAt: timestamp("no_page_reminder_sent_at"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
@@ -91,13 +92,15 @@ export const profileDocuments = pgTable("profile_documents", {
   publishedAt: timestamp("published_at"),
 });
 
-// Guest drafts use their own optimistic revision row. Keeping them in a
-// durable table prevents simultaneous requests from silently overwriting the
-// session JSON while preserving the four-hour guest lifetime.
+// Guest drafts use their own optimistic revision row. Without an email they
+// last 4 hours. An email address extends that to 7 days and stores a token
+// so the emailed link can reopen the draft.
 export const guestProfileDocuments = pgTable("guest_profile_documents", {
   sessionKey: text("session_key").primaryKey(),
   workingDocument: jsonb("working_document").$type<ProfileDocument>().notNull(),
   extractedData: jsonb("extracted_data"),
+  guestEmail: text("guest_email"),
+  resumeToken: text("resume_token").unique(),
   revision: integer("revision").notNull().default(1),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),

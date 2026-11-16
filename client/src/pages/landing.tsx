@@ -8,6 +8,9 @@ import { getCsrfToken } from "@/lib/queryClient";
 import { renderAnswer } from "@/lib/renderAnswer";
 import { setPendingCvUpload } from "@/lib/pending-cv-upload";
 import { visualProfileFixture } from "@/lib/profile-document-fixtures";
+import { useAuth } from "@/lib/auth";
+import { PRO_BUTTON_LABEL, PRO_FEATURES, PRO_FOR } from "@/lib/pro-plan";
+import { PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "@shared/priya-reviewed-answers";
 import type { ProfileStyle } from "@shared/profile-document";
 
 // Demo account the hero widget mirrors. Kept as one constant so the widget
@@ -19,7 +22,18 @@ interface HeroProfile {
   displayName: string;
   roleLine: string;
   photoUrl: string | null;
-  suggestedQuestions: string[];
+}
+
+function Quote({ quote, name, role, href, photoUrl }: { quote: string; name: string; role: string; href?: string; photoUrl?: string }) {
+  return (
+    <figure>
+      {photoUrl ? <img src={photoUrl} alt="" /> : null}
+      <blockquote className="site-display">{quote}</blockquote>
+      <figcaption>
+        {href ? <a href={href}><b>{name}</b></a> : <b>{name}</b>} · {role}
+      </figcaption>
+    </figure>
+  );
 }
 
 // Shown until the live fetch resolves, and if it ever fails — matches her
@@ -28,11 +42,8 @@ const HERO_PROFILE_FALLBACK: HeroProfile = {
   displayName: "Priya Sharma",
   roleLine: "VP, Talent Acquisition & Workforce Strategy — Nexora Group",
   photoUrl: null,
-  suggestedQuestions: [
-    "What do you see as the biggest emerging challenge in talent acquisition for the APAC region?",
-    "How do you leverage data and analytics to inform your talent strategy decisions?",
-  ],
 };
+const HERO_SAMPLE_QUESTIONS = PRIYA_REVIEWED_QUESTIONS.slice(0, 2);
 
 const DESIGNS: Array<{ key: ProfileStyle; label: string; mood: string }> = [
   { key: "executive", label: "Executive", mood: "Confident and proven" },
@@ -122,6 +133,11 @@ function DesignShowcase() {
 }
 
 export default function LandingPage() {
+  const { user, isLoading: authLoading } = useAuth();
+  // Checkout needs an account and a page that is ready to publish.
+  // A logged-out visitor uploads a CV first. A logged-in visitor goes to
+  // the dashboard, which opens the existing upgrade or publish choice.
+  const proHref = !authLoading && user ? "/dashboard#upgrade" : "/try";
   // Live chat-in-hero — ask the demo profile a real question, no click-through.
   // Uses the same public, unauthenticated /api/chat/:username endpoint the
   // portfolio page itself uses.
@@ -131,9 +147,8 @@ export default function LandingPage() {
   const [heroAsking, setHeroAsking] = useState(false);
   const [heroProfile, setHeroProfile] = useState<HeroProfile>(HERO_PROFILE_FALLBACK);
 
-  // Name, role line, photo and suggested questions are fetched live from the
-  // same public /api/portfolio/:username endpoint the real page uses — never
-  // hardcoded — so the hero can't drift out of sync with her actual profile.
+  // Name, role line and photo are fetched live. The question chips are a
+  // fixed reviewed set, so the demo cannot invent figures that are not on her page.
   useEffect(() => {
     fetch(`/api/portfolio/${HERO_DEMO_USERNAME}`)
       .then((res) => {
@@ -147,12 +162,10 @@ export default function LandingPage() {
         const p = data?.profile;
         if (!p) return;
         const roleLine = [p.roleTitle, p.careerTimeline?.[0]?.company].filter(Boolean).join(" — ");
-        const questions = (p.portfolioSuggestedQuestions || []).slice(0, 2);
         setHeroProfile({
           displayName: p.displayName || HERO_PROFILE_FALLBACK.displayName,
           roleLine: roleLine || HERO_PROFILE_FALLBACK.roleLine,
           photoUrl: p.photoUrl || null,
-          suggestedQuestions: questions.length ? questions : HERO_PROFILE_FALLBACK.suggestedQuestions,
         });
       })
       .catch((err) => {
@@ -161,9 +174,27 @@ export default function LandingPage() {
       });
   }, []);
 
+  const [location] = useLocation();
+  useEffect(() => {
+    if (location !== "/pricing" && window.location.hash !== "#pricing") return;
+    const node = document.getElementById("pricing");
+    if (!node) return;
+    const nav = document.querySelector(".site-nav");
+    const offset = nav instanceof HTMLElement ? nav.offsetHeight + 8 : 0;
+    const top = node.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: "auto" });
+  }, [location]);
+
   const askHeroDemo = async (question: string) => {
     const text = question.trim();
     if (!text || heroAsking) return;
+    const reviewed = reviewedPriyaAnswer(text);
+    if (reviewed) {
+      setHeroAsked(text);
+      setHeroQuestion("");
+      setHeroAnswer(reviewed);
+      return;
+    }
     setHeroAsking(true);
     setHeroAsked(text);
     setHeroQuestion("");
@@ -204,10 +235,11 @@ export default function LandingPage() {
       {/* 1. Hero */}
       <section className="landing-hero">
         <div className="landing-hero-copy">
+          <p className="landing-for">For mid-to-senior professionals who are job hunting now.</p>
           <h1 className="site-display landing-h1" data-testid="text-hero-headline">
             Your CV can't answer questions. <em>Your page can.</em>
           </h1>
-          <p className="landing-sub">Upload your CV. See your finished page in a minute, then share one link.</p>
+          <p className="landing-sub">Upload your CV. See your finished page in a minute, then send the link with a referral ask.</p>
           <CvDrop id="hero-cv" />
           <p className="landing-trust">Free · No account needed to try · Private until you publish</p>
         </div>
@@ -215,7 +247,10 @@ export default function LandingPage() {
         <div className="landing-demo" aria-label={`Live example: ${heroProfile.displayName}'s page`}>
           <div className="landing-demo-top">
             <span>myproxy.work/portfolio/{HERO_DEMO_USERNAME}</span>
-            <span className="landing-live"><i />Live</span>
+            <span className="landing-live-wrap">
+              <span className="landing-live"><i />Live</span>
+              <span className="landing-sample-line">Sample page, fictional person</span>
+            </span>
           </div>
           <div className="landing-demo-who">
             {heroProfile.photoUrl
@@ -234,7 +269,7 @@ export default function LandingPage() {
           </div>
           {!heroAsked && (
             <div className="landing-demo-chips">
-              {heroProfile.suggestedQuestions.map((q, i) => (
+              {HERO_SAMPLE_QUESTIONS.map((q, i) => (
                 <button key={i} type="button" onClick={() => askHeroDemo(q)} data-testid={`button-hero-suggestion-${i}`}>{q}</button>
               ))}
             </div>
@@ -274,7 +309,7 @@ export default function LandingPage() {
           <li>
             <span className="landing-step-n">3</span>
             <h3>Publish and share one link</h3>
-            <p>No hosting or domain to set up. Put it in your email signature, on LinkedIn, or send it instead of a CV.</p>
+            <p>No hosting or domain to set up. Put it in your email signature, on LinkedIn, or send the page with your CV and a referral ask.</p>
           </li>
         </ol>
       </section>
@@ -290,15 +325,10 @@ export default function LandingPage() {
       <section className="landing-section">
         <p className="site-eyebrow">Early users</p>
         <div className="landing-quotes">
-          <figure>
-            <blockquote className="site-display">"That context made the AI bot sound surprisingly like me — not like a generic career assistant."</blockquote>
-            <figcaption><b>Steven Bong</b> · TA Strategy, Airtable</figcaption>
-          </figure>
-          <figure>
-            <blockquote className="site-display">"The designs are clean and genuinely make your career look more interesting than a traditional CV ever could."</blockquote>
-            <figcaption><b>John Lima</b> · Portfolio Manager, HSBC</figcaption>
-          </figure>
+          <Quote quote={'"That context made the AI bot sound surprisingly like me — not like a generic career assistant."'} name="Steven Bong" role="TA Strategy, Airtable" />
+          <Quote quote={'"The designs are clean and genuinely make your career look more interesting than a traditional CV ever could."'} name="John Lima" role="Portfolio Manager, HSBC" />
         </div>
+        <p className="landing-founder">Built by Vinos Samuel. 15+ years in APAC HR operations and talent acquisition at Netflix, Cielo, and Randstad Sourceright. <Link href="/about">Read the about page</Link>.</p>
       </section>
 
       {/* 5. Pricing + final call to action */}
@@ -316,12 +346,14 @@ export default function LandingPage() {
             </ul>
           </div>
           <div className="site-card landing-price landing-price--pro" data-testid="card-tier-pro">
-            <div className="landing-price-head"><h3>Pro</h3><b data-testid="text-price-pro">$49</b><span>one-time, no subscription</span></div>
+            <div className="landing-price-head"><h3>Pro</h3><b data-testid="text-price-pro">$49</b><span>paid once</span></div>
+            <p className="landing-price-for">{PRO_FOR}</p>
             <ul>
+              {PRO_FEATURES.map((feature) => <li key={feature}><Check /> {feature}</li>)}
               <li><Check /> Everything in Free</li>
-              <li><Check /> Unlimited edits</li>
-              <li><Check /> See the questions visitors ask</li>
             </ul>
+            <Link className="site-btn" href={proHref} data-testid="button-get-pro">{PRO_BUTTON_LABEL}</Link>
+            {!authLoading && !user && <p className="landing-price-note">Upload your CV first. Checkout opens once your page is ready.</p>}
           </div>
         </div>
         <div className="landing-final">

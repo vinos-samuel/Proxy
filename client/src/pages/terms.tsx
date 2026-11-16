@@ -40,8 +40,8 @@ export default function TermsPage() {
             <h2 className="text-xl font-bold text-black mb-3">4. Payments</h2>
             <p className="text-black/70 leading-relaxed mb-3">Plans available:</p>
             <ul className="text-black/70 leading-relaxed space-y-2 list-disc list-inside">
-              <li><strong>Free:</strong> $0 — Published page + optional AI explorer, 7 days of edits after publishing</li>
-              <li><strong>Pro:</strong> $49 USD — Ongoing edits, page views and recent visitor questions</li>
+              <li><strong>Free:</strong> $0. Published page and optional AI explorer. 7 days of edits after publishing.</li>
+              <li><strong>Pro:</strong> $49 USD, paid once. Job Search Agent (cover letters, outreach, interview practice, thank-you notes, and offer notes), ongoing edits, and the questions visitors ask.</li>
             </ul>
             <p className="text-black/70 leading-relaxed mt-3">
               Payments are processed securely by Stripe.

@@ -50,7 +50,7 @@ export default function PaymentSuccessPage() {
         if (data.status === "paid") {
           setDomain(data.domain || "");
           setTier(data.tier || "");
-          const amount = data.tier === "concierge" ? 499.00 : 49.00;
+          const amount = 49.00;
           if (typeof window.fbq === "function") {
             window.fbq("track", "Purchase", { value: amount, currency: "USD" });
           }
@@ -59,7 +59,7 @@ export default function PaymentSuccessPage() {
               transaction_id: sessionId,
               value: amount,
               currency: "USD",
-              items: [{ item_name: data.tier === "concierge" ? "Proxy Concierge" : "Proxy Pro" }],
+              items: [{ item_name: "Proxy Pro" }],
             });
           }
         } else {

@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import { applyProposal, conciseHeadline, getImprovementCandidates, getPublicationAccess, undoLastChange } from "../server/profile-builder";
 import { profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, type ProfileDocument } from "../shared/profile-document";
 import { mergeProfileDocuments, setDocumentPath } from "../client/src/lib/profile-document-merge";
+import { hasConfirmedPro, hasJobSearchAccess, recentQuestionsForPlan, JOB_SEARCH_TRIAL_MS } from "../shared/plan-access";
+import { ungroundedNumbers } from "../shared/answer-grounding";
+import { PRIYA_PAGE_FACTS, PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "../shared/priya-reviewed-answers";
+import { guestDraftTtlMs, GUEST_DRAFT_TTL_MS, GUEST_DRAFT_EMAIL_TTL_MS } from "../shared/guest-draft";
 
 function page(overrides: Partial<ProfileDocument> = {}): ProfileDocument {
   return profileDocumentSchema.parse({
@@ -82,9 +86,56 @@ const checks: Array<[string, () => void]> = [
   ["undo restores a removed work item at its original position", () => { const value = page({ projects: [] }); const removed = page().projects[0]; value.undoStack.push({ section: "project", targetId: removed.id, field: "project:remove", before: { project: removed, index: 0 }, after: null }); assert.equal(undoLastChange(value)?.projects[0].id, removed.id); }],
   ["undo restores selected-work order", () => { const first = page().projects[0]; const second = { id: "project-2", title: "Second", sourceIds: [] }; const value = page({ projects: [second, first], undoStack: [{ section: "project", targetId: first.id, field: "project:order", before: [first.id, second.id], after: [second.id, first.id] }] }); assert.deepEqual(undoLastChange(value)?.projects.map((item) => item.id), [first.id, second.id]); }],
   ["first public page can publish free without a card", () => assert.equal(getPublicationAccess({ paymentStatus: null, tier: null, freePublishedAt: null, isPublic: false }).canPublish, true)],
-  ["free page can publish changes during its edit window", () => assert.equal(getPublicationAccess({ paymentStatus: "paid", tier: "free", freePublishedAt: new Date(), isPublic: true }).canChangeLivePage, true)],
+  ["cancelled checkout still allows a first free publish", () => { const access = getPublicationAccess({ paymentStatus: "unpaid", tier: "pro", freePublishedAt: null, isPublic: false }); assert.equal(access.canPublish, true); assert.equal(access.canChangeLivePage, false); }],
+  ["free page can publish changes during its edit window", () => assert.equal(getPublicationAccess({ paymentStatus: "unpaid", tier: "free", freePublishedAt: new Date(), isPublic: true }).canChangeLivePage, true)],
+  ["older free publish that stored paymentStatus paid still edits inside the window", () => assert.equal(getPublicationAccess({ paymentStatus: "paid", tier: "free", freePublishedAt: new Date(), isPublic: true }).canChangeLivePage, true)],
   ["expired free page cannot publish or roll back its live page", () => { const access = getPublicationAccess({ paymentStatus: "paid", tier: "free", freePublishedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), isPublic: true }); assert.equal(access.canPublish, false); assert.equal(access.canChangeLivePage, false); }],
   ["paid page can publish and roll back", () => { const access = getPublicationAccess({ paymentStatus: "paid", tier: "pro", freePublishedAt: null, isPublic: true }); assert.equal(access.canPublish, true); assert.equal(access.canChangeLivePage, true); }],
+  ["free account is blocked from job search after the trial", () => {
+    const now = Date.parse("2026-11-15T00:00:00Z");
+    const created = new Date(now - JOB_SEARCH_TRIAL_MS - 60_000).toISOString();
+    const freePaid = { tier: "free", paymentStatus: "paid" };
+    assert.equal(hasConfirmedPro(freePaid), false);
+    assert.equal(hasJobSearchAccess(freePaid, created, now), false);
+    assert.equal(hasJobSearchAccess({ tier: "free", paymentStatus: "unpaid" }, created, now), false);
+  }],
+  ["confirmed pro can use job search", () => {
+    const now = Date.parse("2026-11-15T00:00:00Z");
+    const created = new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
+    assert.equal(hasJobSearchAccess({ tier: "pro", paymentStatus: "paid" }, created, now), true);
+  }],
+  ["pro without a confirmed payment is blocked after the trial", () => {
+    const now = Date.parse("2026-11-15T00:00:00Z");
+    const created = new Date(now - JOB_SEARCH_TRIAL_MS).toISOString();
+    assert.equal(hasJobSearchAccess({ tier: "pro", paymentStatus: "unpaid" }, created, now), false);
+  }],
+  ["new account can use job search for 48 hours", () => {
+    const now = Date.parse("2026-11-15T00:00:00Z");
+    const created = new Date(now - (JOB_SEARCH_TRIAL_MS - 60_000)).toISOString();
+    assert.equal(hasJobSearchAccess({ tier: "free", paymentStatus: "unpaid" }, created, now), true);
+  }],
+  ["a number inside another number is not grounded", () => assert.deepEqual(ungroundedNumbers("9 markets", "94% across 6 markets"), ["9"])],
+  ["Priya chip answers use only figures from her page", () => {
+    for (const question of PRIYA_REVIEWED_QUESTIONS) {
+      const answer = reviewedPriyaAnswer(question);
+      assert.ok(answer);
+      assert.deepEqual(ungroundedNumbers(answer, PRIYA_PAGE_FACTS), []);
+    }
+    assert.equal(reviewedPriyaAnswer("something typed by a visitor"), undefined);
+    assert.ok(ungroundedNumbers("Singapore 35 days, India 18, Japan 65", PRIYA_PAGE_FACTS).length > 0);
+    assert.deepEqual(ungroundedNumbers("4 countries, 6 markets, from 52 to 29 days", PRIYA_PAGE_FACTS), []);
+  }],
+  ["guest draft lasts 7 days only after an email is saved", () => {
+    assert.equal(guestDraftTtlMs(false), GUEST_DRAFT_TTL_MS);
+    assert.equal(guestDraftTtlMs(true), GUEST_DRAFT_EMAIL_TTL_MS);
+  }],
+  ["visitor question text is hidden for free and shown for pro", () => {
+    const questions = [{ question: "How did the migration go?", askedAt: new Date() }];
+    assert.deepEqual(recentQuestionsForPlan({ tier: "free", paymentStatus: "paid" }, questions), []);
+    assert.deepEqual(recentQuestionsForPlan({ tier: "free", paymentStatus: "unpaid" }, questions), []);
+    assert.deepEqual(recentQuestionsForPlan({ tier: "pro", paymentStatus: "unpaid" }, questions), []);
+    assert.deepEqual(recentQuestionsForPlan({ tier: "pro", paymentStatus: "paid" }, questions), questions);
+  }],
   ["concurrent changes to different fields merge without loss", () => { const base = page(); const local = page({ identity: { ...base.identity, headline: "Local headline" } }); const remote = page({ contact: { ...base.contact, showEmail: true } }); const merged = mergeProfileDocuments(base, local, remote); assert.equal(merged.conflicts.length, 0); assert.equal(merged.document.identity.headline, "Local headline"); assert.equal(merged.document.contact.showEmail, true); }],
   ["concurrent changes to the same field require an owner choice", () => { const base = page(); const local = page({ identity: { ...base.identity, headline: "Local headline" } }); const remote = page({ identity: { ...base.identity, headline: "Remote headline" } }); const merged = mergeProfileDocuments(base, local, remote); assert.equal(merged.conflicts[0].path, "identity.headline"); assert.equal(setDocumentPath(merged.document, merged.conflicts[0].path, merged.conflicts[0].local).identity.headline, "Local headline"); }],
 ];

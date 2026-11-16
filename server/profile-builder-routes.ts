@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import multer from "multer";
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 import { storage } from "./storage";
 import { logger } from "./logger";
@@ -22,6 +22,8 @@ import {
   getPublicationAccess,
   undoLastChange,
 } from "./profile-builder";
+import { hasConfirmedPaidTier } from "@shared/plan-access";
+import { GUEST_DRAFT_TTL_MS, guestDraftTtlMs } from "@shared/guest-draft";
 import { selectImprovementQuestion } from "./typesafe-judgments";
 import { refineBuilderQuestion } from "./onboarding-agent";
 
@@ -38,7 +40,6 @@ declare module "express-session" {
   }
 }
 
-const GUEST_DRAFT_TTL_MS = 4 * 60 * 60 * 1000;
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -61,6 +62,8 @@ type LoadedBuilder = {
   revision: number;
   publishedRevision: number | null;
   hasPublished: boolean;
+  paidPlan: boolean;
+  guestEmailOnFile?: boolean;
   source: "account" | "guest";
 };
 
@@ -74,6 +77,11 @@ function guestSessionKey(req: Request): string {
   return createHash("sha256").update(req.sessionID).digest("hex");
 }
 
+async function guestExpiry(req: Request): Promise<Date> {
+  const existing = await storage.getGuestProfileDocument(guestSessionKey(req));
+  return new Date(Date.now() + guestDraftTtlMs(Boolean(existing?.guestEmail)));
+}
+
 async function getGuestDraft(req: Request) {
   const durable = await storage.getGuestProfileDocument(guestSessionKey(req));
   if (durable) {
@@ -82,6 +90,7 @@ async function getGuestDraft(req: Request) {
       revision: durable.revision,
       extractedData: durable.extractedData,
       document: profileDocumentSchema.parse(durable.workingDocument),
+      guestEmail: durable.guestEmail,
     };
   }
 
@@ -106,6 +115,7 @@ async function getGuestDraft(req: Request) {
     revision: row.revision,
     extractedData: row.extractedData,
     document: profileDocumentSchema.parse(row.workingDocument),
+    guestEmail: row.guestEmail,
   };
 }
 
@@ -121,6 +131,7 @@ async function loadBuilder(req: Request): Promise<LoadedBuilder | null> {
           revision: row.revision,
           publishedRevision: row.publishedRevision,
           hasPublished: Boolean(profile.isPublic),
+          paidPlan: hasConfirmedPaidTier(profile),
           source: "account",
         };
       }
@@ -140,6 +151,8 @@ async function loadBuilder(req: Request): Promise<LoadedBuilder | null> {
     revision: guest.revision,
     publishedRevision: null,
     hasPublished: false,
+    paidPlan: false,
+    guestEmailOnFile: Boolean(guest.guestEmail),
     source: "guest",
   };
 }
@@ -152,11 +165,12 @@ async function saveWorking(req: Request, state: LoadedBuilder, document: Profile
     return { document: profileDocumentSchema.parse(row.workingDocument), revision: row.revision };
   }
 
+  const existingGuest = await storage.getGuestProfileDocument(guestSessionKey(req));
   const guest = await storage.updateGuestProfileDocument(
     guestSessionKey(req),
     state.revision,
     parsed,
-    new Date(Date.now() + GUEST_DRAFT_TTL_MS),
+    new Date(Date.now() + guestDraftTtlMs(Boolean(existingGuest?.guestEmail))),
   );
   if (!guest) return null;
   return { document: profileDocumentSchema.parse(guest.workingDocument), revision: guest.revision };
@@ -168,6 +182,8 @@ function stateResponse(state: LoadedBuilder, extra: Record<string, unknown> = {}
     revision: state.revision,
     publishedRevision: state.publishedRevision,
     hasPublished: state.hasPublished,
+    paidPlan: state.paidPlan,
+    guestEmailOnFile: Boolean(state.guestEmailOnFile),
     source: state.source,
     ...extra,
   };
@@ -243,6 +259,7 @@ export function registerProfileBuilderRoutes(app: Express) {
           document: row.workingDocument,
           revision: row.revision,
           hasPublished: Boolean(profile.isPublic),
+          paidPlan: hasConfirmedPaidTier(profile),
           source: "account",
         });
       }
@@ -251,7 +268,7 @@ export function registerProfileBuilderRoutes(app: Express) {
         guestSessionKey(req),
         document,
         extractedData,
-        new Date(Date.now() + GUEST_DRAFT_TTL_MS),
+        await guestExpiry(req),
       );
       // The guest draft is keyed by a hash of req.sessionID, but that session
       // is never otherwise touched. With saveUninitialized: false, calling
@@ -267,7 +284,7 @@ export function registerProfileBuilderRoutes(app: Express) {
         generationMs: generatedAt - parsedAt,
         totalMs: Date.now() - startedAt,
       });
-      return res.json({ document: guest.workingDocument, revision: guest.revision, hasPublished: false, source: "guest" });
+      return res.json({ document: guest.workingDocument, revision: guest.revision, hasPublished: false, paidPlan: false, source: "guest" });
     } catch (error: any) {
       logger.error("[Profile Builder] Upload failed", { error: String(error) });
       // A Postgres error (5-char SQLSTATE code, e.g. missing table/column) is
@@ -306,19 +323,77 @@ export function registerProfileBuilderRoutes(app: Express) {
     if (req.session.customerId) {
       const profile = await storage.upsertProfile({ customerId: req.session.customerId, displayName: parsed.data.name, roleTitle: parsed.data.title, positioning: parsed.data.work, heroSubtitle: parsed.data.title, status: "ready" });
       const row = await storage.upsertProfileDocument(profile.id, document);
-      return res.json({ document: row.workingDocument, revision: row.revision, hasPublished: Boolean(profile.isPublic), source: "account" });
+      return res.json({ document: row.workingDocument, revision: row.revision, hasPublished: Boolean(profile.isPublic), paidPlan: hasConfirmedPaidTier(profile), source: "account" });
     }
     const guest = await storage.upsertGuestProfileDocument(
       guestSessionKey(req),
       document,
       null,
-      new Date(Date.now() + GUEST_DRAFT_TTL_MS),
+      await guestExpiry(req),
     );
     // Same reason as the CV upload route: without a property write the
     // session cookie is never sent and the next request cannot find the draft.
     req.session.guestDraftEstablished = true;
     await saveSession(req);
-    return res.json({ document: guest.workingDocument, revision: guest.revision, hasPublished: false, source: "guest" });
+    return res.json({ document: guest.workingDocument, revision: guest.revision, hasPublished: false, paidPlan: false, source: "guest" });
+  });
+
+  app.post("/api/builder/guest-email", async (req: Request, res: Response) => {
+    if (req.session.customerId) return res.status(400).json({ message: "This account already has a sign-in. The page is saved there." });
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 200) {
+      return res.status(400).json({ message: "Enter an email address." });
+    }
+    const key = guestSessionKey(req);
+    const existing = await storage.getGuestProfileDocument(key);
+    if (!existing) return res.status(404).json({ message: "Build a page first, then save it." });
+    const token = existing.resumeToken || randomBytes(24).toString("hex");
+    const expiresAt = new Date(Date.now() + guestDraftTtlMs(true));
+    const saved = await storage.saveGuestDraftEmail(key, email, token, expiresAt);
+    if (!saved) return res.status(404).json({ message: "That draft expired. Build the page again." });
+
+    // Never build this link from request headers: a caller can set
+    // x-forwarded-host and get a myproxy.work email that points elsewhere.
+    const origin = process.env.NODE_ENV === "production" ? "https://myproxy.work" : `${req.protocol}://${req.hostname}`;
+    const link = `${origin}/try?draft=${token}`;
+    let emailed = false;
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (resendApiKey) {
+      try {
+        const fromEmail = process.env.FROM_EMAIL || "noreply@myproxy.work";
+        const response = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from: `Proxy <${fromEmail}>`,
+            to: email,
+            subject: "Your Proxy page link",
+            html: `<p>Your page is saved for 7 days. Open it here:</p><p><a href="${link}">${link}</a></p><p>No account is required to view this draft. Create one when you want to publish.</p>`,
+          }),
+        });
+        emailed = response.ok;
+      } catch (error) {
+        logger.info("[Profile Builder] Guest link email failed", { error: String(error) });
+      }
+    }
+    return res.json({ saved: true, emailed, keptForDays: 7 });
+  });
+
+  app.post("/api/builder/resume-guest", async (req: Request, res: Response) => {
+    const token = String(req.body?.token || "");
+    if (!/^[a-f0-9]{32,64}$/.test(token)) return res.status(400).json({ message: "That link is not valid." });
+    const row = await storage.rebindGuestDraft(token, guestSessionKey(req));
+    if (!row) return res.status(404).json({ message: "That link has expired." });
+    req.session.guestDraftEstablished = true;
+    await saveSession(req);
+    return res.json({
+      document: profileDocumentSchema.parse(row.workingDocument),
+      revision: row.revision,
+      hasPublished: false,
+      paidPlan: false,
+      guestEmailOnFile: Boolean(row.guestEmail),
+      source: "guest",
+    });
   });
 
   app.post("/api/builder/adopt-existing", async (req: Request, res: Response) => {
@@ -568,7 +643,7 @@ export function registerProfileBuilderRoutes(app: Express) {
     const wasAlreadyPublic = profile.isPublic;
     const customer = await storage.getCustomer(req.session.customerId);
     await storage.updateProfileById(profile.id, {
-      ...(access.isFirstFreePublish ? { paymentStatus: "paid", tier: "free", freePublishedAt: new Date() } : {}),
+      ...(access.isFirstFreePublish ? { tier: "free", freePublishedAt: new Date() } : {}),
       isPublic: true,
       publicDomain: `myproxy.work/portfolio/${customer?.username}`,
     });

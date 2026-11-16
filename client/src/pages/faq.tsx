@@ -131,39 +131,38 @@ export default function FAQPage() {
     },
     {
       q: "How much does Proxy cost?",
-      plainText: "Proxy has two plans. Free gives you a published professional page, with an optional AI explorer, and 7 days of edits after publishing. Pro at $49 one-time adds unlimited edits plus page views and recent visitor questions.",
+      plainText: "Proxy has two plans. Free gives you a published professional page, with an optional AI explorer, and 7 days of edits after publishing. Pro is $49, paid once. It adds the Job Search Agent: cover letters, outreach, interview practice, thank-you notes, and offer notes from the background on your account. You can also edit whenever you want, including after the first week, and see the questions visitors ask.",
       a: (
         <div className="space-y-4">
-          <p>Start free, upgrade when you're ready:</p>
+          <p>Start free. Pro adds the Job Search Agent for the search after your page is live.</p>
           <div className="space-y-3 ml-1">
             <div className="flex gap-3 items-start">
-              <span className="bg-[#2F5D4C] text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">FREE</span>
-              <span><strong className="text-black">Free</strong> — Published evidence page with an optional AI explorer. Unlimited edits while in draft; 7 days of edits after you publish. No credit card needed.</span>
+              <span className="bg-[#2F5D4C] text-white font-bold text-xs px-2 py-1 flex-shrink-0 mt-0.5">Free</span>
+              <span><strong className="text-black">Free.</strong> Published evidence page with an optional AI explorer. Unlimited edits while in draft. 7 days of edits after you publish. No credit card needed.</span>
             </div>
             <div className="flex gap-3 items-start">
               <span className="bg-[#2F5D4C] text-white font-bold text-xs px-2 py-1 rounded flex-shrink-0 mt-0.5">$49</span>
-              <span><strong className="text-black">Pro</strong> — Everything in Free plus unlimited edits, page views, and recent visitor questions</span>
+              <span><strong className="text-black">Pro.</strong> Job Search Agent: cover letters, outreach, interview practice, thank-you notes, and offer notes from the background on your account. Edit whenever you want, including after the first week, and see the questions visitors ask. Your page, your link, and visitor Q&amp;A stay included. Paid once.</span>
             </div>
           </div>
-          <p className="border-l-[3px] border-[#2F5D4C] pl-4">Pro is a <strong className="text-black">one-time payment</strong> — no monthly subscription.</p>
         </div>
       ),
     },
     {
       q: "What is the Job Search Agent?",
-      plainText: "The Job Search Agent is a built-in CRM and AI assistant that actively helps you with your job search — not just your profile. Once your profile is live, the agent can write cover letters in your voice, research companies before you apply, draft cold outreach messages, coach your interview preparation, help you think through offer negotiation, and write thank you notes after interviews. Everything is grounded in your actual background, so nothing sounds generic. The Job Search Agent is included with the Pro plan.",
+      plainText: "The Job Search Agent is included with Pro ($49, paid once). For 48 hours after you create an account, you can use it before you pay. You add companies, contacts, and applications. From the background saved on your account, it drafts a cover letter, a message to a contact, a follow-up, interview practice one question at a time, a thank-you note, and notes on an offer. For a company you add, it writes where you fit, roles to aim at, and a first step, using the name and notes you enter.",
       a: (
         <div className="space-y-4">
-          <p>The Job Search Agent is a built-in CRM and AI assistant included with Pro — it actively works on your job search, not just your profile.</p>
+          <p>The Job Search Agent is included with Pro ($49, paid once). For 48 hours after you create an account, you can use it before you pay.</p>
+          <p>You add companies, contacts, and applications. From the background saved on your account, it drafts:</p>
           <ul className="space-y-2 ml-1">
-            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>Write cover letters in your voice</span></li>
-            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>Research companies before you apply</span></li>
-            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>Draft cold outreach messages</span></li>
-            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>Coach your interview preparation</span></li>
-            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>Help you think through offer negotiation</span></li>
-            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>Write thank you notes after interviews</span></li>
+            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>A cover letter for a role you add</span></li>
+            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>A message to a contact, and a shorter follow-up</span></li>
+            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>Interview practice, one question at a time</span></li>
+            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>A thank-you note after you say who you met</span></li>
+            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>Notes on an offer: a counter, what to say, and what to leave out</span></li>
+            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>For a company you add: where you fit, roles to aim at, and a first step, from the name and notes you enter</span></li>
           </ul>
-          <p>Everything is grounded in your actual background, so nothing sounds generic.</p>
         </div>
       ),
     },

@@ -4,6 +4,7 @@ import type {
   ImprovementQuestion,
   ProfileDocument,
 } from "@shared/profile-document";
+import { hasConfirmedPaidTier } from "@shared/plan-access";
 
 type Preview = {
   positioning: string;
@@ -31,11 +32,13 @@ export type PublicationProfile = {
 };
 
 export function getPublicationAccess(profile: PublicationProfile, now = Date.now()) {
-  const isPaid = profile.paymentStatus === "paid" && profile.tier !== "free";
+  const isPaid = hasConfirmedPaidTier(profile);
   const freePublishedAt = profile.freePublishedAt ? new Date(profile.freePublishedAt).getTime() : Number.NaN;
   const isEditableFree = profile.tier === "free" && Number.isFinite(freePublishedAt) &&
     now - freePublishedAt <= 7 * 24 * 60 * 60 * 1000;
-  const isFirstFreePublish = !profile.isPublic && (!profile.tier || profile.tier === "free");
+  // A checkout used to write tier "pro" before Stripe confirmed payment.
+  // Cancelling that checkout must still leave the first free publish available.
+  const isFirstFreePublish = !profile.isPublic && !isPaid;
   return {
     isPaid,
     isEditableFree,

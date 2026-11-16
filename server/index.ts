@@ -102,6 +102,17 @@ const anonChatLimiter = rateLimit({
   },
 });
 
+// The guest "email me my draft" route sends an email to any address typed in.
+// Keep it tight so it cannot be used to send mail from our domain in bulk.
+const guestEmailLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3,
+  standardHeaders: false,
+  handler: (_req, res) => {
+    res.status(429).json({ error: "Too many requests, please try again later." });
+  },
+});
+
 // Apply general API limiter to all /api/* routes
 app.use("/api/", generalApiLimiter);
 
@@ -118,6 +129,7 @@ app.post("/api/chat/:username", chatLimiter);
 // Anonymous pre-signup try-it flow — CV upload + draft chat, no account required
 app.post("/api/anon/upload-cv", anonUploadLimiter);
 app.post("/api/builder/upload", anonUploadLimiter);
+app.post("/api/builder/guest-email", guestEmailLimiter);
 app.post("/api/anon/chat", anonChatLimiter);
 
 // CSRF protection using double-submit cookie pattern

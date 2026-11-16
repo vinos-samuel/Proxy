@@ -85,6 +85,9 @@ type BrandingThemeKey = "corporate" | "tech" | "creative" | "executive";
 export default function PortfolioPage() {
   const params = useParams<{ username: string }>();
   const username = params.username;
+  const samplePersonNote = username?.toLowerCase() === "priya"
+    ? <p className="sample-person-note" role="note">Sample page, fictional person</p>
+    : null;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -331,6 +334,7 @@ export default function PortfolioPage() {
     const page = normalizeProfileDocument(portfolio.profileDocument);
     return (
       <div className="new-profile-public">
+        {samplePersonNote}
         {isOwnerViewingOwnProfile && (
           <div className="new-profile-public__owner-bar">
             <a href="/dashboard">← Back to dashboard</a>
@@ -478,6 +482,7 @@ export default function PortfolioPage() {
   if (brandingTheme === "executive") {
     return (
       <div className="min-h-screen bg-[#F2F1EC] text-[#1B211E]" style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif" }}>
+        {samplePersonNote}
         <style>{`
           .dossier-serif { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif; }
           .dossier-mono { font-family: "SF Mono", "IBM Plex Mono", Menlo, Consolas, monospace; }
@@ -859,6 +864,7 @@ export default function PortfolioPage() {
   if (brandingTheme === "corporate") {
     return (
       <div className="min-h-screen bg-[#0D1117] text-[#E9E7DE]" style={{ fontFamily: "Charter, Cambria, Georgia, serif" }}>
+        {samplePersonNote}
         <style>{`.rpt-mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; } .rpt-tab { font-variant-numeric: tabular-nums; }`}</style>
 
         <header className="border-b border-[#AD8A4E] py-4 px-6">
@@ -1133,6 +1139,7 @@ export default function PortfolioPage() {
     const flatCommits = dCareer.flatMap((entry: any) => (entry.roles || []).map((role: any) => ({ company: entry.company, ...role })));
     return (
       <div className="min-h-screen bg-[#0A0E12] text-[#D7DEE2]" style={{ fontFamily: 'ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace' }}>
+        {samplePersonNote}
         <div className="flex justify-between items-center px-8 py-3 border-b border-[#1B222A] text-xs">
           <div className="text-[#46C2B3]">proxy://{username}</div>
           <div className="flex items-center gap-2 text-[#6E7885]">
@@ -1334,6 +1341,7 @@ export default function PortfolioPage() {
     const flatHighlights = dCareer.flatMap((entry: any) => (entry.roles || []).map((role: any) => ({ company: entry.company, ...role })));
     return (
       <div className="min-h-screen bg-[#17140F] text-[#EDE7DC]" style={{ fontFamily: 'ui-serif, "New York", "Times New Roman", Georgia, serif' }}>
+        {samplePersonNote}
         <div className="flex justify-between items-baseline px-11 py-5 border-b border-[#322C22]">
           <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] tracking-[0.14em] uppercase text-[#96AD86]">Profile</div>
           <div style={{ fontFamily: "-apple-system, sans-serif" }} className="text-[11px] text-[#7A7568]">{showDraftChrome ? "Not live yet" : "Published"}</div>

@@ -4,6 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
 import InsiderKit from "@/components/InsiderKit";
+import { PRO_BUTTON_LABEL, PRO_FEATURES, PRO_FOR } from "@/lib/pro-plan";
 
 interface PaymentGateProps {
   profileId: string;
@@ -37,11 +38,10 @@ const tiers = [
     icon: Star,
     popular: true,
     features: [
+      ...PRO_FEATURES,
       "Everything in Free",
-      "Unlimited edits",
-      "Page views and recent visitor questions",
     ],
-    useCase: "Active job search | Career pivot",
+    useCase: PRO_FOR,
   },
 ];
 
@@ -124,22 +124,27 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
     return (
       <div className="pg">
         <div className="pg-confirm">
-          <h2 className="site-display">Publish your page for free?</h2>
-          <p className="site-muted">It goes public at <b>myproxy.work/portfolio/{username}</b>.</p>
-          <ul>
-            <li>You can edit for <b>7 days</b> after publishing.</li>
-            <li>After that, Pro ($49, once) gives you unlimited edits.</li>
-            <li>Check the wording is accurate before it goes live.</li>
-          </ul>
+          <h2 className="site-display">Your page is ready</h2>
+          <p className="site-muted">It goes public at <b>myproxy.work/portfolio/{username}</b>. Check the wording before it goes live.</p>
+          <div className="site-card pg-tier pg-tier--pro">
+            <div className="pg-tier-top">
+              <h3>Pro</h3>
+              <b>$49</b>
+              <span>paid once</span>
+            </div>
+            <p>{PRO_FOR}</p>
+            <ul>{PRO_FEATURES.map((feature) => <li key={feature}><Check /> {feature}</li>)}</ul>
+            <button type="button" className="site-btn" onClick={() => handlePublish("pro")} disabled={loading} data-testid="button-checkout-pro">
+              {loading && selectedTier === "pro" ? <><Loader2 className="animate-spin" /> Opening checkout…</> : PRO_BUTTON_LABEL}
+            </button>
+          </div>
           <div className="pg-actions">
-            <button type="button" className="site-btn" onClick={() => handlePublish("free")} disabled={loading}>
-              {loading ? <><Loader2 className="animate-spin" /> Publishing…</> : "Publish now · free"}
+            <button type="button" className="site-btn site-btn--quiet" onClick={() => handlePublish("free")} disabled={loading} data-testid="button-checkout-free">
+              {loading && selectedTier === "free" ? <><Loader2 className="animate-spin" /> Publishing…</> : "Publish free"}
             </button>
             <button type="button" className="site-btn site-btn--quiet" onClick={() => setShowFreeConfirm(false)}>Go back</button>
           </div>
-          <button type="button" className="site-link pg-switch" onClick={() => { setShowFreeConfirm(false); setSelectedTier("pro"); }}>
-            I'd rather have Pro with unlimited edits ($49)
-          </button>
+          <p className="site-faint">Free includes your page, your link, and 7 days of edits after you publish.</p>
         </div>
       </div>
     );
@@ -158,7 +163,7 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
         <h2 className="site-display" data-testid="text-payment-title">{hideFree ? "Upgrade to Pro" : "Publish your page"}</h2>
         <p className="site-muted">
           {hideFree
-            ? "Keep editing whenever you like, and see the questions visitors ask your page."
+            ? "Edit whenever you want, including after the first week, and see the questions visitors ask."
             : <>Your page goes live at <b>myproxy.work/portfolio/{username || "yourname"}</b>.</>}
         </p>
       </div>
@@ -169,11 +174,12 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
             <div className="pg-tier-top">
               <h3>Pro</h3>
               <b data-testid={`text-price-${proTier.key}`}>{proTier.price}</b>
-              <span>one-time payment, no subscription</span>
+              <span>paid once</span>
             </div>
+            <p>{PRO_FOR}</p>
             <ul>{proTier.features.map((feature) => <li key={feature}><Check /> {feature}</li>)}</ul>
             <button type="button" className="site-btn" onClick={() => handlePublish(proTier.key)} disabled={loading} data-testid={`button-checkout-${proTier.key}`}>
-              {isBusy(proTier.key) ? <><Loader2 className="animate-spin" /> Opening checkout…</> : `Get Pro · ${proTier.price}`}
+              {isBusy(proTier.key) ? <><Loader2 className="animate-spin" /> Opening checkout…</> : PRO_BUTTON_LABEL}
             </button>
           </div>
         )}

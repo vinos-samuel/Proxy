@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { logger } from "./logger";
-import { eq, desc, sql, count, and } from "drizzle-orm";
+import { eq, desc, sql, count, and, isNull } from "drizzle-orm";
 import {
   customers, twinProfiles, profileDocuments, guestProfileDocuments, factBanks, knowledgeEntries, chatUsage, payments, chatMessages, blogPosts,
   blogSubscribers,
@@ -245,7 +245,7 @@ export class DatabaseStorage implements IStorage {
     await db.update(twinProfiles).set({ tipsEmailSentAt: new Date() }).where(eq(twinProfiles.id, profileId));
   }
 
-  async getProfilesDueForWeeklyDigest(): Promise<Array<{ profileId: string; email: string; name: string; username: string; tier: string | null; viewCount: number; digestViewCount: number; digestSentAt: Date | null }>> {
+  async getProfilesDueForWeeklyDigest(): Promise<Array<{ profileId: string; email: string; name: string; username: string; tier: string | null; paymentStatus: string | null; viewCount: number; digestViewCount: number; digestSentAt: Date | null }>> {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const rows = await db
       .select({
@@ -254,6 +254,7 @@ export class DatabaseStorage implements IStorage {
         name: customers.name,
         username: customers.username,
         tier: twinProfiles.tier,
+        paymentStatus: twinProfiles.paymentStatus,
         viewCount: twinProfiles.viewCount,
         digestViewCount: twinProfiles.digestViewCount,
         digestSentAt: twinProfiles.digestSentAt,
@@ -509,6 +510,63 @@ export class DatabaseStorage implements IStorage {
 
   async deleteGuestProfileDocument(sessionKey: string): Promise<void> {
     await db.delete(guestProfileDocuments).where(eq(guestProfileDocuments.sessionKey, sessionKey));
+  }
+
+  async getGuestProfileDocumentByToken(token: string): Promise<GuestProfileDocumentRow | undefined> {
+    const [row] = await db.select().from(guestProfileDocuments).where(eq(guestProfileDocuments.resumeToken, token));
+    if (!row) return undefined;
+    if (row.expiresAt.getTime() <= Date.now()) {
+      await db.delete(guestProfileDocuments).where(eq(guestProfileDocuments.sessionKey, row.sessionKey));
+      return undefined;
+    }
+    return row;
+  }
+
+  async saveGuestDraftEmail(sessionKey: string, email: string, token: string, expiresAt: Date): Promise<GuestProfileDocumentRow | undefined> {
+    const [row] = await db.update(guestProfileDocuments).set({
+      guestEmail: email,
+      resumeToken: token,
+      expiresAt,
+      updatedAt: new Date(),
+    }).where(and(
+      eq(guestProfileDocuments.sessionKey, sessionKey),
+      sql`${guestProfileDocuments.expiresAt} > CURRENT_TIMESTAMP`,
+    )).returning();
+    return row;
+  }
+
+  async rebindGuestDraft(token: string, sessionKey: string): Promise<GuestProfileDocumentRow | undefined> {
+    const row = await this.getGuestProfileDocumentByToken(token);
+    if (!row) return undefined;
+    if (row.sessionKey === sessionKey) return row;
+    await db.delete(guestProfileDocuments).where(eq(guestProfileDocuments.sessionKey, sessionKey));
+    const [moved] = await db.update(guestProfileDocuments).set({
+      sessionKey,
+      updatedAt: new Date(),
+    }).where(eq(guestProfileDocuments.resumeToken, token)).returning();
+    return moved;
+  }
+
+  async getCustomersDueForNoPageReminder(now = new Date()): Promise<Array<{ id: string; email: string; name: string }>> {
+    const newest = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const oldest = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    return db.select({
+      id: customers.id,
+      email: customers.email,
+      name: customers.name,
+    }).from(customers)
+      .leftJoin(twinProfiles, eq(twinProfiles.customerId, customers.id))
+      .where(and(
+        isNull(twinProfiles.id),
+        isNull(customers.noPageReminderSentAt),
+        eq(customers.emailVerified, true),
+        sql`${customers.createdAt} <= ${newest}`,
+        sql`${customers.createdAt} > ${oldest}`,
+      ));
+  }
+
+  async markNoPageReminderSent(customerId: string): Promise<void> {
+    await db.update(customers).set({ noPageReminderSentAt: new Date() }).where(eq(customers.id, customerId));
   }
 
   async getFactBanksByProfileId(profileId: string): Promise<FactBank[]> {

@@ -8,6 +8,8 @@ import {
   AlertCircle, ArrowLeft, Bot, Send, Loader2,
 } from "lucide-react";
 import type { JobCompany, JobContact, JobApplication } from "@shared/schema";
+import { hasConfirmedPro, hasJobSearchAccess, jobSearchTrialActive } from "@shared/plan-access";
+import { PRO_BUTTON_LABEL } from "@/lib/pro-plan";
 
 type JobContactWithCompany     = JobContact     & { companyName: string | null };
 type JobApplicationWithCompany = JobApplication & { companyName: string | null };
@@ -865,7 +867,7 @@ function ApplicationsTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t:
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function JobSearchPage() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<"applications" | "companies" | "contacts">("applications");
 
@@ -874,7 +876,7 @@ export default function JobSearchPage() {
     entityLabel: "", entityData: {}, sessionId: null, messages: [], isLoading: false,
   });
 
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["/api/profile"],
     queryFn: async () => {
       const res = await fetch("/api/profile", { credentials: "include" });
@@ -884,11 +886,11 @@ export default function JobSearchPage() {
     },
   });
 
-  const isPro = profile?.tier === "pro" || profile?.paymentStatus === "paid";
-  const isWithin48Hours = user?.createdAt
-    ? Date.now() - new Date(user.createdAt).getTime() < 48 * 60 * 60 * 1000
-    : false;
-  const hasAccess = isPro || isWithin48Hours;
+  const plan = { tier: profile?.tier ?? null, paymentStatus: profile?.paymentStatus ?? null };
+  const isPro = hasConfirmedPro(plan);
+  const isWithin48Hours = jobSearchTrialActive(user?.createdAt ?? null);
+  const accessKnown = !authLoading && !profileLoading;
+  const hasAccess = accessKnown && hasJobSearchAccess(plan, user?.createdAt ?? null);
 
   async function openAgent(
     actionType: AgentActionType,
@@ -962,13 +964,17 @@ export default function JobSearchPage() {
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Pro gate */}
-        {!hasAccess && (
+        {!accessKnown && (
+          <div className="text-center py-16"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>
+        )}
+
+        {accessKnown && !hasAccess && (
           <div className="border-[4px] border-black bg-[#FDE68A] p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center max-w-xl mx-auto mt-12">
             <AlertCircle className="h-10 w-10 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-3">PRO FEATURE</h2>
-            <p className="text-black/70 mb-6">The Job Search CRM is available to Pro members. Upgrade to track companies, contacts, and applications connected to your evidence page.</p>
-            <button onClick={() => navigate("/dashboard")} className={btnPrimary + " text-base px-8 py-3"}>
-              UPGRADE TO PRO → $49
+            <h2 className="text-2xl font-bold mb-3">Job search is part of Pro</h2>
+            <p className="text-black/70 mb-6">Pro is $49, paid once. The Job Search Agent keeps the companies, contacts, and applications you add. From the background on your account it drafts cover letters, outreach, follow-ups, interview practice, thank-you notes, and notes on an offer.</p>
+            <button onClick={() => navigate("/dashboard#upgrade")} className={btnPrimary + " text-base px-8 py-3"}>
+              {PRO_BUTTON_LABEL}
             </button>
           </div>
         )}
@@ -978,9 +984,9 @@ export default function JobSearchPage() {
             {/* Trial banner for free users in 48h window */}
             {isWithin48Hours && !isPro && (
               <div className="border-[3px] border-black bg-[#FDE68A] px-6 py-4 mb-6 flex items-center justify-between gap-4 flex-wrap shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <p className="font-bold text-sm">You're on a 48-hour free trial of the Job Search Agent. Upgrade to Pro to keep access.</p>
-                <button onClick={() => navigate("/dashboard")} className={btnPrimary + " text-sm px-4 py-2"}>
-                  UPGRADE → $49
+                <p className="font-bold text-sm">You can use the Job Search Agent for 48 hours after you create your account. Pro is $49, paid once, and keeps it after that.</p>
+                <button onClick={() => navigate("/dashboard#upgrade")} className={btnPrimary + " text-sm px-4 py-2"}>
+                  {PRO_BUTTON_LABEL}
                 </button>
               </div>
             )}

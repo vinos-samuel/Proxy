@@ -286,6 +286,16 @@ export function nudgeEngagementTemplate(name: string, viewCount: number, questio
 
 // ─── Weekly Activity Digest ──────────────────────────────────────────────────
 
+export function noPageReminderTemplate(name: string, tryUrl: string): string {
+  const firstName = name.split(" ")[0];
+  const body = `
+    <h1 style="font-size:26px;font-weight:900;color:#000000;margin:0 0 8px 0;">Your page is not started yet</h1>
+    <p style="font-size:15px;color:#555555;margin:0 0 24px 0;line-height:1.6;">Hi ${firstName}, you created a Proxy account yesterday. There is no page on it yet. Upload your CV and you will see a first version before you answer more questions.</p>
+    ${ctaButton(tryUrl, "Upload your CV")}
+  `;
+  return baseTemplate(body);
+}
+
 export function weeklyDigestTemplate(
   name: string,
   newViews: number,

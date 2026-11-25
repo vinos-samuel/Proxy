@@ -215,6 +215,7 @@ export function RegisterPage() {
       }
       // Meta CompleteRegistration
       if (typeof (window as any).fbq === "function") {
+        (window as any).fbq("track", "Lead");
         (window as any).fbq("track", "CompleteRegistration");
       }
     } catch (err: any) {

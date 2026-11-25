@@ -237,7 +237,7 @@ export default function LandingPage() {
         <div className="landing-hero-copy">
           <p className="landing-for">For mid-to-senior professionals who are job hunting now.</p>
           <h1 className="site-display landing-h1" data-testid="text-hero-headline">
-            Your CV can't answer questions. <em>Your page can.</em>
+            Turn your CV into a portfolio webpage recruiters can ask questions
           </h1>
           <p className="landing-sub">Upload your CV. See your finished page in a minute, then send the link with a referral ask.</p>
           <CvDrop id="hero-cv" />

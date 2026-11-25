@@ -33,8 +33,9 @@ app.use(
             imgSrc: ["'self'", "data:", "https:", "https://www.facebook.com"],
             fontSrc: ["'self'", "https:", "data:"],
             connectSrc: ["'self'", "https:", "https://www.facebook.com", "https://www.google-analytics.com", "https://analytics.google.com", "https://www.googletagmanager.com", "https://us.posthog.com", "https://us-assets.i.posthog.com"],
-            frameSrc: ["'self'"],
+            frameSrc: ["'self'", "https://www.facebook.com"],
             frameAncestors: ["'self'"],
+            formAction: ["'self'", "https://www.facebook.com"],
           },
         }
       : false, // Disable CSP entirely in dev — Vite needs unsafe-inline/eval

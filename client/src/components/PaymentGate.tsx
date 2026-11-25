@@ -71,6 +71,8 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
           setPublished(true);
           setPublishData({ username: data.username, displayName: data.displayName, roleTitle: data.roleTitle });
           queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+          const ph = (window as any).posthog;
+          if (ph?.capture) ph.capture("portfolio_published", { plan: "free" });
         }
       } else {
         const response = await apiRequest("POST", "/api/create-checkout-session", {
@@ -79,6 +81,8 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
         });
         const data = await response.json();
         if (data.url) {
+          const ph = (window as any).posthog;
+          if (ph?.capture) ph.capture("checkout_started", { tier: tierKey });
           window.location.href = data.url;
         } else {
           throw new Error("No checkout URL returned");

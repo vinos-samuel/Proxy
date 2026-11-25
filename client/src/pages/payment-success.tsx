@@ -62,6 +62,11 @@ export default function PaymentSuccessPage() {
               items: [{ item_name: "Proxy Pro" }],
             });
           }
+          const ph = (window as any).posthog;
+          if (ph?.capture) {
+            ph.capture("payment_completed", { plan: "pro", value: amount, currency: "USD", transaction_id: sessionId });
+            ph.capture("portfolio_published", { plan: "pro" });
+          }
         } else {
           setError("Payment is still processing. Please check your dashboard in a moment.");
         }

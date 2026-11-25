@@ -204,8 +204,18 @@ export function RegisterPage() {
     try {
       await apiRequest("POST", "/api/auth/register", data);
       setRegisteredEmail(data.email);
-      if (typeof window.fbq === 'function') {
-        window.fbq('track', 'Lead');
+      // GA4 sign_up (register page bypasses useAuth().register, so fire here)
+      if (typeof window.gtag === "function") {
+        window.gtag("event", "sign_up", { method: "email" });
+      }
+      // PostHog signed_up
+      const ph = (window as any).posthog;
+      if (ph?.capture) {
+        ph.capture("signed_up", { method: "email", email: data.email });
+      }
+      // Meta CompleteRegistration
+      if (typeof (window as any).fbq === "function") {
+        (window as any).fbq("track", "CompleteRegistration");
       }
     } catch (err: any) {
       toast({ title: "Registration failed", description: err.message?.replace(/^\d+: /, "") || "Could not create account", variant: "destructive" });

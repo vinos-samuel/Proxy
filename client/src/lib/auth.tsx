@@ -64,6 +64,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login: async (email, password) => {
           await loginMutation.mutateAsync({ email, password });
           await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
+          const freshUser = queryClient.getQueryData<AuthUser>(["/api/auth/me"]);
+          if (freshUser) {
+            const ph = (window as any).posthog;
+            if (ph?.identify) {
+              const utms = JSON.parse(sessionStorage.getItem("proxy_utms") || "{}");
+              ph.identify(String(freshUser.id), { email: freshUser.email, ...utms });
+            }
+          }
         },
         register: async (data) => {
           const referredBy = localStorage.getItem("proxy_ref") || undefined;

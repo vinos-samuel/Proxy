@@ -25,7 +25,15 @@ export default function VerifyEmailPage() {
       .then((r) => r.json())
       .then((d) => {
         if (d.success) {
-          queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
+          queryClient.refetchQueries({ queryKey: ["/api/auth/me"] }).then(() => {
+            const freshUser = queryClient.getQueryData(["/api/auth/me"]) as any;
+            const ph = (window as any).posthog;
+            if (ph?.identify && freshUser?.id) {
+              const utms = JSON.parse(sessionStorage.getItem("proxy_utms") || "{}");
+              ph.identify(String(freshUser.id), { email: freshUser.email, ...utms });
+            }
+            if (ph?.capture) ph.capture("email_verified");
+          });
           setStatus("success");
           setTimeout(() => navigate(profileCreationPath), 3000);
         } else {

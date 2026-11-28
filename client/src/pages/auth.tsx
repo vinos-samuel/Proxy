@@ -233,7 +233,7 @@ export function RegisterPage() {
         <div className="auth-head">
           <Link href="/" className="auth-logo" aria-label="Proxy home"><ProxyLogo size={30} /></Link>
           <h1 className="site-display auth-h1">{hasGuestDraft ? "Save your page. Make it yours." : "Create your account. Build your page."}</h1>
-          <p className="site-muted">{hasGuestDraft ? "Create a free account to keep and publish your page." : "Free to start. No card needed."}</p>
+          <p className="site-muted">{hasGuestDraft ? "Create a free account to keep and publish your page. Nothing goes public until you publish." : "Free to start. No work card needed to publish."}</p>
         </div>
 
         <div className="site-card auth-card">

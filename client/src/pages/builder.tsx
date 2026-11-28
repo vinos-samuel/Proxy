@@ -15,6 +15,7 @@ import { useSpeechInput } from "@/hooks/use-speech-input";
 import { renderAnswer } from "@/lib/renderAnswer";
 import { takePendingCvUpload } from "@/lib/pending-cv-upload";
 import { PRO_BUTTON_LABEL, PRO_FEATURES, PRO_FOR } from "@/lib/pro-plan";
+import { canPublishNow, draftCheckLabel, OPTIONAL_INTERVIEW_LABEL, publishGuardTitle } from "@shared/builder-entry";
 
 type BuilderState = {
   document?: ProfileDocument;
@@ -153,6 +154,13 @@ export default function BuilderPage() {
   const fixtureMode = import.meta.env.DEV && new URLSearchParams(window.location.search).get("fixture") === "1";
 
   const document = state.document ? normalizeProfileDocument(state.document) : state.document;
+  const approvedCardCount = document?.projects.filter((project) => project.status === "approved").length ?? 0;
+  const firstCardPrompted = useRef(false);
+  useEffect(() => {
+    if (!state.hasPublished || approvedCardCount !== 0 || firstCardPrompted.current) return;
+    firstCardPrompted.current = true;
+    capture("builder_first_card_prompt_shown");
+  }, [state.hasPublished, approvedCardCount]);
   const revision = state.revision;
 
   useEffect(() => { stateRef.current = state; }, [state]);
@@ -162,6 +170,9 @@ export default function BuilderPage() {
       const requestedStyle = new URLSearchParams(window.location.search).get("style");
       const style: ProfileStyle = requestedStyle === "executive" || requestedStyle === "editorial" || requestedStyle === "modern" || requestedStyle === "expressive" ? requestedStyle : "executive";
       const fixtureDocument = visualProfileFixture(style);
+      if (new URLSearchParams(window.location.search).get("drafts") === "1") {
+        fixtureDocument.projects = fixtureDocument.projects.map((project, index) => index < 3 ? { ...project, status: "draft" } : project);
+      }
       acknowledgedDocumentRef.current = fixtureDocument;
       stateRef.current = { document: fixtureDocument, revision: 1, source: "guest", hasPublished: false };
       setState(stateRef.current);
@@ -498,16 +509,30 @@ export default function BuilderPage() {
     }
   };
 
+  const approveDraft = (projectId: string) => {
+    const current = stateRef.current.document;
+    if (!current || current.pendingProposal || busy) return;
+    capture("builder_card_marked_accurate");
+    void saveDocument(markProjectAccurate(current, projectId, new Date().toISOString()));
+  };
+
   // One Publish action. The server still requires an approval step before
   // publishing (so a stale tab can't publish the wrong version); the sheet
   // runs approve then publish back to back instead of asking for two clicks.
   const openPublish = () => {
+    const currentDocument = stateRef.current.document;
+    if (!canPublishNow({ dirty, busy: Boolean(busy), openSuggestion: Boolean(currentDocument?.pendingProposal) })) return;
     if (!stateRef.current.revision || (!user && !fixtureMode)) {
       sessionStorage.setItem("proxy_builder_return", "1");
       setLocation("/register");
       return;
     }
     setError("");
+    const current = stateRef.current.document;
+    if (current) capture("builder_publish_sheet_opened", {
+      draftCount: current.projects.filter((project) => project.status === "draft").length,
+      approvedCount: current.projects.filter((project) => project.status === "approved").length,
+    });
     setPublishSheet(true);
   };
 
@@ -669,7 +694,7 @@ export default function BuilderPage() {
             <small>PDF, up to 5 MB</small>
             <input type="file" accept="application/pdf" disabled={Boolean(busy)} onChange={(event) => event.target.files?.[0] && upload(event.target.files[0])} />
           </label>
-          <button className="builder-text-button builder-manual-toggle" type="button" onClick={() => setManualStart((value) => !value)}>No CV? Start with a few questions <ChevronRight /></button>
+          <button className="builder-text-button builder-manual-toggle" type="button" onClick={() => setManualStart((value) => !value)}>No CV? Describe one piece of work <ChevronRight /></button>
           {manualStart && <div className="builder-manual-start">
             <label><span>Your name</span><input value={manual.name} onChange={(event) => setManual({ ...manual, name: event.target.value })} /></label>
             <label><span>Your current role or professional focus</span><input value={manual.title} onChange={(event) => setManual({ ...manual, title: event.target.value })} /></label>
@@ -688,23 +713,45 @@ export default function BuilderPage() {
   }
 
   const proposal = document.pendingProposal;
-  if (previewMode) return <main className="builder-preview-mode"><header><button type="button" onClick={() => setPreviewMode(false)}><ArrowLeft /> Back to editing</button><span>Visitor preview · not published</span></header><ProfileDocumentView document={document} proposal={proposal} onAsk={document.publicBotEnabled ? () => setTestChat(true) : undefined} /></main>;
+  const draftsLabel = draftCheckLabel(document.projects.filter((project) => project.status === "draft").length);
+  const pageView = (
+    <ProfileDocumentView
+      document={document}
+      proposal={proposal}
+      onAsk={document.publicBotEnabled ? () => setTestChat(true) : undefined}
+      onApprove={approveDraft}
+      approveDisabled={Boolean(proposal) || Boolean(busy)}
+      onEdit={(section, id) => {
+        setPreviewMode(false);
+        setPanel("edit");
+        if (section === "project" && !id) setEditTarget({ section: "projects" });
+        else if (section === "impactStats" || section === "howIWork") setEditTarget({ section });
+        else setEditTarget({ section: section === "introduction" ? "introduction" : section === "project" ? "project" : section === "experience" ? (document.employerContributions.some((item) => item.id === id) ? "employer" : "role") : section === "details" ? "details" : "skills", id });
+        setMobilePanel(true);
+      }}
+    />
+  );
+  if (previewMode) return <main className="builder-preview-mode"><header><button type="button" onClick={() => setPreviewMode(false)}><ArrowLeft /> Back to editing</button><span>Visitor preview · not published</span></header>{pageView}</main>;
   return (
     <main className="builder-shell">
       <header className="builder-topbar">
         <Link href={user ? "/dashboard" : "/"} className="builder-back"><ArrowLeft /> <span>Proxy</span></Link>
-        <div><span className={`builder-save-state ${error ? "is-error" : ""}`}>{busy === "save" ? "Saving…" : error && dirty ? "Save failed" : dirty ? "Unsaved changes" : "All changes saved"}</span><button className="builder-topbar-action" disabled={dirty || Boolean(busy)} onClick={() => setPreviewMode(true)}><Eye /> Preview</button><button className="builder-topbar-publish" disabled={dirty || Boolean(busy) || Boolean(proposal)} title={proposal ? "Keep or skip the suggested change first" : undefined} onClick={openPublish}>{state.hasPublished ? "Publish changes" : "Publish"}</button><button className="builder-menu" onClick={() => setMobilePanel(true)} aria-label="Open editing panel"><Menu /></button></div>
+        <div><span className={`builder-save-state ${error ? "is-error" : ""}`}>{busy === "save" ? "Saving…" : error && dirty ? "Save failed" : dirty ? "Unsaved changes" : "All changes saved"}</span><button className="builder-topbar-action" disabled={dirty || Boolean(busy)} onClick={() => setPreviewMode(true)}><Eye /> Preview</button>{draftsLabel && <span className="builder-draft-count">{draftsLabel}</span>}<button className="builder-topbar-publish" disabled={!canPublishNow({ dirty, busy: Boolean(busy), openSuggestion: Boolean(proposal) })} title={publishGuardTitle(Boolean(proposal))} onClick={openPublish}>{state.hasPublished ? "Publish changes" : "Publish"}</button><button className="builder-menu" onClick={() => setMobilePanel(true)} aria-label="Open editing panel"><Menu /></button></div>
       </header>
       <div className="builder-workspace">
-        <section className="builder-canvas" aria-label="Page preview">
+        <section className="builder-canvas" aria-label="Page preview" data-testid="builder-page-preview">
+          {!state.hasPublished && <div className="builder-ready">
+            <div>
+              <b>Your page is ready</b>
+              <p>{proposal ? "Keep or skip the suggested change before you publish." : "Publish it now. The questions beside it are optional."}</p>
+            </div>
+            <div className="builder-ready-actions">
+              {draftsLabel && <span className="builder-draft-count" data-testid="draft-check-count">{draftsLabel}</span>}
+              <button type="button" className="builder-ready-publish" data-testid="button-publish-preview" disabled={!canPublishNow({ dirty, busy: Boolean(busy), openSuggestion: Boolean(proposal) })} title={publishGuardTitle(Boolean(proposal))} onClick={openPublish}>Publish</button>
+            </div>
+          </div>}
           <div className="builder-browser"><span /><span /><span /><small>{window.location.host}/portfolio/{user?.username || "your-name"}</small></div>
-          <ProfileDocumentView document={document} proposal={proposal} onAsk={document.publicBotEnabled ? () => setTestChat(true) : undefined} onEdit={(section, id) => {
-            setPanel("edit");
-            if (section === "project" && !id) setEditTarget({ section: "projects" });
-            else if (section === "impactStats" || section === "howIWork") setEditTarget({ section });
-            else setEditTarget({ section: section === "introduction" ? "introduction" : section === "project" ? "project" : section === "experience" ? (document.employerContributions.some((item) => item.id === id) ? "employer" : "role") : section === "details" ? "details" : "skills", id });
-            setMobilePanel(true);
-          }} />
+          {pageView}
         </section>
 
         <aside className={`builder-panel ${mobilePanel ? "builder-panel--open" : ""}`}>
@@ -739,8 +786,14 @@ export default function BuilderPage() {
               const result = await mutate<{ document: ProfileDocument; revision: number }>("adopt", "/api/builder/adopt-guest", { confirmReplace: true });
               if (result) setState((current) => ({ ...current, guestAvailable: false }));
             }}>Use the guest draft instead</button></div>}
+            {state.hasPublished && approvedCardCount === 0 && <div className="builder-adopt" data-testid="prompt-first-card"><b>Start with one card, in one short sitting.</b><p>Pick a real piece of work, not a polished slogan.</p><button type="button" onClick={() => { capture("builder_first_card_prompt_clicked"); setPanel("edit"); setEditTarget({ section: "projects" }); }}>Add your first card</button></div>}
+            {approvedCardCount > 0 && approvedCardCount < 3 && <div className="builder-adopt"><b>That's one story on your page.</b><p>Add 3 cards to show range.</p></div>}
             {panel === "improve" && <>
-              <div className="builder-conversation-controls"><p className="builder-panel-subtitle">One answer makes a section stronger. You review the change before it's added.</p><button type="button" onClick={() => setChoosingTopic((value) => !value)}>Other topics <ChevronRight /></button></div>
+              <div className="builder-optional" data-testid="optional-interview">
+                <h2>{OPTIONAL_INTERVIEW_LABEL}</h2>
+                <p className="builder-panel-subtitle">Answer a question if you want. You review any change before it is added. Your page can publish without this.</p>
+              </div>
+              <div className="builder-conversation-controls"><button type="button" onClick={() => setChoosingTopic((value) => !value)}>Other topics <ChevronRight /></button></div>
               {!document.publicBotEnabled && <button type="button" className="builder-text-button builder-bot-off" onClick={() => setPanel("settings")}>"Ask about my work" is off. Turn it on in Settings</button>}
               {choosingTopic && <div className="builder-topic-picker">{([
                 ["all", "Best next question"], ["work", "Selected work"], ["experience", "Career experience"], ["about", "Working style and direction"],
@@ -759,6 +812,7 @@ export default function BuilderPage() {
                 <span>{question.question.label}</span>
                 {question.question.sourceExcerpt && <p className="builder-source-context"><b>{question.question.sourceKind === "resume" ? "From your CV" : "You added"}</b>{question.question.sourceExcerpt}</p>}
                 <h2>{question.question.question}</h2>
+                {question.question.id.endsWith(":learned") && <p className="builder-private-note">A sentence is enough. If you mark the card accurate, this can appear when someone opens the story.</p>}
                 <div className="builder-answer-input">
                   <textarea value={answer} maxLength={2500} onChange={(event) => setAnswer(event.target.value)} placeholder="A few honest sentences are enough." />
                   {answerSpeechSupported && <button type="button" className={`builder-mic ${isListeningAnswer ? "is-listening" : ""}`} onClick={toggleAnswerListening} aria-label={isListeningAnswer ? "Stop talking" : "Talk instead of typing"} title={isListeningAnswer ? "Stop" : "Talk instead of typing"}><Mic /></button>}
@@ -821,7 +875,7 @@ export default function BuilderPage() {
                   return <div><p>Or use something from your CV</p>{suggestions.map((source) => <button key={source.id} type="button" onClick={() => addProjectFromSource(source.id)}><span>{source.excerpt}</span><Plus /></button>)}</div>;
                 })()}</div>
               </>}
-              {editTarget.section === "project" && (() => { const project = document.projects.find((item) => item.id === editTarget.id); if (!project) return null; const statusLine = project.status === "draft" ? "Draft, not on your live page" : project.status === "approved" ? "Marked accurate" : "Shown on your page"; return <fieldset><legend>{project.title}</legend><p className="builder-private-note">{statusLine}</p>{(["title", "company", "summary", "challenge", "contribution", "outcome"] as const).map((field) => <label key={field}><span>{field === "title" ? "Title" : field === "company" ? "Company or client (optional)" : field === "summary" ? "Short card summary" : field === "challenge" ? "What was happening?" : field === "contribution" ? "What did you do?" : "What changed?"}</span>{field === "title" || field === "company" ? <input value={project[field] || ""} onChange={(event) => updateProject(project.id, { [field]: event.target.value })} onBlur={saveCurrent} /> : <textarea value={project[field] || ""} onChange={(event) => updateProject(project.id, { [field]: event.target.value })} onBlur={saveCurrent} />}</label>)}<label><span>Your role on this work</span><input value={project.role || ""} maxLength={160} onChange={(event) => updateProject(project.id, { role: event.target.value })} onBlur={saveCurrent} /></label><label><span>Skills this work shows · up to 6, separated by commas</span><input key={`${project.id}-skills`} defaultValue={(project.skills || []).join(", ")} onBlur={(event) => { const skills = event.target.value.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 6).map((item) => item.slice(0, 80)); const current = stateRef.current.document; if (!current) return; void saveDocument({ ...current, projects: current.projects.map((item) => item.id === project.id ? { ...item, skills } : item) }); }} /></label><label><span>What I learned</span><textarea value={project.learned || ""} maxLength={900} onChange={(event) => updateProject(project.id, { learned: event.target.value })} onBlur={saveCurrent} /></label><div className="builder-item-actions"><button type="button" disabled={!project.title.trim() || Boolean(proposal) || Boolean(busy)} onClick={() => { const current = stateRef.current.document; if (!current || !project.title.trim()) return; void saveDocument(markProjectAccurate(current, project.id, new Date().toISOString())); }}>This card is accurate</button><button onClick={() => moveProject(project.id, -1)}><ArrowUp /> Move up</button><button onClick={() => moveProject(project.id, 1)}><ArrowDown /> Move down</button><button className="danger" onClick={() => removeProject(project.id)}><Trash2 /> Remove</button></div></fieldset>; })()}
+              {editTarget.section === "project" && (() => { const project = document.projects.find((item) => item.id === editTarget.id); if (!project) return null; const statusLine = project.status === "draft" ? "Draft, not on your live page" : project.status === "approved" ? "Marked accurate" : "Shown on your page"; return <fieldset><legend>{project.title}</legend><p className="builder-private-note">{statusLine}</p>{(["title", "company", "summary", "challenge", "contribution", "outcome"] as const).map((field) => <label key={field}><span>{field === "title" ? "Title" : field === "company" ? "Company or client (optional)" : field === "summary" ? "Short card summary" : field === "challenge" ? "What was happening?" : field === "contribution" ? "What did you do?" : "What changed?"}</span>{field === "title" || field === "company" ? <input value={project[field] || ""} onChange={(event) => updateProject(project.id, { [field]: event.target.value })} onBlur={saveCurrent} /> : <textarea value={project[field] || ""} onChange={(event) => updateProject(project.id, { [field]: event.target.value })} onBlur={saveCurrent} />}</label>)}<label><span>Your role on this work</span><input value={project.role || ""} maxLength={160} onChange={(event) => updateProject(project.id, { role: event.target.value })} onBlur={saveCurrent} /></label><label><span>Skills this work shows · up to 6, separated by commas</span><input key={`${project.id}-skills`} defaultValue={(project.skills || []).join(", ")} onBlur={(event) => { const skills = event.target.value.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 6).map((item) => item.slice(0, 80)); const current = stateRef.current.document; if (!current) return; void saveDocument({ ...current, projects: current.projects.map((item) => item.id === project.id ? { ...item, skills } : item) }); }} /></label><label><span>What I learned</span><textarea value={project.learned || ""} maxLength={900} onChange={(event) => updateProject(project.id, { learned: event.target.value })} onBlur={saveCurrent} /></label><div className="builder-item-actions"><button type="button" disabled={!project.title.trim() || Boolean(proposal) || Boolean(busy)} onClick={() => { const current = stateRef.current.document; if (!current || !project.title.trim()) return; capture("builder_card_marked_accurate"); void saveDocument(markProjectAccurate(current, project.id, new Date().toISOString())); }}>This card is accurate</button><button onClick={() => moveProject(project.id, -1)}><ArrowUp /> Move up</button><button onClick={() => moveProject(project.id, 1)}><ArrowDown /> Move down</button><button className="danger" onClick={() => removeProject(project.id)}><Trash2 /> Remove</button></div></fieldset>; })()}
               {editTarget.section === "experience" && <><div className="builder-editor-heading"><h2>Experience</h2><p>Every role, bullet, and employer-level contribution remains available on every design.</p></div><div className="builder-section-list">{document.employerContributions.map((employer) => <button key={employer.id} onClick={() => setEditTarget({ section: "employer", id: employer.id })}><span><b>{employer.company} · selected contributions</b><small>{employer.contributions.length} items not assigned to one role</small></span><ChevronRight /></button>)}{document.experience.map((role) => <button key={role.id} onClick={() => setEditTarget({ section: "role", id: role.id })}><span><b>{role.title}</b><small>{role.company} · {role.period}</small></span><ChevronRight /></button>)}</div></>}
               {editTarget.section === "employer" && (() => {
                 const employer = document.employerContributions.find((item) => item.id === editTarget.id);
@@ -890,7 +944,7 @@ export default function BuilderPage() {
           </div>
           <footer>
             {document.undoStack.length > 0 && <button className="builder-undo" disabled={Boolean(busy)} onClick={() => mutate("undo", "/api/builder/undo", { revision })}><RotateCcw /> Undo last change</button>}
-            <button className="builder-primary" disabled={Boolean(busy) || Boolean(proposal) || dirty} onClick={() => { setMobilePanel(false); openPublish(); }}><Check /> {state.hasPublished ? "Publish changes" : "Publish"}</button>
+            <button className="builder-primary" disabled={!canPublishNow({ dirty, busy: Boolean(busy), openSuggestion: Boolean(proposal) })} title={publishGuardTitle(Boolean(proposal))} onClick={() => { setMobilePanel(false); openPublish(); }}><Check /> {state.hasPublished ? "Publish changes" : "Publish"}</button>
             {!user && <Link className="builder-sign-in" href="/login?next=/builder">Already have an account? Sign in</Link>}
           </footer>
         </aside>
@@ -903,6 +957,7 @@ export default function BuilderPage() {
         <button className="builder-modal-close" onClick={() => setPublishSheet(false)} aria-label="Close"><X /></button>
         <h2>{state.hasPublished ? "Publish your changes?" : "Your page is ready"}</h2>
         <p className="builder-publish-url"><span>{window.location.host}/portfolio/</span><b>{user?.username || "you"}</b></p>
+        <p>This publishes the cards you've marked accurate. You can add more after, to show range.</p>
         {document.projects.some((project) => project.status === "draft") && <p>{document.projects.filter((project) => project.status === "draft").length === 1 ? "1 card will stay off the live page." : `${document.projects.filter((project) => project.status === "draft").length} cards will stay off the live page.`}</p>}
         <ul>
           <li><Check /> <span><span className="builder-capitalize">{document.style}</span> design · {document.projects.filter((project) => project.status !== "draft").length} {document.projects.filter((project) => project.status !== "draft").length === 1 ? "example" : "examples"} of your work</span></li>

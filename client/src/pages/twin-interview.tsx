@@ -235,14 +235,14 @@ export default function TwinInterviewPage() {
           {profile && profile.status !== "published" ? (
             <div className="space-y-3">
               <div className="bg-[#FDE68A] border-[3px] border-black p-4 text-left mb-2">
-                <p className="font-bold text-sm mb-1">Next step: Complete the questionnaire to publish</p>
-                <p className="mono text-xs text-black/70">Your voice session is saved. The questionnaire is where you finalise your profile and get it live.</p>
+                <p className="font-bold text-sm mb-1">Next step: Review the page, then publish</p>
+                <p className="mono text-xs text-black/70">Your voice session is saved. Nothing goes public until you publish. Cards are optional.</p>
               </div>
               <button
-                onClick={() => navigate("/questionnaire")}
+                onClick={() => navigate("/builder")}
                 className="w-full bg-[#22C55E] text-black px-6 py-3 font-bold border-[3px] border-black mono text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#16A34A] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
               >
-                Complete Questionnaire to Publish →
+                Review the page →
               </button>
               <button
                 onClick={() => navigate("/dashboard")}

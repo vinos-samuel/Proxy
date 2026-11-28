@@ -15,12 +15,53 @@ export default function FAQPage() {
   const faqs: FaqItem[] = [
     {
       q: "What does Proxy make?",
-      plainText: "Proxy turns your CV and experience into a professional evidence page you can share with employers, clients, or people making introductions. You see a finished first page quickly, improve selected sections, approve the exact public version, and choose whether to enable an AI explorer.",
+      plainText: "Proxy turns your CV and experience into a professional evidence page you can share with employers, clients, or people making introductions. You can publish it as a quick page with no cards, or add work cards: short stories of how you solved something, in your words. Draft cards stay off the live page until you mark them accurate and publish. You see a finished first page quickly, improve selected sections, approve the exact public version, and choose whether to enable an AI explorer.",
       a: (
         <div className="space-y-4">
           <p>Proxy creates a <strong className="text-black">professional evidence page</strong> from your CV and the experience you choose to add.</p>
+          <p>You can publish it as a quick page with no cards, or add work cards: short stories of how you solved something, in your words. Draft cards stay off the live page until you mark them accurate and publish.</p>
           <p>You get a complete first version before answering more questions. You can improve one section at a time, edit it yourself, choose a design, and approve the exact version that becomes public.</p>
           <p>The <strong className="text-black">Ask about my work</strong> AI explorer is on by default for new pages. You can turn it off in Settings at any time.</p>
+        </div>
+      ),
+    },
+    {
+      q: "What is a work card?",
+      plainText: "A work card walks through one real piece of work: what was happening, what you did, and what changed. That is what a hiring manager already asks about in the interview. A CV lists roles. The card is that story, in your words. It stays off the live page until you mark it accurate and publish.",
+      a: (
+        <div className="space-y-4">
+          <p>A work card walks through one real piece of work: what was happening, what you did, and what changed. That is what a hiring manager already asks about in the interview.</p>
+          <p>A CV lists roles. The card is that story, in your words. It stays off the live page until you mark it accurate and publish.</p>
+        </div>
+      ),
+    },
+    {
+      q: "Do I need cards to publish?",
+      plainText: "No. You can publish your CV as a web page with no cards. Work cards are optional. Start with one card when you want to show how you did the work. Then add 3 cards to show range.",
+      a: (
+        <div className="space-y-4">
+          <p><strong className="text-black">No.</strong> You can publish your CV as a web page with no cards. Work cards are optional.</p>
+          <p>Start with one card when you want to show how you did the work. Then add 3 cards to show range.</p>
+        </div>
+      ),
+    },
+    {
+      q: "Are drafts public?",
+      plainText: "No. A draft card stays off the live page until you mark it accurate and publish. Nothing goes public until you publish.",
+      a: (
+        <div className="space-y-4">
+          <p><strong className="text-black">No.</strong> A draft card stays off the live page until you mark it accurate and publish.</p>
+          <p>Nothing goes public until you publish.</p>
+        </div>
+      ),
+    },
+    {
+      q: "How does the page answer recruiters?",
+      plainText: "Only from content you approved and published. Draft cards, the raw CV, and answers you have not kept are not used. If Ask about my work is on, a recruiter's question is answered from that published page. You can turn it off.",
+      a: (
+        <div className="space-y-4">
+          <p>Only from content you approved and published. Draft cards, the raw CV, and answers you have not kept are not used.</p>
+          <p>If <strong className="text-black">Ask about my work</strong> is on, a recruiter's question is answered from that published page. You can turn it off.</p>
         </div>
       ),
     },
@@ -70,7 +111,7 @@ export default function FAQPage() {
     },
     {
       q: "How does the AI resume upload work?",
-      plainText: "Upload a PDF CV and Proxy builds a complete first page from the experience, achievements, and skills it can support from that document. You can then edit directly or answer optional targeted questions to improve selected sections. Nothing becomes public until you approve and publish it.",
+      plainText: "Upload a PDF CV and Proxy builds a complete first page from the experience, achievements, and skills it can support from that document. You can then edit directly or answer optional targeted questions to improve selected sections. Work cards made from the CV stay drafts until you mark each one accurate and publish. Nothing goes public until you publish.",
       a: (
         <div className="space-y-4">
           <p>Upload your CV or resume <strong className="text-black">(PDF format)</strong>. Proxy uses it to build a finished first page with:</p>
@@ -81,7 +122,8 @@ export default function FAQPage() {
             <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>Professional summary</span></li>
           </ul>
           <p>You can <strong className="text-black">review and edit the page directly</strong>, or answer an optional question when one section needs stronger evidence.</p>
-          <p>Nothing becomes public until you approve the exact page and publish it.</p>
+          <p>Work cards made from the CV stay drafts. They are not on the live page until you mark each one accurate and publish.</p>
+          <p>Nothing goes public until you publish.</p>
         </div>
       ),
     },
@@ -214,11 +256,11 @@ export default function FAQPage() {
     },
     {
       q: "Can recruiters ask questions about my work?",
-      plainText: "Yes, if you enable the optional AI explorer. The main product is the evidence page and it works without chat. When the explorer is on, visitors can ask follow-up questions grounded in the public content you approved.",
+      plainText: "Ask about my work is on for a new page, and you can turn it off. When it is on, a recruiter's question is answered only from content you approved and published. Draft cards, the raw CV, and answers you have not kept are not used. The page itself is complete without chat.",
       a: (
         <div className="space-y-4">
-          <p><strong className="text-black">Yes, if you choose to enable it.</strong></p>
-          <p>The evidence page is complete without chat. When the optional explorer is on, a recruiter can ask follow-up questions grounded in the exact public version you approved.</p>
+          <p><strong className="text-black">Ask about my work</strong> is on for a new page. You can turn it off.</p>
+          <p>When it is on, a recruiter's question is answered only from content you approved and published. Draft cards, the raw CV, and answers you have not kept are not used. The page itself is complete without chat.</p>
         </div>
       ),
     },
@@ -346,10 +388,10 @@ export default function FAQPage() {
     },
     {
       q: "How accurate is the AI? Can it make things up about me?",
-      plainText: "This is the right question to ask. Proxy's AI explorer is instructed to answer only from your actual profile data — your war stories, career timeline, and achievements — and to say plainly when a detail isn't there, redirecting the recruiter to contact you directly. It's instructed not to invent numbers, fabricate company experience, present general knowledge as personal experience, or attribute a fact from one employer to another. It's also instructed to correct an incorrect premise before answering. These are strict prompt instructions, not a technical guarantee — no AI system is perfect. Test it yourself before you turn it on, and treat a wrong answer as something to fix, not something that can't happen.",
+      plainText: "This is the right question to ask. Proxy's AI explorer is instructed to answer only from the page you published and the cards you marked accurate, and to say plainly when a detail isn't there, redirecting the recruiter to contact you directly. It's instructed not to invent numbers, fabricate company experience, present general knowledge as personal experience, or attribute a fact from one employer to another. It's also instructed to correct an incorrect premise before answering. Draft cards and the raw CV are not used. These are strict prompt instructions, not a technical guarantee — no AI system is perfect. Test it yourself, and treat a wrong answer as something to fix, not something that can't happen.",
       a: (
         <div className="space-y-4">
-          <p>This is the right question to ask. Proxy's AI explorer is <strong className="text-black">instructed to answer only from your actual profile data</strong> — your war stories, career timeline, and achievements. These are strict prompt instructions, not a technical guarantee.</p>
+          <p>This is the right question to ask. Proxy's AI explorer is <strong className="text-black">instructed to answer only from the page you published and the cards you marked accurate</strong>. Draft cards and the raw CV are not used. These are strict prompt instructions, not a technical guarantee.</p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Instructed not to fabricate</strong> — numbers, metrics, company names, and project details are meant to come only from your profile.</span></li>
             <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Instructed against cross-company mixing</strong> — facts from one employer aren't meant to be attributed to another, even if the number exists elsewhere in your profile.</span></li>
@@ -362,10 +404,12 @@ export default function FAQPage() {
     },
     {
       q: "What's shipped so far on Proxy?",
-      plainText: "Referral attribution (track signups from your personal referral link), basic profile analytics (view counts and visitor questions), tightened AI explorer instructions, suggested question chips on portfolio pages, and full blog SEO with structured data so articles rank on Google and get parsed by AI agents. We announce new features in product updates as they ship.",
+      plainText: "Quick page — publish your CV as a web page with no cards required. Work cards — short stories of real work; drafts stay private until you mark them accurate and publish. Referral attribution (track signups from your personal referral link), basic profile analytics (view counts and visitor questions), tightened AI explorer instructions, suggested question chips on portfolio pages, and full blog SEO with structured data so articles rank on Google and get parsed by AI agents. We announce new features in product updates as they ship.",
       a: (
         <div className="space-y-4">
           <ul className="space-y-2 ml-1">
+            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Quick page</strong> — publish your CV as a web page with no cards required</span></li>
+            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Work cards</strong> — short stories of real work; drafts stay private until you mark them accurate and publish</span></li>
             <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Referral attribution</strong> — every published profile gets a personal referral link; track how many people sign up from your recommendation</span></li>
             <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Basic profile analytics</strong> — view counts and the questions visitors ask through your page, shown on your dashboard</span></li>
             <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Tightened AI explorer instructions</strong> — stricter grounding, false-premise correction, and explicit no-fabrication instructions</span></li>

@@ -7,6 +7,7 @@ import { cardIdFromAnswer, retainStatedGoals, retainStatedSetbacks, retainSuppor
 import { sanitizeChatAnswer } from "../server/chat-sanitize";
 import { PRIYA_PAGE_FACTS, PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "../shared/priya-reviewed-answers";
 import { guestDraftTtlMs, GUEST_DRAFT_TTL_MS, GUEST_DRAFT_EMAIL_TTL_MS } from "../shared/guest-draft";
+import { canPublishNow, draftCardHighlight, draftCheckLabel, landingAfterUpload, OPTIONAL_INTERVIEW_LABEL, publishGuardTitle } from "../shared/builder-entry";
 
 function page(overrides: Partial<ProfileDocument> = {}): ProfileDocument {
   return profileDocumentSchema.parse({
@@ -323,6 +324,70 @@ const checks: Array<[string, () => void]> = [
       "I want to build an operations team in a new market.",
     );
   }],
+  ["after upload the builder opens on the page, with questions optional", () => {
+    const landing = landingAfterUpload();
+    assert.equal(landing.focus, "preview");
+    assert.equal(landing.interviewVisible, true);
+    assert.equal(landing.interviewLabel, "Make it stronger (optional)");
+    assert.equal(OPTIONAL_INTERVIEW_LABEL, landing.interviewLabel);
+  }],
+  ["an open suggestion still blocks publish", () => {
+    assert.equal(canPublishNow({ dirty: false, busy: false, openSuggestion: false }), true);
+    assert.equal(canPublishNow({ dirty: true, busy: false, openSuggestion: false }), false);
+    assert.equal(canPublishNow({ dirty: false, busy: true, openSuggestion: false }), false);
+    assert.equal(canPublishNow({ dirty: false, busy: false, openSuggestion: true }), false);
+    assert.equal(publishGuardTitle(true), "Keep or skip the suggested change first");
+    assert.equal(publishGuardTitle(false), undefined);
+  }],
+  ["opening on the preview still hides a draft card", () => {
+    assert.equal(landingAfterUpload().focus, "preview");
+    const value = page();
+    value.projects[0].status = "draft";
+    assert.equal(toPublicProfileDocument(value).projects.some((project) => project.id === "project-1"), false);
+  }],
+  ["a draft card is highlighted in the builder and absent on the public page", () => {
+    const value = page();
+    value.projects[0].status = "draft";
+    value.projects[0].outcome = "Delivery became reliable for the region.";
+    const highlight = draftCardHighlight(value.projects[0].status);
+    assert.equal(highlight.highlighted, true);
+    assert.equal(highlight.badge, "Draft — check and approve");
+    assert.equal(draftCardHighlight("approved").highlighted, false);
+    assert.equal(draftCardHighlight(undefined).badge, null);
+    assert.equal(toPublicProfileDocument(value).projects.some((project) => project.id === "project-1"), false);
+    assert.equal(draftCheckLabel(3), "3 drafts to check");
+    assert.equal(draftCheckLabel(1), "1 draft to check");
+    assert.equal(draftCheckLabel(0), null);
+  }],
+  ["approving a draft removes the highlight and waits for the next publish", () => {
+    const value = page();
+    value.projects[0].status = "draft";
+    value.projects[0].outcome = "Delivery became reliable for the region.";
+    assert.equal(draftCardHighlight(value.projects[0].status).highlighted, true);
+    const next = markProjectAccurate(value, "project-1", "2026-11-28T12:00:00.000Z");
+    assert.equal(next.projects[0].status, "approved");
+    assert.equal(draftCardHighlight(next.projects[0].status).highlighted, false);
+    assert.equal(toPublicProfileDocument(next).projects[0].id, "project-1");
+    assert.equal(selectPublicProfileDocument({ activeDocument: null, publishedDocument: next }), null);
+  }],
+  ["a quick page publishes with no public cards and no interview", () => {
+    const document = buildProfileDocument({
+      name: "Priya Nair",
+      currentTitle: "Head of Operations",
+      summary: "Operations leader with 18 years across three countries.",
+      achievements: ["Led a migration with zero downtime for the region"],
+      roles: [{ title: "Head of Operations", company: "Example Bank", years: "2019 - Present", achievements: "Led the team" }],
+      skills: ["Operations"],
+    }, { positioning: "Operations leader with 18 years across three countries.", heroSubtitle: "Head of Operations", stats: [], careerTimeline: [] });
+    assert.ok(document.projects.length > 0);
+    assert.ok(document.projects.every((project) => project.status === "draft"));
+    assert.equal(document.answeredQuestionIds.length, 0);
+    const published = toPublicProfileDocument(document);
+    assert.equal(published.projects.length, 0);
+    assert.ok(published.experience.length > 0);
+    assert.equal(published.identity.name, "Priya Nair");
+    assert.equal(getPublicationAccess({ paymentStatus: null, tier: null, freePublishedAt: null, isPublic: false }).canPublish, true);
+  }],
   ["a decimal does not cut a work title short", () => {
     assert.equal(workTitleFromText("Cut average settlement turnaround from 3.2 days to 1.1 days by redesigning the exceptions queue"), "Cut average settlement turnaround from 3.2 days to 1.1 days by redesigning");
   }],
@@ -355,7 +420,7 @@ const checks: Array<[string, () => void]> = [
     assert.equal(document.sources.filter((source) => source.label === "CV achievement").length, 3);
     assert.equal(document.experience.length, 2);
   }],
-  ["an achievements list still builds cards without marking them draft", () => {
+  ["an achievements list is the card source, and that card stays a draft", () => {
     const document = buildProfileDocument({
       name: "Priya Nair",
       currentTitle: "Head of Operations",
@@ -363,7 +428,9 @@ const checks: Array<[string, () => void]> = [
       achievements: ["Led the core banking migration for 40,000 accounts with zero downtime"],
     }, { positioning: "I run regional operations.", heroSubtitle: "Head of Operations", stats: [], careerTimeline: [] });
     assert.equal(document.projects.length, 1);
-    assert.equal(document.projects[0].status, undefined);
+    assert.match(document.projects[0].outcome || "", /40,000 accounts/);
+    assert.equal(document.projects[0].status, "draft");
+    assert.equal(toPublicProfileDocument(document).projects.length, 0);
   }],
   ["a closed card leads with the outcome, role, and its own skills", () => {
     const lines = closedCardLines({ outcome: "The handover got calmer.", summary: "A long CV bullet that should not lead.", role: "Program lead", company: "Example Co", skills: ["One", "Two", "Three", "Four", "Five"] });

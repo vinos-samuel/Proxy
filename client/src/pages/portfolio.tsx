@@ -93,6 +93,7 @@ export default function PortfolioPage() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showProfileChat, setShowProfileChat] = useState(false);
+  const [highlightProjectId, setHighlightProjectId] = useState<string | null>(null);
   const [copiedProfileLink, setCopiedProfileLink] = useState(false);
   // Keyed by string, not index, so Executive/Dark/Creative's career sections
   // can all share one expand/collapse set without their entries colliding.
@@ -243,6 +244,7 @@ export default function PortfolioPage() {
 
       const data = await res.json();
       setMessages(prev => [...prev, { role: "assistant", content: data.content || "No response." }]);
+      if (typeof data.cardId === "string") setHighlightProjectId(data.cardId);
     } catch {
       setMessages(prev => [
         ...prev,
@@ -341,7 +343,7 @@ export default function PortfolioPage() {
             <span>This is your live page</span>
           </div>
         )}
-        <ProfileDocumentView document={page} publicMode onAsk={() => setShowProfileChat(true)} onContact={(kind) => capturePublicEvent("profile_contact_clicked", username, { kind })} />
+        <ProfileDocumentView document={page} publicMode highlightProjectId={highlightProjectId} onAsk={() => setShowProfileChat(true)} onContact={(kind) => capturePublicEvent("profile_contact_clicked", username, { kind })} />
         <footer className="new-profile-public__footer">
           <span>Built with Proxy</span>
           <div>

@@ -74,9 +74,15 @@ export function stripModelSlop(text: string): string {
   // Whole-line leaks
   out = dropLeakedSentences(out);
 
-  // Openers / tics, including mid-paragraph
-  out = out.replace(/\bGreat question[.!]?\s*/gi, "");
-  out = out.replace(/\bThat'?s a great question[.!]?\s*/gi, "");
+  // Openers / tics. Remove the full "That's a great question" phrase before
+  // the shorter "Great question" pattern, and only strip that shorter
+  // pattern at the start of a sentence. Otherwise "That's a great question,
+  // but..." loses the middle words and the visitor sees "That's a , but".
+  out = out.replace(/\bThat'?s a great question[,.!]?\s*/gi, "");
+  out = out.replace(/(^|[.!?]\s+|\n+)Great question[.!,]+(?:\s+|$)/gi, "$1");
+  // "That's a great question, but..." leaves a leading But. Drop it.
+  out = out.replace(/^(?:but|however)\b[,:]?\s+/i, "");
+  out = out.replace(/\*\*/g, "");
   out = out.replace(/\bLet me walk you through[^.\n]*[.!]?\s*/gi, "");
   out = out.replace(/\bThe key insight is[,:]?\s*/gi, "");
   out = out.replace(/\bI have direct experience here from my Netflix work[.!]?\s*/gi, "");

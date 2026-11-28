@@ -25,10 +25,10 @@ import { startInterview, sendInterviewMessage, extractAndComplete, clearIntervie
 import { startOnboarding, sendOnboardingMessage, extractAndSave, clearOnboardingSession } from "./onboarding-agent"; // session is now DB-backed
 import { startAgentSession, sendAgentMessage } from "./job-search-agent";
 import { registerProfileBuilderRoutes } from "./profile-builder-routes";
-import { profileDocumentSchema, selectPublicProfileDocument, approvedBotBackground } from "@shared/profile-document";
+import { profileDocumentSchema, selectPublicProfileDocument, chatContextDocument, approvedBotBackground } from "@shared/profile-document";
 import { getPublicationAccess } from "./profile-builder";
 import { hasConfirmedPaidTier, hasJobSearchAccess, recentQuestionsForPlan } from "@shared/plan-access";
-import { ungroundedNumbers, UNGROUNDED_NUMBER_REPLY } from "@shared/answer-grounding";
+import { APPROVED_CARD_RULES, cardIdFromAnswer, groundAnswer } from "@shared/answer-grounding";
 import { reviewedPriyaAnswer } from "@shared/priya-reviewed-answers";
 
 // Tier → Stripe Price ID mapping. Concierge is retired; Pro is the only paid tier.
@@ -1307,14 +1307,17 @@ export async function registerRoutes(
       }
 
       const documentRow = await storage.getProfileDocumentByProfileId(profile.id);
-      const approvedDocument = selectPublicProfileDocument(documentRow);
-      if (approvedDocument) {
-        if (!approvedDocument.publicBotEnabled) {
+      const fullDocument = documentRow?.activeDocument
+        ? profileDocumentSchema.parse(documentRow.activeDocument)
+        : null;
+      const chatDocument = fullDocument ? chatContextDocument(fullDocument) : null;
+      if (chatDocument) {
+        if (!chatDocument.publicBotEnabled) {
           return res.status(404).json({ message: "The AI explorer is not enabled" });
         }
 
-        const background = documentRow?.activeDocument
-          ? approvedBotBackground(profileDocumentSchema.parse(documentRow.activeDocument))
+        const background = fullDocument
+          ? approvedBotBackground(fullDocument)
           : { qaText: "" };
 
         const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -1328,12 +1331,13 @@ export async function registerRoutes(
 Hard rules — follow every one:
 1. Never state a number, date, employer, title, or fact that is not written in the APPROVED PROFILE or APPROVED BACKGROUND Q&A. Every digit you write must already appear as that same number in the source. Do not round, estimate, average, sum, split a total by country, or infer a number that isn't explicitly there.
 2. Never combine two separate facts into a new claim that source doesn't make (e.g. don't add durations, totals, or comparisons never stated).
-3. If neither source contains enough to answer, say plainly that it isn't covered here, and invite the visitor to use the contact option — do not guess, hedge with a vague generality, or pad the answer to sound complete.
+3. If neither source contains enough to answer, say plainly that it isn't covered here, and invite the visitor to use the contact option — do not guess, hedge with a vague generality, or pad the answer to sound complete. If asked what they want next, say a goal only when that goal is written above. If it is not, say so and point to contact. Do not invent a preferred role or kind of work.
 4. Keep it concise and in plain language. No bullet-point resume recitation — answer the actual question in full sentences. Never use markdown syntax characters (no **bold**, no "-" or numbered list markers, no # headers) — this chat does not render them, they would show up as literal clutter. If the answer covers more than one distinct point, separate them with a blank line between paragraphs instead of cramming everything into one block.
-${background.tone ? `5. Match this description of how they want to sound, without inventing anything it doesn't license: "${background.tone.replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").slice(0, 400)}"` : ""}
+5. ${APPROVED_CARD_RULES}
+${background.tone ? `6. Match this description of how they want to sound, without inventing anything it doesn't license: "${background.tone.replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").slice(0, 400)}"` : ""}
 
 APPROVED PROFILE:
-${JSON.stringify(approvedDocument)}
+${JSON.stringify(chatDocument)}
 ${background.qaText ? `\nAPPROVED BACKGROUND Q&A (written by the owner for exactly this purpose):\n${background.qaText.slice(0, 4000)}\n` : ""}`,
           messages: [{ role: "user", content: safeMessage }],
         });
@@ -1341,10 +1345,10 @@ ${background.qaText ? `\nAPPROVED BACKGROUND Q&A (written by the owner for exact
           ? result.content[0].text
           : "That is something I would be happy to discuss directly.";
         const drafted = sanitizeChatAnswer(rawResponse);
-        const approvedSource = `${JSON.stringify(approvedDocument)}\n${background.qaText || ""}`;
-        const responseText = ungroundedNumbers(drafted, approvedSource).length ? UNGROUNDED_NUMBER_REPLY : drafted;
+        const approvedSource = `${JSON.stringify(chatDocument)}\n${background.qaText || ""}`;
+        const responseText = groundAnswer(safeMessage, drafted, approvedSource);
         storage.saveChatMessage(profile.id, safeMessage).catch(() => {});
-        return res.json({ content: responseText });
+        return res.json({ content: responseText, cardId: cardIdFromAnswer(responseText, chatDocument.projects) });
       }
 
       const entries = await storage.getKnowledgeEntriesByProfileId(profile.id);
@@ -1459,7 +1463,7 @@ ${background.qaText ? `\nAPPROVED BACKGROUND Q&A (written by the owner for exact
         questionnaireData?.step7?.writingSample,
         JSON.stringify(questionnaireData?.portfolioData || {}),
       ].filter(Boolean).join("\n");
-      const responseText = ungroundedNumbers(drafted, approvedSource).length ? UNGROUNDED_NUMBER_REPLY : drafted;
+      const responseText = groundAnswer(String(message), drafted, approvedSource);
       res.json({ content: responseText });
 
       // Fire-and-forget: save question for analytics

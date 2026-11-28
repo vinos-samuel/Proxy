@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { ArrowDown, ArrowLeft, ArrowUp, Check, ChevronRight, Eye, Loader2, Menu, MessageCircle, Mic, Plus, RotateCcw, Send, Sparkles, Trash2, Upload, X } from "lucide-react";
 import type { ImprovementQuestion, ProfileDocument, ProfileStyle } from "@shared/profile-document";
-import { cardsForHowIWork, markProjectAccurate, normalizeProfileDocument } from "@shared/profile-document";
+import { cardsForHowIWork, markProjectAccurate, normalizeProfileDocument, workTitleFromText } from "@shared/profile-document";
 import ProfileDocumentView from "@/components/profile-document-view";
 import PaymentGate from "@/components/PaymentGate";
 import ProxyLogo from "@/components/ProxyLogo";
@@ -418,10 +418,9 @@ export default function BuilderPage() {
     const source = current.sources.find((item) => item.id === sourceId);
     if (!source) return;
     const id = `project-${Date.now().toString(36)}`;
-    const firstClause = source.excerpt.split(/[.;:\n]/)[0]?.trim() || source.excerpt;
     const project: ProfileDocument["projects"][number] = {
       id,
-      title: firstClause.split(/\s+/).slice(0, 12).join(" ").slice(0, 180) || "Work from my CV",
+      title: workTitleFromText(source.excerpt) || "Work from my CV",
       summary: source.excerpt.slice(0, 500),
       status: "draft",
       sourceIds: [source.id],

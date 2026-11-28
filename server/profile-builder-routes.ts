@@ -9,7 +9,7 @@ import {
   profileDocumentPatchSchema,
   profileDocumentSchema,
   revisionSchema,
-  toPublicProfileDocument,
+  chatContextDocument,
   approvedBotBackground,
   type ProfileDocument,
 } from "@shared/profile-document";
@@ -491,11 +491,11 @@ export function registerProfileBuilderRoutes(app: Express) {
     if (!state) return res.status(404).json({ message: "No page draft found" });
     try {
       const fullDocument = profileDocumentSchema.parse(state.document);
-      const approvedOnly = toPublicProfileDocument(fullDocument);
-      const content = await generateApprovedProfileAnswer(approvedOnly, parsed.data.message, approvedBotBackground(fullDocument));
+      const chatDocument = chatContextDocument(fullDocument);
+      const reply = await generateApprovedProfileAnswer(chatDocument, parsed.data.message, approvedBotBackground(fullDocument));
       req.session.builderTestChats = { count: budget.count + 1, resetAt: budget.resetAt };
       await saveSession(req);
-      return res.json({ content });
+      return res.json(reply);
     } catch (error) {
       logger.error("[Profile Builder] Test chat failed", { error: String(error) });
       return res.status(500).json({ message: "Could not get an answer right now. Try again in a moment." });

@@ -304,6 +304,13 @@ export function cardsForHowIWork(document: ProfileDocument): ProfileDocument["pr
   });
 }
 
+// A decimal such as 3.2 is not the end of a sentence.
+export function workTitleFromText(value: string): string {
+  const clean = value.trim();
+  const firstClause = clean.split(/(?<!\d)\.(?!\d)|[;:\n]/)[0]?.trim() || clean;
+  return firstClause.split(/\s+/).slice(0, 12).join(" ").replace(/[.!?]+$/, "").slice(0, 180);
+}
+
 export function closedCardLines(project: { outcome?: string; summary?: string; role?: string; company?: string; skills?: string[] }) {
   return {
     preview: project.outcome?.trim() || project.summary?.trim() || "",
@@ -318,6 +325,52 @@ export function markProjectAccurate(document: ProfileDocument, projectId: string
     projects: document.projects.map((project) => project.id === projectId
       ? { ...project, status: "approved", approvedAt: approvedAt.slice(0, 40) }
       : project),
+  };
+}
+
+function claimText(value: string | undefined): string[] {
+  return (value || "")
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence.length >= 24);
+}
+
+function loose(value: string): string {
+  return value.toLowerCase().replace(/\s+/g, " ").replace(/[.,;:]+$/g, "").trim();
+}
+
+// Draft cards are not chat context. A sentence that also appears in published
+// Experience stays, because the candidate published that career line. A
+// sentence that exists only on a draft card is removed from the intro and
+// from My approach, and the draft card itself is not included.
+export function chatContextDocument(document: ProfileDocument): ProfileDocument {
+  const published = toPublicProfileDocument(document);
+  const experienceText = loose(published.experience.flatMap((role) => [role.summary, ...(role.highlights || [])]).filter(Boolean).join("\n"));
+  const draftOnly = document.projects
+    .filter((project) => project.status === "draft")
+    .flatMap((project) => claimText([project.title, project.summary, project.challenge, project.contribution, project.outcome, project.learned].filter(Boolean).join("\n")))
+    .filter((sentence) => !experienceText.includes(loose(sentence)));
+
+  const withoutDraftOnly = (value: string | undefined): string => {
+    if (!value) return value || "";
+    const kept = value
+      .split(/(?<=[.!?])\s+/)
+      .filter((sentence) => !draftOnly.some((claim) => {
+        const left = loose(sentence);
+        const right = loose(claim);
+        return left.includes(right) || (right.includes(left) && left.length >= 24);
+      }));
+    return kept.join(" ").replace(/\s{2,}/g, " ").trim();
+  };
+
+  return {
+    ...published,
+    identity: {
+      ...published.identity,
+      headline: withoutDraftOnly(published.identity.headline).slice(0, 240) || published.identity.title,
+      summary: withoutDraftOnly(published.identity.summary).slice(0, 1800),
+    },
+    howIWork: published.howIWork ? withoutDraftOnly(published.howIWork).slice(0, 900) : published.howIWork,
   };
 }
 

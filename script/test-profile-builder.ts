@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { applyProposal, conciseHeadline, getImprovementCandidates, getPublicationAccess, undoLastChange } from "../server/profile-builder";
-import { cardsForHowIWork, closedCardLines, markProjectAccurate, profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, type ProfileDocument } from "../shared/profile-document";
+import { applyProposal, buildProfileDocument, conciseHeadline, getImprovementCandidates, getPublicationAccess, undoLastChange } from "../server/profile-builder";
+import { cardsForHowIWork, chatContextDocument, closedCardLines, markProjectAccurate, profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, workTitleFromText, type ProfileDocument } from "../shared/profile-document";
 import { mergeProfileDocuments, setDocumentPath } from "../client/src/lib/profile-document-merge";
 import { hasConfirmedPro, hasJobSearchAccess, recentQuestionsForPlan, JOB_SEARCH_TRIAL_MS } from "../shared/plan-access";
-import { rewriteWithoutNewNumbers, ungroundedNumbers } from "../shared/answer-grounding";
+import { cardIdFromAnswer, retainStatedGoals, retainStatedSetbacks, retainSupportedAnswer, rewriteWithoutNewNumbers, ungroundedNumbers, UNGROUNDED_NUMBER_REPLY } from "../shared/answer-grounding";
+import { sanitizeChatAnswer } from "../server/chat-sanitize";
 import { PRIYA_PAGE_FACTS, PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "../shared/priya-reviewed-answers";
 import { guestDraftTtlMs, GUEST_DRAFT_TTL_MS, GUEST_DRAFT_EMAIL_TTL_MS } from "../shared/guest-draft";
 
@@ -191,6 +192,55 @@ const checks: Array<[string, () => void]> = [
     assert.equal(hasJobSearchAccess({ tier: "free", paymentStatus: "unpaid" }, created, now), true);
   }],
   ["a number inside another number is not grounded", () => assert.deepEqual(ungroundedNumbers("9 markets", "94% across 6 markets"), ["9"])],
+  ["a chat reply points at one card", () => {
+    const projects = [{ id: "a", title: "Regional operating model" }, { id: "b", title: "Vendor reset" }];
+    assert.equal(cardIdFromAnswer("On Regional operating model I changed the handover.", projects), "a");
+    assert.equal(cardIdFromAnswer("Regional operating model and Vendor reset both mattered.", projects), null);
+    assert.equal(cardIdFromAnswer("Nothing on the page covers that.", projects), null);
+  }],
+  ["a stray figure drops its sentence and keeps a real result", () => {
+    const source = "Migrated 40,000 accounts. Cut turnaround from 3.2 days to 1.1 days.";
+    const kept = retainSupportedAnswer("I migrated 40,000 accounts. The programme took 6 weeks.", source);
+    assert.match(kept, /40,000 accounts/);
+    assert.doesNotMatch(kept, /6 weeks/);
+    assert.equal(retainSupportedAnswer("It took 6 weeks.", source), UNGROUNDED_NUMBER_REPLY);
+  }],
+  ["an example employer is removed and a profile employer stays", () => {
+    const source = "Head of Operations at Meridian Trust Bank. A 140-person team.";
+    const kept = retainSupportedAnswer("At Nexora Group I built a centre of excellence. At Meridian Trust Bank I run a 140-person team.", source);
+    assert.match(kept, /Meridian Trust Bank/);
+    assert.doesNotMatch(kept, /Nexora/);
+    assert.equal(retainSupportedAnswer("At Randstad I inherited the team.", source), UNGROUNDED_NUMBER_REPLY);
+  }],
+  ["a partial title opens one card", () => {
+    const projects = [
+      { id: "migration", title: "Led the core banking migration for 40,000 accounts with zero client-impacting downtime" },
+      { id: "settlement", title: "Cut average settlement turnaround from 3.2 days to 1.1 days by redesigning" },
+    ];
+    assert.equal(cardIdFromAnswer("This happened during the core banking migration for 40,000 accounts.", projects), "migration");
+    assert.equal(cardIdFromAnswer("I cut turnaround from 3.2 days to 1.1 days.", projects), "settlement");
+    assert.equal(cardIdFromAnswer("I migrated 40,000 accounts and cut the time from 3.2 days to 1.1 days.", projects), null);
+  }],
+  ["chat context drops a draft-only claim and keeps published experience", () => {
+    const value = page({
+      identity: { ...page().identity, summary: "I reduced operating cost per transaction by 22% over 3 years. I recovered 424242 unmatched zephyr ledger entries." },
+      experience: [{ id: "experience-1", company: "Meridian Trust Bank", title: "Head of Operations", highlights: ["Reduced operating cost per transaction by 22% over 3 years through process automation"], sourceIds: ["resume-role-1"] }],
+      projects: [
+        { id: "cost", title: "Reduced operating cost per transaction by 22% over 3 years", outcome: "Reduced operating cost per transaction by 22% over 3 years through process automation", status: "draft", sourceIds: ["resume-role-1"] },
+        { id: "zephyr", title: "Zephyr ledger reconciliation", outcome: "Recovered 424242 unmatched zephyr ledger entries.", status: "draft", sourceIds: ["resume-role-1"] },
+        { id: "shown", title: "Core banking migration", outcome: "Led the migration for 40,000 accounts.", status: "approved", sourceIds: ["resume-role-1"] },
+      ],
+    });
+    const chat = chatContextDocument(value);
+    assert.match(chat.identity.summary, /22%/);
+    assert.doesNotMatch(chat.identity.summary, /zephyr/i);
+    assert.equal(chat.projects.some((project) => project.id === "zephyr" || project.id === "cost"), false);
+    assert.equal(chat.projects.some((project) => project.id === "shown"), true);
+    assert.match(chat.experience[0].highlights[0], /22%/);
+  }],
+  ["an invented figure is not grounded in a card outcome", () => {
+    assert.deepEqual(ungroundedNumbers("Cycle time fell 30%.", "The handover got calmer."), ["30"]);
+  }],
   ["a rewrite cannot add a number the person did not say", () => {
     assert.equal(rewriteWithoutNewNumbers("it got faster", "cut cycle time by 30%"), "it got faster");
     assert.equal(rewriteWithoutNewNumbers("it fell 18%", "Cycle time fell 18%."), "Cycle time fell 18%.");
@@ -228,6 +278,92 @@ const checks: Array<[string, () => void]> = [
       { id: "c", title: "Older card", outcome: "An older card with no mark.", sourceIds: [] },
     ] });
     assert.deepEqual(cardsForHowIWork(value).map((project) => project.id), ["c"]);
+  }],
+  ["a great-question opener does not leave a broken sentence", () => {
+    assert.equal(sanitizeChatAnswer("That's a great question, but it's not covered here. Reach out directly."), "It's not covered here. Reach out directly.");
+    assert.equal(sanitizeChatAnswer("However, the migration moved 40,000 accounts."), "The migration moved 40,000 accounts.");
+    assert.equal(sanitizeChatAnswer("Great question. I led the migration for 40,000 accounts."), "I led the migration for 40,000 accounts.");
+    assert.equal(sanitizeChatAnswer("I led the migration. Great question to ask next time."), "I led the migration. Great question to ask next time.");
+    assert.equal(sanitizeChatAnswer("I migrated **40,000** accounts and cut **3.2 days**."), "I migrated 40,000 accounts and cut 3.2 days.");
+  }],
+  ["a number word counts as that figure", () => {
+    assert.deepEqual(ungroundedNumbers("We added a fourth rehearsal.", "We ran 3 full rehearsal cutovers."), ["4"]);
+    assert.deepEqual(ungroundedNumbers("We ran three full rehearsal cutovers.", "We ran 3 full rehearsal cutovers."), []);
+    assert.deepEqual(ungroundedNumbers("We ran 3 rehearsals.", "We ran three rehearsals."), []);
+  }],
+  ["a setback answer keeps the stated fact and drops the invented one", () => {
+    const source = "Ran 3 full rehearsal cutovers. Migrated 40,000 accounts with zero downtime.";
+    const kept = retainStatedSetbacks(
+      "Tell me about a time something went wrong on work you owned.",
+      "We ran three full rehearsal cutovers. We added a fourth rehearsal and rebuilt the module. Migrated 40,000 accounts with zero downtime.",
+      source,
+    );
+    assert.match(kept, /isn't written on this page/);
+    assert.match(kept, /three full rehearsal cutovers/i);
+    assert.match(kept, /40,000 accounts/);
+    assert.doesNotMatch(kept, /fourth|rebuilt|module/);
+    assert.equal(
+      retainStatedSetbacks("What went wrong?", "The cutover failed and we fixed it.", "The cutover failed."),
+      "The cutover failed and we fixed it.",
+    );
+  }],
+  ["what next does not invent a preference", () => {
+    const source = "I run a 140-person team across 3 countries.";
+    const kept = retainStatedGoals(
+      "What do you want to do next?",
+      "I run a 140-person team. I'm looking for a role in scaling or a turnaround.",
+      source,
+    );
+    assert.match(kept, /isn't written on this page/);
+    assert.match(kept, /Connect with me directly/);
+    assert.match(kept, /140-person team/);
+    assert.doesNotMatch(kept, /looking for|scaling|turnaround/);
+    assert.equal(
+      retainStatedGoals("What do you want to do next?", "I want to build an operations team in a new market.", "Career goal: I want to build an operations team in a new market."),
+      "I want to build an operations team in a new market.",
+    );
+  }],
+  ["a decimal does not cut a work title short", () => {
+    assert.equal(workTitleFromText("Cut average settlement turnaround from 3.2 days to 1.1 days by redesigning the exceptions queue"), "Cut average settlement turnaround from 3.2 days to 1.1 days by redesigning");
+  }],
+  ["numbered role lines become draft case cards when achievements are empty", () => {
+    const document = buildProfileDocument({
+      name: "Priya Nair",
+      currentTitle: "Head of Operations",
+      roles: [
+        {
+          title: "Head of Operations, APAC",
+          company: "Meridian Trust Bank",
+          years: "2019 - Present",
+          achievements: "Run a 140-person operations team across 3 countries\nCut average settlement turnaround from 3.2 days to 1.1 days\nReduced operating cost per transaction by 22% over 3 years\nLed the core banking migration for 40,000 accounts with zero downtime",
+        },
+        {
+          title: "Operations Manager",
+          company: "Straits Fund Services",
+          years: "2010 - 2015",
+          achievements: "Managed fund administration for a $2.1B AUM book",
+        },
+      ],
+      achievements: [],
+    }, { positioning: "I run regional operations.", heroSubtitle: "Head of Operations", stats: [], careerTimeline: [] });
+    assert.equal(document.projects.length, 3);
+    assert.deepEqual(document.projects.map((project) => project.status), ["draft", "draft", "draft"]);
+    assert.equal(document.projects[0].title, "Cut average settlement turnaround from 3.2 days to 1.1 days");
+    assert.match(document.projects[2].outcome || "", /40,000 accounts/);
+    assert.equal(document.projects.some((project) => /140-person/.test(project.outcome || "")), false);
+    assert.equal(document.projects.some((project) => project.outcome?.includes("2.1B")), false);
+    assert.equal(document.sources.filter((source) => source.label === "CV achievement").length, 3);
+    assert.equal(document.experience.length, 2);
+  }],
+  ["an achievements list still builds cards without marking them draft", () => {
+    const document = buildProfileDocument({
+      name: "Priya Nair",
+      currentTitle: "Head of Operations",
+      roles: [{ title: "Head of Operations", company: "Meridian", years: "2019 - Present", achievements: "Run the team" }],
+      achievements: ["Led the core banking migration for 40,000 accounts with zero downtime"],
+    }, { positioning: "I run regional operations.", heroSubtitle: "Head of Operations", stats: [], careerTimeline: [] });
+    assert.equal(document.projects.length, 1);
+    assert.equal(document.projects[0].status, undefined);
   }],
   ["a closed card leads with the outcome, role, and its own skills", () => {
     const lines = closedCardLines({ outcome: "The handover got calmer.", summary: "A long CV bullet that should not lead.", role: "Program lead", company: "Example Co", skills: ["One", "Two", "Three", "Four", "Five"] });

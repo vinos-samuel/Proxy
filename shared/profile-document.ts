@@ -39,6 +39,14 @@ export const profileProjectSchema = z.object({
   challenge: optionalText(900),
   contribution: optionalText(900),
   outcome: optionalText(900),
+  // Optional case-card fields. Missing status means the card is already
+  // allowed on the page (every card saved before these fields existed).
+  role: optionalText(160),
+  learned: optionalText(900),
+  evidenceNote: optionalText(900),
+  skills: z.array(boundedText(80)).max(6).optional(),
+  status: z.enum(["draft", "approved"]).optional(),
+  approvedAt: optionalText(40),
   sourceIds: z.array(boundedText(80)).max(12).default([]),
 });
 
@@ -56,7 +64,7 @@ export const improvementProposalSchema = z.object({
   questionId: boundedText(100),
   section: z.enum(["headline", "summary", "project", "experience"]),
   targetId: boundedText(80).nullable().default(null),
-  field: z.enum(["headline", "summary", "challenge", "contribution", "outcome"]),
+  field: z.enum(["headline", "summary", "challenge", "contribution", "outcome", "learned"]),
   question: boundedText(400),
   answer: boundedText(2500),
   before: boundedText(2500),
@@ -217,7 +225,7 @@ export const improvementQuestionSchema = z.object({
   id: boundedText(100),
   section: z.enum(["headline", "summary", "project", "experience"]),
   targetId: boundedText(80).nullable().default(null),
-  field: z.enum(["headline", "summary", "challenge", "contribution", "outcome"]),
+  field: z.enum(["headline", "summary", "challenge", "contribution", "outcome", "learned"]),
   label: boundedText(160),
   sourceKind: z.enum(["resume", "user"]).optional(),
   sourceExcerpt: optionalText(320),
@@ -266,11 +274,16 @@ export function toPublicProfileDocument(document: ProfileDocument): ProfileDocum
     pendingProposal: null,
     undoStack: [],
     projects: document.projects
+      .filter((project) => project.status !== "draft")
       .filter((project) => [project.summary, project.challenge, project.contribution, project.outcome]
         .some((value) => Boolean(value && value.trim().length >= 10)))
-      .map(({ sourceIds: _sourceIds, ...project }) => ({
+      .map(({ sourceIds: _sourceIds, evidenceNote: _evidenceNote, status, approvedAt: _approvedAt, learned, ...project }) => ({
         ...project,
         sourceIds: [],
+        // "What I learned" is on the public page only after the candidate
+        // marks that card accurate. A card with no status stays visible,
+        // but this field stays private until then.
+        ...(status === "approved" && learned ? { learned } : {}),
       })),
     experience: document.experience.map(({ sourceIds: _sourceIds, ...role }) => ({
       ...role,

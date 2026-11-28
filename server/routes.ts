@@ -24,6 +24,7 @@ import { verifyEmailTemplate, welcomeEmailTemplate, passwordResetTemplate } from
 import { startInterview, sendInterviewMessage, extractAndComplete, clearInterviewSession } from "./interview-agent";
 import { startOnboarding, sendOnboardingMessage, extractAndSave, clearOnboardingSession } from "./onboarding-agent"; // session is now DB-backed
 import { startAgentSession, sendAgentMessage } from "./job-search-agent";
+import { outreachDateWhenDraftSaved } from "@shared/job-search-agent";
 import { registerProfileBuilderRoutes } from "./profile-builder-routes";
 import { profileDocumentSchema, selectPublicProfileDocument, chatContextDocument, approvedBotBackground } from "@shared/profile-document";
 import { getPublicationAccess } from "./profile-builder";
@@ -1649,6 +1650,19 @@ PASS if every specific claim traces back to the profile data, or if the response
       }
 
       const result = await startAgentSession(customerId, actionType, entityType, entityData);
+      if (actionType === "outreach") {
+        const contactId = typeof entityData.contactId === "string" ? entityData.contactId.trim() : "";
+        const stamped = outreachDateWhenDraftSaved(entityData.lastOutreachDate, new Date());
+        if (contactId && stamped) {
+          try {
+            await storage.updateJobContact(contactId, customerId, {
+              lastOutreachDate: new Date(`${stamped}T00:00:00.000Z`),
+            });
+          } catch (dateError) {
+            logger.info("[JobAgent] Outreach date was not saved", { error: String(dateError) });
+          }
+        }
+      }
       res.json(result);
     } catch (error) {
       logger.error("Job agent start error", { error: String(error), stack: error instanceof Error ? error.stack : undefined });

@@ -8,6 +8,7 @@ import { sanitizeChatAnswer } from "../server/chat-sanitize";
 import { PRIYA_PAGE_FACTS, PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "../shared/priya-reviewed-answers";
 import { guestDraftTtlMs, GUEST_DRAFT_TTL_MS, GUEST_DRAFT_EMAIL_TTL_MS } from "../shared/guest-draft";
 import { canPublishNow, draftCardHighlight, draftCheckLabel, landingAfterUpload, OPTIONAL_INTERVIEW_LABEL, publishGuardTitle } from "../shared/builder-entry";
+import { jobSearchAgentChecks } from "./test-job-search-agent";
 
 function page(overrides: Partial<ProfileDocument> = {}): ProfileDocument {
   return profileDocumentSchema.parse({
@@ -497,6 +498,7 @@ const checks: Array<[string, () => void]> = [
   }],
   ["concurrent changes to different fields merge without loss", () => { const base = page(); const local = page({ identity: { ...base.identity, headline: "Local headline" } }); const remote = page({ contact: { ...base.contact, showEmail: true } }); const merged = mergeProfileDocuments(base, local, remote); assert.equal(merged.conflicts.length, 0); assert.equal(merged.document.identity.headline, "Local headline"); assert.equal(merged.document.contact.showEmail, true); }],
   ["concurrent changes to the same field require an owner choice", () => { const base = page(); const local = page({ identity: { ...base.identity, headline: "Local headline" } }); const remote = page({ identity: { ...base.identity, headline: "Remote headline" } }); const merged = mergeProfileDocuments(base, local, remote); assert.equal(merged.conflicts[0].path, "identity.headline"); assert.equal(setDocumentPath(merged.document, merged.conflicts[0].path, merged.conflicts[0].local).identity.headline, "Local headline"); }],
+  ...jobSearchAgentChecks,
 ];
 
 for (const [name, check] of checks) {

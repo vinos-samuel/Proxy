@@ -492,10 +492,10 @@ export function registerProfileBuilderRoutes(app: Express) {
     try {
       const fullDocument = profileDocumentSchema.parse(state.document);
       const approvedOnly = toPublicProfileDocument(fullDocument);
-      const content = await generateApprovedProfileAnswer(approvedOnly, parsed.data.message, approvedBotBackground(fullDocument));
+      const reply = await generateApprovedProfileAnswer(approvedOnly, parsed.data.message, approvedBotBackground(fullDocument));
       req.session.builderTestChats = { count: budget.count + 1, resetAt: budget.resetAt };
       await saveSession(req);
-      return res.json({ content });
+      return res.json(reply);
     } catch (error) {
       logger.error("[Profile Builder] Test chat failed", { error: String(error) });
       return res.status(500).json({ message: "Could not get an answer right now. Try again in a moment." });

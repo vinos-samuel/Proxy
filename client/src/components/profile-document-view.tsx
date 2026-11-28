@@ -6,6 +6,7 @@ type Props = {
   document: ProfileDocument;
   proposal?: ImprovementProposal | null;
   publicMode?: boolean;
+  highlightProjectId?: string | null;
   onAsk?: () => void;
   onContact?: (kind: "email" | "linkedin" | "website") => void;
   onEdit?: (section: "introduction" | "project" | "experience" | "skills" | "details" | "impactStats" | "howIWork", id?: string) => void;
@@ -96,7 +97,7 @@ function DetailGroup({ title, items }: { title: string; items: string[] }) {
   return <div><h4>{title}</h4><ul>{items.map((item) => <li key={item}>{item}</li>)}</ul></div>;
 }
 
-export default function ProfileDocumentView({ document, proposal, onAsk, onContact, onEdit }: Props) {
+export default function ProfileDocumentView({ document, proposal, highlightProjectId = null, onAsk, onContact, onEdit }: Props) {
   const [openProject, setOpenProject] = useState<string | null>(null);
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [openEmployers, setOpenEmployers] = useState<string[]>([]);
@@ -113,6 +114,12 @@ export default function ProfileDocumentView({ document, proposal, onAsk, onConta
   useEffect(() => {
     if (firstEmployerId) setOpenEmployers((current) => current.length ? current : [firstEmployerId]);
   }, [firstEmployerId]);
+
+  useEffect(() => {
+    if (!highlightProjectId) return;
+    setOpenProject(highlightProjectId);
+    window.document.getElementById(`work-${highlightProjectId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [highlightProjectId]);
 
   // The wide story panel renders once, below the whole grid, not beside the
   // card that was clicked — without this it opens off-screen and looks like

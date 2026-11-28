@@ -28,7 +28,7 @@ import { registerProfileBuilderRoutes } from "./profile-builder-routes";
 import { profileDocumentSchema, selectPublicProfileDocument, approvedBotBackground } from "@shared/profile-document";
 import { getPublicationAccess } from "./profile-builder";
 import { hasConfirmedPaidTier, hasJobSearchAccess, recentQuestionsForPlan } from "@shared/plan-access";
-import { ungroundedNumbers, UNGROUNDED_NUMBER_REPLY } from "@shared/answer-grounding";
+import { APPROVED_CARD_RULES, cardIdFromAnswer, ungroundedNumbers, UNGROUNDED_NUMBER_REPLY } from "@shared/answer-grounding";
 import { reviewedPriyaAnswer } from "@shared/priya-reviewed-answers";
 
 // Tier → Stripe Price ID mapping. Concierge is retired; Pro is the only paid tier.
@@ -1330,7 +1330,8 @@ Hard rules — follow every one:
 2. Never combine two separate facts into a new claim that source doesn't make (e.g. don't add durations, totals, or comparisons never stated).
 3. If neither source contains enough to answer, say plainly that it isn't covered here, and invite the visitor to use the contact option — do not guess, hedge with a vague generality, or pad the answer to sound complete.
 4. Keep it concise and in plain language. No bullet-point resume recitation — answer the actual question in full sentences. Never use markdown syntax characters (no **bold**, no "-" or numbered list markers, no # headers) — this chat does not render them, they would show up as literal clutter. If the answer covers more than one distinct point, separate them with a blank line between paragraphs instead of cramming everything into one block.
-${background.tone ? `5. Match this description of how they want to sound, without inventing anything it doesn't license: "${background.tone.replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").slice(0, 400)}"` : ""}
+5. ${APPROVED_CARD_RULES}
+${background.tone ? `6. Match this description of how they want to sound, without inventing anything it doesn't license: "${background.tone.replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").slice(0, 400)}"` : ""}
 
 APPROVED PROFILE:
 ${JSON.stringify(approvedDocument)}
@@ -1344,7 +1345,7 @@ ${background.qaText ? `\nAPPROVED BACKGROUND Q&A (written by the owner for exact
         const approvedSource = `${JSON.stringify(approvedDocument)}\n${background.qaText || ""}`;
         const responseText = ungroundedNumbers(drafted, approvedSource).length ? UNGROUNDED_NUMBER_REPLY : drafted;
         storage.saveChatMessage(profile.id, safeMessage).catch(() => {});
-        return res.json({ content: responseText });
+        return res.json({ content: responseText, cardId: cardIdFromAnswer(responseText, approvedDocument.projects) });
       }
 
       const entries = await storage.getKnowledgeEntriesByProfileId(profile.id);

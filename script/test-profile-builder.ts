@@ -3,7 +3,7 @@ import { applyProposal, conciseHeadline, getImprovementCandidates, getPublicatio
 import { cardsForHowIWork, closedCardLines, markProjectAccurate, profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, type ProfileDocument } from "../shared/profile-document";
 import { mergeProfileDocuments, setDocumentPath } from "../client/src/lib/profile-document-merge";
 import { hasConfirmedPro, hasJobSearchAccess, recentQuestionsForPlan, JOB_SEARCH_TRIAL_MS } from "../shared/plan-access";
-import { rewriteWithoutNewNumbers, ungroundedNumbers } from "../shared/answer-grounding";
+import { cardIdFromAnswer, rewriteWithoutNewNumbers, ungroundedNumbers } from "../shared/answer-grounding";
 import { PRIYA_PAGE_FACTS, PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "../shared/priya-reviewed-answers";
 import { guestDraftTtlMs, GUEST_DRAFT_TTL_MS, GUEST_DRAFT_EMAIL_TTL_MS } from "../shared/guest-draft";
 
@@ -191,6 +191,15 @@ const checks: Array<[string, () => void]> = [
     assert.equal(hasJobSearchAccess({ tier: "free", paymentStatus: "unpaid" }, created, now), true);
   }],
   ["a number inside another number is not grounded", () => assert.deepEqual(ungroundedNumbers("9 markets", "94% across 6 markets"), ["9"])],
+  ["a chat reply points at one card", () => {
+    const projects = [{ id: "a", title: "Regional operating model" }, { id: "b", title: "Vendor reset" }];
+    assert.equal(cardIdFromAnswer("On Regional operating model I changed the handover.", projects), "a");
+    assert.equal(cardIdFromAnswer("Regional operating model and Vendor reset both mattered.", projects), null);
+    assert.equal(cardIdFromAnswer("Nothing on the page covers that.", projects), null);
+  }],
+  ["an invented figure is not grounded in a card outcome", () => {
+    assert.deepEqual(ungroundedNumbers("Cycle time fell 30%.", "The handover got calmer."), ["30"]);
+  }],
   ["a rewrite cannot add a number the person did not say", () => {
     assert.equal(rewriteWithoutNewNumbers("it got faster", "cut cycle time by 30%"), "it got faster");
     assert.equal(rewriteWithoutNewNumbers("it fell 18%", "Cycle time fell 18%."), "Cycle time fell 18%.");

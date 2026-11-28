@@ -449,7 +449,7 @@ export function readTargetValue(document: ProfileDocument, question: Improvement
   if (question.section === "summary") return document.identity.summary;
   if (question.section === "project") {
     const project = document.projects.find((item) => item.id === question.targetId);
-    return project?.[question.field as "challenge" | "contribution" | "outcome"] || "";
+    return project?.[question.field as "challenge" | "contribution" | "outcome" | "learned"] || "";
   }
   const role = document.experience.find((item) => item.id === question.targetId);
   return role?.summary || "";
@@ -479,7 +479,10 @@ export function applyProposal(document: ProfileDocument, proposal: ImprovementPr
   if (proposal.section === "project") {
     const project = next.projects.find((item) => item.id === proposal.targetId);
     if (project) {
-      project[proposal.field as "challenge" | "contribution" | "outcome"] = proposal.proposed.slice(0, 900);
+      const field = proposal.field;
+      if (field === "challenge" || field === "contribution" || field === "outcome" || field === "learned") {
+        project[field] = proposal.proposed.slice(0, 900);
+      }
       project.sourceIds = Array.from(new Set([...project.sourceIds, answerSourceId]));
     }
   }
@@ -540,7 +543,12 @@ export function undoLastChange(document: ProfileDocument): ProfileDocument | nul
   else if (undo.section === "summary") next.identity.summary = undo.before;
   else if (undo.section === "project") {
     const project = next.projects.find((item) => item.id === undo.targetId);
-    if (project) project[undo.field as "challenge" | "contribution" | "outcome"] = undo.before || undefined;
+    if (project) {
+      const field = undo.field;
+      if (field === "challenge" || field === "contribution" || field === "outcome" || field === "learned") {
+        project[field] = undo.before || undefined;
+      }
+    }
   } else if (undo.section === "experience") {
     const role = next.experience.find((item) => item.id === undo.targetId);
     if (role) role.summary = undo.before || undefined;

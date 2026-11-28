@@ -65,6 +65,49 @@ const checks: Array<[string, () => void]> = [
     value.projects.push({ id: "empty-project", title: "New selected work", summary: "", sourceIds: [] });
     assert.equal(toPublicProfileDocument(value).projects.some((project) => project.id === "empty-project"), false);
   }],
+  ["a saved page with no case-card fields still parses", () => {
+    const saved = page();
+    assert.equal(saved.projects[0].status, undefined);
+    assert.equal(saved.projects[0].learned, undefined);
+    assert.equal(saved.projects[0].skills, undefined);
+  }],
+  ["an explicit draft card is left off the public page", () => {
+    const value = page();
+    value.projects[0].status = "draft";
+    value.projects[0].outcome = "Delivery became reliable for the region.";
+    assert.equal(toPublicProfileDocument(value).projects.some((project) => project.id === "project-1"), false);
+  }],
+  ["a card with no status stays on the public page", () => {
+    const value = page();
+    value.projects[0].outcome = "Delivery became reliable for the region.";
+    const published = toPublicProfileDocument(value).projects.find((project) => project.id === "project-1");
+    assert.ok(published);
+    assert.equal(published.status, undefined);
+    assert.equal(published.approvedAt, undefined);
+  }],
+  ["the private evidence note stays off the public page", () => {
+    const value = page();
+    value.projects[0].outcome = "Delivery became reliable for the region.";
+    value.projects[0].evidenceNote = "Raw words from the candidate.";
+    value.projects[0].approvedAt = "2026-11-28T00:00:00.000Z";
+    const published = toPublicProfileDocument(value).projects.find((project) => project.id === "project-1");
+    assert.equal(published?.evidenceNote, undefined);
+    assert.equal(published?.approvedAt, undefined);
+  }],
+  ["what I learned is public only after that card is approved", () => {
+    const value = page();
+    value.projects[0].outcome = "Delivery became reliable for the region.";
+    value.projects[0].learned = "I would brief the missing team first.";
+    assert.equal(toPublicProfileDocument(value).projects[0].learned, undefined);
+    value.projects[0].status = "approved";
+    assert.equal(toPublicProfileDocument(value).projects[0].learned, "I would brief the missing team first.");
+  }],
+  ["a learned answer does not change what I did", () => {
+    const value = page();
+    const next = applyProposal(value, { id: "p-learned", questionId: "project:project-1:learned", section: "project", targetId: "project-1", field: "learned", question: "What did not go as you expected?", answer: "The first briefing missed a team.", before: "", proposed: "I would brief that team before kickoff.", baseRevision: 1 });
+    assert.equal(next.projects[0].learned, "I would brief that team before kickoff.");
+    assert.equal(next.projects[0].contribution, "Led the redesign.");
+  }],
   ["staged publication is not public before activation", () => {
     const staged = page();
     assert.equal(selectPublicProfileDocument({ activeDocument: null, publishedDocument: staged }), null);

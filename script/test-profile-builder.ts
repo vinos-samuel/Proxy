@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { applyProposal, buildProfileDocument, conciseHeadline, getImprovementCandidates, getPublicationAccess, undoLastChange } from "../server/profile-builder";
-import { cardsForHowIWork, closedCardLines, markProjectAccurate, profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, workTitleFromText, type ProfileDocument } from "../shared/profile-document";
+import { cardsForHowIWork, chatContextDocument, closedCardLines, markProjectAccurate, profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, workTitleFromText, type ProfileDocument } from "../shared/profile-document";
 import { mergeProfileDocuments, setDocumentPath } from "../client/src/lib/profile-document-merge";
 import { hasConfirmedPro, hasJobSearchAccess, recentQuestionsForPlan, JOB_SEARCH_TRIAL_MS } from "../shared/plan-access";
-import { cardIdFromAnswer, rewriteWithoutNewNumbers, ungroundedNumbers } from "../shared/answer-grounding";
+import { cardIdFromAnswer, retainSupportedAnswer, rewriteWithoutNewNumbers, ungroundedNumbers, UNGROUNDED_NUMBER_REPLY } from "../shared/answer-grounding";
 import { sanitizeChatAnswer } from "../server/chat-sanitize";
 import { PRIYA_PAGE_FACTS, PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "../shared/priya-reviewed-answers";
 import { guestDraftTtlMs, GUEST_DRAFT_TTL_MS, GUEST_DRAFT_EMAIL_TTL_MS } from "../shared/guest-draft";
@@ -197,6 +197,46 @@ const checks: Array<[string, () => void]> = [
     assert.equal(cardIdFromAnswer("On Regional operating model I changed the handover.", projects), "a");
     assert.equal(cardIdFromAnswer("Regional operating model and Vendor reset both mattered.", projects), null);
     assert.equal(cardIdFromAnswer("Nothing on the page covers that.", projects), null);
+  }],
+  ["a stray figure drops its sentence and keeps a real result", () => {
+    const source = "Migrated 40,000 accounts. Cut turnaround from 3.2 days to 1.1 days.";
+    const kept = retainSupportedAnswer("I migrated 40,000 accounts. The programme took 6 weeks.", source);
+    assert.match(kept, /40,000 accounts/);
+    assert.doesNotMatch(kept, /6 weeks/);
+    assert.equal(retainSupportedAnswer("It took 6 weeks.", source), UNGROUNDED_NUMBER_REPLY);
+  }],
+  ["an example employer is removed and a profile employer stays", () => {
+    const source = "Head of Operations at Meridian Trust Bank. A 140-person team.";
+    const kept = retainSupportedAnswer("At Nexora Group I built a centre of excellence. At Meridian Trust Bank I run a 140-person team.", source);
+    assert.match(kept, /Meridian Trust Bank/);
+    assert.doesNotMatch(kept, /Nexora/);
+    assert.equal(retainSupportedAnswer("At Randstad I inherited the team.", source), UNGROUNDED_NUMBER_REPLY);
+  }],
+  ["a partial title opens one card", () => {
+    const projects = [
+      { id: "migration", title: "Led the core banking migration for 40,000 accounts with zero client-impacting downtime" },
+      { id: "settlement", title: "Cut average settlement turnaround from 3.2 days to 1.1 days by redesigning" },
+    ];
+    assert.equal(cardIdFromAnswer("This happened during the core banking migration for 40,000 accounts.", projects), "migration");
+    assert.equal(cardIdFromAnswer("I cut turnaround from 3.2 days to 1.1 days.", projects), "settlement");
+    assert.equal(cardIdFromAnswer("I migrated 40,000 accounts and cut the time from 3.2 days to 1.1 days.", projects), null);
+  }],
+  ["chat context drops a draft-only claim and keeps published experience", () => {
+    const value = page({
+      identity: { ...page().identity, summary: "I reduced operating cost per transaction by 22% over 3 years. I recovered 424242 unmatched zephyr ledger entries." },
+      experience: [{ id: "experience-1", company: "Meridian Trust Bank", title: "Head of Operations", highlights: ["Reduced operating cost per transaction by 22% over 3 years through process automation"], sourceIds: ["resume-role-1"] }],
+      projects: [
+        { id: "cost", title: "Reduced operating cost per transaction by 22% over 3 years", outcome: "Reduced operating cost per transaction by 22% over 3 years through process automation", status: "draft", sourceIds: ["resume-role-1"] },
+        { id: "zephyr", title: "Zephyr ledger reconciliation", outcome: "Recovered 424242 unmatched zephyr ledger entries.", status: "draft", sourceIds: ["resume-role-1"] },
+        { id: "shown", title: "Core banking migration", outcome: "Led the migration for 40,000 accounts.", status: "approved", sourceIds: ["resume-role-1"] },
+      ],
+    });
+    const chat = chatContextDocument(value);
+    assert.match(chat.identity.summary, /22%/);
+    assert.doesNotMatch(chat.identity.summary, /zephyr/i);
+    assert.equal(chat.projects.some((project) => project.id === "zephyr" || project.id === "cost"), false);
+    assert.equal(chat.projects.some((project) => project.id === "shown"), true);
+    assert.match(chat.experience[0].highlights[0], /22%/);
   }],
   ["an invented figure is not grounded in a card outcome", () => {
     assert.deepEqual(ungroundedNumbers("Cycle time fell 30%.", "The handover got calmer."), ["30"]);

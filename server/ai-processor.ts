@@ -3,7 +3,7 @@ import { storage } from "./storage";
 import { logger } from "./logger";
 import { randomUUID } from "crypto";
 import { cardsForHowIWork, type ImprovementProposal, type ImprovementQuestion, type ProfileDocument } from "@shared/profile-document";
-import { APPROVED_CARD_RULES, cardIdFromAnswer, rewriteWithoutNewNumbers } from "@shared/answer-grounding";
+import { APPROVED_CARD_RULES, cardIdFromAnswer, retainSupportedAnswer, rewriteWithoutNewNumbers } from "@shared/answer-grounding";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY!,
@@ -1371,7 +1371,9 @@ ${sanitizeForPrompt(message, 500)}`;
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: { temperature: 0 },
   });
-  const content = (result.text || "That isn't covered on this page — best to ask directly.").trim().slice(0, 3000);
+  const drafted = (result.text || "That isn't covered on this page — best to ask directly.").trim().slice(0, 3000);
+  const source = `${JSON.stringify(document)}\n${background?.qaText || ""}`;
+  const content = retainSupportedAnswer(drafted, source);
   return { content, cardId: cardIdFromAnswer(content, document.projects) };
 }
 

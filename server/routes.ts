@@ -25,10 +25,10 @@ import { startInterview, sendInterviewMessage, extractAndComplete, clearIntervie
 import { startOnboarding, sendOnboardingMessage, extractAndSave, clearOnboardingSession } from "./onboarding-agent"; // session is now DB-backed
 import { startAgentSession, sendAgentMessage } from "./job-search-agent";
 import { registerProfileBuilderRoutes } from "./profile-builder-routes";
-import { profileDocumentSchema, selectPublicProfileDocument, approvedBotBackground } from "@shared/profile-document";
+import { profileDocumentSchema, selectPublicProfileDocument, chatContextDocument, approvedBotBackground } from "@shared/profile-document";
 import { getPublicationAccess } from "./profile-builder";
 import { hasConfirmedPaidTier, hasJobSearchAccess, recentQuestionsForPlan } from "@shared/plan-access";
-import { APPROVED_CARD_RULES, cardIdFromAnswer, ungroundedNumbers, UNGROUNDED_NUMBER_REPLY } from "@shared/answer-grounding";
+import { APPROVED_CARD_RULES, cardIdFromAnswer, retainSupportedAnswer } from "@shared/answer-grounding";
 import { reviewedPriyaAnswer } from "@shared/priya-reviewed-answers";
 
 // Tier → Stripe Price ID mapping. Concierge is retired; Pro is the only paid tier.
@@ -1307,14 +1307,17 @@ export async function registerRoutes(
       }
 
       const documentRow = await storage.getProfileDocumentByProfileId(profile.id);
-      const approvedDocument = selectPublicProfileDocument(documentRow);
-      if (approvedDocument) {
-        if (!approvedDocument.publicBotEnabled) {
+      const fullDocument = documentRow?.activeDocument
+        ? profileDocumentSchema.parse(documentRow.activeDocument)
+        : null;
+      const chatDocument = fullDocument ? chatContextDocument(fullDocument) : null;
+      if (chatDocument) {
+        if (!chatDocument.publicBotEnabled) {
           return res.status(404).json({ message: "The AI explorer is not enabled" });
         }
 
-        const background = documentRow?.activeDocument
-          ? approvedBotBackground(profileDocumentSchema.parse(documentRow.activeDocument))
+        const background = fullDocument
+          ? approvedBotBackground(fullDocument)
           : { qaText: "" };
 
         const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -1334,7 +1337,7 @@ Hard rules — follow every one:
 ${background.tone ? `6. Match this description of how they want to sound, without inventing anything it doesn't license: "${background.tone.replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").slice(0, 400)}"` : ""}
 
 APPROVED PROFILE:
-${JSON.stringify(approvedDocument)}
+${JSON.stringify(chatDocument)}
 ${background.qaText ? `\nAPPROVED BACKGROUND Q&A (written by the owner for exactly this purpose):\n${background.qaText.slice(0, 4000)}\n` : ""}`,
           messages: [{ role: "user", content: safeMessage }],
         });
@@ -1342,10 +1345,10 @@ ${background.qaText ? `\nAPPROVED BACKGROUND Q&A (written by the owner for exact
           ? result.content[0].text
           : "That is something I would be happy to discuss directly.";
         const drafted = sanitizeChatAnswer(rawResponse);
-        const approvedSource = `${JSON.stringify(approvedDocument)}\n${background.qaText || ""}`;
-        const responseText = ungroundedNumbers(drafted, approvedSource).length ? UNGROUNDED_NUMBER_REPLY : drafted;
+        const approvedSource = `${JSON.stringify(chatDocument)}\n${background.qaText || ""}`;
+        const responseText = retainSupportedAnswer(drafted, approvedSource);
         storage.saveChatMessage(profile.id, safeMessage).catch(() => {});
-        return res.json({ content: responseText, cardId: cardIdFromAnswer(responseText, approvedDocument.projects) });
+        return res.json({ content: responseText, cardId: cardIdFromAnswer(responseText, chatDocument.projects) });
       }
 
       const entries = await storage.getKnowledgeEntriesByProfileId(profile.id);
@@ -1460,7 +1463,7 @@ ${background.qaText ? `\nAPPROVED BACKGROUND Q&A (written by the owner for exact
         questionnaireData?.step7?.writingSample,
         JSON.stringify(questionnaireData?.portfolioData || {}),
       ].filter(Boolean).join("\n");
-      const responseText = ungroundedNumbers(drafted, approvedSource).length ? UNGROUNDED_NUMBER_REPLY : drafted;
+      const responseText = retainSupportedAnswer(drafted, approvedSource);
       res.json({ content: responseText });
 
       // Fire-and-forget: save question for analytics

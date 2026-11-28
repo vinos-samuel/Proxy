@@ -9,7 +9,7 @@ import {
   profileDocumentPatchSchema,
   profileDocumentSchema,
   revisionSchema,
-  toPublicProfileDocument,
+  chatContextDocument,
   approvedBotBackground,
   type ProfileDocument,
 } from "@shared/profile-document";
@@ -491,8 +491,8 @@ export function registerProfileBuilderRoutes(app: Express) {
     if (!state) return res.status(404).json({ message: "No page draft found" });
     try {
       const fullDocument = profileDocumentSchema.parse(state.document);
-      const approvedOnly = toPublicProfileDocument(fullDocument);
-      const reply = await generateApprovedProfileAnswer(approvedOnly, parsed.data.message, approvedBotBackground(fullDocument));
+      const chatDocument = chatContextDocument(fullDocument);
+      const reply = await generateApprovedProfileAnswer(chatDocument, parsed.data.message, approvedBotBackground(fullDocument));
       req.session.builderTestChats = { count: budget.count + 1, resetAt: budget.resetAt };
       await saveSession(req);
       return res.json(reply);

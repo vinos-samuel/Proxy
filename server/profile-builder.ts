@@ -184,7 +184,9 @@ export function buildProfileDocument(parsed: ParsedResume, preview: Preview): Pr
       title: title.slice(0, 180) || `Selected work ${index + 1}`,
       summary: clean.slice(0, 500),
       outcome: clean,
-      ...(selected.inferred ? { status: "draft" as const } : {}),
+      // Explicit achievements and inferred outcome lines both start as drafts.
+      // A quick publish does not put an unchecked card on the live page.
+      status: "draft" as const,
       sourceIds: [stableId("resume-achievement", index)],
     };
   });

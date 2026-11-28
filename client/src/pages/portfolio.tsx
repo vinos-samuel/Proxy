@@ -343,6 +343,21 @@ export default function PortfolioPage() {
             <span>This is your live page</span>
           </div>
         )}
+        {isOwnerViewingOwnProfile && page.projects.length === 0 && (
+          <div className="new-profile-public__owner-bar" data-testid="prompt-first-card">
+            <div>
+              <b>Start with one card, in one short sitting.</b>
+              <p>Pick a real piece of work, not a polished slogan.</p>
+            </div>
+            <a href="/builder" onClick={() => capturePublicEvent("builder_first_card_prompt_clicked", username)}>Add your first card</a>
+          </div>
+        )}
+        {isOwnerViewingOwnProfile && page.projects.length > 0 && page.projects.length < 3 && (
+          <div className="new-profile-public__owner-bar">
+            <span>That's one story on your page. Add 3 cards to show range.</span>
+            <a href="/builder">Add a card</a>
+          </div>
+        )}
         <ProfileDocumentView document={page} publicMode highlightProjectId={highlightProjectId} onAsk={() => setShowProfileChat(true)} onContact={(kind) => capturePublicEvent("profile_contact_clicked", username, { kind })} />
         <footer className="new-profile-public__footer">
           <span>Built with Proxy</span>

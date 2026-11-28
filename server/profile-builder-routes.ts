@@ -309,7 +309,7 @@ export function registerProfileBuilderRoutes(app: Express) {
         summary: parsed.data.work,
         photoUrl: null,
       },
-      projects: [{ id: "project-1", title: "A piece of work I want to show", summary: parsed.data.work, contribution: parsed.data.work, sourceIds: [sourceId] }],
+      projects: [{ id: "project-1", title: "A piece of work I want to show", summary: parsed.data.work, contribution: parsed.data.work, status: "draft", sourceIds: [sourceId] }],
       experience: [],
       skills: [],
       contact: { email: null, linkedin: null, website: null, showEmail: false, showLinkedin: false, showWebsite: false },

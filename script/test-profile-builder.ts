@@ -323,6 +323,24 @@ const checks: Array<[string, () => void]> = [
       "I want to build an operations team in a new market.",
     );
   }],
+  ["a quick page publishes with no public cards and no interview", () => {
+    const document = buildProfileDocument({
+      name: "Priya Nair",
+      currentTitle: "Head of Operations",
+      summary: "Operations leader with 18 years across three countries.",
+      achievements: ["Led a migration with zero downtime for the region"],
+      roles: [{ title: "Head of Operations", company: "Example Bank", years: "2019 - Present", achievements: "Led the team" }],
+      skills: ["Operations"],
+    }, { positioning: "Operations leader with 18 years across three countries.", heroSubtitle: "Head of Operations", stats: [], careerTimeline: [] });
+    assert.ok(document.projects.length > 0);
+    assert.ok(document.projects.every((project) => project.status === "draft"));
+    assert.equal(document.answeredQuestionIds.length, 0);
+    const published = toPublicProfileDocument(document);
+    assert.equal(published.projects.length, 0);
+    assert.ok(published.experience.length > 0);
+    assert.equal(published.identity.name, "Priya Nair");
+    assert.equal(getPublicationAccess({ paymentStatus: null, tier: null, freePublishedAt: null, isPublic: false }).canPublish, true);
+  }],
   ["a decimal does not cut a work title short", () => {
     assert.equal(workTitleFromText("Cut average settlement turnaround from 3.2 days to 1.1 days by redesigning the exceptions queue"), "Cut average settlement turnaround from 3.2 days to 1.1 days by redesigning");
   }],
@@ -355,7 +373,7 @@ const checks: Array<[string, () => void]> = [
     assert.equal(document.sources.filter((source) => source.label === "CV achievement").length, 3);
     assert.equal(document.experience.length, 2);
   }],
-  ["an achievements list still builds cards without marking them draft", () => {
+  ["an achievements list is the card source, and that card stays a draft", () => {
     const document = buildProfileDocument({
       name: "Priya Nair",
       currentTitle: "Head of Operations",
@@ -363,7 +381,9 @@ const checks: Array<[string, () => void]> = [
       achievements: ["Led the core banking migration for 40,000 accounts with zero downtime"],
     }, { positioning: "I run regional operations.", heroSubtitle: "Head of Operations", stats: [], careerTimeline: [] });
     assert.equal(document.projects.length, 1);
-    assert.equal(document.projects[0].status, undefined);
+    assert.match(document.projects[0].outcome || "", /40,000 accounts/);
+    assert.equal(document.projects[0].status, "draft");
+    assert.equal(toPublicProfileDocument(document).projects.length, 0);
   }],
   ["a closed card leads with the outcome, role, and its own skills", () => {
     const lines = closedCardLines({ outcome: "The handover got calmer.", summary: "A long CV bullet that should not lead.", role: "Program lead", company: "Example Co", skills: ["One", "Two", "Three", "Four", "Five"] });

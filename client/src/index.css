@@ -1063,6 +1063,11 @@
 .landing-step-n { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--brand-sage); color: var(--brand-sage); font: 500 17px var(--brand-serif); }
 .landing-steps h3 { margin: 6px 0 0; font: 500 23px/1.2 var(--brand-serif); }
 .landing-steps p { color: var(--brand-ink-2); font-size: 15.5px; line-height: 1.55; max-width: 34ch; }
+.landing-card-points { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; margin: 28px 0 36px; }
+@media (max-width: 800px) { .landing-card-points { grid-template-columns: 1fr; } }
+.landing-card-points article { padding: 20px; }
+.landing-card-points h3 { margin: 0 0 8px; font: 500 20px/1.25 var(--brand-serif); }
+.landing-card-points p { margin: 0; color: var(--brand-ink-2); font-size: 15.5px; line-height: 1.55; }
 
 .landing-designs { display: grid; grid-template-columns: 230px minmax(0,1fr); gap: 24px; align-items: start; }
 @media (max-width: 800px) { .landing-designs { grid-template-columns: 1fr; } }

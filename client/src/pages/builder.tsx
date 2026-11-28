@@ -153,6 +153,13 @@ export default function BuilderPage() {
   const fixtureMode = import.meta.env.DEV && new URLSearchParams(window.location.search).get("fixture") === "1";
 
   const document = state.document ? normalizeProfileDocument(state.document) : state.document;
+  const approvedCardCount = document?.projects.filter((project) => project.status === "approved").length ?? 0;
+  const firstCardPrompted = useRef(false);
+  useEffect(() => {
+    if (!state.hasPublished || approvedCardCount !== 0 || firstCardPrompted.current) return;
+    firstCardPrompted.current = true;
+    capture("builder_first_card_prompt_shown");
+  }, [state.hasPublished, approvedCardCount]);
   const revision = state.revision;
 
   useEffect(() => { stateRef.current = state; }, [state]);
@@ -508,6 +515,11 @@ export default function BuilderPage() {
       return;
     }
     setError("");
+    const current = stateRef.current.document;
+    if (current) capture("builder_publish_sheet_opened", {
+      draftCount: current.projects.filter((project) => project.status === "draft").length,
+      approvedCount: current.projects.filter((project) => project.status === "approved").length,
+    });
     setPublishSheet(true);
   };
 
@@ -739,8 +751,10 @@ export default function BuilderPage() {
               const result = await mutate<{ document: ProfileDocument; revision: number }>("adopt", "/api/builder/adopt-guest", { confirmReplace: true });
               if (result) setState((current) => ({ ...current, guestAvailable: false }));
             }}>Use the guest draft instead</button></div>}
+            {state.hasPublished && approvedCardCount === 0 && <div className="builder-adopt" data-testid="prompt-first-card"><b>Start with one card, in one short sitting.</b><p>Pick a real piece of work, not a polished slogan.</p><button className="builder-primary" type="button" onClick={() => { capture("builder_first_card_prompt_clicked"); setPanel("edit"); setEditTarget({ section: "projects" }); }}>Add your first card</button></div>}
+            {approvedCardCount > 0 && approvedCardCount < 3 && <div className="builder-adopt"><b>That's one story on your page.</b><p>Add 3 cards to show range.</p></div>}
             {panel === "improve" && <>
-              <div className="builder-conversation-controls"><p className="builder-panel-subtitle">One answer makes a section stronger. You review the change before it's added.</p><button type="button" onClick={() => setChoosingTopic((value) => !value)}>Other topics <ChevronRight /></button></div>
+              <div className="builder-conversation-controls"><p className="builder-panel-subtitle">A card is one story of how you solved something — the kind of thing a hiring manager asks in an interview. You review the change before it's added.</p><button type="button" onClick={() => setChoosingTopic((value) => !value)}>Other topics <ChevronRight /></button></div>
               {!document.publicBotEnabled && <button type="button" className="builder-text-button builder-bot-off" onClick={() => setPanel("settings")}>"Ask about my work" is off. Turn it on in Settings</button>}
               {choosingTopic && <div className="builder-topic-picker">{([
                 ["all", "Best next question"], ["work", "Selected work"], ["experience", "Career experience"], ["about", "Working style and direction"],
@@ -759,6 +773,7 @@ export default function BuilderPage() {
                 <span>{question.question.label}</span>
                 {question.question.sourceExcerpt && <p className="builder-source-context"><b>{question.question.sourceKind === "resume" ? "From your CV" : "You added"}</b>{question.question.sourceExcerpt}</p>}
                 <h2>{question.question.question}</h2>
+                {question.question.id.endsWith(":learned") && <p className="builder-private-note">A sentence is enough. If you mark the card accurate, this can appear when someone opens the story.</p>}
                 <div className="builder-answer-input">
                   <textarea value={answer} maxLength={2500} onChange={(event) => setAnswer(event.target.value)} placeholder="A few honest sentences are enough." />
                   {answerSpeechSupported && <button type="button" className={`builder-mic ${isListeningAnswer ? "is-listening" : ""}`} onClick={toggleAnswerListening} aria-label={isListeningAnswer ? "Stop talking" : "Talk instead of typing"} title={isListeningAnswer ? "Stop" : "Talk instead of typing"}><Mic /></button>}
@@ -821,7 +836,7 @@ export default function BuilderPage() {
                   return <div><p>Or use something from your CV</p>{suggestions.map((source) => <button key={source.id} type="button" onClick={() => addProjectFromSource(source.id)}><span>{source.excerpt}</span><Plus /></button>)}</div>;
                 })()}</div>
               </>}
-              {editTarget.section === "project" && (() => { const project = document.projects.find((item) => item.id === editTarget.id); if (!project) return null; const statusLine = project.status === "draft" ? "Draft, not on your live page" : project.status === "approved" ? "Marked accurate" : "Shown on your page"; return <fieldset><legend>{project.title}</legend><p className="builder-private-note">{statusLine}</p>{(["title", "company", "summary", "challenge", "contribution", "outcome"] as const).map((field) => <label key={field}><span>{field === "title" ? "Title" : field === "company" ? "Company or client (optional)" : field === "summary" ? "Short card summary" : field === "challenge" ? "What was happening?" : field === "contribution" ? "What did you do?" : "What changed?"}</span>{field === "title" || field === "company" ? <input value={project[field] || ""} onChange={(event) => updateProject(project.id, { [field]: event.target.value })} onBlur={saveCurrent} /> : <textarea value={project[field] || ""} onChange={(event) => updateProject(project.id, { [field]: event.target.value })} onBlur={saveCurrent} />}</label>)}<label><span>Your role on this work</span><input value={project.role || ""} maxLength={160} onChange={(event) => updateProject(project.id, { role: event.target.value })} onBlur={saveCurrent} /></label><label><span>Skills this work shows · up to 6, separated by commas</span><input key={`${project.id}-skills`} defaultValue={(project.skills || []).join(", ")} onBlur={(event) => { const skills = event.target.value.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 6).map((item) => item.slice(0, 80)); const current = stateRef.current.document; if (!current) return; void saveDocument({ ...current, projects: current.projects.map((item) => item.id === project.id ? { ...item, skills } : item) }); }} /></label><label><span>What I learned</span><textarea value={project.learned || ""} maxLength={900} onChange={(event) => updateProject(project.id, { learned: event.target.value })} onBlur={saveCurrent} /></label><div className="builder-item-actions"><button type="button" disabled={!project.title.trim() || Boolean(proposal) || Boolean(busy)} onClick={() => { const current = stateRef.current.document; if (!current || !project.title.trim()) return; void saveDocument(markProjectAccurate(current, project.id, new Date().toISOString())); }}>This card is accurate</button><button onClick={() => moveProject(project.id, -1)}><ArrowUp /> Move up</button><button onClick={() => moveProject(project.id, 1)}><ArrowDown /> Move down</button><button className="danger" onClick={() => removeProject(project.id)}><Trash2 /> Remove</button></div></fieldset>; })()}
+              {editTarget.section === "project" && (() => { const project = document.projects.find((item) => item.id === editTarget.id); if (!project) return null; const statusLine = project.status === "draft" ? "Draft, not on your live page" : project.status === "approved" ? "Marked accurate" : "Shown on your page"; return <fieldset><legend>{project.title}</legend><p className="builder-private-note">{statusLine}</p>{(["title", "company", "summary", "challenge", "contribution", "outcome"] as const).map((field) => <label key={field}><span>{field === "title" ? "Title" : field === "company" ? "Company or client (optional)" : field === "summary" ? "Short card summary" : field === "challenge" ? "What was happening?" : field === "contribution" ? "What did you do?" : "What changed?"}</span>{field === "title" || field === "company" ? <input value={project[field] || ""} onChange={(event) => updateProject(project.id, { [field]: event.target.value })} onBlur={saveCurrent} /> : <textarea value={project[field] || ""} onChange={(event) => updateProject(project.id, { [field]: event.target.value })} onBlur={saveCurrent} />}</label>)}<label><span>Your role on this work</span><input value={project.role || ""} maxLength={160} onChange={(event) => updateProject(project.id, { role: event.target.value })} onBlur={saveCurrent} /></label><label><span>Skills this work shows · up to 6, separated by commas</span><input key={`${project.id}-skills`} defaultValue={(project.skills || []).join(", ")} onBlur={(event) => { const skills = event.target.value.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 6).map((item) => item.slice(0, 80)); const current = stateRef.current.document; if (!current) return; void saveDocument({ ...current, projects: current.projects.map((item) => item.id === project.id ? { ...item, skills } : item) }); }} /></label><label><span>What I learned</span><textarea value={project.learned || ""} maxLength={900} onChange={(event) => updateProject(project.id, { learned: event.target.value })} onBlur={saveCurrent} /></label><div className="builder-item-actions"><button type="button" disabled={!project.title.trim() || Boolean(proposal) || Boolean(busy)} onClick={() => { const current = stateRef.current.document; if (!current || !project.title.trim()) return; capture("builder_card_marked_accurate"); void saveDocument(markProjectAccurate(current, project.id, new Date().toISOString())); }}>This card is accurate</button><button onClick={() => moveProject(project.id, -1)}><ArrowUp /> Move up</button><button onClick={() => moveProject(project.id, 1)}><ArrowDown /> Move down</button><button className="danger" onClick={() => removeProject(project.id)}><Trash2 /> Remove</button></div></fieldset>; })()}
               {editTarget.section === "experience" && <><div className="builder-editor-heading"><h2>Experience</h2><p>Every role, bullet, and employer-level contribution remains available on every design.</p></div><div className="builder-section-list">{document.employerContributions.map((employer) => <button key={employer.id} onClick={() => setEditTarget({ section: "employer", id: employer.id })}><span><b>{employer.company} · selected contributions</b><small>{employer.contributions.length} items not assigned to one role</small></span><ChevronRight /></button>)}{document.experience.map((role) => <button key={role.id} onClick={() => setEditTarget({ section: "role", id: role.id })}><span><b>{role.title}</b><small>{role.company} · {role.period}</small></span><ChevronRight /></button>)}</div></>}
               {editTarget.section === "employer" && (() => {
                 const employer = document.employerContributions.find((item) => item.id === editTarget.id);
@@ -903,6 +918,7 @@ export default function BuilderPage() {
         <button className="builder-modal-close" onClick={() => setPublishSheet(false)} aria-label="Close"><X /></button>
         <h2>{state.hasPublished ? "Publish your changes?" : "Your page is ready"}</h2>
         <p className="builder-publish-url"><span>{window.location.host}/portfolio/</span><b>{user?.username || "you"}</b></p>
+        <p>This publishes the cards you've marked accurate. You can add more after, to show range.</p>
         {document.projects.some((project) => project.status === "draft") && <p>{document.projects.filter((project) => project.status === "draft").length === 1 ? "1 card will stay off the live page." : `${document.projects.filter((project) => project.status === "draft").length} cards will stay off the live page.`}</p>}
         <ul>
           <li><Check /> <span><span className="builder-capitalize">{document.style}</span> design · {document.projects.filter((project) => project.status !== "draft").length} {document.projects.filter((project) => project.status !== "draft").length === 1 ? "example" : "examples"} of your work</span></li>

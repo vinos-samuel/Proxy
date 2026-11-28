@@ -97,7 +97,7 @@ function DetailGroup({ title, items }: { title: string; items: string[] }) {
   return <div><h4>{title}</h4><ul>{items.map((item) => <li key={item}>{item}</li>)}</ul></div>;
 }
 
-export default function ProfileDocumentView({ document, proposal, highlightProjectId = null, onAsk, onContact, onEdit }: Props) {
+export default function ProfileDocumentView({ document, proposal, publicMode = false, highlightProjectId = null, onAsk, onContact, onEdit }: Props) {
   const [openProject, setOpenProject] = useState<string | null>(null);
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [openEmployers, setOpenEmployers] = useState<string[]>([]);
@@ -185,7 +185,7 @@ export default function ProfileDocumentView({ document, proposal, highlightProje
     {(document.projects.length > 0 || onEdit) && <section className="proxy-page__section proxy-page__work" id="selected-work">
       <div className="proxy-page__section-heading">
         <div><p className="proxy-page__section-kicker">Evidence</p><h3>Selected work</h3></div>
-        <div className="proxy-page__section-actions"><p>Specific work. Clear contribution.</p>{onEdit && document.projects.length > 0 && <button type="button" onClick={() => onEdit("project")}><Plus aria-hidden="true" /> Add work</button>}</div>
+        <div className="proxy-page__section-actions"><p>{publicMode ? "Closed cards show the result, the role, and the skills. Open one for the story, or ask the page about it." : "Specific work. Clear contribution."}</p>{onEdit && document.projects.length > 0 && <button type="button" onClick={() => onEdit("project")}><Plus aria-hidden="true" /> Add work</button>}</div>
       </div>
       {document.projects.length === 0 ? <div className="proxy-page__empty"><p>Add one piece of work that shows how you make a difference.</p><button type="button" onClick={() => onEdit?.("project")}><Plus aria-hidden="true" /> Add selected work</button></div> : <>
         <div className="proxy-page__project-grid">{visibleProjects.map((project, index) => {

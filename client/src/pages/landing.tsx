@@ -16,6 +16,11 @@ import type { ProfileStyle } from "@shared/profile-document";
 // Demo account the hero widget mirrors. Kept as one constant so the widget
 // and the "see the full profile" link can never point at different accounts.
 const HERO_DEMO_USERNAME = "priya";
+
+function captureLandingCard() {
+  const posthog = (window as any).posthog;
+  if (posthog?.capture) posthog.capture("landing_work_cards_start");
+}
 const MAX_CV_BYTES = 5 * 1024 * 1024;
 
 interface HeroProfile {
@@ -294,7 +299,7 @@ export default function LandingPage() {
       {/* 2. How it works */}
       <section id="how" className="landing-section">
         <p className="site-eyebrow">How it works</p>
-        <h2 className="site-display landing-h2">Three steps. The first one takes a minute.</h2>
+        <h2 className="site-display landing-h2">Three steps. Your page is ready before any card.</h2>
         <ol className="landing-steps">
           <li>
             <span className="landing-step-n">1</span>
@@ -312,6 +317,24 @@ export default function LandingPage() {
             <p>No hosting or domain to set up. Put it in your email signature, on LinkedIn, or send the page with your CV and a referral ask.</p>
           </li>
         </ol>
+      </section>
+
+      <section className="landing-section" id="work-cards">
+        <p className="site-eyebrow">Work cards</p>
+        <h2 className="site-display landing-h2">Show how you work, not just where you've worked.</h2>
+        <p className="landing-sub">A CV is easy to skim. A card is a short story of a problem you solved, written once, in your words.</p>
+        <div className="landing-card-points">
+          <article className="site-card"><h3>A CV says where. A card shows how.</h3><p>A CV lists employers and dates. A card is the problem, what you did, and what changed.</p></article>
+          <article className="site-card"><h3>Write the story once.</h3><p>You write it in your own words and mark it accurate. The page and the chat use only that.</p></article>
+          <article className="site-card"><h3>Start with one card.</h3><p>One real piece of work is enough. Add more later if you want to show range.</p></article>
+        </div>
+        <ol className="landing-steps">
+          <li><span className="landing-step-n">1</span><h3>Pick one piece of work</h3><p>Choose something real from the CV page, or add your own.</p></li>
+          <li><span className="landing-step-n">2</span><h3>Tell the story</h3><p>The problem, what you did, what changed, and one sentence on what you would do differently.</p></li>
+          <li><span className="landing-step-n">3</span><h3>Mark it accurate, then publish</h3><p>Only cards you mark accurate go on the live page.</p></li>
+        </ol>
+        <p><Link href="/try" className="site-btn" onClick={() => captureLandingCard()}>Start with one card</Link></p>
+        <p className="landing-trust">Nothing goes public until you publish.</p>
       </section>
 
       {/* 3. Designs */}

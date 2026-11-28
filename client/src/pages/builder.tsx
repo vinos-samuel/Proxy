@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { ArrowDown, ArrowLeft, ArrowUp, Check, ChevronRight, Eye, Loader2, Menu, MessageCircle, Mic, Plus, RotateCcw, Send, Sparkles, Trash2, Upload, X } from "lucide-react";
 import type { ImprovementQuestion, ProfileDocument, ProfileStyle } from "@shared/profile-document";
-import { markProjectAccurate, normalizeProfileDocument } from "@shared/profile-document";
+import { cardsForHowIWork, markProjectAccurate, normalizeProfileDocument } from "@shared/profile-document";
 import ProfileDocumentView from "@/components/profile-document-view";
 import PaymentGate from "@/components/PaymentGate";
 import ProxyLogo from "@/components/ProxyLogo";
@@ -804,12 +804,12 @@ export default function BuilderPage() {
                 <button className="builder-add" disabled={document.impactStats.length >= 6} onClick={() => saveDocument({ ...document, impactStats: [...document.impactStats, { id: `stat-${Date.now()}`, label: "", value: "" }] })}><Plus /> Add a number</button>
               </>}
               {editTarget.section === "howIWork" && (() => {
-                const eligibleProjects = document.projects.filter((project) => [project.challenge, project.contribution, project.outcome].some((value) => Boolean(value && value.trim().length >= 10))).length;
+                const eligibleProjects = cardsForHowIWork(document).length;
                 return <fieldset>
                   <legend>My approach</legend>
-                  <p className="builder-private-note">Shown on your public page as "My approach." Written from your own answered project questions in Improve — never an invented framework. Needs at least 2 answered projects; you have {eligibleProjects}.</p>
+                  <p className="builder-private-note">Shown on your public page as "My approach." Written from your own answered project questions in Improve — never an invented framework. Needs 2 cards you have marked accurate (cards from before this update still count). You have {eligibleProjects}.</p>
                   <textarea value={document.howIWork || ""} maxLength={900} placeholder="Generate a first draft, or write your own." onChange={(event) => { const value = event.target.value; editLocal((current) => ({ ...current, howIWork: value })); }} onBlur={saveCurrent} />
-                  <button className="builder-add" disabled={Boolean(busy) || eligibleProjects < 2} onClick={async () => { const result = await mutate<{ document: ProfileDocument; revision: number }>("how-i-work", "/api/builder/synthesize-how-i-work", { revision }); if (result) capture("builder_how_i_work_generated"); }}>{busy === "how-i-work" ? <Loader2 className="animate-spin" /> : <Sparkles />} {document.howIWork ? "Regenerate" : "Generate a draft"}</button>
+                  <button className="builder-add" disabled={Boolean(busy) || eligibleProjects < 2} onClick={async () => { if (document.howIWork && !window.confirm("Replace your current My approach paragraph?")) return; const result = await mutate<{ document: ProfileDocument; revision: number }>("how-i-work", "/api/builder/synthesize-how-i-work", { revision }); if (result) capture("builder_how_i_work_generated"); }}>{busy === "how-i-work" ? <Loader2 className="animate-spin" /> : <Sparkles />} {document.howIWork ? "Regenerate" : "Generate a draft"}</button>
                 </fieldset>;
               })()}
               {editTarget.section === "projects" && <>

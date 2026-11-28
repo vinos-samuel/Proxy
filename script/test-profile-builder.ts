@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { applyProposal, conciseHeadline, getImprovementCandidates, getPublicationAccess, undoLastChange } from "../server/profile-builder";
+import { applyProposal, buildProfileDocument, conciseHeadline, getImprovementCandidates, getPublicationAccess, undoLastChange } from "../server/profile-builder";
 import { cardsForHowIWork, closedCardLines, markProjectAccurate, profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, workTitleFromText, type ProfileDocument } from "../shared/profile-document";
 import { mergeProfileDocuments, setDocumentPath } from "../client/src/lib/profile-document-merge";
 import { hasConfirmedPro, hasJobSearchAccess, recentQuestionsForPlan, JOB_SEARCH_TRIAL_MS } from "../shared/plan-access";
 import { cardIdFromAnswer, rewriteWithoutNewNumbers, ungroundedNumbers } from "../shared/answer-grounding";
+import { sanitizeChatAnswer } from "../server/chat-sanitize";
 import { PRIYA_PAGE_FACTS, PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "../shared/priya-reviewed-answers";
 import { guestDraftTtlMs, GUEST_DRAFT_TTL_MS, GUEST_DRAFT_EMAIL_TTL_MS } from "../shared/guest-draft";
 
@@ -238,8 +239,52 @@ const checks: Array<[string, () => void]> = [
     ] });
     assert.deepEqual(cardsForHowIWork(value).map((project) => project.id), ["c"]);
   }],
+  ["a great-question opener does not leave a broken sentence", () => {
+    assert.equal(sanitizeChatAnswer("That's a great question, but it's not covered here. Reach out directly."), "But it's not covered here. Reach out directly.");
+    assert.equal(sanitizeChatAnswer("Great question. I led the migration for 40,000 accounts."), "I led the migration for 40,000 accounts.");
+    assert.equal(sanitizeChatAnswer("I led the migration. Great question to ask next time."), "I led the migration. Great question to ask next time.");
+  }],
   ["a decimal does not cut a work title short", () => {
     assert.equal(workTitleFromText("Cut average settlement turnaround from 3.2 days to 1.1 days by redesigning the exceptions queue"), "Cut average settlement turnaround from 3.2 days to 1.1 days by redesigning");
+  }],
+  ["numbered role lines become draft case cards when achievements are empty", () => {
+    const document = buildProfileDocument({
+      name: "Priya Nair",
+      currentTitle: "Head of Operations",
+      roles: [
+        {
+          title: "Head of Operations, APAC",
+          company: "Meridian Trust Bank",
+          years: "2019 - Present",
+          achievements: "Run a 140-person operations team across 3 countries\nCut average settlement turnaround from 3.2 days to 1.1 days\nReduced operating cost per transaction by 22% over 3 years\nLed the core banking migration for 40,000 accounts with zero downtime",
+        },
+        {
+          title: "Operations Manager",
+          company: "Straits Fund Services",
+          years: "2010 - 2015",
+          achievements: "Managed fund administration for a $2.1B AUM book",
+        },
+      ],
+      achievements: [],
+    }, { positioning: "I run regional operations.", heroSubtitle: "Head of Operations", stats: [], careerTimeline: [] });
+    assert.equal(document.projects.length, 3);
+    assert.deepEqual(document.projects.map((project) => project.status), ["draft", "draft", "draft"]);
+    assert.equal(document.projects[0].title, "Cut average settlement turnaround from 3.2 days to 1.1 days");
+    assert.match(document.projects[2].outcome || "", /40,000 accounts/);
+    assert.equal(document.projects.some((project) => /140-person/.test(project.outcome || "")), false);
+    assert.equal(document.projects.some((project) => project.outcome?.includes("2.1B")), false);
+    assert.equal(document.sources.filter((source) => source.label === "CV achievement").length, 3);
+    assert.equal(document.experience.length, 2);
+  }],
+  ["an achievements list still builds cards without marking them draft", () => {
+    const document = buildProfileDocument({
+      name: "Priya Nair",
+      currentTitle: "Head of Operations",
+      roles: [{ title: "Head of Operations", company: "Meridian", years: "2019 - Present", achievements: "Run the team" }],
+      achievements: ["Led the core banking migration for 40,000 accounts with zero downtime"],
+    }, { positioning: "I run regional operations.", heroSubtitle: "Head of Operations", stats: [], careerTimeline: [] });
+    assert.equal(document.projects.length, 1);
+    assert.equal(document.projects[0].status, undefined);
   }],
   ["a closed card leads with the outcome, role, and its own skills", () => {
     const lines = closedCardLines({ outcome: "The handover got calmer.", summary: "A long CV bullet that should not lead.", role: "Program lead", company: "Example Co", skills: ["One", "Two", "Three", "Four", "Five"] });

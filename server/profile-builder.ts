@@ -76,6 +76,41 @@ function normalizeEmail(value: string | undefined): string | null {
   return value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? value : null;
 }
 
+function roleAchievementLines(achievements: string | string[] | undefined): string[] {
+  const values = Array.isArray(achievements) ? achievements : [achievements || ""];
+  return values.flatMap((value) => cleanLines(value));
+}
+
+// A headcount or book-size line is the job. A case card needs a result:
+// a before-and-after, a percentage, or a change verb next to a number.
+function isOutcomeLine(line: string): boolean {
+  if (line.length < 24 || !/\d/.test(line)) return false;
+  if (/\bfrom\b.+\bto\b/i.test(line) || /%/.test(line)) return true;
+  return /\b(cut|reduc|increas|grew|grow|led|built|launch|introduc|migrat|deliver|improv|decreas|lower|shorten|saved|save)\b/i.test(line);
+}
+
+// Selected work is an achievement, not the first bullet of every job.
+// When the parser leaves the achievements list empty, use outcome lines
+// already written under a role. Those cards stay drafts until the
+// candidate marks them accurate.
+export function selectedAchievementStatements(parsed: ParsedResume): { statements: string[]; inferred: boolean } {
+  const explicit = (parsed.achievements || []).map((item) => item.trim()).filter((item) => item.length >= 12);
+  if (explicit.length) return { statements: explicit, inferred: false };
+  const statements: string[] = [];
+  const seen = new Set<string>();
+  for (const role of parsed.roles || []) {
+    for (const line of roleAchievementLines(role.achievements)) {
+      if (!isOutcomeLine(line)) continue;
+      const key = line.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      statements.push(line);
+      if (statements.length === 10) return { statements, inferred: true };
+    }
+  }
+  return { statements, inferred: statements.length > 0 };
+}
+
 export function buildProfileDocument(parsed: ParsedResume, preview: Preview): ProfileDocument {
   const positioningParts = (preview.positioning || parsed.summary || "")
     .split(/\n\s*\n/)
@@ -107,7 +142,8 @@ export function buildProfileDocument(parsed: ParsedResume, preview: Preview): Pr
     };
   });
 
-  (parsed.achievements || []).slice(0, 10).forEach((achievement, index) => {
+  const selected = selectedAchievementStatements(parsed);
+  selected.statements.slice(0, 10).forEach((achievement, index) => {
     sources.push({
       id: stableId("resume-achievement", index),
       kind: "resume",
@@ -137,9 +173,10 @@ export function buildProfileDocument(parsed: ParsedResume, preview: Preview): Pr
     .filter((employer) => employer.company && employer.contributions.length);
 
   // A role description is experience, not automatically a project. Start
-  // selected work only from explicitly extracted achievement statements and
-  // leave company/role attribution unspecified until the owner confirms it.
-  const projects: ProfileDocument["projects"] = (parsed.achievements || []).slice(0, 3).map((achievement, index) => {
+  // selected work from achievement statements. If the parser only put those
+  // statements under a role, the numbered lines become draft cards. Company
+  // stays unset until the owner confirms it.
+  const projects: ProfileDocument["projects"] = selected.statements.slice(0, 3).map((achievement, index) => {
     const clean = achievement.trim().slice(0, 900);
     const title = workTitleFromText(clean);
     return {
@@ -147,6 +184,7 @@ export function buildProfileDocument(parsed: ParsedResume, preview: Preview): Pr
       title: title.slice(0, 180) || `Selected work ${index + 1}`,
       summary: clean.slice(0, 500),
       outcome: clean,
+      ...(selected.inferred ? { status: "draft" as const } : {}),
       sourceIds: [stableId("resume-achievement", index)],
     };
   });

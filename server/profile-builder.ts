@@ -504,6 +504,9 @@ export function applyProposal(document: ProfileDocument, proposal: ImprovementPr
       if (field === "outcome" && !project.evidenceNote?.trim()) {
         project.evidenceNote = proposal.answer.trim().slice(0, 900);
       }
+      // A kept change is not public until the candidate marks this card accurate.
+      project.status = "draft";
+      delete project.approvedAt;
       project.sourceIds = Array.from(new Set([...project.sourceIds, answerSourceId]));
     }
   }

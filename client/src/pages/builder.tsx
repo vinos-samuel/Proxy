@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { ArrowDown, ArrowLeft, ArrowUp, Check, ChevronRight, Eye, Loader2, Menu, MessageCircle, Mic, Plus, RotateCcw, Send, Sparkles, Trash2, Upload, X } from "lucide-react";
 import type { ImprovementQuestion, ProfileDocument, ProfileStyle } from "@shared/profile-document";
-import { normalizeProfileDocument } from "@shared/profile-document";
+import { markProjectAccurate, normalizeProfileDocument } from "@shared/profile-document";
 import ProfileDocumentView from "@/components/profile-document-view";
 import PaymentGate from "@/components/PaymentGate";
 import ProxyLogo from "@/components/ProxyLogo";
@@ -402,7 +402,7 @@ export default function BuilderPage() {
     const current = stateRef.current.document;
     if (!current || current.projects.length >= 8) return;
     const id = `project-${Date.now().toString(36)}`;
-    const project: ProfileDocument["projects"][number] = { id, title: "New selected work", summary: "", sourceIds: [] };
+    const project: ProfileDocument["projects"][number] = { id, title: "New selected work", summary: "", status: "draft", sourceIds: [] };
     const next = {
       ...current,
       projects: [...current.projects, project],
@@ -423,6 +423,7 @@ export default function BuilderPage() {
       id,
       title: firstClause.split(/\s+/).slice(0, 12).join(" ").slice(0, 180) || "Work from my CV",
       summary: source.excerpt.slice(0, 500),
+      status: "draft",
       sourceIds: [source.id],
     };
     const next = {
@@ -821,7 +822,7 @@ export default function BuilderPage() {
                   return <div><p>Or use something from your CV</p>{suggestions.map((source) => <button key={source.id} type="button" onClick={() => addProjectFromSource(source.id)}><span>{source.excerpt}</span><Plus /></button>)}</div>;
                 })()}</div>
               </>}
-              {editTarget.section === "project" && (() => { const project = document.projects.find((item) => item.id === editTarget.id); if (!project) return null; return <fieldset><legend>{project.title}</legend>{(["title", "company", "summary", "challenge", "contribution", "outcome"] as const).map((field) => <label key={field}><span>{field === "title" ? "Title" : field === "company" ? "Company or client (optional)" : field === "summary" ? "Short card summary" : field === "challenge" ? "What was happening?" : field === "contribution" ? "What did you do?" : "What changed?"}</span>{field === "title" || field === "company" ? <input value={project[field] || ""} onChange={(event) => updateProject(project.id, { [field]: event.target.value })} onBlur={saveCurrent} /> : <textarea value={project[field] || ""} onChange={(event) => updateProject(project.id, { [field]: event.target.value })} onBlur={saveCurrent} />}</label>)}<div className="builder-item-actions"><button onClick={() => moveProject(project.id, -1)}><ArrowUp /> Move up</button><button onClick={() => moveProject(project.id, 1)}><ArrowDown /> Move down</button><button className="danger" onClick={() => removeProject(project.id)}><Trash2 /> Remove</button></div></fieldset>; })()}
+              {editTarget.section === "project" && (() => { const project = document.projects.find((item) => item.id === editTarget.id); if (!project) return null; const statusLine = project.status === "draft" ? "Draft, not on your live page" : project.status === "approved" ? "Marked accurate" : "Shown on your page"; return <fieldset><legend>{project.title}</legend><p className="builder-private-note">{statusLine}</p>{(["title", "company", "summary", "challenge", "contribution", "outcome"] as const).map((field) => <label key={field}><span>{field === "title" ? "Title" : field === "company" ? "Company or client (optional)" : field === "summary" ? "Short card summary" : field === "challenge" ? "What was happening?" : field === "contribution" ? "What did you do?" : "What changed?"}</span>{field === "title" || field === "company" ? <input value={project[field] || ""} onChange={(event) => updateProject(project.id, { [field]: event.target.value })} onBlur={saveCurrent} /> : <textarea value={project[field] || ""} onChange={(event) => updateProject(project.id, { [field]: event.target.value })} onBlur={saveCurrent} />}</label>)}<div className="builder-item-actions"><button type="button" disabled={!project.title.trim() || Boolean(proposal) || Boolean(busy)} onClick={() => { const current = stateRef.current.document; if (!current || !project.title.trim()) return; void saveDocument(markProjectAccurate(current, project.id, new Date().toISOString())); }}>This card is accurate</button><button onClick={() => moveProject(project.id, -1)}><ArrowUp /> Move up</button><button onClick={() => moveProject(project.id, 1)}><ArrowDown /> Move down</button><button className="danger" onClick={() => removeProject(project.id)}><Trash2 /> Remove</button></div></fieldset>; })()}
               {editTarget.section === "experience" && <><div className="builder-editor-heading"><h2>Experience</h2><p>Every role, bullet, and employer-level contribution remains available on every design.</p></div><div className="builder-section-list">{document.employerContributions.map((employer) => <button key={employer.id} onClick={() => setEditTarget({ section: "employer", id: employer.id })}><span><b>{employer.company} · selected contributions</b><small>{employer.contributions.length} items not assigned to one role</small></span><ChevronRight /></button>)}{document.experience.map((role) => <button key={role.id} onClick={() => setEditTarget({ section: "role", id: role.id })}><span><b>{role.title}</b><small>{role.company} · {role.period}</small></span><ChevronRight /></button>)}</div></>}
               {editTarget.section === "employer" && (() => {
                 const employer = document.employerContributions.find((item) => item.id === editTarget.id);
@@ -903,8 +904,9 @@ export default function BuilderPage() {
         <button className="builder-modal-close" onClick={() => setPublishSheet(false)} aria-label="Close"><X /></button>
         <h2>{state.hasPublished ? "Publish your changes?" : "Your page is ready"}</h2>
         <p className="builder-publish-url"><span>{window.location.host}/portfolio/</span><b>{user?.username || "you"}</b></p>
+        {document.projects.some((project) => project.status === "draft") && <p>{document.projects.filter((project) => project.status === "draft").length === 1 ? "1 card will stay off the live page." : `${document.projects.filter((project) => project.status === "draft").length} cards will stay off the live page.`}</p>}
         <ul>
-          <li><Check /> <span><span className="builder-capitalize">{document.style}</span> design · {document.projects.length} {document.projects.length === 1 ? "example" : "examples"} of your work</span></li>
+          <li><Check /> <span><span className="builder-capitalize">{document.style}</span> design · {document.projects.filter((project) => project.status !== "draft").length} {document.projects.filter((project) => project.status !== "draft").length === 1 ? "example" : "examples"} of your work</span></li>
           <li>{document.publicBotEnabled ? <Check /> : <X />} <span>"Ask about my work" is {document.publicBotEnabled ? "on" : "off"}</span><button type="button" className="builder-text-button" onClick={() => { setPublishSheet(false); setPanel("settings"); setMobilePanel(true); }}>Change</button></li>
           <li>{[document.contact.showEmail && "Email", document.contact.showLinkedin && "LinkedIn", document.contact.showWebsite && "Website"].some(Boolean) ? <Check /> : <X />} <span>{(() => { const shown = [document.contact.showEmail && document.contact.email && "email", document.contact.showLinkedin && document.contact.linkedin && "LinkedIn", document.contact.showWebsite && document.contact.website && "website"].filter(Boolean); return shown.length ? `Visitors can reach you by ${shown.join(" and ")}` : "No contact details shown"; })()}</span><button type="button" className="builder-text-button" onClick={() => { setPublishSheet(false); setPanel("settings"); setMobilePanel(true); }}>Change</button></li>
         </ul>

@@ -296,6 +296,15 @@ export function toPublicProfileDocument(document: ProfileDocument): ProfileDocum
   };
 }
 
+export function markProjectAccurate(document: ProfileDocument, projectId: string, approvedAt: string): ProfileDocument {
+  return {
+    ...document,
+    projects: document.projects.map((project) => project.id === projectId
+      ? { ...project, status: "approved", approvedAt: approvedAt.slice(0, 40) }
+      : project),
+  };
+}
+
 export function selectPublicProfileDocument(
   row: { activeDocument?: unknown | null; publishedDocument?: unknown | null } | null | undefined,
 ): ProfileDocument | null {

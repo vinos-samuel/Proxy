@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { applyProposal, conciseHeadline, getImprovementCandidates, getPublicationAccess, undoLastChange } from "../server/profile-builder";
-import { profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, type ProfileDocument } from "../shared/profile-document";
+import { markProjectAccurate, profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, type ProfileDocument } from "../shared/profile-document";
 import { mergeProfileDocuments, setDocumentPath } from "../client/src/lib/profile-document-merge";
 import { hasConfirmedPro, hasJobSearchAccess, recentQuestionsForPlan, JOB_SEARCH_TRIAL_MS } from "../shared/plan-access";
 import { rewriteWithoutNewNumbers, ungroundedNumbers } from "../shared/answer-grounding";
@@ -194,6 +194,42 @@ const checks: Array<[string, () => void]> = [
   ["a rewrite cannot add a number the person did not say", () => {
     assert.equal(rewriteWithoutNewNumbers("it got faster", "cut cycle time by 30%"), "it got faster");
     assert.equal(rewriteWithoutNewNumbers("it fell 18%", "Cycle time fell 18%."), "Cycle time fell 18%.");
+  }],
+  ["keeping an outcome marks that card as a draft", () => {
+    const value = page();
+    value.projects[0].status = "approved";
+    value.projects[0].approvedAt = "2026-11-28T00:00:00.000Z";
+    const next = applyProposal(value, { id: "p-draft", questionId: "project:project-1:outcome", section: "project", targetId: "project-1", field: "outcome", question: "What changed?", answer: "Fewer delays", before: "", proposed: "Delivery became more reliable.", baseRevision: 1 });
+    assert.equal(next.projects[0].status, "draft");
+    assert.equal(next.projects[0].approvedAt, undefined);
+    assert.equal(next.projects[0].outcome, "Delivery became more reliable.");
+  }],
+  ["a publish keeps approved and unmarked cards and drops the draft", () => {
+    const value = page({ projects: [
+      { id: "approved", title: "Approved work", outcome: "The handover got calmer.", status: "approved", sourceIds: ["resume-role-1"] },
+      { id: "draft", title: "Draft work", outcome: "This one is not ready to show.", status: "draft", sourceIds: ["resume-role-1"] },
+      { id: "legacy", title: "Older work", outcome: "This card has no new mark.", sourceIds: ["resume-role-1"] },
+    ] });
+    assert.deepEqual(toPublicProfileDocument(value).projects.map((project) => project.id), ["approved", "legacy"]);
+  }],
+  ["the live snapshot hides a draft from visitors and chat", () => {
+    const value = page();
+    value.projects[0].status = "draft";
+    value.projects[0].outcome = "Delivery became reliable for the region.";
+    value.projects.push({ id: "kept", title: "Shown work", contribution: "Led the redesign.", sourceIds: ["resume-role-1"] });
+    const live = selectPublicProfileDocument({ activeDocument: value, publishedDocument: value });
+    assert.equal(live?.projects.some((project) => project.id === "project-1"), false);
+    assert.equal(live?.projects.some((project) => project.id === "kept"), true);
+  }],
+  ["marking a card accurate does not publish it by itself", () => {
+    const value = page();
+    value.projects[0].status = "draft";
+    value.projects[0].outcome = "Delivery became reliable for the region.";
+    const next = markProjectAccurate(value, "project-1", "2026-11-28T12:00:00.000Z");
+    assert.equal(next.projects[0].status, "approved");
+    assert.equal(next.projects[0].approvedAt, "2026-11-28T12:00:00.000Z");
+    assert.equal(selectPublicProfileDocument({ activeDocument: null, publishedDocument: next }), null);
+    assert.equal(toPublicProfileDocument(next).projects[0].id, "project-1");
   }],
   ["keeping an outcome stores the candidate's words once", () => {
     const value = page();

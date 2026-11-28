@@ -15,6 +15,7 @@ import { useSpeechInput } from "@/hooks/use-speech-input";
 import { renderAnswer } from "@/lib/renderAnswer";
 import { takePendingCvUpload } from "@/lib/pending-cv-upload";
 import { PRO_BUTTON_LABEL, PRO_FEATURES, PRO_FOR } from "@/lib/pro-plan";
+import { canPublishNow, draftCheckLabel, OPTIONAL_INTERVIEW_LABEL, publishGuardTitle } from "@shared/builder-entry";
 
 type BuilderState = {
   document?: ProfileDocument;
@@ -169,6 +170,9 @@ export default function BuilderPage() {
       const requestedStyle = new URLSearchParams(window.location.search).get("style");
       const style: ProfileStyle = requestedStyle === "executive" || requestedStyle === "editorial" || requestedStyle === "modern" || requestedStyle === "expressive" ? requestedStyle : "executive";
       const fixtureDocument = visualProfileFixture(style);
+      if (new URLSearchParams(window.location.search).get("drafts") === "1") {
+        fixtureDocument.projects = fixtureDocument.projects.map((project, index) => index < 3 ? { ...project, status: "draft" } : project);
+      }
       acknowledgedDocumentRef.current = fixtureDocument;
       stateRef.current = { document: fixtureDocument, revision: 1, source: "guest", hasPublished: false };
       setState(stateRef.current);
@@ -505,10 +509,19 @@ export default function BuilderPage() {
     }
   };
 
+  const approveDraft = (projectId: string) => {
+    const current = stateRef.current.document;
+    if (!current || current.pendingProposal || busy) return;
+    capture("builder_card_marked_accurate");
+    void saveDocument(markProjectAccurate(current, projectId, new Date().toISOString()));
+  };
+
   // One Publish action. The server still requires an approval step before
   // publishing (so a stale tab can't publish the wrong version); the sheet
   // runs approve then publish back to back instead of asking for two clicks.
   const openPublish = () => {
+    const currentDocument = stateRef.current.document;
+    if (!canPublishNow({ dirty, busy: Boolean(busy), openSuggestion: Boolean(currentDocument?.pendingProposal) })) return;
     if (!stateRef.current.revision || (!user && !fixtureMode)) {
       sessionStorage.setItem("proxy_builder_return", "1");
       setLocation("/register");
@@ -700,23 +713,45 @@ export default function BuilderPage() {
   }
 
   const proposal = document.pendingProposal;
-  if (previewMode) return <main className="builder-preview-mode"><header><button type="button" onClick={() => setPreviewMode(false)}><ArrowLeft /> Back to editing</button><span>Visitor preview · not published</span></header><ProfileDocumentView document={document} proposal={proposal} onAsk={document.publicBotEnabled ? () => setTestChat(true) : undefined} /></main>;
+  const draftsLabel = draftCheckLabel(document.projects.filter((project) => project.status === "draft").length);
+  const pageView = (
+    <ProfileDocumentView
+      document={document}
+      proposal={proposal}
+      onAsk={document.publicBotEnabled ? () => setTestChat(true) : undefined}
+      onApprove={approveDraft}
+      approveDisabled={Boolean(proposal) || Boolean(busy)}
+      onEdit={(section, id) => {
+        setPreviewMode(false);
+        setPanel("edit");
+        if (section === "project" && !id) setEditTarget({ section: "projects" });
+        else if (section === "impactStats" || section === "howIWork") setEditTarget({ section });
+        else setEditTarget({ section: section === "introduction" ? "introduction" : section === "project" ? "project" : section === "experience" ? (document.employerContributions.some((item) => item.id === id) ? "employer" : "role") : section === "details" ? "details" : "skills", id });
+        setMobilePanel(true);
+      }}
+    />
+  );
+  if (previewMode) return <main className="builder-preview-mode"><header><button type="button" onClick={() => setPreviewMode(false)}><ArrowLeft /> Back to editing</button><span>Visitor preview · not published</span></header>{pageView}</main>;
   return (
     <main className="builder-shell">
       <header className="builder-topbar">
         <Link href={user ? "/dashboard" : "/"} className="builder-back"><ArrowLeft /> <span>Proxy</span></Link>
-        <div><span className={`builder-save-state ${error ? "is-error" : ""}`}>{busy === "save" ? "Saving…" : error && dirty ? "Save failed" : dirty ? "Unsaved changes" : "All changes saved"}</span><button className="builder-topbar-action" disabled={dirty || Boolean(busy)} onClick={() => setPreviewMode(true)}><Eye /> Preview</button><button className="builder-topbar-publish" disabled={dirty || Boolean(busy) || Boolean(proposal)} title={proposal ? "Keep or skip the suggested change first" : undefined} onClick={openPublish}>{state.hasPublished ? "Publish changes" : "Publish"}</button><button className="builder-menu" onClick={() => setMobilePanel(true)} aria-label="Open editing panel"><Menu /></button></div>
+        <div><span className={`builder-save-state ${error ? "is-error" : ""}`}>{busy === "save" ? "Saving…" : error && dirty ? "Save failed" : dirty ? "Unsaved changes" : "All changes saved"}</span><button className="builder-topbar-action" disabled={dirty || Boolean(busy)} onClick={() => setPreviewMode(true)}><Eye /> Preview</button>{draftsLabel && <span className="builder-draft-count">{draftsLabel}</span>}<button className="builder-topbar-publish" disabled={!canPublishNow({ dirty, busy: Boolean(busy), openSuggestion: Boolean(proposal) })} title={publishGuardTitle(Boolean(proposal))} onClick={openPublish}>{state.hasPublished ? "Publish changes" : "Publish"}</button><button className="builder-menu" onClick={() => setMobilePanel(true)} aria-label="Open editing panel"><Menu /></button></div>
       </header>
       <div className="builder-workspace">
-        <section className="builder-canvas" aria-label="Page preview">
+        <section className="builder-canvas" aria-label="Page preview" data-testid="builder-page-preview">
+          {!state.hasPublished && <div className="builder-ready">
+            <div>
+              <b>Your page is ready</b>
+              <p>{proposal ? "Keep or skip the suggested change before you publish." : "Publish it now. The questions beside it are optional."}</p>
+            </div>
+            <div className="builder-ready-actions">
+              {draftsLabel && <span className="builder-draft-count" data-testid="draft-check-count">{draftsLabel}</span>}
+              <button type="button" className="builder-ready-publish" data-testid="button-publish-preview" disabled={!canPublishNow({ dirty, busy: Boolean(busy), openSuggestion: Boolean(proposal) })} title={publishGuardTitle(Boolean(proposal))} onClick={openPublish}>Publish</button>
+            </div>
+          </div>}
           <div className="builder-browser"><span /><span /><span /><small>{window.location.host}/portfolio/{user?.username || "your-name"}</small></div>
-          <ProfileDocumentView document={document} proposal={proposal} onAsk={document.publicBotEnabled ? () => setTestChat(true) : undefined} onEdit={(section, id) => {
-            setPanel("edit");
-            if (section === "project" && !id) setEditTarget({ section: "projects" });
-            else if (section === "impactStats" || section === "howIWork") setEditTarget({ section });
-            else setEditTarget({ section: section === "introduction" ? "introduction" : section === "project" ? "project" : section === "experience" ? (document.employerContributions.some((item) => item.id === id) ? "employer" : "role") : section === "details" ? "details" : "skills", id });
-            setMobilePanel(true);
-          }} />
+          {pageView}
         </section>
 
         <aside className={`builder-panel ${mobilePanel ? "builder-panel--open" : ""}`}>
@@ -754,7 +789,11 @@ export default function BuilderPage() {
             {state.hasPublished && approvedCardCount === 0 && <div className="builder-adopt" data-testid="prompt-first-card"><b>Start with one card, in one short sitting.</b><p>Pick a real piece of work, not a polished slogan.</p><button type="button" onClick={() => { capture("builder_first_card_prompt_clicked"); setPanel("edit"); setEditTarget({ section: "projects" }); }}>Add your first card</button></div>}
             {approvedCardCount > 0 && approvedCardCount < 3 && <div className="builder-adopt"><b>That's one story on your page.</b><p>Add 3 cards to show range.</p></div>}
             {panel === "improve" && <>
-              <div className="builder-conversation-controls"><p className="builder-panel-subtitle">A card is one story of how you solved something — the kind of thing a hiring manager asks in an interview. You review the change before it's added.</p><button type="button" onClick={() => setChoosingTopic((value) => !value)}>Other topics <ChevronRight /></button></div>
+              <div className="builder-optional" data-testid="optional-interview">
+                <h2>{OPTIONAL_INTERVIEW_LABEL}</h2>
+                <p className="builder-panel-subtitle">Answer a question if you want. You review any change before it is added. Your page can publish without this.</p>
+              </div>
+              <div className="builder-conversation-controls"><button type="button" onClick={() => setChoosingTopic((value) => !value)}>Other topics <ChevronRight /></button></div>
               {!document.publicBotEnabled && <button type="button" className="builder-text-button builder-bot-off" onClick={() => setPanel("settings")}>"Ask about my work" is off. Turn it on in Settings</button>}
               {choosingTopic && <div className="builder-topic-picker">{([
                 ["all", "Best next question"], ["work", "Selected work"], ["experience", "Career experience"], ["about", "Working style and direction"],
@@ -905,7 +944,7 @@ export default function BuilderPage() {
           </div>
           <footer>
             {document.undoStack.length > 0 && <button className="builder-undo" disabled={Boolean(busy)} onClick={() => mutate("undo", "/api/builder/undo", { revision })}><RotateCcw /> Undo last change</button>}
-            <button className="builder-primary" disabled={Boolean(busy) || Boolean(proposal) || dirty} onClick={() => { setMobilePanel(false); openPublish(); }}><Check /> {state.hasPublished ? "Publish changes" : "Publish"}</button>
+            <button className="builder-primary" disabled={!canPublishNow({ dirty, busy: Boolean(busy), openSuggestion: Boolean(proposal) })} title={publishGuardTitle(Boolean(proposal))} onClick={() => { setMobilePanel(false); openPublish(); }}><Check /> {state.hasPublished ? "Publish changes" : "Publish"}</button>
             {!user && <Link className="builder-sign-in" href="/login?next=/builder">Already have an account? Sign in</Link>}
           </footer>
         </aside>

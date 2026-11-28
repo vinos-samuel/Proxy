@@ -7,6 +7,7 @@ import { cardIdFromAnswer, retainStatedGoals, retainStatedSetbacks, retainSuppor
 import { sanitizeChatAnswer } from "../server/chat-sanitize";
 import { PRIYA_PAGE_FACTS, PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "../shared/priya-reviewed-answers";
 import { guestDraftTtlMs, GUEST_DRAFT_TTL_MS, GUEST_DRAFT_EMAIL_TTL_MS } from "../shared/guest-draft";
+import { canPublishNow, draftCardHighlight, draftCheckLabel, landingAfterUpload, OPTIONAL_INTERVIEW_LABEL, publishGuardTitle } from "../shared/builder-entry";
 
 function page(overrides: Partial<ProfileDocument> = {}): ProfileDocument {
   return profileDocumentSchema.parse({
@@ -322,6 +323,52 @@ const checks: Array<[string, () => void]> = [
       retainStatedGoals("What do you want to do next?", "I want to build an operations team in a new market.", "Career goal: I want to build an operations team in a new market."),
       "I want to build an operations team in a new market.",
     );
+  }],
+  ["after upload the builder opens on the page, with questions optional", () => {
+    const landing = landingAfterUpload();
+    assert.equal(landing.focus, "preview");
+    assert.equal(landing.interviewVisible, true);
+    assert.equal(landing.interviewLabel, "Make it stronger (optional)");
+    assert.equal(OPTIONAL_INTERVIEW_LABEL, landing.interviewLabel);
+  }],
+  ["an open suggestion still blocks publish", () => {
+    assert.equal(canPublishNow({ dirty: false, busy: false, openSuggestion: false }), true);
+    assert.equal(canPublishNow({ dirty: true, busy: false, openSuggestion: false }), false);
+    assert.equal(canPublishNow({ dirty: false, busy: true, openSuggestion: false }), false);
+    assert.equal(canPublishNow({ dirty: false, busy: false, openSuggestion: true }), false);
+    assert.equal(publishGuardTitle(true), "Keep or skip the suggested change first");
+    assert.equal(publishGuardTitle(false), undefined);
+  }],
+  ["opening on the preview still hides a draft card", () => {
+    assert.equal(landingAfterUpload().focus, "preview");
+    const value = page();
+    value.projects[0].status = "draft";
+    assert.equal(toPublicProfileDocument(value).projects.some((project) => project.id === "project-1"), false);
+  }],
+  ["a draft card is highlighted in the builder and absent on the public page", () => {
+    const value = page();
+    value.projects[0].status = "draft";
+    value.projects[0].outcome = "Delivery became reliable for the region.";
+    const highlight = draftCardHighlight(value.projects[0].status);
+    assert.equal(highlight.highlighted, true);
+    assert.equal(highlight.badge, "Draft — check and approve");
+    assert.equal(draftCardHighlight("approved").highlighted, false);
+    assert.equal(draftCardHighlight(undefined).badge, null);
+    assert.equal(toPublicProfileDocument(value).projects.some((project) => project.id === "project-1"), false);
+    assert.equal(draftCheckLabel(3), "3 drafts to check");
+    assert.equal(draftCheckLabel(1), "1 draft to check");
+    assert.equal(draftCheckLabel(0), null);
+  }],
+  ["approving a draft removes the highlight and waits for the next publish", () => {
+    const value = page();
+    value.projects[0].status = "draft";
+    value.projects[0].outcome = "Delivery became reliable for the region.";
+    assert.equal(draftCardHighlight(value.projects[0].status).highlighted, true);
+    const next = markProjectAccurate(value, "project-1", "2026-11-28T12:00:00.000Z");
+    assert.equal(next.projects[0].status, "approved");
+    assert.equal(draftCardHighlight(next.projects[0].status).highlighted, false);
+    assert.equal(toPublicProfileDocument(next).projects[0].id, "project-1");
+    assert.equal(selectPublicProfileDocument({ activeDocument: null, publishedDocument: next }), null);
   }],
   ["a quick page publishes with no public cards and no interview", () => {
     const document = buildProfileDocument({

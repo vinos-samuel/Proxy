@@ -1,6 +1,7 @@
 import { ChevronDown, Globe2, Linkedin, Mail, MessageCircle, Pencil, Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { closedCardLines, type ImprovementProposal, type ProfileDocument } from "@shared/profile-document";
+import { draftCardHighlight } from "@shared/builder-entry";
 
 type Props = {
   document: ProfileDocument;
@@ -10,6 +11,8 @@ type Props = {
   onAsk?: () => void;
   onContact?: (kind: "email" | "linkedin" | "website") => void;
   onEdit?: (section: "introduction" | "project" | "experience" | "skills" | "details" | "impactStats" | "howIWork", id?: string) => void;
+  onApprove?: (projectId: string) => void;
+  approveDisabled?: boolean;
 };
 
 function proposedValue(
@@ -97,7 +100,7 @@ function DetailGroup({ title, items }: { title: string; items: string[] }) {
   return <div><h4>{title}</h4><ul>{items.map((item) => <li key={item}>{item}</li>)}</ul></div>;
 }
 
-export default function ProfileDocumentView({ document, proposal, publicMode = false, highlightProjectId = null, onAsk, onContact, onEdit }: Props) {
+export default function ProfileDocumentView({ document, proposal, publicMode = false, highlightProjectId = null, onAsk, onContact, onEdit, onApprove, approveDisabled = false }: Props) {
   const [openProject, setOpenProject] = useState<string | null>(null);
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [openEmployers, setOpenEmployers] = useState<string[]>([]);
@@ -193,13 +196,17 @@ export default function ProfileDocumentView({ document, proposal, publicMode = f
           const contribution = proposedValue(proposal, "project", "contribution", project.id, project.contribution);
           const outcome = proposedValue(proposal, "project", "outcome", project.id, project.outcome);
           const lines = closedCardLines({ outcome: outcome.value, summary: project.summary, role: project.role, company: project.company, skills: project.skills });
-          return <article className={`proxy-page__project ${openProject === project.id ? "is-selected" : ""}`} id={`work-${project.id}`} key={project.id}>
-            <div className="proxy-page__project-head"><p className="proxy-page__project-number">{String(index + 1).padStart(2, "0")}</p><div><h4>{project.title}</h4>{lines.byline && <p>{lines.byline}</p>}</div></div>
+          const draft = publicMode ? { highlighted: false, badge: null } : draftCardHighlight(project.status);
+          return <article className={`proxy-page__project ${openProject === project.id ? "is-selected" : ""} ${draft.highlighted ? "is-draft" : ""}`} id={`work-${project.id}`} key={project.id} data-draft={draft.highlighted ? "true" : undefined}>
+            <div className="proxy-page__project-head"><p className="proxy-page__project-number">{String(index + 1).padStart(2, "0")}</p><div><h4>{project.title}</h4>{lines.byline && <p>{lines.byline}</p>}{draft.badge && <p className="proxy-page__draft-badge">{draft.badge}</p>}</div></div>
             {lines.preview && <p className="proxy-page__project-preview">{lines.preview}</p>}
             {lines.skills.length > 0 && <div className="proxy-page__project-skills">{lines.skills.map((skill) => <span key={skill}>{skill}</span>)}</div>}
             <div className="proxy-page__card-actions">
               <button ref={(node) => { if (node) projectButtons.current.set(project.id, node); }} type="button" aria-expanded={openProject === project.id} onClick={() => setOpenProject(openProject === project.id ? null : project.id)}>{openProject === project.id ? "Hide story" : "View story"}<ChevronDown aria-hidden="true" /></button>
-              <EditButton label="Edit" onClick={onEdit ? () => onEdit("project", project.id) : undefined} />
+              <span className="proxy-page__card-owner-actions">
+                <EditButton label="Edit" onClick={onEdit ? () => onEdit("project", project.id) : undefined} />
+                {draft.highlighted && onApprove && <button type="button" className="proxy-page__approve" disabled={approveDisabled} onClick={() => onApprove(project.id)}>Approve</button>}
+              </span>
             </div>
             {openProject === project.id && renderStoryPanel(project, "inline")}
           </article>;

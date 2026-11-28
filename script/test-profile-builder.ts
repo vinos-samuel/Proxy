@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { applyProposal, conciseHeadline, getImprovementCandidates, getPublicationAccess, undoLastChange } from "../server/profile-builder";
-import { cardsForHowIWork, markProjectAccurate, profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, type ProfileDocument } from "../shared/profile-document";
+import { cardsForHowIWork, closedCardLines, markProjectAccurate, profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, type ProfileDocument } from "../shared/profile-document";
 import { mergeProfileDocuments, setDocumentPath } from "../client/src/lib/profile-document-merge";
 import { hasConfirmedPro, hasJobSearchAccess, recentQuestionsForPlan, JOB_SEARCH_TRIAL_MS } from "../shared/plan-access";
 import { rewriteWithoutNewNumbers, ungroundedNumbers } from "../shared/answer-grounding";
@@ -228,6 +228,14 @@ const checks: Array<[string, () => void]> = [
       { id: "c", title: "Older card", outcome: "An older card with no mark.", sourceIds: [] },
     ] });
     assert.deepEqual(cardsForHowIWork(value).map((project) => project.id), ["c"]);
+  }],
+  ["a closed card leads with the outcome, role, and its own skills", () => {
+    const lines = closedCardLines({ outcome: "The handover got calmer.", summary: "A long CV bullet that should not lead.", role: "Program lead", company: "Example Co", skills: ["One", "Two", "Three", "Four", "Five"] });
+    assert.equal(lines.preview, "The handover got calmer.");
+    assert.equal(lines.byline, "Program lead · Example Co");
+    assert.deepEqual(lines.skills, ["One", "Two", "Three", "Four"]);
+    assert.equal(closedCardLines({ summary: "Only a summary." }).preview, "Only a summary.");
+    assert.deepEqual(closedCardLines({ company: "Example Co" }).skills, []);
   }],
   ["two approved cards are enough for my approach", () => {
     const value = page({ projects: [

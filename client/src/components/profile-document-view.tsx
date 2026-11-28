@@ -1,6 +1,6 @@
 import { ChevronDown, Globe2, Linkedin, Mail, MessageCircle, Pencil, Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ImprovementProposal, ProfileDocument } from "@shared/profile-document";
+import { closedCardLines, type ImprovementProposal, type ProfileDocument } from "@shared/profile-document";
 
 type Props = {
   document: ProfileDocument;
@@ -154,6 +154,7 @@ export default function ProfileDocumentView({ document, proposal, onAsk, onConta
         {challenge.value && <div className={challenge.active ? "proxy-page__changed" : ""}><Suggested active={challenge.active} /><span>Context</span><p>{challenge.value}</p></div>}
         {contribution.value && <div className={contribution.active ? "proxy-page__changed" : ""}><Suggested active={contribution.active} /><span>What I did</span><p>{contribution.value}</p></div>}
         {outcome.value && <div className={outcome.active ? "proxy-page__changed" : ""}><Suggested active={outcome.active} /><span>What changed</span><p>{outcome.value}</p></div>}
+        {project.learned?.trim() && <div><span>What I learned</span><p>{project.learned}</p></div>}
       </div>
     </div>;
   };
@@ -184,10 +185,11 @@ export default function ProfileDocumentView({ document, proposal, onAsk, onConta
           const challenge = proposedValue(proposal, "project", "challenge", project.id, project.challenge);
           const contribution = proposedValue(proposal, "project", "contribution", project.id, project.contribution);
           const outcome = proposedValue(proposal, "project", "outcome", project.id, project.outcome);
-          const preview = project.summary || outcome.value || contribution.value || challenge.value;
-          return <article className={`proxy-page__project ${openProject === project.id ? "is-selected" : ""}`} key={project.id}>
-            <div className="proxy-page__project-head"><p className="proxy-page__project-number">{String(index + 1).padStart(2, "0")}</p><div><h4>{project.title}</h4>{project.company && <p>{project.company}</p>}</div></div>
-            {preview && <p className="proxy-page__project-preview">{preview}</p>}
+          const lines = closedCardLines({ outcome: outcome.value, summary: project.summary, role: project.role, company: project.company, skills: project.skills });
+          return <article className={`proxy-page__project ${openProject === project.id ? "is-selected" : ""}`} id={`work-${project.id}`} key={project.id}>
+            <div className="proxy-page__project-head"><p className="proxy-page__project-number">{String(index + 1).padStart(2, "0")}</p><div><h4>{project.title}</h4>{lines.byline && <p>{lines.byline}</p>}</div></div>
+            {lines.preview && <p className="proxy-page__project-preview">{lines.preview}</p>}
+            {lines.skills.length > 0 && <div className="proxy-page__project-skills">{lines.skills.map((skill) => <span key={skill}>{skill}</span>)}</div>}
             <div className="proxy-page__card-actions">
               <button ref={(node) => { if (node) projectButtons.current.set(project.id, node); }} type="button" aria-expanded={openProject === project.id} onClick={() => setOpenProject(openProject === project.id ? null : project.id)}>{openProject === project.id ? "Hide story" : "View story"}<ChevronDown aria-hidden="true" /></button>
               <EditButton label="Edit" onClick={onEdit ? () => onEdit("project", project.id) : undefined} />

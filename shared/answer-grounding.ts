@@ -3,8 +3,22 @@
 
 const NUMBER = /\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?/g;
 
+const NUMBER_WORDS: Array<[string, string]> = [
+  ["zero", "0"], ["one", "1"], ["two", "2"], ["three", "3"], ["four", "4"], ["five", "5"],
+  ["six", "6"], ["seven", "7"], ["eight", "8"], ["nine", "9"], ["ten", "10"],
+  ["eleven", "11"], ["twelve", "12"], ["thirteen", "13"], ["fourteen", "14"], ["fifteen", "15"],
+  ["sixteen", "16"], ["seventeen", "17"], ["eighteen", "18"], ["nineteen", "19"], ["twenty", "20"],
+  ["once", "1"], ["twice", "2"],
+  ["first", "1"], ["second", "2"], ["third", "3"], ["fourth", "4"], ["fifth", "5"],
+  ["sixth", "6"], ["seventh", "7"], ["eighth", "8"], ["ninth", "9"], ["tenth", "10"],
+];
+const NUMBER_WORD = new RegExp(`\\b(?:${NUMBER_WORDS.map(([word]) => word).join("|")})\\b`, "gi");
+const NUMBER_WORD_VALUE = new Map(NUMBER_WORDS);
+
 export function numericTokens(text: string): string[] {
-  return Array.from(text.matchAll(NUMBER), (match) => match[0].replace(/,/g, ""));
+  const digits = Array.from(text.matchAll(NUMBER), (match) => match[0].replace(/,/g, ""));
+  const words = Array.from(text.matchAll(NUMBER_WORD), (match) => NUMBER_WORD_VALUE.get(match[0].toLowerCase()) || "").filter(Boolean);
+  return digits.concat(words);
 }
 
 // A rewrite may not introduce a number the person did not say. When the
@@ -31,6 +45,51 @@ export function ungroundedNumbers(answer: string, source: string): string[] {
 export const UNGROUNDED_NUMBER_REPLY = "I don't have that figure on my page. I can only use numbers that are already written there.";
 
 export const GOAL_NOT_ON_PAGE = "What I want next isn't written on this page. Connect with me directly for that.";
+export const SETBACK_NOT_ON_PAGE = "What went wrong isn't written on this page. I can only repeat what's already there.";
+
+const SETBACK_QUESTION = /\b(went wrong|go wrong|something failed|a failure|setback|mistake|what broke|did(?:n'?t| not) work)\b/i;
+const SETBACK_ON_PAGE = /\b(went wrong|failed|failure|mistake|setback|broke|broken|error)\b/i;
+const FACT_STOP = new Set(["the", "a", "an", "of", "to", "and", "we", "i", "that", "was", "were", "with", "for", "on", "in", "it", "before", "after", "this", "is", "had", "have", "has", "our", "my", "me", "they", "them", "from", "by", "at", "as", "or", "be", "been", "not", "no", "did", "do", "does", "would", "could", "into", "over", "when", "then", "than", "its", "but", "so", "if", "just", "also", "there", "their", "which", "what", "who", "how"]);
+
+function factsText(text: string): string {
+  let out = text.toLowerCase().replace(/(\d),(?=\d)/g, "$1");
+  for (const [word, value] of NUMBER_WORDS) out = out.replace(new RegExp(`\\b${word}\\b`, "g"), value);
+  return out.replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function contentWords(sentence: string): string[] {
+  return factsText(sentence).split(" ").filter((word) => word && !FACT_STOP.has(word) && (word.length > 2 || /^\d/.test(word)));
+}
+
+function sentenceRestatesSource(sentence: string, source: string): boolean {
+  const words = contentWords(sentence);
+  const haystack = factsText(source);
+  if (words.length < 3) return words.length > 0 && words.every((word) => new RegExp(`\\b${word}\\b`).test(haystack));
+  for (let index = 0; index <= words.length - 3; index++) {
+    if (haystack.includes(words.slice(index, index + 3).join(" "))) return true;
+  }
+  return false;
+}
+
+function alreadyDeclinesSetback(text: string): boolean {
+  return /\b(not|isn'?t|is not|don't|do not)\b[^.]{0,80}\b(written|on (this|my) page|covered|have that|have a|have details)\b/i.test(text);
+}
+
+// A setback question with no failure on the page may repeat a fact that is
+// already written there. Anything else is dropped, and the answer says so.
+export function retainStatedSetbacks(question: string, answer: string, source: string): string {
+  if (!SETBACK_QUESTION.test(question) || SETBACK_ON_PAGE.test(source)) return answer;
+  const rest = answer
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence && (alreadyDeclinesSetback(sentence) || sentenceRestatesSource(sentence, source)))
+    .join(" ")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+  if (alreadyDeclinesSetback(rest)) return rest;
+  if (!rest) return SETBACK_NOT_ON_PAGE;
+  return `${SETBACK_NOT_ON_PAGE} ${rest}`;
+}
 
 const NEXT_QUESTION = /\b(what do you want to do next|what(?:'s| is) next|what are you looking for|where do you want to go|career goals?)\b/i;
 const GOAL_ON_PAGE = /\b(looking for|next role|career goal|i want to|i(?:'m| am) seeking|drawn to)\b/i;
@@ -55,6 +114,10 @@ export function retainStatedGoals(question: string, answer: string, source: stri
   if (alreadyDeclinesGoal(rest)) return rest;
   if (!rest) return GOAL_NOT_ON_PAGE;
   return `${GOAL_NOT_ON_PAGE} ${rest}`;
+}
+
+export function groundAnswer(question: string, answer: string, source: string): string {
+  return retainStatedSetbacks(question, retainStatedGoals(question, retainSupportedAnswer(answer, source), source), source);
 }
 
 export const APPROVED_CARD_RULES = `If the question is about how this person works, answer from the howIWork text and name at most one piece of work by its title.

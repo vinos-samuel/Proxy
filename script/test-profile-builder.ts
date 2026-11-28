@@ -3,7 +3,7 @@ import { applyProposal, buildProfileDocument, conciseHeadline, getImprovementCan
 import { cardsForHowIWork, chatContextDocument, closedCardLines, markProjectAccurate, profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, workTitleFromText, type ProfileDocument } from "../shared/profile-document";
 import { mergeProfileDocuments, setDocumentPath } from "../client/src/lib/profile-document-merge";
 import { hasConfirmedPro, hasJobSearchAccess, recentQuestionsForPlan, JOB_SEARCH_TRIAL_MS } from "../shared/plan-access";
-import { cardIdFromAnswer, retainStatedGoals, retainSupportedAnswer, rewriteWithoutNewNumbers, ungroundedNumbers, UNGROUNDED_NUMBER_REPLY } from "../shared/answer-grounding";
+import { cardIdFromAnswer, retainStatedGoals, retainStatedSetbacks, retainSupportedAnswer, rewriteWithoutNewNumbers, ungroundedNumbers, UNGROUNDED_NUMBER_REPLY } from "../shared/answer-grounding";
 import { sanitizeChatAnswer } from "../server/chat-sanitize";
 import { PRIYA_PAGE_FACTS, PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "../shared/priya-reviewed-answers";
 import { guestDraftTtlMs, GUEST_DRAFT_TTL_MS, GUEST_DRAFT_EMAIL_TTL_MS } from "../shared/guest-draft";
@@ -285,6 +285,27 @@ const checks: Array<[string, () => void]> = [
     assert.equal(sanitizeChatAnswer("Great question. I led the migration for 40,000 accounts."), "I led the migration for 40,000 accounts.");
     assert.equal(sanitizeChatAnswer("I led the migration. Great question to ask next time."), "I led the migration. Great question to ask next time.");
     assert.equal(sanitizeChatAnswer("I migrated **40,000** accounts and cut **3.2 days**."), "I migrated 40,000 accounts and cut 3.2 days.");
+  }],
+  ["a number word counts as that figure", () => {
+    assert.deepEqual(ungroundedNumbers("We added a fourth rehearsal.", "We ran 3 full rehearsal cutovers."), ["4"]);
+    assert.deepEqual(ungroundedNumbers("We ran three full rehearsal cutovers.", "We ran 3 full rehearsal cutovers."), []);
+    assert.deepEqual(ungroundedNumbers("We ran 3 rehearsals.", "We ran three rehearsals."), []);
+  }],
+  ["a setback answer keeps the stated fact and drops the invented one", () => {
+    const source = "Ran 3 full rehearsal cutovers. Migrated 40,000 accounts with zero downtime.";
+    const kept = retainStatedSetbacks(
+      "Tell me about a time something went wrong on work you owned.",
+      "We ran three full rehearsal cutovers. We added a fourth rehearsal and rebuilt the module. Migrated 40,000 accounts with zero downtime.",
+      source,
+    );
+    assert.match(kept, /isn't written on this page/);
+    assert.match(kept, /three full rehearsal cutovers/i);
+    assert.match(kept, /40,000 accounts/);
+    assert.doesNotMatch(kept, /fourth|rebuilt|module/);
+    assert.equal(
+      retainStatedSetbacks("What went wrong?", "The cutover failed and we fixed it.", "The cutover failed."),
+      "The cutover failed and we fixed it.",
+    );
   }],
   ["what next does not invent a preference", () => {
     const source = "I run a 140-person team across 3 countries.";

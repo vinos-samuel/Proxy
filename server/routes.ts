@@ -28,7 +28,7 @@ import { registerProfileBuilderRoutes } from "./profile-builder-routes";
 import { profileDocumentSchema, selectPublicProfileDocument, chatContextDocument, approvedBotBackground } from "@shared/profile-document";
 import { getPublicationAccess } from "./profile-builder";
 import { hasConfirmedPaidTier, hasJobSearchAccess, recentQuestionsForPlan } from "@shared/plan-access";
-import { APPROVED_CARD_RULES, cardIdFromAnswer, retainStatedGoals, retainSupportedAnswer } from "@shared/answer-grounding";
+import { APPROVED_CARD_RULES, cardIdFromAnswer, groundAnswer } from "@shared/answer-grounding";
 import { reviewedPriyaAnswer } from "@shared/priya-reviewed-answers";
 
 // Tier → Stripe Price ID mapping. Concierge is retired; Pro is the only paid tier.
@@ -1346,8 +1346,7 @@ ${background.qaText ? `\nAPPROVED BACKGROUND Q&A (written by the owner for exact
           : "That is something I would be happy to discuss directly.";
         const drafted = sanitizeChatAnswer(rawResponse);
         const approvedSource = `${JSON.stringify(chatDocument)}\n${background.qaText || ""}`;
-        const supported = retainSupportedAnswer(drafted, approvedSource);
-        const responseText = retainStatedGoals(safeMessage, supported, approvedSource);
+        const responseText = groundAnswer(safeMessage, drafted, approvedSource);
         storage.saveChatMessage(profile.id, safeMessage).catch(() => {});
         return res.json({ content: responseText, cardId: cardIdFromAnswer(responseText, chatDocument.projects) });
       }
@@ -1464,7 +1463,7 @@ ${background.qaText ? `\nAPPROVED BACKGROUND Q&A (written by the owner for exact
         questionnaireData?.step7?.writingSample,
         JSON.stringify(questionnaireData?.portfolioData || {}),
       ].filter(Boolean).join("\n");
-      const responseText = retainStatedGoals(String(message), retainSupportedAnswer(drafted, approvedSource), approvedSource);
+      const responseText = groundAnswer(String(message), drafted, approvedSource);
       res.json({ content: responseText });
 
       // Fire-and-forget: save question for analytics

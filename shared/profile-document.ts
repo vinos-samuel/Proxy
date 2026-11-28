@@ -296,6 +296,14 @@ export function toPublicProfileDocument(document: ProfileDocument): ProfileDocum
   };
 }
 
+// Approved cards count. Cards saved before a status existed count. Drafts do not.
+export function cardsForHowIWork(document: ProfileDocument): ProfileDocument["projects"] {
+  return document.projects.filter((project) => {
+    if (project.status === "draft") return false;
+    return [project.challenge, project.contribution, project.outcome].some((value) => Boolean(value && value.trim().length >= 10));
+  });
+}
+
 export function markProjectAccurate(document: ProfileDocument, projectId: string, approvedAt: string): ProfileDocument {
   return {
     ...document,

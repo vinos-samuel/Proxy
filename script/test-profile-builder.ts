@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { applyProposal, conciseHeadline, getImprovementCandidates, getPublicationAccess, undoLastChange } from "../server/profile-builder";
-import { markProjectAccurate, profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, type ProfileDocument } from "../shared/profile-document";
+import { cardsForHowIWork, markProjectAccurate, profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, type ProfileDocument } from "../shared/profile-document";
 import { mergeProfileDocuments, setDocumentPath } from "../client/src/lib/profile-document-merge";
 import { hasConfirmedPro, hasJobSearchAccess, recentQuestionsForPlan, JOB_SEARCH_TRIAL_MS } from "../shared/plan-access";
 import { rewriteWithoutNewNumbers, ungroundedNumbers } from "../shared/answer-grounding";
@@ -221,6 +221,30 @@ const checks: Array<[string, () => void]> = [
     assert.equal(live?.projects.some((project) => project.id === "project-1"), false);
     assert.equal(live?.projects.some((project) => project.id === "kept"), true);
   }],
+  ["draft cards do not count toward my approach", () => {
+    const value = page({ projects: [
+      { id: "a", title: "Still drafting", outcome: "A clear result from the work.", status: "draft", sourceIds: [] },
+      { id: "b", title: "Also drafting", outcome: "Another clear result here.", status: "draft", sourceIds: [] },
+      { id: "c", title: "Older card", outcome: "An older card with no mark.", sourceIds: [] },
+    ] });
+    assert.deepEqual(cardsForHowIWork(value).map((project) => project.id), ["c"]);
+  }],
+  ["two approved cards are enough for my approach", () => {
+    const value = page({ projects: [
+      { id: "a", title: "First", challenge: "Something was stuck.", status: "approved", sourceIds: [] },
+      { id: "b", title: "Second", contribution: "I changed the handover.", status: "approved", sourceIds: [] },
+      { id: "c", title: "Draft", outcome: "A draft result that is long enough.", status: "draft", sourceIds: [] },
+    ] });
+    assert.deepEqual(cardsForHowIWork(value).map((project) => project.id), ["a", "b"]);
+  }],
+  ["my approach refuses to generate from one eligible card", () => {
+    const value = page({ projects: [
+      { id: "a", title: "Still drafting", outcome: "A clear result from the work.", status: "draft", sourceIds: [] },
+      { id: "b", title: "Also drafting", outcome: "Another clear result here.", status: "draft", sourceIds: [] },
+      { id: "c", title: "Older card", outcome: "An older card with no mark.", sourceIds: [] },
+    ] });
+    assert.equal(cardsForHowIWork(value).length < 2, true);
+  }],
   ["marking a card accurate does not publish it by itself", () => {
     const value = page();
     value.projects[0].status = "draft";
@@ -265,7 +289,7 @@ const checks: Array<[string, () => void]> = [
 ];
 
 for (const [name, check] of checks) {
-  check();
+  await check();
   console.log(`✓ ${name}`);
 }
 console.log(`\n${checks.length} profile-builder checks passed.`);

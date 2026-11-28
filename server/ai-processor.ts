@@ -2,7 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { storage } from "./storage";
 import { logger } from "./logger";
 import { randomUUID } from "crypto";
-import type { ImprovementProposal, ImprovementQuestion, ProfileDocument } from "@shared/profile-document";
+import { cardsForHowIWork, type ImprovementProposal, type ImprovementQuestion, type ProfileDocument } from "@shared/profile-document";
 import { rewriteWithoutNewNumbers } from "@shared/answer-grounding";
 
 const ai = new GoogleGenAI({
@@ -1316,11 +1316,9 @@ export class InsufficientContentError extends Error {}
 // text they've actually written, and only called once there are at least
 // two projects with real answered content.
 export async function generateHowIWorkSynthesis(document: ProfileDocument): Promise<string> {
-  const answered = document.projects.filter((project) =>
-    [project.challenge, project.contribution, project.outcome].some((value) => Boolean(value && value.trim().length >= 10)),
-  );
+  const answered = cardsForHowIWork(document);
   if (answered.length < 2) {
-    throw new InsufficientContentError("Answer at least two projects in Improve before generating this.");
+    throw new InsufficientContentError("Mark at least two cards accurate before generating this. Cards from before this update still count.");
   }
 
   const source = answered.map((project) => ({
@@ -1328,6 +1326,7 @@ export async function generateHowIWorkSynthesis(document: ProfileDocument): Prom
     challenge: project.challenge,
     contribution: project.contribution,
     outcome: project.outcome,
+    ...(project.learned?.trim() ? { learned: project.learned } : {}),
   }));
 
   const prompt = `Write a short first-person paragraph describing how this person works, based only on the specific situations, decisions and outcomes below. Do not invent a generic framework, a numbered process, or any fact not stated below. Do not add a number, percentage, or timeframe that isn't already in the source. Notice a real pattern across these examples (how they approach a problem, what they tend to prioritize) and describe it plainly, in one paragraph of 40-70 words, first person, no bullet points, no buzzwords.

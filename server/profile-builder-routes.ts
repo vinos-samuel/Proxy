@@ -610,14 +610,15 @@ export function registerProfileBuilderRoutes(app: Express) {
     if (!profile) return res.status(404).json({ message: "No profile found" });
     const row = await storage.getProfileDocumentByProfileId(profile.id);
     if (!row || row.revision !== parsed.data.revision) return res.status(409).json({ message: "Your page changed. Reload before publishing." });
-    if (row.publishedDocument && row.publishedRevision === row.revision) {
-      return res.json({ approved: true, revision: row.revision, profileId: profile.id });
-    }
     const document = profileDocumentSchema.parse(row.workingDocument);
+    const draftCount = document.projects.filter((project) => project.status === "draft").length;
+    if (row.publishedDocument && row.publishedRevision === row.revision) {
+      return res.json({ approved: true, revision: row.revision, profileId: profile.id, draftCount });
+    }
     if (document.pendingProposal) return res.status(409).json({ message: "Keep or skip the current suggestion before publishing" });
     const published = await storage.publishProfileDocument(profile.id, row.revision);
     if (!published) return res.status(409).json({ message: "Your page changed. Reload before publishing." });
-    return res.json({ approved: true, revision: published.revision, profileId: profile.id });
+    return res.json({ approved: true, revision: published.revision, profileId: profile.id, draftCount });
   });
 
   app.post("/api/builder/publish", async (req: Request, res: Response) => {

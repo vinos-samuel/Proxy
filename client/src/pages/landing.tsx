@@ -242,11 +242,11 @@ export default function LandingPage() {
         <div className="landing-hero-copy">
           <p className="landing-for">For mid-to-senior professionals who are job hunting now.</p>
           <h1 className="site-display landing-h1" data-testid="text-hero-headline">
-            Turn your CV into a portfolio webpage recruiters can ask questions
+            Show how you work, not just where you've worked.
           </h1>
-          <p className="landing-sub">Upload your CV. See your finished page in a minute, then send the link with a referral ask.</p>
+          <p className="landing-sub">Upload your CV and publish it as a web page. No cards required. Add work cards when you want to show how you did the work.</p>
           <CvDrop id="hero-cv" />
-          <p className="landing-trust">Free · No account needed to try · Private until you publish</p>
+          <p className="landing-trust">Nothing goes public until you publish.</p>
         </div>
 
         <div className="landing-demo" aria-label={`Live example: ${heroProfile.displayName}'s page`}>
@@ -308,8 +308,8 @@ export default function LandingPage() {
           </li>
           <li>
             <span className="landing-step-n">2</span>
-            <h3>Answer a question or two</h3>
-            <p>Optional. Each answer makes a section stronger and teaches your page to answer visitors.</p>
+            <h3>Add a card if you want</h3>
+            <p>Optional. Start with one card. Then add 3 cards to show range.</p>
           </li>
           <li>
             <span className="landing-step-n">3</span>
@@ -360,7 +360,7 @@ export default function LandingPage() {
         <h2 className="site-display landing-h2">Start free. Pay once if you want more.</h2>
         <div className="landing-prices">
           <div className="site-card landing-price" data-testid="card-tier-free">
-            <div className="landing-price-head"><h3>Free</h3><b>$0</b></div>
+            <div className="landing-price-head"><h3>Free</h3></div>
             <ul>
               <li><Check /> Your page and your own link</li>
               <li><Check /> Visitors can ask your page questions</li>
@@ -369,7 +369,7 @@ export default function LandingPage() {
             </ul>
           </div>
           <div className="site-card landing-price landing-price--pro" data-testid="card-tier-pro">
-            <div className="landing-price-head"><h3>Pro</h3><b data-testid="text-price-pro">$49</b><span>paid once</span></div>
+            <div className="landing-price-head"><h3>Pro</h3><span>paid once</span></div>
             <p className="landing-price-for">{PRO_FOR}</p>
             <ul>
               {PRO_FEATURES.map((feature) => <li key={feature}><Check /> {feature}</li>)}

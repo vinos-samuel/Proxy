@@ -244,7 +244,7 @@ export default function BlogPostPage() {
             {post.slug === PRICING_NOTE_SLUG && (
               <div className="max-w-3xl mx-auto">
                 <aside className="blog-pricing-note" data-testid="note-pricing-update">
-                  <p>Pricing update, November 2026. This post was written when Proxy sold a Launch plan at $99 and a Concierge plan at $499. The plans for sale now are Free, and Pro at $49 once. <Link href="/pricing">See current pricing</Link>.</p>
+                  <p>Pricing update, November 2026. This post was written when Proxy sold other paid plans. Those plans are retired. The plans for sale now are Free, and Pro paid once. <Link href="/pricing">See current pricing</Link>.</p>
                 </aside>
               </div>
             )}

@@ -2575,7 +2575,7 @@ Proxy helps experienced professionals prepare convincing evidence for their next
 - About: https://myproxy.work/about — the problem Proxy solves and who it's for
 - FAQ: https://myproxy.work/faq — common questions on pricing, data, how profiles work
 - Blog index: https://myproxy.work/blog — articles on job search, AI sourcing, career positioning
-- Pricing: https://myproxy.work/pricing. Free, and Pro at $49 paid once.
+- Pricing: https://myproxy.work/pricing. Free, and Pro paid once. Stripe shows the charge before you pay.
 
 ## Blog posts
 

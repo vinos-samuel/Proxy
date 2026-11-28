@@ -25,6 +25,46 @@ export default function FAQPage() {
       ),
     },
     {
+      q: "What is a work card?",
+      plainText: "A work card walks through one real piece of work: what was happening, what you did, and what changed. That is what a hiring manager already asks about in the interview. A CV lists roles. The card is that story, in your words. It stays off the live page until you mark it accurate and publish.",
+      a: (
+        <div className="space-y-4">
+          <p>A work card walks through one real piece of work: what was happening, what you did, and what changed. That is what a hiring manager already asks about in the interview.</p>
+          <p>A CV lists roles. The card is that story, in your words. It stays off the live page until you mark it accurate and publish.</p>
+        </div>
+      ),
+    },
+    {
+      q: "Do I need cards to publish?",
+      plainText: "No. You can publish your CV as a web page with no cards. Work cards are optional. Start with one card when you want to show how you did the work. Then add 3 cards to show range.",
+      a: (
+        <div className="space-y-4">
+          <p><strong className="text-black">No.</strong> You can publish your CV as a web page with no cards. Work cards are optional.</p>
+          <p>Start with one card when you want to show how you did the work. Then add 3 cards to show range.</p>
+        </div>
+      ),
+    },
+    {
+      q: "Are drafts public?",
+      plainText: "No. A draft card stays off the live page until you mark it accurate and publish. Nothing goes public until you publish.",
+      a: (
+        <div className="space-y-4">
+          <p><strong className="text-black">No.</strong> A draft card stays off the live page until you mark it accurate and publish.</p>
+          <p>Nothing goes public until you publish.</p>
+        </div>
+      ),
+    },
+    {
+      q: "How does the page answer recruiters?",
+      plainText: "Only from content you approved and published. Draft cards, the raw CV, and answers you have not kept are not used. If Ask about my work is on, a recruiter's question is answered from that published page. You can turn it off.",
+      a: (
+        <div className="space-y-4">
+          <p>Only from content you approved and published. Draft cards, the raw CV, and answers you have not kept are not used.</p>
+          <p>If <strong className="text-black">Ask about my work</strong> is on, a recruiter's question is answered from that published page. You can turn it off.</p>
+        </div>
+      ),
+    },
+    {
       q: "How is Proxy different from LinkedIn or a traditional resume?",
       plainText: "LinkedIn shows your job history and a resume lists credentials in a static PDF. Proxy turns supported facts from your CV into a designed evidence page that makes projects, decisions, and results easy to scan. You can also enable an optional AI explorer after you approve the public content it may use.",
       a: (
@@ -70,7 +110,7 @@ export default function FAQPage() {
     },
     {
       q: "How does the AI resume upload work?",
-      plainText: "Upload a PDF CV and Proxy builds a complete first page from the experience, achievements, and skills it can support from that document. You can then edit directly or answer optional targeted questions to improve selected sections. Nothing becomes public until you approve and publish it.",
+      plainText: "Upload a PDF CV and Proxy builds a complete first page from the experience, achievements, and skills it can support from that document. You can then edit directly or answer optional targeted questions to improve selected sections. Work cards made from the CV stay drafts until you mark each one accurate and publish. Nothing goes public until you publish.",
       a: (
         <div className="space-y-4">
           <p>Upload your CV or resume <strong className="text-black">(PDF format)</strong>. Proxy uses it to build a finished first page with:</p>
@@ -81,7 +121,8 @@ export default function FAQPage() {
             <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>Professional summary</span></li>
           </ul>
           <p>You can <strong className="text-black">review and edit the page directly</strong>, or answer an optional question when one section needs stronger evidence.</p>
-          <p>Nothing becomes public until you approve the exact page and publish it.</p>
+          <p>Work cards made from the CV stay drafts. They are not on the live page until you mark each one accurate and publish.</p>
+          <p>Nothing goes public until you publish.</p>
         </div>
       ),
     },
@@ -131,7 +172,7 @@ export default function FAQPage() {
     },
     {
       q: "How much does Proxy cost?",
-      plainText: "Proxy has two plans. Free gives you a published professional page, with an optional AI explorer, and 7 days of edits after publishing. Pro is $49, paid once. It adds the Job Search Agent: cover letters, outreach, interview practice, thank-you notes, and offer notes from the background on your account. You can also edit whenever you want, including after the first week, and see the questions visitors ask.",
+      plainText: "Proxy has two plans. Free gives you a published professional page, with an optional AI explorer, and 7 days of edits after publishing. Pro is paid once. It adds the Job Search Agent: cover letters, outreach, interview practice, thank-you notes, and offer notes from the background on your account. You can also edit whenever you want, including after the first week, and see the questions visitors ask. Stripe shows the charge before you pay.",
       a: (
         <div className="space-y-4">
           <p>Start free. Pro adds the Job Search Agent for the search after your page is live.</p>
@@ -141,8 +182,8 @@ export default function FAQPage() {
               <span><strong className="text-black">Free.</strong> Published evidence page with an optional AI explorer. Unlimited edits while in draft. 7 days of edits after you publish. No credit card needed.</span>
             </div>
             <div className="flex gap-3 items-start">
-              <span className="bg-[#2F5D4C] text-white font-bold text-xs px-2 py-1 rounded flex-shrink-0 mt-0.5">$49</span>
-              <span><strong className="text-black">Pro.</strong> Job Search Agent: cover letters, outreach, interview practice, thank-you notes, and offer notes from the background on your account. Edit whenever you want, including after the first week, and see the questions visitors ask. Your page, your link, and visitor Q&amp;A stay included. Paid once.</span>
+              <span className="bg-[#2F5D4C] text-white font-bold text-xs px-2 py-1 rounded flex-shrink-0 mt-0.5">Pro</span>
+              <span><strong className="text-black">Pro.</strong> Job Search Agent: cover letters, outreach, interview practice, thank-you notes, and offer notes from the background on your account. Edit whenever you want, including after the first week, and see the questions visitors ask. Your page, your link, and visitor Q&amp;A stay included. Paid once. Stripe shows the charge before you pay.</span>
             </div>
           </div>
         </div>
@@ -150,10 +191,10 @@ export default function FAQPage() {
     },
     {
       q: "What is the Job Search Agent?",
-      plainText: "The Job Search Agent is included with Pro ($49, paid once). For 48 hours after you create an account, you can use it before you pay. You add companies, contacts, and applications. From the background saved on your account, it drafts a cover letter, a message to a contact, a follow-up, interview practice one question at a time, a thank-you note, and notes on an offer. For a company you add, it writes where you fit, roles to aim at, and a first step, using the name and notes you enter.",
+      plainText: "The Job Search Agent is included with Pro, paid once. For 48 hours after you create an account, you can use it before you pay. You add companies, contacts, and applications. From the background saved on your account, it drafts a cover letter, a message to a contact, a follow-up, interview practice one question at a time, a thank-you note, and notes on an offer. For a company you add, it writes where you fit, roles to aim at, and a first step, using the name and notes you enter.",
       a: (
         <div className="space-y-4">
-          <p>The Job Search Agent is included with Pro ($49, paid once). For 48 hours after you create an account, you can use it before you pay.</p>
+          <p>The Job Search Agent is included with Pro, paid once. For 48 hours after you create an account, you can use it before you pay.</p>
           <p>You add companies, contacts, and applications. From the background saved on your account, it drafts:</p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>A cover letter for a role you add</span></li>
@@ -214,11 +255,11 @@ export default function FAQPage() {
     },
     {
       q: "Can recruiters ask questions about my work?",
-      plainText: "Yes, if you enable the optional AI explorer. The main product is the evidence page and it works without chat. When the explorer is on, visitors can ask follow-up questions grounded in the public content you approved.",
+      plainText: "Ask about my work is on for a new page, and you can turn it off. When it is on, a recruiter's question is answered only from content you approved and published. Draft cards, the raw CV, and answers you have not kept are not used. The page itself is complete without chat.",
       a: (
         <div className="space-y-4">
-          <p><strong className="text-black">Yes, if you choose to enable it.</strong></p>
-          <p>The evidence page is complete without chat. When the optional explorer is on, a recruiter can ask follow-up questions grounded in the exact public version you approved.</p>
+          <p><strong className="text-black">Ask about my work</strong> is on for a new page. You can turn it off.</p>
+          <p>When it is on, a recruiter's question is answered only from content you approved and published. Draft cards, the raw CV, and answers you have not kept are not used. The page itself is complete without chat.</p>
         </div>
       ),
     },
@@ -346,10 +387,10 @@ export default function FAQPage() {
     },
     {
       q: "How accurate is the AI? Can it make things up about me?",
-      plainText: "This is the right question to ask. Proxy's AI explorer is instructed to answer only from your actual profile data — your war stories, career timeline, and achievements — and to say plainly when a detail isn't there, redirecting the recruiter to contact you directly. It's instructed not to invent numbers, fabricate company experience, present general knowledge as personal experience, or attribute a fact from one employer to another. It's also instructed to correct an incorrect premise before answering. These are strict prompt instructions, not a technical guarantee — no AI system is perfect. Test it yourself before you turn it on, and treat a wrong answer as something to fix, not something that can't happen.",
+      plainText: "This is the right question to ask. Proxy's AI explorer is instructed to answer only from the page you published and the cards you marked accurate, and to say plainly when a detail isn't there, redirecting the recruiter to contact you directly. It's instructed not to invent numbers, fabricate company experience, present general knowledge as personal experience, or attribute a fact from one employer to another. It's also instructed to correct an incorrect premise before answering. Draft cards and the raw CV are not used. These are strict prompt instructions, not a technical guarantee — no AI system is perfect. Test it yourself, and treat a wrong answer as something to fix, not something that can't happen.",
       a: (
         <div className="space-y-4">
-          <p>This is the right question to ask. Proxy's AI explorer is <strong className="text-black">instructed to answer only from your actual profile data</strong> — your war stories, career timeline, and achievements. These are strict prompt instructions, not a technical guarantee.</p>
+          <p>This is the right question to ask. Proxy's AI explorer is <strong className="text-black">instructed to answer only from the page you published and the cards you marked accurate</strong>. Draft cards and the raw CV are not used. These are strict prompt instructions, not a technical guarantee.</p>
           <ul className="space-y-2 ml-1">
             <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Instructed not to fabricate</strong> — numbers, metrics, company names, and project details are meant to come only from your profile.</span></li>
             <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Instructed against cross-company mixing</strong> — facts from one employer aren't meant to be attributed to another, even if the number exists elsewhere in your profile.</span></li>

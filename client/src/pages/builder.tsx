@@ -694,7 +694,7 @@ export default function BuilderPage() {
             <small>PDF, up to 5 MB</small>
             <input type="file" accept="application/pdf" disabled={Boolean(busy)} onChange={(event) => event.target.files?.[0] && upload(event.target.files[0])} />
           </label>
-          <button className="builder-text-button builder-manual-toggle" type="button" onClick={() => setManualStart((value) => !value)}>No CV? Start with a few questions <ChevronRight /></button>
+          <button className="builder-text-button builder-manual-toggle" type="button" onClick={() => setManualStart((value) => !value)}>No CV? Describe one piece of work <ChevronRight /></button>
           {manualStart && <div className="builder-manual-start">
             <label><span>Your name</span><input value={manual.name} onChange={(event) => setManual({ ...manual, name: event.target.value })} /></label>
             <label><span>Your current role or professional focus</span><input value={manual.title} onChange={(event) => setManual({ ...manual, title: event.target.value })} /></label>
@@ -967,7 +967,7 @@ export default function BuilderPage() {
         {error && <p className="builder-error" role="alert">{error}</p>}
         {!state.hasPublished && !state.paidPlan ? (
           <div className="builder-pro-offer">
-            <p><b>Pro</b> <span>$49, paid once</span></p>
+            <p><b>Pro</b> <span>paid once</span></p>
             <p>{PRO_FOR}</p>
             <ul>
               {PRO_FEATURES.map((feature) => <li key={feature}><Check /> {feature}</li>)}

@@ -369,7 +369,7 @@ export default function QuestionnairePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-      toast({ title: "Submitted!", description: "AI is processing your content. This may take a few minutes." });
+      toast({ title: "Submitted!", description: "AI is processing your content. Nothing goes public until you publish." });
       navigate("/dashboard");
     },
     onError: (err: any) => {
@@ -1607,7 +1607,7 @@ export default function QuestionnairePage() {
                     <h4 className="font-bold mb-2">What happens next?</h4>
                     <ol className="list-decimal list-inside space-y-1 mono text-sm text-black/60">
                       <li>AI processes your content to build your page</li>
-                      <li>Your page is generated (typically a few minutes)</li>
+                      <li>Your page is generated. Proxy does not promise a fixed time</li>
                       <li>Preview your page and make adjustments</li>
                       <li>Publish and share your link</li>
                     </ol>

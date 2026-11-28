@@ -7,6 +7,15 @@ export function numericTokens(text: string): string[] {
   return Array.from(text.matchAll(NUMBER), (match) => match[0].replace(/,/g, ""));
 }
 
+// A rewrite may not introduce a number the person did not say. When the
+// answer has no digit and the rewrite does, keep the person's words.
+export function rewriteWithoutNewNumbers(answer: string, proposed: string): string {
+  const safeAnswer = answer.trim().slice(0, 700);
+  const safeProposed = proposed.trim().slice(0, 700);
+  if (numericTokens(answer).length === 0 && numericTokens(proposed).length > 0) return safeAnswer;
+  return safeProposed;
+}
+
 export function ungroundedNumbers(answer: string, source: string): string[] {
   const allowed = new Set(numericTokens(source));
   const seen = new Set<string>();

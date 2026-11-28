@@ -3,7 +3,7 @@ import { applyProposal, conciseHeadline, getImprovementCandidates, getPublicatio
 import { profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, type ProfileDocument } from "../shared/profile-document";
 import { mergeProfileDocuments, setDocumentPath } from "../client/src/lib/profile-document-merge";
 import { hasConfirmedPro, hasJobSearchAccess, recentQuestionsForPlan, JOB_SEARCH_TRIAL_MS } from "../shared/plan-access";
-import { ungroundedNumbers } from "../shared/answer-grounding";
+import { rewriteWithoutNewNumbers, ungroundedNumbers } from "../shared/answer-grounding";
 import { PRIYA_PAGE_FACTS, PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "../shared/priya-reviewed-answers";
 import { guestDraftTtlMs, GUEST_DRAFT_TTL_MS, GUEST_DRAFT_EMAIL_TTL_MS } from "../shared/guest-draft";
 
@@ -34,21 +34,30 @@ const checks: Array<[string, () => void]> = [
   ["existing contribution does not create contribution question", () => assert(!getImprovementCandidates(page()).some((item) => item.field === "contribution"))],
   ["skipped question stays skipped", () => assert(!getImprovementCandidates(page({ skippedQuestionIds: ["project:project-1:challenge"] })).some((item) => item.id.endsWith(":challenge")))],
   ["answered question stays answered", () => assert(!getImprovementCandidates(page({ answeredQuestionIds: ["project:project-1:outcome"] })).some((item) => item.id.endsWith(":outcome")))],
-  ["complete project produces a deeper decision question", () => {
+  ["complete project asks what did not go as expected", () => {
     const complete = page({ projects: [{ id: "project-1", title: "Work", challenge: "A constraint", contribution: "Changed the process", outcome: "Delivery became reliable", sourceIds: ["resume-role-1"] }] });
+    const question = getImprovementCandidates(complete).find((item) => item.section === "project");
+    assert.equal(question?.id, "project:project-1:learned");
+    assert.equal(question?.question, "What did not go as you expected, or what would you do differently next time? A sentence is enough.");
+  }],
+  ["accepted learned answer leads to the decision follow-up", () => {
+    const complete = page({
+      projects: [{ id: "project-1", title: "Work", challenge: "A constraint", contribution: "Changed the process", outcome: "Delivery became reliable", sourceIds: ["resume-role-1"] }],
+      answeredQuestionIds: ["project:project-1:learned"],
+    });
     assert.equal(getImprovementCandidates(complete).find((item) => item.section === "project")?.id, "project:project-1:decision");
   }],
   ["accepted decision leads to a relevant influence follow-up", () => {
     const complete = page({
       projects: [{ id: "project-1", title: "Work", challenge: "A constraint", contribution: "Changed the process", outcome: "Delivery became reliable", sourceIds: ["resume-role-1"] }],
-      answeredQuestionIds: ["project:project-1:decision"],
+      answeredQuestionIds: ["project:project-1:learned", "project:project-1:decision"],
     });
     assert.equal(getImprovementCandidates(complete).find((item) => item.section === "project")?.id, "project:project-1:influence");
   }],
   ["accepted influence leads to a third relevant reflection question", () => {
     const complete = page({
       projects: [{ id: "project-1", title: "Work", challenge: "A constraint", contribution: "Changed the process", outcome: "Delivery became reliable", sourceIds: ["resume-role-1"] }],
-      answeredQuestionIds: ["project:project-1:decision", "project:project-1:influence"],
+      answeredQuestionIds: ["project:project-1:learned", "project:project-1:decision", "project:project-1:influence"],
     });
     assert.equal(getImprovementCandidates(complete).find((item) => item.section === "project")?.id, "project:project-1:reflection");
   }],
@@ -182,6 +191,18 @@ const checks: Array<[string, () => void]> = [
     assert.equal(hasJobSearchAccess({ tier: "free", paymentStatus: "unpaid" }, created, now), true);
   }],
   ["a number inside another number is not grounded", () => assert.deepEqual(ungroundedNumbers("9 markets", "94% across 6 markets"), ["9"])],
+  ["a rewrite cannot add a number the person did not say", () => {
+    assert.equal(rewriteWithoutNewNumbers("it got faster", "cut cycle time by 30%"), "it got faster");
+    assert.equal(rewriteWithoutNewNumbers("it fell 18%", "Cycle time fell 18%."), "Cycle time fell 18%.");
+  }],
+  ["keeping an outcome stores the candidate's words once", () => {
+    const value = page();
+    const next = applyProposal(value, { id: "p-outcome", questionId: "project:project-1:outcome", section: "project", targetId: "project-1", field: "outcome", question: "What changed?", answer: "Fewer delays", before: "", proposed: "Delivery became more reliable.", baseRevision: 1 });
+    assert.equal(next.projects[0].evidenceNote, "Fewer delays");
+    const again = applyProposal(next, { id: "p-outcome-2", questionId: "project:project-1:outcome", section: "project", targetId: "project-1", field: "outcome", question: "What changed?", answer: "A later answer", before: "", proposed: "Another rewrite.", baseRevision: 2 });
+    assert.equal(again.projects[0].evidenceNote, "Fewer delays");
+    assert.equal(again.projects[0].outcome, "Another rewrite.");
+  }],
   ["Priya chip answers use only figures from her page", () => {
     for (const question of PRIYA_REVIEWED_QUESTIONS) {
       const answer = reviewedPriyaAnswer(question);

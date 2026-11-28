@@ -3,6 +3,7 @@ import { storage } from "./storage";
 import { logger } from "./logger";
 import { randomUUID } from "crypto";
 import type { ImprovementProposal, ImprovementQuestion, ProfileDocument } from "@shared/profile-document";
+import { rewriteWithoutNewNumbers } from "@shared/answer-grounding";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY!,
@@ -1240,7 +1241,7 @@ export async function generateProfileImprovement(
     : question.section === "summary"
       ? document.identity.summary
       : question.section === "project"
-        ? project?.[question.field as "challenge" | "contribution" | "outcome"] || ""
+        ? project?.[question.field as "challenge" | "contribution" | "outcome" | "learned"] || ""
         : role?.summary || "";
 
   const context = question.section === "project"
@@ -1291,6 +1292,8 @@ Return only JSON: {"proposed":"replacement text"}`;
       questionId: question.id,
     });
   }
+
+  proposed = rewriteWithoutNewNumbers(answer, proposed);
 
   return {
     id: randomUUID(),

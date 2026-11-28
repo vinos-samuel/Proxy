@@ -12,7 +12,7 @@ if (!process.env.TYPESAFE_API_KEY && process.argv.includes("--local-credentials"
   if (typeof credentials.TYPESAFE_API_KEY === "string") process.env.TYPESAFE_API_KEY = credentials.TYPESAFE_API_KEY;
 }
 
-type Scenario = { label: string; expectedField: "challenge" | "contribution" | "outcome" | "summary" | "workingStyle" | null; make: () => ProfileDocument };
+type Scenario = { label: string; expectedField: "challenge" | "contribution" | "outcome" | "summary" | "learned" | "workingStyle" | null; make: () => ProfileDocument };
 
 function base(): ProfileDocument {
   return profileDocumentSchema.parse({ schemaVersion: 1, style: "editorial", identity: { name: "Test Person", title: "Consultant", headline: "I improve complex services.", summary: "I help teams improve complex services through practical operating changes, clear decisions, and durable ways of working across functions and regions.", photoUrl: null }, projects: [], experience: [{ id: "role-1", company: "Example", title: "Consultant", highlights: [], sourceIds: [] }], skills: [], contact: { email: null, linkedin: null, website: null, showEmail: false, showLinkedin: false, showWebsite: false }, publicBotEnabled: false, sources: [], skippedQuestionIds: [], answeredQuestionIds: [], pendingProposal: null, undoStack: [] });
@@ -26,8 +26,8 @@ const scenarios: Scenario[] = [
   { label: "empty project", expectedField: "challenge", make: () => project({}) },
   { label: "problem only", expectedField: "contribution", make: () => project({ challenge: "Customers waited too long." }) },
   { label: "problem and contribution", expectedField: "outcome", make: () => project({ challenge: "Customers waited too long.", contribution: "I redesigned triage." }) },
-  { label: "complete qualitative story gets a decision follow-up", expectedField: "contribution", make: () => project({ challenge: "Customers waited too long.", contribution: "I redesigned triage.", outcome: "Cases reached the right team earlier." }) },
-  { label: "complete numeric story gets a decision follow-up", expectedField: "contribution", make: () => project({ challenge: "Delays were rising.", contribution: "I changed routing.", outcome: "Cycle time fell 18%." }) },
+  { label: "complete qualitative story asks what did not go as expected", expectedField: "learned", make: () => project({ challenge: "Customers waited too long.", contribution: "I redesigned triage.", outcome: "Cases reached the right team earlier." }) },
+  { label: "complete numeric story asks what did not go as expected", expectedField: "learned", make: () => project({ challenge: "Delays were rising.", contribution: "I changed routing.", outcome: "Cycle time fell 18%." }) },
   { label: "confidential outcome still missing", expectedField: "outcome", make: () => project({ challenge: "A confidential client needed a new model.", contribution: "I led the redesign without naming the client." }) },
   { label: "unsupported metrics are not requested first", expectedField: "challenge", make: () => project({ contribution: "I led the work." }) },
   { label: "no projects", expectedField: "summary", make: () => { const value = base(); value.experience = []; value.identity.summary = "Consultant."; return profileDocumentSchema.parse(value); } },
@@ -35,12 +35,12 @@ const scenarios: Scenario[] = [
   { label: "skipped challenge", expectedField: "contribution", make: () => { const value = project({}); value.skippedQuestionIds = ["project:work-1:challenge"]; return profileDocumentSchema.parse(value); } },
   { label: "answered challenge", expectedField: "contribution", make: () => { const value = project({}); value.answeredQuestionIds = ["project:work-1:challenge"]; return profileDocumentSchema.parse(value); } },
   { label: "skipped all project gaps moves to how you work", expectedField: "workingStyle", make: () => { const value = project({}); value.skippedQuestionIds = ["project:work-1:challenge", "project:work-1:contribution", "project:work-1:outcome"]; return profileDocumentSchema.parse(value); } },
-  { label: "rich CV gets a deeper decision question", expectedField: "contribution", make: () => project({ challenge: "Fragmented ownership", contribution: "Created one operating cadence", outcome: "Leaders resolved issues earlier" }) },
+  { label: "rich CV asks what did not go as expected", expectedField: "learned", make: () => project({ challenge: "Fragmented ownership", contribution: "Created one operating cadence", outcome: "Leaders resolved issues earlier" }) },
   { label: "sparse CV", expectedField: "challenge", make: () => project({ title: "Project" }) },
   { label: "consultant case", expectedField: "outcome", make: () => project({ challenge: "A buyer lacked visibility.", contribution: "Mapped suppliers and controls." }) },
   { label: "candidate transformation", expectedField: "contribution", make: () => project({ challenge: "A regional process varied by market." }) },
   { label: "repeated question excluded", expectedField: "outcome", make: () => { const value = project({ challenge: "A", contribution: "B" }); value.answeredQuestionIds = ["project:work-1:challenge", "project:work-1:contribution"]; return profileDocumentSchema.parse(value); } },
-  { label: "qualitative outcome is accepted before deeper follow-up", expectedField: "contribution", make: () => project({ challenge: "Handoffs failed.", contribution: "Clarified ownership.", outcome: "Teams made decisions without escalation." }) },
+  { label: "qualitative outcome is accepted before the miss question", expectedField: "learned", make: () => project({ challenge: "Handoffs failed.", contribution: "Clarified ownership.", outcome: "Teams made decisions without escalation." }) },
   { label: "conflicting answer not part of ranking", expectedField: "outcome", make: () => project({ challenge: "Costs rose.", contribution: "Reviewed spend." }) },
   { label: "two projects prioritise first evidence gap", expectedField: "challenge", make: () => { const value = project({}); value.projects.push({ id: "work-2", title: "Second", sourceIds: [] }); return profileDocumentSchema.parse(value); } },
 ];

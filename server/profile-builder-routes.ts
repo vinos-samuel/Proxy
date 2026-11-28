@@ -521,8 +521,8 @@ export function registerProfileBuilderRoutes(app: Express) {
     // explorer's background) once the user accepts this suggestion via
     // applyProposal — see server/profile-builder.ts. A skipped or never-reviewed
     // answer must never reach the public bot.
-    if (question.id === "identity:working-style") next.privateContext.workingStyle = parsed.data.answer;
-    if (question.id === "identity:career-direction") next.privateContext.careerDirection = parsed.data.answer;
+    if (question.id === "identity:working-style") next.privateContext.workingStyle = parsed.data.answer.slice(0, 1800);
+    if (question.id === "identity:career-direction") next.privateContext.careerDirection = parsed.data.answer.slice(0, 1800);
     const saved = await saveWorking(req, state, next);
     if (!saved) return res.status(409).json({ message: "Your page changed while the suggestion was prepared. Try again." });
     return res.json({ ...saved, proposal });

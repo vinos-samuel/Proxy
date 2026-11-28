@@ -420,7 +420,7 @@ export function getImprovementCandidates(document: ProfileDocument): Improvement
       id: "identity:working-style",
       section: "summary",
       targetId: null,
-      field: "summary",
+      field: "workingStyle",
       label: "How you work",
       question: "When work is complex or unclear, what do colleagues rely on you to do?",
       priority: 64,
@@ -432,7 +432,7 @@ export function getImprovementCandidates(document: ProfileDocument): Improvement
       id: "identity:career-direction",
       section: "summary",
       targetId: null,
-      field: "summary",
+      field: "careerDirection",
       label: "What you want next",
       question: "What kind of opportunity or client problem would you most like to take on next?",
       priority: 60,
@@ -445,6 +445,8 @@ export function getImprovementCandidates(document: ProfileDocument): Improvement
 }
 
 export function readTargetValue(document: ProfileDocument, question: ImprovementQuestion): string {
+  if (question.field === "workingStyle") return document.privateContext.workingStyle || "";
+  if (question.field === "careerDirection") return document.privateContext.careerDirection || "";
   if (question.section === "headline") return document.identity.headline;
   if (question.section === "summary") return document.identity.summary;
   if (question.section === "project") {
@@ -474,9 +476,11 @@ export function applyProposal(document: ProfileDocument, proposal: ImprovementPr
   // CV routinely produces a proposed rewrite long enough to exceed these,
   // which previously threw an uncaught ZodError on save. Clamp to the real
   // target field's limit at each assignment site.
-  if (proposal.section === "headline") next.identity.headline = proposal.proposed.slice(0, 240);
-  if (proposal.section === "summary") next.identity.summary = proposal.proposed.slice(0, 1800);
-  if (proposal.section === "project") {
+  if (proposal.field === "workingStyle") next.privateContext.workingStyle = proposal.proposed.slice(0, 1800);
+  else if (proposal.field === "careerDirection") next.privateContext.careerDirection = proposal.proposed.slice(0, 1800);
+  else if (proposal.section === "headline") next.identity.headline = proposal.proposed.slice(0, 240);
+  else if (proposal.section === "summary") next.identity.summary = proposal.proposed.slice(0, 1800);
+  else if (proposal.section === "project") {
     const project = next.projects.find((item) => item.id === proposal.targetId);
     if (project) {
       const field = proposal.field;
@@ -486,7 +490,7 @@ export function applyProposal(document: ProfileDocument, proposal: ImprovementPr
       project.sourceIds = Array.from(new Set([...project.sourceIds, answerSourceId]));
     }
   }
-  if (proposal.section === "experience") {
+  else if (proposal.section === "experience") {
     const role = next.experience.find((item) => item.id === proposal.targetId);
     if (role) {
       role.summary = proposal.proposed.slice(0, 800);
@@ -540,6 +544,8 @@ export function undoLastChange(document: ProfileDocument): ProfileDocument | nul
   } else if (typeof undo.before !== "string") {
     return null;
   } else if (undo.section === "headline") next.identity.headline = undo.before;
+  else if (undo.section === "summary" && undo.field === "workingStyle") next.privateContext.workingStyle = undo.before || undefined;
+  else if (undo.section === "summary" && undo.field === "careerDirection") next.privateContext.careerDirection = undo.before || undefined;
   else if (undo.section === "summary") next.identity.summary = undo.before;
   else if (undo.section === "project") {
     const project = next.projects.find((item) => item.id === undo.targetId);

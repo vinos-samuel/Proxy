@@ -1209,6 +1209,26 @@ export async function generateProfileImprovement(
   answer: string,
   revision: number,
 ): Promise<ImprovementProposal> {
+  // These two answers are private notes. Keep the candidate's words and do
+  // not send them through a rewrite that targets the public About text.
+  if (question.field === "workingStyle" || question.field === "careerDirection") {
+    const current = question.field === "workingStyle"
+      ? document.privateContext.workingStyle || ""
+      : document.privateContext.careerDirection || "";
+    return {
+      id: randomUUID(),
+      questionId: question.id,
+      section: question.section,
+      targetId: question.targetId,
+      field: question.field,
+      question: question.question,
+      answer: answer.trim().slice(0, 2500),
+      before: current.slice(0, 2500),
+      proposed: answer.trim().slice(0, 1800),
+      baseRevision: revision,
+    };
+  }
+
   const project = question.section === "project"
     ? document.projects.find((item) => item.id === question.targetId)
     : undefined;

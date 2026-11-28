@@ -14,6 +14,7 @@ import {
   outreachDateWhenDraftSaved,
   showJobSearchAgentBadge,
 } from "../shared/job-search-agent";
+import { JOB_SEARCH_AGENT_HOME, PRO_BUTTON_LABEL } from "../client/src/lib/pro-plan";
 
 function page(overrides: Partial<ProfileDocument> = {}): ProfileDocument {
   return profileDocumentSchema.parse({
@@ -244,6 +245,21 @@ export const jobSearchAgentChecks: Array<[string, () => void]> = [
     assert.doesNotMatch(prompt, /headers: PROFILE FIT, ROLES TO TARGET, WHAT TO LEAD WITH, WATCH OUT FOR, FIRST MOVE/);
     assert.match(openingInstruction("research", entity), /Do not write a next step/);
     assert.match(openingInstruction("research", entity), /Do not use the word showcase/);
+  }],
+  ["the homepage Job Search Agent section uses the approved words", () => {
+    assert.equal(JOB_SEARCH_AGENT_HOME.eyebrow, "Job Search Agent");
+    assert.equal(JOB_SEARCH_AGENT_HOME.headline, "Draft the search from the page you already have.");
+    assert.equal(JOB_SEARCH_AGENT_HOME.subhead, "It uses the roles, employers, and numbers saved on your page.");
+    assert.deepEqual([...JOB_SEARCH_AGENT_HOME.bullets], [
+      "A message to a contact",
+      "A shorter follow-up",
+      "A cover letter, when the job description is saved",
+      "Interview practice, one question at a time",
+      "A thank-you note",
+      "Notes on an offer, when the salary numbers are saved",
+    ]);
+    assert.equal(JOB_SEARCH_AGENT_HOME.price, "Pro, $49 once");
+    assert.equal(PRO_BUTTON_LABEL, "Get Pro · $49 once");
   }],
   ["the Job Search Agent FAQ matches the first-click behaviour", () => {
     const faq = jobSearchAgentFaqPlainText();

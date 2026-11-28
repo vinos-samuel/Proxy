@@ -20,6 +20,7 @@ At the end of every session, update the "Current Sprint" block above with:
 - The AGENT ACTIVE badge shows only during the 48-hour trial or when Pro is paid
 - The FAQ answer "What is the Job Search Agent?" matches that behaviour
 - A thank-you with no interview notes stays on the greeting, the saved role, and one profile result. Company fit does not add a next step or filler such as "showcase"
+- Homepage section after Work cards uses the approved Job Search Agent copy and the existing Pro button
 
 **Where we stopped:** Live Gemini check used `gemini-2.5-flash` at `generativelanguage.googleapis.com/v1beta`. Thank-you and company fit were each run 3 times after the tighter prompts. Unit checks are in `npm run test:profile-builder`. Head `9bda3d5` plus this sprint note.
 

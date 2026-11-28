@@ -108,6 +108,30 @@ const checks: Array<[string, () => void]> = [
     assert.equal(next.projects[0].learned, "I would brief that team before kickoff.");
     assert.equal(next.projects[0].contribution, "Led the redesign.");
   }],
+  ["how you work does not replace the about text", () => {
+    const value = page();
+    const about = value.identity.summary;
+    const question = getImprovementCandidates(value).find((item) => item.id === "identity:working-style");
+    assert.equal(question?.field, "workingStyle");
+    const next = applyProposal(value, { id: "p-style", questionId: "identity:working-style", section: "summary", targetId: null, field: "workingStyle", question: "When work is complex or unclear, what do colleagues rely on you to do?", answer: "They ask me to make the decision clear.", before: "", proposed: "They ask me to make the decision clear.", baseRevision: 1 });
+    assert.equal(next.identity.summary, about);
+    assert.equal(next.privateContext.workingStyle, "They ask me to make the decision clear.");
+    const undone = undoLastChange(next);
+    assert.equal(undone?.identity.summary, about);
+    assert.equal(undone?.privateContext.workingStyle, undefined);
+  }],
+  ["what you want next does not replace the about text", () => {
+    const value = page();
+    const about = value.identity.summary;
+    const question = getImprovementCandidates(value).find((item) => item.id === "identity:career-direction");
+    assert.equal(question?.field, "careerDirection");
+    const next = applyProposal(value, { id: "p-direction", questionId: "identity:career-direction", section: "summary", targetId: null, field: "careerDirection", question: "What kind of opportunity would you most like to take on next?", answer: "A regional operations role with a messy handover.", before: "", proposed: "A regional operations role with a messy handover.", baseRevision: 1 });
+    assert.equal(next.identity.summary, about);
+    assert.equal(next.privateContext.careerDirection, "A regional operations role with a messy handover.");
+    const undone = undoLastChange(next);
+    assert.equal(undone?.identity.summary, about);
+    assert.equal(undone?.privateContext.careerDirection, undefined);
+  }],
   ["staged publication is not public before activation", () => {
     const staged = page();
     assert.equal(selectPublicProfileDocument({ activeDocument: null, publishedDocument: staged }), null);

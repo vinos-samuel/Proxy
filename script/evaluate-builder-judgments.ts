@@ -12,7 +12,7 @@ if (!process.env.TYPESAFE_API_KEY && process.argv.includes("--local-credentials"
   if (typeof credentials.TYPESAFE_API_KEY === "string") process.env.TYPESAFE_API_KEY = credentials.TYPESAFE_API_KEY;
 }
 
-type Scenario = { label: string; expectedField: "challenge" | "contribution" | "outcome" | "summary" | null; make: () => ProfileDocument };
+type Scenario = { label: string; expectedField: "challenge" | "contribution" | "outcome" | "summary" | "workingStyle" | null; make: () => ProfileDocument };
 
 function base(): ProfileDocument {
   return profileDocumentSchema.parse({ schemaVersion: 1, style: "editorial", identity: { name: "Test Person", title: "Consultant", headline: "I improve complex services.", summary: "I help teams improve complex services through practical operating changes, clear decisions, and durable ways of working across functions and regions.", photoUrl: null }, projects: [], experience: [{ id: "role-1", company: "Example", title: "Consultant", highlights: [], sourceIds: [] }], skills: [], contact: { email: null, linkedin: null, website: null, showEmail: false, showLinkedin: false, showWebsite: false }, publicBotEnabled: false, sources: [], skippedQuestionIds: [], answeredQuestionIds: [], pendingProposal: null, undoStack: [] });
@@ -34,7 +34,7 @@ const scenarios: Scenario[] = [
   { label: "role but no projects", expectedField: "summary", make: () => { const value = base(); value.identity.summary = "Consultant."; return profileDocumentSchema.parse(value); } },
   { label: "skipped challenge", expectedField: "contribution", make: () => { const value = project({}); value.skippedQuestionIds = ["project:work-1:challenge"]; return profileDocumentSchema.parse(value); } },
   { label: "answered challenge", expectedField: "contribution", make: () => { const value = project({}); value.answeredQuestionIds = ["project:work-1:challenge"]; return profileDocumentSchema.parse(value); } },
-  { label: "skipped all project gaps moves to an about topic", expectedField: "summary", make: () => { const value = project({}); value.skippedQuestionIds = ["project:work-1:challenge", "project:work-1:contribution", "project:work-1:outcome"]; return profileDocumentSchema.parse(value); } },
+  { label: "skipped all project gaps moves to how you work", expectedField: "workingStyle", make: () => { const value = project({}); value.skippedQuestionIds = ["project:work-1:challenge", "project:work-1:contribution", "project:work-1:outcome"]; return profileDocumentSchema.parse(value); } },
   { label: "rich CV gets a deeper decision question", expectedField: "contribution", make: () => project({ challenge: "Fragmented ownership", contribution: "Created one operating cadence", outcome: "Leaders resolved issues earlier" }) },
   { label: "sparse CV", expectedField: "challenge", make: () => project({ title: "Project" }) },
   { label: "consultant case", expectedField: "outcome", make: () => project({ challenge: "A buyer lacked visibility.", contribution: "Mapped suppliers and controls." }) },

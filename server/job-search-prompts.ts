@@ -33,7 +33,7 @@ export type AgentProfileInput = {
 const NO_INVENTION = [
   "NO-INVENTION RULE: Use only facts written in this profile, or in the company, contact, or application the candidate opened.",
   "Do not invent employers, titles, dates, team sizes, percentages, money, or outcomes.",
-  "If a number is not written here, do not write it.",
+  "If a number is not written here, do not write it. Do not add up dates into a tenure. A range such as 2015 - 2019 is not a count of years.",
   "A PRIVATE-DRAFT card is unverified. You may use it when writing the candidate's own private draft, and you must flag that point as unverified.",
   "If the same fact is also listed under ROLES, it is confirmed. Flag unverified only when the fact appears on a PRIVATE-DRAFT card and nowhere under ROLES.",
   "Do not present a private-draft fact as confirmed.",
@@ -227,7 +227,7 @@ export function openingInstruction(actionType: AgentActionType, entityData: Reco
   const hasDate = hasSavedOutreachDate(entityData.lastOutreachDate);
   switch (actionType) {
     case "research":
-      return "Write the company fit note now. Use only saved facts about the candidate. Use only the company name, industry, and notes that were saved. Do not invent what the company does.";
+      return "Write the company fit note now. Use only saved facts about the candidate and the saved company name, industry, and notes. Do not invent what the company does. Do not write a next step. Do not use the word showcase.";
     case "outreach":
       return "Write the outreach draft now from the saved profile and this contact. After the draft, offer optional questions about the goal and the channel. Do not ask those questions before the draft.";
     case "follow-up":
@@ -244,8 +244,12 @@ export function openingInstruction(actionType: AgentActionType, entityData: Reco
         : "The job description is not saved. Ask only for the job description. Do not guess the requirements. Do not ask for anything else.";
     case "interview-prep":
       return "Ask the first practice question now, based on the saved role and profile. After that question, offer optional questions about the interview stage and the focus. Do not ask those before the first practice question.";
-    case "thank-you":
-      return "Write the thank-you note now from the saved role and company. Do not invent what was said in the interview. Do not refer to the conversation. If no interviewer name is saved, leave the name as a blank the candidate can fill. After the note, offer to add who they met and one moment from the conversation. Do not ask those before the note.";
+    case "thank-you": {
+      const hasNotes = typeof entityData.notes === "string" && entityData.notes.trim().length > 0;
+      return hasNotes
+        ? "Write the thank-you note now. Use only the saved role, company, interview notes, and profile facts. Do not invent what was said. Do not add a claim that is not in those."
+        : "Write the thank-you note now. No interview notes are saved. Use only a greeting, thanks for their time, the saved role and company, one profile result, and the candidate's name. Do not invent what was said. Do not write that the result aligns, fits, or is required.";
+    }
     case "negotiate":
       return hasOffer
         ? "Salary numbers are saved on this application. Write the offer notes now from those numbers and the profile. After the notes, offer optional questions about bonus, a walk-away number, and non-salary terms. Do not ask those before the notes."
@@ -261,7 +265,11 @@ function promptResearch(ctx: string, entityData: Record<string, any>): string {
   const notes = cleanPromptText(entityData.notes, 800);
   return `You help a senior professional decide whether to pursue ${company || "this company"}, using only the facts below.
 
-FIRST RESPONSE: Write the fit note now. Do not open with questions. Address the candidate as "you". The first move is an action they take. Do not tell someone else to contact the candidate.
+FIRST RESPONSE: Write the fit note now. Do not open with questions. Address the candidate as "you".
+Do not calculate years from a date range. Do not write a number that is not already written in the profile or the notes.
+Do not write a next step, a first move, a careers page, a website, or a person to contact. Drop any step that is not written in the saved notes.
+WATCH OUT FOR may only name a gap in the saved notes or the saved page. Do not tell the candidate to prepare, apply, review, elaborate, ensure, or speak to anything.
+Do not use these words: showcase, showcasing, leverage, passionate, dynamic, synergies.
 
 ${ctx}
 
@@ -270,9 +278,10 @@ Name: ${company || "Not saved"}
 Industry: ${industry || "Not saved"}
 Notes: ${notes || "None"}
 
-Write five short sections with these headers: PROFILE FIT, ROLES TO TARGET, WHAT TO LEAD WITH, WATCH OUT FOR, FIRST MOVE.
+Write four sections only, with these headers: PROFILE FIT, ROLES TO TARGET, WHAT TO LEAD WITH, WATCH OUT FOR.
+Do not add a FIRST MOVE section. Do not suggest what to do next.
 In PROFILE FIT, name the candidate's real employers and real numbers when they bear on the notes. If the notes do not say what the company does, say the fit is based on the saved page, not on inside knowledge of the company.
-End with one sentence on the overall verdict.`;
+End with one sentence on the overall verdict. That sentence is an opinion. It must not add a fact or a next step.`;
 }
 
 function promptOutreach(ctx: string, entityData: Record<string, any>): string {
@@ -399,15 +408,24 @@ function promptThankYou(ctx: string, entityData: Record<string, any>): string {
   const jobTitle = cleanPromptText(entityData.jobTitle, 120);
   const company = cleanPromptText(entityData.companyName, 100);
   const notes = cleanPromptText(entityData.notes, 500);
+  const noNotes = !notes;
   return `You write a short thank-you note the candidate can send after an interview.
 
-FIRST RESPONSE: Write the note now from the saved role and company. Do not invent what was said in the interview. Do not write that they described, mentioned, or discussed anything. Do not say the candidate learned about the role or enjoyed the conversation. If no interview notes are saved, do not refer to the conversation at all. Thank them for the time, name the role, and cite one saved result. If no interviewer name is saved, start with "Hello," and leave a blank for the name. Under 100 words. Sign with the candidate's name.
+FIRST RESPONSE: ${noNotes
+    ? `No interview notes are saved. Write only these parts, and no other sentence:
+1. Hello, and a blank for the name.
+2. Thank you for your time.
+3. The saved job title and company, as a fact, not as a claim that the candidate fits it.
+4. One result copied from the profile, in the first person ("I", not "you"), with the employer and the number if one is saved.
+5. The candidate's name.
+Do not write that the result aligns, fits, matches, or is required. Do not write "aligns well", "operational efficiency", or "the needs of the role". Do not write that the candidate is interested or excited. Do not refer to the conversation. Do not describe the candidate as "you".`
+    : "Interview notes are saved. Write the note from those notes plus the profile. Do not add a claim that is in neither. Do not invent what was said."}
 After the note, offer to add the interviewer's name and one moment from the conversation. Do not ask those before the note.
 
 ${ctx}
 
 ROLE: ${jobTitle || "Not saved"} at ${company || "Not saved"}
-${notes ? `Notes saved on the application: ${notes}` : "No interview notes are saved."}`;
+${noNotes ? "No interview notes are saved." : `Interview notes saved on the application: ${notes}`}`;
 }
 
 function promptNegotiate(ctx: string, entityData: Record<string, any>): string {

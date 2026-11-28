@@ -171,6 +171,8 @@ export const jobSearchAgentChecks: Array<[string, () => void]> = [
     const thanks = openingInstruction("thank-you", { jobTitle: "Head of Operations", companyName: "Harbourline" });
     assert.match(thanks, /Write the thank-you note now/);
     assert.match(thanks, /Do not invent what was said/);
+    assert.match(thanks, /No interview notes are saved/);
+    assert.match(thanks, /Do not write that the result aligns, fits, or is required/);
     assert.doesNotMatch(thanks, /Do not write any note/);
 
     const offer = openingInstruction("negotiate", { jobTitle: "Head of Operations", salaryMin: 180000, salaryMax: 220000, salaryCurrency: "SGD" });
@@ -216,6 +218,32 @@ export const jobSearchAgentChecks: Array<[string, () => void]> = [
     assert.equal(showJobSearchAgentBadge({ tier: "pro", paymentStatus: "paid" }, pastTrial, now), true);
     assert.equal(showJobSearchAgentBadge({ tier: "pro", paymentStatus: "paid" }, null, now), true);
     assert.equal(showJobSearchAgentBadge({ tier: null, paymentStatus: null }, null, now), false);
+  }],
+  ["a thank-you with no interview notes may not add an unsupported fit line", () => {
+    const prompt = systemPromptFor("thank-you", "PROFILE", { jobTitle: "Head of Securities Operations", companyName: "Harbourline Bank" });
+    assert.match(prompt, /No interview notes are saved/);
+    assert.match(prompt, /Do not write that the result aligns, fits, matches, or is required/);
+    assert.match(prompt, /Do not write "aligns well", "operational efficiency", or "the needs of the role"/);
+    assert.match(prompt, /Do not write that the candidate is interested or excited/);
+    assert.match(prompt, /One result copied from the profile/);
+    assert.match(prompt, /first person \("I", not "you"\)/);
+    assert.match(prompt, /Do not describe the candidate as "you"/);
+    const withNotes = systemPromptFor("thank-you", "PROFILE", { jobTitle: "Head of Operations", companyName: "Harbourline Bank", notes: "We talked about the exceptions queue." });
+    assert.match(withNotes, /Interview notes are saved/);
+    assert.match(withNotes, /Do not add a claim that is in neither/);
+  }],
+  ["company fit drops unsourced next steps and showcase filler", () => {
+    const entity = { name: "Harbourline Bank", industry: "Financial services", notes: "They care about settlement speed." };
+    const prompt = systemPromptFor("research", "PROFILE", entity);
+    assert.match(prompt, /Do not write a next step/);
+    assert.match(prompt, /showcase/i);
+    assert.match(prompt, /Do not add a FIRST MOVE section/);
+    assert.match(prompt, /Do not tell the candidate to prepare, apply, review, elaborate, ensure, or speak to anything/);
+    assert.match(prompt, /Do not calculate years from a date range/);
+    assert.match(prompt, /Do not write a number that is not already written/);
+    assert.doesNotMatch(prompt, /headers: PROFILE FIT, ROLES TO TARGET, WHAT TO LEAD WITH, WATCH OUT FOR, FIRST MOVE/);
+    assert.match(openingInstruction("research", entity), /Do not write a next step/);
+    assert.match(openingInstruction("research", entity), /Do not use the word showcase/);
   }],
   ["the Job Search Agent FAQ matches the first-click behaviour", () => {
     const faq = jobSearchAgentFaqPlainText();

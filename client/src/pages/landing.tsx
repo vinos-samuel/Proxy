@@ -324,9 +324,9 @@ export default function LandingPage() {
         <h2 className="site-display landing-h2">Show how you work, not just where you've worked.</h2>
         <p className="landing-sub">A CV is easy to skim. A card is a short story of a problem you solved, written once, in your words.</p>
         <div className="landing-card-points">
-          <article className="site-card"><h3>A CV says where. A card shows how.</h3><p>A CV lists employers and dates. A card is the problem, what you did, and what changed.</p></article>
-          <article className="site-card"><h3>Write the story once.</h3><p>You write it in your own words and mark it accurate. The page and the chat use only that.</p></article>
-          <article className="site-card"><h3>Start with one card.</h3><p>One real piece of work is enough. Add more later if you want to show range.</p></article>
+          <article className="site-card"><h3>A CV says where. A card shows how.</h3><p>A CV lists roles. A card walks through one real piece of work: what was happening, what you did, and what changed. That is what a hiring manager already asks about in the interview.</p></article>
+          <article className="site-card"><h3>Write the story once.</h3><p>You would prepare this for interviews anyway. Do it early. When a recruiter asks your page about that work, it can answer from the card you approved.</p></article>
+          <article className="site-card"><h3>Start with one card.</h3><p>One short sitting is enough to finish the first. Then add 3 cards to show range — different problems, not three versions of the same story.</p></article>
         </div>
         <ol className="landing-steps">
           <li><span className="landing-step-n">1</span><h3>Pick one piece of work</h3><p>Choose something real from the CV page, or add your own.</p></li>

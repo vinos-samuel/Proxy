@@ -304,6 +304,13 @@ export function cardsForHowIWork(document: ProfileDocument): ProfileDocument["pr
   });
 }
 
+// A decimal such as 3.2 is not the end of a sentence.
+export function workTitleFromText(value: string): string {
+  const clean = value.trim();
+  const firstClause = clean.split(/(?<!\d)\.(?!\d)|[;:\n]/)[0]?.trim() || clean;
+  return firstClause.split(/\s+/).slice(0, 12).join(" ").replace(/[.!?]+$/, "").slice(0, 180);
+}
+
 export function closedCardLines(project: { outcome?: string; summary?: string; role?: string; company?: string; skills?: string[] }) {
   return {
     preview: project.outcome?.trim() || project.summary?.trim() || "",

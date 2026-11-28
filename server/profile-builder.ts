@@ -1,8 +1,9 @@
 import type { ParsedResume } from "./ai-processor";
-import type {
-  ImprovementProposal,
-  ImprovementQuestion,
-  ProfileDocument,
+import {
+  workTitleFromText,
+  type ImprovementProposal,
+  type ImprovementQuestion,
+  type ProfileDocument,
 } from "@shared/profile-document";
 import { hasConfirmedPaidTier } from "@shared/plan-access";
 
@@ -140,8 +141,7 @@ export function buildProfileDocument(parsed: ParsedResume, preview: Preview): Pr
   // leave company/role attribution unspecified until the owner confirms it.
   const projects: ProfileDocument["projects"] = (parsed.achievements || []).slice(0, 3).map((achievement, index) => {
     const clean = achievement.trim().slice(0, 900);
-    const firstClause = clean.split(/[.;:\n]/)[0]?.trim() || clean;
-    const title = firstClause.split(/\s+/).slice(0, 12).join(" ").replace(/[.!?]+$/, "");
+    const title = workTitleFromText(clean);
     return {
       id: stableId("project", index),
       title: title.slice(0, 180) || `Selected work ${index + 1}`,

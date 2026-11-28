@@ -346,6 +346,20 @@ export function getImprovementCandidates(document: ProfileDocument): Improvement
       });
     }
 
+    const learnedId = `project:${project.id}:learned`;
+    if (project.outcome?.trim() && !project.learned?.trim() && !answered.has(learnedId) && !skipped.has(learnedId)) {
+      candidates.push({
+        id: learnedId,
+        section: "project",
+        targetId: project.id,
+        field: "learned",
+        label,
+        ...sourceFields,
+        question: "What did not go as you expected, or what would you do differently next time? A sentence is enough.",
+        priority: 87 - index,
+      });
+    }
+
     const coreComplete = Boolean(project.challenge?.trim() && project.contribution?.trim() && project.outcome?.trim());
     const decisionId = `project:${project.id}:decision`;
     if (coreComplete && !answered.has(decisionId) && !skipped.has(decisionId)) {
@@ -486,6 +500,9 @@ export function applyProposal(document: ProfileDocument, proposal: ImprovementPr
       const field = proposal.field;
       if (field === "challenge" || field === "contribution" || field === "outcome" || field === "learned") {
         project[field] = proposal.proposed.slice(0, 900);
+      }
+      if (field === "outcome" && !project.evidenceNote?.trim()) {
+        project.evidenceNote = proposal.answer.trim().slice(0, 900);
       }
       project.sourceIds = Array.from(new Set([...project.sourceIds, answerSourceId]));
     }

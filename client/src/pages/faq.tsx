@@ -15,10 +15,11 @@ export default function FAQPage() {
   const faqs: FaqItem[] = [
     {
       q: "What does Proxy make?",
-      plainText: "Proxy turns your CV and experience into a professional evidence page you can share with employers, clients, or people making introductions. You see a finished first page quickly, improve selected sections, approve the exact public version, and choose whether to enable an AI explorer.",
+      plainText: "Proxy turns your CV and experience into a professional evidence page you can share with employers, clients, or people making introductions. You can publish it as a quick page with no cards, or add work cards: short stories of how you solved something, in your words. Draft cards stay off the live page until you mark them accurate and publish. You see a finished first page quickly, improve selected sections, approve the exact public version, and choose whether to enable an AI explorer.",
       a: (
         <div className="space-y-4">
           <p>Proxy creates a <strong className="text-black">professional evidence page</strong> from your CV and the experience you choose to add.</p>
+          <p>You can publish it as a quick page with no cards, or add work cards: short stories of how you solved something, in your words. Draft cards stay off the live page until you mark them accurate and publish.</p>
           <p>You get a complete first version before answering more questions. You can improve one section at a time, edit it yourself, choose a design, and approve the exact version that becomes public.</p>
           <p>The <strong className="text-black">Ask about my work</strong> AI explorer is on by default for new pages. You can turn it off in Settings at any time.</p>
         </div>
@@ -403,10 +404,12 @@ export default function FAQPage() {
     },
     {
       q: "What's shipped so far on Proxy?",
-      plainText: "Referral attribution (track signups from your personal referral link), basic profile analytics (view counts and visitor questions), tightened AI explorer instructions, suggested question chips on portfolio pages, and full blog SEO with structured data so articles rank on Google and get parsed by AI agents. We announce new features in product updates as they ship.",
+      plainText: "Quick page — publish your CV as a web page with no cards required. Work cards — short stories of real work; drafts stay private until you mark them accurate and publish. Referral attribution (track signups from your personal referral link), basic profile analytics (view counts and visitor questions), tightened AI explorer instructions, suggested question chips on portfolio pages, and full blog SEO with structured data so articles rank on Google and get parsed by AI agents. We announce new features in product updates as they ship.",
       a: (
         <div className="space-y-4">
           <ul className="space-y-2 ml-1">
+            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Quick page</strong> — publish your CV as a web page with no cards required</span></li>
+            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Work cards</strong> — short stories of real work; drafts stay private until you mark them accurate and publish</span></li>
             <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Referral attribution</strong> — every published profile gets a personal referral link; track how many people sign up from your recommendation</span></li>
             <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Basic profile analytics</strong> — view counts and the questions visitors ask through your page, shown on your dashboard</span></li>
             <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span><strong className="text-black">Tightened AI explorer instructions</strong> — stricter grounding, false-premise correction, and explicit no-fabrication instructions</span></li>

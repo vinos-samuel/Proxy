@@ -80,6 +80,9 @@ export function stripModelSlop(text: string): string {
   // but..." loses the middle words and the visitor sees "That's a , but".
   out = out.replace(/\bThat'?s a great question[,.!]?\s*/gi, "");
   out = out.replace(/(^|[.!?]\s+|\n+)Great question[.!,]+(?:\s+|$)/gi, "$1");
+  // "That's a great question, but..." leaves a leading But. Drop it.
+  out = out.replace(/^(?:but|however)\b[,:]?\s+/i, "");
+  out = out.replace(/\*\*/g, "");
   out = out.replace(/\bLet me walk you through[^.\n]*[.!]?\s*/gi, "");
   out = out.replace(/\bThe key insight is[,:]?\s*/gi, "");
   out = out.replace(/\bI have direct experience here from my Netflix work[.!]?\s*/gi, "");

@@ -30,6 +30,33 @@ export function ungroundedNumbers(answer: string, source: string): string[] {
 
 export const UNGROUNDED_NUMBER_REPLY = "I don't have that figure on my page. I can only use numbers that are already written there.";
 
+export const GOAL_NOT_ON_PAGE = "What I want next isn't written on this page. Connect with me directly for that.";
+
+const NEXT_QUESTION = /\b(what do you want to do next|what(?:'s| is) next|what are you looking for|where do you want to go|career goals?)\b/i;
+const GOAL_ON_PAGE = /\b(looking for|next role|career goal|i want to|i(?:'m| am) seeking|drawn to)\b/i;
+const PREFERENCE_SENTENCE = /\b(i(?:'m| am) looking for|i(?:'m| am) seeking|i(?:'d| would) like (?:a|my next)|i want (?:a |my next |to (?:move|find|lead|join))|ideally\b|i(?:'m| am) drawn to|the kind of (?:work|role)|a role where|next challenge)\b/i;
+
+function alreadyDeclinesGoal(text: string): boolean {
+  return /\b(not|isn'?t|is not)\b[^.]{0,80}\b(covered|written|on (this|my) page)\b/i.test(text)
+    && /\b(contact|connect|reach out|ask directly)\b/i.test(text);
+}
+
+// A "what next" answer may repeat a goal only when the profile already states one.
+// Otherwise drop the preference and say it is not on the page.
+export function retainStatedGoals(question: string, answer: string, source: string): string {
+  if (!NEXT_QUESTION.test(question) || GOAL_ON_PAGE.test(source)) return answer;
+  const rest = answer
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence && !PREFERENCE_SENTENCE.test(sentence))
+    .join(" ")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+  if (alreadyDeclinesGoal(rest)) return rest;
+  if (!rest) return GOAL_NOT_ON_PAGE;
+  return `${GOAL_NOT_ON_PAGE} ${rest}`;
+}
+
 export const APPROVED_CARD_RULES = `If the question is about how this person works, answer from the howIWork text and name at most one piece of work by its title.
 If the question is about a piece of work, answer from that work and include a distinctive phrase from its title, such as several words in a row or the number with the word beside it.
 If the question asks about office politics, private numbers, what a manager thought, compensation, or whether to hire them, give the one-line outcome from that work when it is written above, then invite the visitor to use the contact option. Do not expand.`;

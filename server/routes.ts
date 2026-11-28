@@ -28,7 +28,7 @@ import { registerProfileBuilderRoutes } from "./profile-builder-routes";
 import { profileDocumentSchema, selectPublicProfileDocument, chatContextDocument, approvedBotBackground } from "@shared/profile-document";
 import { getPublicationAccess } from "./profile-builder";
 import { hasConfirmedPaidTier, hasJobSearchAccess, recentQuestionsForPlan } from "@shared/plan-access";
-import { APPROVED_CARD_RULES, cardIdFromAnswer, retainSupportedAnswer } from "@shared/answer-grounding";
+import { APPROVED_CARD_RULES, cardIdFromAnswer, retainStatedGoals, retainSupportedAnswer } from "@shared/answer-grounding";
 import { reviewedPriyaAnswer } from "@shared/priya-reviewed-answers";
 
 // Tier → Stripe Price ID mapping. Concierge is retired; Pro is the only paid tier.
@@ -1331,7 +1331,7 @@ export async function registerRoutes(
 Hard rules — follow every one:
 1. Never state a number, date, employer, title, or fact that is not written in the APPROVED PROFILE or APPROVED BACKGROUND Q&A. Every digit you write must already appear as that same number in the source. Do not round, estimate, average, sum, split a total by country, or infer a number that isn't explicitly there.
 2. Never combine two separate facts into a new claim that source doesn't make (e.g. don't add durations, totals, or comparisons never stated).
-3. If neither source contains enough to answer, say plainly that it isn't covered here, and invite the visitor to use the contact option — do not guess, hedge with a vague generality, or pad the answer to sound complete.
+3. If neither source contains enough to answer, say plainly that it isn't covered here, and invite the visitor to use the contact option — do not guess, hedge with a vague generality, or pad the answer to sound complete. If asked what they want next, say a goal only when that goal is written above. If it is not, say so and point to contact. Do not invent a preferred role or kind of work.
 4. Keep it concise and in plain language. No bullet-point resume recitation — answer the actual question in full sentences. Never use markdown syntax characters (no **bold**, no "-" or numbered list markers, no # headers) — this chat does not render them, they would show up as literal clutter. If the answer covers more than one distinct point, separate them with a blank line between paragraphs instead of cramming everything into one block.
 5. ${APPROVED_CARD_RULES}
 ${background.tone ? `6. Match this description of how they want to sound, without inventing anything it doesn't license: "${background.tone.replace(/[\r\n]+/g, " ").replace(/[`{}\\]/g, "").slice(0, 400)}"` : ""}
@@ -1346,7 +1346,8 @@ ${background.qaText ? `\nAPPROVED BACKGROUND Q&A (written by the owner for exact
           : "That is something I would be happy to discuss directly.";
         const drafted = sanitizeChatAnswer(rawResponse);
         const approvedSource = `${JSON.stringify(chatDocument)}\n${background.qaText || ""}`;
-        const responseText = retainSupportedAnswer(drafted, approvedSource);
+        const supported = retainSupportedAnswer(drafted, approvedSource);
+        const responseText = retainStatedGoals(safeMessage, supported, approvedSource);
         storage.saveChatMessage(profile.id, safeMessage).catch(() => {});
         return res.json({ content: responseText, cardId: cardIdFromAnswer(responseText, chatDocument.projects) });
       }
@@ -1463,7 +1464,7 @@ ${background.qaText ? `\nAPPROVED BACKGROUND Q&A (written by the owner for exact
         questionnaireData?.step7?.writingSample,
         JSON.stringify(questionnaireData?.portfolioData || {}),
       ].filter(Boolean).join("\n");
-      const responseText = retainSupportedAnswer(drafted, approvedSource);
+      const responseText = retainStatedGoals(String(message), retainSupportedAnswer(drafted, approvedSource), approvedSource);
       res.json({ content: responseText });
 
       // Fire-and-forget: save question for analytics

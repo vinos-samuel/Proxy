@@ -3,7 +3,7 @@ import { applyProposal, buildProfileDocument, conciseHeadline, getImprovementCan
 import { cardsForHowIWork, chatContextDocument, closedCardLines, markProjectAccurate, profileDocumentSchema, selectPublicProfileDocument, toPublicProfileDocument, workTitleFromText, type ProfileDocument } from "../shared/profile-document";
 import { mergeProfileDocuments, setDocumentPath } from "../client/src/lib/profile-document-merge";
 import { hasConfirmedPro, hasJobSearchAccess, recentQuestionsForPlan, JOB_SEARCH_TRIAL_MS } from "../shared/plan-access";
-import { cardIdFromAnswer, retainSupportedAnswer, rewriteWithoutNewNumbers, ungroundedNumbers, UNGROUNDED_NUMBER_REPLY } from "../shared/answer-grounding";
+import { cardIdFromAnswer, retainStatedGoals, retainSupportedAnswer, rewriteWithoutNewNumbers, ungroundedNumbers, UNGROUNDED_NUMBER_REPLY } from "../shared/answer-grounding";
 import { sanitizeChatAnswer } from "../server/chat-sanitize";
 import { PRIYA_PAGE_FACTS, PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "../shared/priya-reviewed-answers";
 import { guestDraftTtlMs, GUEST_DRAFT_TTL_MS, GUEST_DRAFT_EMAIL_TTL_MS } from "../shared/guest-draft";
@@ -280,9 +280,27 @@ const checks: Array<[string, () => void]> = [
     assert.deepEqual(cardsForHowIWork(value).map((project) => project.id), ["c"]);
   }],
   ["a great-question opener does not leave a broken sentence", () => {
-    assert.equal(sanitizeChatAnswer("That's a great question, but it's not covered here. Reach out directly."), "But it's not covered here. Reach out directly.");
+    assert.equal(sanitizeChatAnswer("That's a great question, but it's not covered here. Reach out directly."), "It's not covered here. Reach out directly.");
+    assert.equal(sanitizeChatAnswer("However, the migration moved 40,000 accounts."), "The migration moved 40,000 accounts.");
     assert.equal(sanitizeChatAnswer("Great question. I led the migration for 40,000 accounts."), "I led the migration for 40,000 accounts.");
     assert.equal(sanitizeChatAnswer("I led the migration. Great question to ask next time."), "I led the migration. Great question to ask next time.");
+    assert.equal(sanitizeChatAnswer("I migrated **40,000** accounts and cut **3.2 days**."), "I migrated 40,000 accounts and cut 3.2 days.");
+  }],
+  ["what next does not invent a preference", () => {
+    const source = "I run a 140-person team across 3 countries.";
+    const kept = retainStatedGoals(
+      "What do you want to do next?",
+      "I run a 140-person team. I'm looking for a role in scaling or a turnaround.",
+      source,
+    );
+    assert.match(kept, /isn't written on this page/);
+    assert.match(kept, /Connect with me directly/);
+    assert.match(kept, /140-person team/);
+    assert.doesNotMatch(kept, /looking for|scaling|turnaround/);
+    assert.equal(
+      retainStatedGoals("What do you want to do next?", "I want to build an operations team in a new market.", "Career goal: I want to build an operations team in a new market."),
+      "I want to build an operations team in a new market.",
+    );
   }],
   ["a decimal does not cut a work title short", () => {
     assert.equal(workTitleFromText("Cut average settlement turnaround from 3.2 days to 1.1 days by redesigning the exceptions queue"), "Cut average settlement turnaround from 3.2 days to 1.1 days by redesigning");

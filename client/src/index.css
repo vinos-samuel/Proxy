@@ -1085,6 +1085,11 @@
 .landing-card-points article { padding: 20px; }
 .landing-card-points h3 { margin: 0 0 8px; font: 500 20px/1.25 var(--brand-serif); }
 .landing-card-points p { margin: 0; color: var(--brand-ink-2); font-size: 15.5px; line-height: 1.55; }
+.landing-agent-list { list-style: none; margin: 0 0 22px; padding: 0; display: grid; gap: 10px; max-width: 40rem; font-size: 16px; line-height: 1.45; color: var(--brand-ink-2); }
+.landing-agent-list li { display: flex; gap: 10px; align-items: flex-start; }
+.landing-agent-list svg { width: 16px; height: 16px; margin-top: 4px; color: var(--brand-sage); flex: none; }
+.landing-agent-list span { min-width: 0; }
+.landing-agent-price { margin: 4px 0 18px; font: 500 22px/1.3 var(--brand-serif); color: var(--brand-ink); }
 
 .landing-designs { display: grid; grid-template-columns: 230px minmax(0,1fr); gap: 24px; align-items: start; }
 @media (max-width: 800px) { .landing-designs { grid-template-columns: 1fr; } }

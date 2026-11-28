@@ -4,6 +4,7 @@ import { SiteFooter, SiteNav } from "@/components/SiteChrome";
 import { Link } from "wouter";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MessageSquare } from "lucide-react";
+import { JOB_SEARCH_AGENT_FAQ, jobSearchAgentFaqPlainText } from "@shared/job-search-agent";
 
 interface FaqItem {
   q: string;
@@ -192,18 +193,14 @@ export default function FAQPage() {
     },
     {
       q: "What is the Job Search Agent?",
-      plainText: "The Job Search Agent is included with Pro ($49, paid once). For 48 hours after you create an account, you can use it before you pay. You add companies, contacts, and applications. From the background saved on your account, it drafts a cover letter, a message to a contact, a follow-up, interview practice one question at a time, a thank-you note, and notes on an offer. For a company you add, it writes where you fit, roles to aim at, and a first step, using the name and notes you enter.",
+      plainText: jobSearchAgentFaqPlainText(),
       a: (
         <div className="space-y-4">
-          <p>The Job Search Agent is included with Pro ($49, paid once). For 48 hours after you create an account, you can use it before you pay.</p>
-          <p>You add companies, contacts, and applications. From the background saved on your account, it drafts:</p>
+          {JOB_SEARCH_AGENT_FAQ.intro.map((point) => <p key={point}>{point}</p>)}
           <ul className="space-y-2 ml-1">
-            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>A cover letter for a role you add</span></li>
-            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>A message to a contact, and a shorter follow-up</span></li>
-            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>Interview practice, one question at a time</span></li>
-            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>A thank-you note after you say who you met</span></li>
-            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>Notes on an offer: a counter, what to say, and what to leave out</span></li>
-            <li className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>For a company you add: where you fit, roles to aim at, and a first step, from the name and notes you enter</span></li>
+            {JOB_SEARCH_AGENT_FAQ.drafts.map((point) => (
+              <li key={point} className="flex gap-2"><span className="text-[#2F5D4C] font-bold">-</span><span>{point}</span></li>
+            ))}
           </ul>
         </div>
       ),

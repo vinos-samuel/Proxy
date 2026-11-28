@@ -9,7 +9,7 @@ import { renderAnswer } from "@/lib/renderAnswer";
 import { setPendingCvUpload } from "@/lib/pending-cv-upload";
 import { visualProfileFixture } from "@/lib/profile-document-fixtures";
 import { useAuth } from "@/lib/auth";
-import { PRO_BUTTON_LABEL, PRO_FEATURES, PRO_FOR } from "@/lib/pro-plan";
+import { JOB_SEARCH_AGENT_HOME, PRO_BUTTON_LABEL, PRO_FEATURES, PRO_FOR } from "@/lib/pro-plan";
 import { PRIYA_REVIEWED_QUESTIONS, reviewedPriyaAnswer } from "@shared/priya-reviewed-answers";
 import type { ProfileStyle } from "@shared/profile-document";
 
@@ -335,6 +335,19 @@ export default function LandingPage() {
         </ol>
         <p><Link href="/try" className="site-btn" onClick={() => captureLandingCard()}>Start with one card</Link></p>
         <p className="landing-trust">Nothing goes public until you publish.</p>
+      </section>
+
+      <section className="landing-section" id="job-search-agent">
+        <p className="site-eyebrow">{JOB_SEARCH_AGENT_HOME.eyebrow}</p>
+        <h2 className="site-display landing-h2">{JOB_SEARCH_AGENT_HOME.headline}</h2>
+        <p className="landing-sub">{JOB_SEARCH_AGENT_HOME.subhead}</p>
+        <ul className="landing-agent-list">
+          {JOB_SEARCH_AGENT_HOME.bullets.map((item) => (
+            <li key={item}><Check /><span>{item}</span></li>
+          ))}
+        </ul>
+        <p className="landing-agent-price">{JOB_SEARCH_AGENT_HOME.price}</p>
+        <p><Link className="site-btn" href={proHref} data-testid="button-job-search-agent">{PRO_BUTTON_LABEL}</Link></p>
       </section>
 
       {/* 3. Designs */}

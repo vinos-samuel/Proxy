@@ -8,7 +8,8 @@ import {
   AlertCircle, ArrowLeft, Bot, Send, Loader2,
 } from "lucide-react";
 import type { JobCompany, JobContact, JobApplication } from "@shared/schema";
-import { hasConfirmedPro, hasJobSearchAccess, jobSearchTrialActive } from "@shared/plan-access";
+import { hasConfirmedPro, jobSearchTrialActive } from "@shared/plan-access";
+import { contactShowsFollowUp, showJobSearchAgentBadge } from "@shared/job-search-agent";
 import { PRO_BUTTON_LABEL } from "@/lib/pro-plan";
 
 type JobContactWithCompany     = JobContact     & { companyName: string | null };
@@ -516,6 +517,7 @@ function ContactsTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t: Age
               <div className="flex gap-2 ml-4 flex-shrink-0 flex-wrap justify-end">
                 <button
                   onClick={() => onOpenAgent("outreach", "contact", `${c.name}${c.companyName ? ` @ ${c.companyName}` : ""}`, {
+                    contactId: c.id,
                     name: c.name, title: c.title, companyName: c.companyName,
                     email: c.email, linkedinUrl: c.linkedinUrl, notes: c.notes,
                     lastOutreachDate: c.lastOutreachDate, responseReceived: c.responseReceived,
@@ -526,15 +528,17 @@ function ContactsTab({ onOpenAgent }: { onOpenAgent: (a: AgentActionType, t: Age
                 >
                   <Bot className="h-3 w-3" /> OUTREACH
                 </button>
-                {c.lastOutreachDate && !c.responseReceived && (
+                {contactShowsFollowUp(c) && (
                   <button
                     onClick={() => onOpenAgent("follow-up", "contact", `${c.name}${c.companyName ? ` @ ${c.companyName}` : ""}`, {
+                      contactId: c.id,
                       name: c.name, title: c.title, companyName: c.companyName,
                       email: c.email, linkedinUrl: c.linkedinUrl, notes: c.notes,
-                      lastOutreachDate: c.lastOutreachDate, responseNotes: c.responseNotes,
+                      lastOutreachDate: c.lastOutreachDate, responseReceived: c.responseReceived,
+                      responseNotes: c.responseNotes,
                     })}
                     className={btnAgent}
-                    title="Write a follow-up — they haven't responded yet"
+                    title="Write a follow-up for this contact"
                   >
                     <Bot className="h-3 w-3" /> FOLLOW UP
                   </button>
@@ -890,7 +894,7 @@ export default function JobSearchPage() {
   const isPro = hasConfirmedPro(plan);
   const isWithin48Hours = jobSearchTrialActive(user?.createdAt ?? null);
   const accessKnown = !authLoading && !profileLoading;
-  const hasAccess = accessKnown && hasJobSearchAccess(plan, user?.createdAt ?? null);
+  const hasAccess = accessKnown && showJobSearchAgentBadge(plan, user?.createdAt ?? null);
 
   async function openAgent(
     actionType: AgentActionType,
@@ -908,6 +912,9 @@ export default function JobSearchPage() {
         messages: [{ role: "assistant", content: body.message }],
         isLoading: false,
       }));
+      if (actionType === "outreach") {
+        queryClient.invalidateQueries({ queryKey: ["/api/crm/contacts"] });
+      }
     } catch (err) {
       // Extract the real server error message for diagnosis
       let display = "Something went wrong starting the agent.";
@@ -954,9 +961,11 @@ export default function JobSearchPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 mono text-xs font-bold text-[#22C55E] bg-black px-3 py-1.5 border-[2px] border-black">
-              <Bot className="h-3 w-3" /> AGENT ACTIVE
-            </div>
+            {hasAccess && (
+              <div className="flex items-center gap-1.5 mono text-xs font-bold text-[#22C55E] bg-black px-3 py-1.5 border-[2px] border-black">
+                <Bot className="h-3 w-3" /> AGENT ACTIVE
+              </div>
+            )}
             <div className="mono text-xs text-black/50 uppercase tracking-widest">{user?.name}</div>
           </div>
         </div>

@@ -8,7 +8,27 @@ At the end of every session, update the "Current Sprint" block above with:
 - What's next
 - Any new decisions made
 
-## Current Sprint — 2026-11-16 (Session 16)
+## Current Sprint — 2026-11-28 (Job Search Agent drafts)
+
+**Status:** On branch `cursor/job-search-agent-drafts-f1d4`, stacked on PR #11 (`cursor/two-track-quick-page-91a8`). Not merged. Not deployed. No schema change.
+
+**Completed:**
+- The private Job Search Agent reads the page document (working, then active, then the old questionnaire): roles, employers, dates, results, skills, summary, approved cards, and draft cards labelled private-draft
+- Draft cards stay out of the public page chat
+- First click writes the draft from what is saved. A missing job description or missing offer numbers asks only for that
+- Follow-up shows for every contact. Saving an outreach draft sets the outreach date when it was empty. Follow-up still works without a date
+- The AGENT ACTIVE badge shows only during the 48-hour trial or when Pro is paid
+- The FAQ answer "What is the Job Search Agent?" matches that behaviour
+- A thank-you with no interview notes stays on the greeting, the saved role, and one profile result. Company fit does not add a next step or filler such as "showcase"
+- Homepage section after Work cards uses the approved Job Search Agent copy and the existing Pro button
+
+**Where we stopped:** Live Gemini check used `gemini-2.5-flash` at `generativelanguage.googleapis.com/v1beta`. Thank-you and company fit were each run 3 times after the tighter prompts. Unit checks are in `npm run test:profile-builder`. Head `9bda3d5` plus this sprint note.
+
+**What's next:** Vinos reviews the stacked PR. No production SQL. No deploy until he says so.
+
+**Decisions:** Card fields stay on the project object in the page JSON. The agent may use a private-draft card in the candidate's own draft and must flag a fact that exists only there as unverified. A fact that is also on a saved role is confirmed.
+
+## Previous Sprint — 2026-11-16 (Session 16)
 **Status:** Audit fixes are on `main` and deployed (`0b60de7`, `ae50eec`). PR #2 is merged with review fixes on local branch `pro-pay-merge-fixes` (`69a318f`). **Not pushed, not on `main`, not deployed.** Schema change: 3 new columns, which must be added in production BEFORE deploy. Typecheck unchanged (40 pre-existing errors), `npm run test:profile-builder` 48/48, `npm run build` passes. Nothing run against a live server.
 
 **Completed:**

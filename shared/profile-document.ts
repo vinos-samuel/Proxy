@@ -304,6 +304,14 @@ export function cardsForHowIWork(document: ProfileDocument): ProfileDocument["pr
   });
 }
 
+export function closedCardLines(project: { outcome?: string; summary?: string; role?: string; company?: string; skills?: string[] }) {
+  return {
+    preview: project.outcome?.trim() || project.summary?.trim() || "",
+    byline: [project.role?.trim(), project.company?.trim()].filter(Boolean).join(" · "),
+    skills: (project.skills || []).map((skill) => skill.trim()).filter(Boolean).slice(0, 4),
+  };
+}
+
 export function markProjectAccurate(document: ProfileDocument, projectId: string, approvedAt: string): ProfileDocument {
   return {
     ...document,

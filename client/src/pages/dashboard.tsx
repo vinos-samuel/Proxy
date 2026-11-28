@@ -204,7 +204,7 @@ export default function DashboardPage() {
             <h1 className="site-display dash-h1">Your page is ready.</h1>
             <p className="site-muted">It stays private until you publish. Your link will be <b>{pageUrlLabel}</b>.</p>
             <div className="site-card dash-offer">
-              <div className="landing-price-head"><h3>Pro</h3><span>paid once</span></div>
+              <div className="landing-price-head"><h3>Pro</h3><b>$49</b><span>paid once</span></div>
               <p>{PRO_FOR}</p>
               <ul>
                 {PRO_FEATURES.map((feature) => <li key={feature}><Check /> {feature}</li>)}
@@ -239,7 +239,7 @@ export default function DashboardPage() {
               {isFree ? (
                 <button type="button" className="dash-stat-lock" onClick={() => setShowUpgrade(true)}>
                   <Lock />
-                  <span><b>See what they asked</b>Pro, paid once, includes unlimited edits too</span>
+                  <span><b>See what they asked</b>Pro · $49 once, unlimited edits too</span>
                 </button>
               ) : (
                 <div><b>Pro</b><span>unlimited edits</span></div>

@@ -360,7 +360,7 @@ export default function LandingPage() {
         <h2 className="site-display landing-h2">Start free. Pay once if you want more.</h2>
         <div className="landing-prices">
           <div className="site-card landing-price" data-testid="card-tier-free">
-            <div className="landing-price-head"><h3>Free</h3></div>
+            <div className="landing-price-head"><h3>Free</h3><b>$0</b></div>
             <ul>
               <li><Check /> Your page and your own link</li>
               <li><Check /> Visitors can ask your page questions</li>
@@ -369,7 +369,7 @@ export default function LandingPage() {
             </ul>
           </div>
           <div className="site-card landing-price landing-price--pro" data-testid="card-tier-pro">
-            <div className="landing-price-head"><h3>Pro</h3><span>paid once</span></div>
+            <div className="landing-price-head"><h3>Pro</h3><b data-testid="text-price-pro">$49</b><span>paid once</span></div>
             <p className="landing-price-for">{PRO_FOR}</p>
             <ul>
               {PRO_FEATURES.map((feature) => <li key={feature}><Check /> {feature}</li>)}

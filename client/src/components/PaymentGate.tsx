@@ -20,7 +20,7 @@ const tiers = [
     key: "free",
     name: "FREE",
     tierLabel: "STARTER",
-    price: "Free",
+    price: "$0",
     icon: Zap,
     features: [
       "Professional page with optional AI explorer",
@@ -34,7 +34,7 @@ const tiers = [
     key: "pro",
     name: "PRO",
     tierLabel: "MOST_POPULAR",
-    price: "Paid once",
+    price: "$49",
     icon: Star,
     popular: true,
     features: [
@@ -133,7 +133,7 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
           <div className="site-card pg-tier pg-tier--pro">
             <div className="pg-tier-top">
               <h3>Pro</h3>
-              <b>Paid once</b>
+              <b>$49</b>
               <span>paid once</span>
             </div>
             <p>{PRO_FOR}</p>
@@ -191,8 +191,8 @@ export default function PaymentGate({ profileId, username, hideFree }: PaymentGa
           <div className="site-card pg-tier" data-testid={`card-tier-${freeTier.key}`}>
             <div className="pg-tier-top">
               <h3>Free</h3>
-              <b>Free</b>
-              <span>no credit card</span>
+              <b>$0</b>
+              <span>no card needed</span>
             </div>
             <ul>{freeTier.features.map((feature) => <li key={feature}><Check /> {feature}</li>)}</ul>
             <button type="button" className="site-btn site-btn--quiet" onClick={() => handlePublish(freeTier.key)} disabled={loading} data-testid={`button-checkout-${freeTier.key}`}>

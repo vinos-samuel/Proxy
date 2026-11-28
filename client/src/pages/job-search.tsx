@@ -972,7 +972,7 @@ export default function JobSearchPage() {
           <div className="border-[4px] border-black bg-[#FDE68A] p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center max-w-xl mx-auto mt-12">
             <AlertCircle className="h-10 w-10 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-3">Job search is part of Pro</h2>
-            <p className="text-black/70 mb-6">Pro is paid once. Stripe shows the charge before you pay. The Job Search Agent keeps the companies, contacts, and applications you add. From the background on your account it drafts cover letters, outreach, follow-ups, interview practice, thank-you notes, and notes on an offer.</p>
+            <p className="text-black/70 mb-6">Pro is $49, paid once. The Job Search Agent keeps the companies, contacts, and applications you add. From the background on your account it drafts cover letters, outreach, follow-ups, interview practice, thank-you notes, and notes on an offer.</p>
             <button onClick={() => navigate("/dashboard#upgrade")} className={btnPrimary + " text-base px-8 py-3"}>
               {PRO_BUTTON_LABEL}
             </button>
@@ -984,7 +984,7 @@ export default function JobSearchPage() {
             {/* Trial banner for free users in 48h window */}
             {isWithin48Hours && !isPro && (
               <div className="border-[3px] border-black bg-[#FDE68A] px-6 py-4 mb-6 flex items-center justify-between gap-4 flex-wrap shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <p className="font-bold text-sm">You can use the Job Search Agent for 48 hours after you create your account. Pro is paid once, and keeps it after that.</p>
+                <p className="font-bold text-sm">You can use the Job Search Agent for 48 hours after you create your account. Pro is $49, paid once, and keeps it after that.</p>
                 <button onClick={() => navigate("/dashboard#upgrade")} className={btnPrimary + " text-sm px-4 py-2"}>
                   {PRO_BUTTON_LABEL}
                 </button>

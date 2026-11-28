@@ -239,7 +239,7 @@ export function nudgeEditWindowTemplate(name: string, upgradeUrl: string): strin
       </tr>
     </table>
 
-    ${ctaButton(upgradeUrl, "Upgrade to Pro")}
+    ${ctaButton(upgradeUrl, "Upgrade to Pro — $49 →")}
     <p style="font-size:13px;color:#888888;margin:0;line-height:1.6;">
       Your page stays live. Upgrade when you need to publish changes.
     </p>

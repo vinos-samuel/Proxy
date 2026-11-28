@@ -967,7 +967,7 @@ export default function BuilderPage() {
         {error && <p className="builder-error" role="alert">{error}</p>}
         {!state.hasPublished && !state.paidPlan ? (
           <div className="builder-pro-offer">
-            <p><b>Pro</b> <span>paid once</span></p>
+            <p><b>Pro</b> <span>$49, paid once</span></p>
             <p>{PRO_FOR}</p>
             <ul>
               {PRO_FEATURES.map((feature) => <li key={feature}><Check /> {feature}</li>)}

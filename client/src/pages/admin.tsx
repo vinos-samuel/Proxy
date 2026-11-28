@@ -711,7 +711,7 @@ function OutreachTab({ customers }: { customers: (Customer & { profile?: TwinPro
             <Textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              placeholder={"A few things changed on Proxy since you signed up...\n\nYou can publish a CV as a web page with no cards. Work cards are optional.\n\nNothing goes public until you publish."}
+              placeholder={"A few things changed on Proxy since you signed up...\n\nThe price dropped. Pro is now $49.\n\nWe also launched a simpler evidence-page builder."}
               rows={12}
               className="bg-white/5 border-white/10 font-mono text-sm"
             />
